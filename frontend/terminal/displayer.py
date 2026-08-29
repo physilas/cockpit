@@ -6,4 +6,4 @@ class Displayer:
         self.spielplan = spielplan
 
     def display_spielplan(self):
-        
+        pass

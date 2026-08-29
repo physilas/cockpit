@@ -1,7 +1,11 @@
+import os
 import yaml
 
 def load_yaml(flughafen):
-    yaml_file = f"landungen/{flughafen}.yaml"
+    # Relativ zum Ort DIESER Datei, nicht zum aktuellen Arbeitsverzeichnis -
+    # sonst bricht es, sobald man das Skript nicht mehr aus backend/ heraus startet.
+    verzeichnis = os.path.dirname(os.path.abspath(__file__))
+    yaml_file = os.path.join(verzeichnis, "landungen", f"{flughafen}.yaml")
     with open(yaml_file, 'r') as file:
         data = yaml.safe_load(file)
     return data
