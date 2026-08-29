@@ -1,0 +1,21 @@
+# FLUGHAFEN INFORMATIONEN
+code: YUL
+bezeichnung: Montreal-Trudeau
+
+# MODULE
+module: null
+faehigkeitskarten: 0
+
+# SCHWIERIGKEIT UND LAENGE
+schwierigkeit: 0
+laenge: 7
+
+# FLUGZEUGE UND KURVEN
+flugzeuge_wuerfel_kurven_min_max:
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
