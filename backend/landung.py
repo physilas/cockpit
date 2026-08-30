@@ -88,6 +88,68 @@ class Landung():
             return False
         self.flugzeuge[index] -= 1
         return True
-        
+
+    ### ENTFERNUNGSLEISTE: INDEXIERUNG ###
+    # Konvention (User-Vorgabe): Index 0 = ganz am Anfang, weit weg vom
+    # Flughafen. Der LETZTE Index (laenge-1, bzw. -1) = der Flughafen
+    # selbst. self.entfernung startet bei self._laenge und zaehlt bei jeder
+    # Bewegung Richtung Flughafen runter.
+
+    def aktuelle_position_index(self):
+        """Index in `flugzeuge`, der der aktuellen Position entspricht."""
+        return self._laenge - self.entfernung
+
+    def ist_am_flughafen(self):
+        """True, wenn die aktuelle Position genau der Flughafen ist
+        (letztes Feld der Entfernungsleiste)."""
+        return self.aktuelle_position_index() == self._laenge - 1
+
+    def flugzeug_an_aktueller_position(self):
+        index = self.aktuelle_position_index()
+        if 0 <= index < len(self.flugzeuge):
+            return self.flugzeuge[index] > 0
+        return False
+
+    def bewege_entfernung(self, felder):
+        """Bewegt die Entfernungsleiste `felder` Felder Richtung Flughafen
+        (ausgeloest durch Triebwerke, Handbuch S.6). Bewegt sich ein Feld
+        nach dem anderen; VOR jedem Schritt wird geprueft:
+          - ist die aktuelle Position schon der Flughafen? -> Uebers-Ziel-
+            hinaus (kann nicht mehr weiter Richtung Flughafen fliegen).
+          - steht noch ein Flugzeug auf der aktuellen (zu verlassenden)
+            Position? -> Kollision.
+        Gibt (ok: bool, grund: str|None) zurueck. grund ist "kollision"
+        oder "uebers_ziel_hinaus" falls ok=False; in dem Fall wurde nicht
+        mehr weiterbewegt als bis zu diesem Fehler (das Spiel ist verloren).
+        """
+        for _ in range(felder):
+            if self.ist_am_flughafen():
+                return False, "uebers_ziel_hinaus"
+            if self.flugzeug_an_aktueller_position():
+                return False, "kollision"
+            self.reduce_entfernung(1)
+        return True, None
+
+    def entferne_flugzeug_per_funk(self, augenzahl):
+        """Zaehlt von der aktuellen Position `augenzahl` Felder Richtung
+        Flughafen (augenzahl=1 heisst: die aktuelle Position selbst) und
+        entfernt dort SOFORT ein Flugzeug, falls eins da ist (Handbuch
+        S.7). Gibt True zurueck, wenn tatsaechlich eins entfernt wurde."""
+        ziel_index = self.aktuelle_position_index() + (augenzahl - 1)
+        if ziel_index < 0 or ziel_index >= len(self.flugzeuge):
+            return False
+        return self.remove_flugzeug(ziel_index)
+
+    def keine_flugzeuge_mehr(self):
+        """Siegbedingung A (Handbuch S.11)."""
+        return sum(self.flugzeuge) == 0
+
+    def ist_am_boden(self):
+        """Das Flugzeug-Bild auf der Hoehenleiste ist erreicht (0 Fuss).
+        HINWEIS/Annahme: die Hoehenleiste zeigt 6000,5000,...,1000,0 -
+        d.h. das Flugzeug-Symbol sitzt beim letzten (0 ft) Feld. Bitte am
+        echten Brett gegenpruefen, falls es dort abweicht."""
+        return self.hoehe <= 0
+
 if __name__=='__main__':
     landung = Landung("YUL")

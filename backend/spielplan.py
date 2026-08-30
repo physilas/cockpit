@@ -30,6 +30,8 @@ class Spielplan():
         'bremse_6': ('bremsen', 2),
     }
     RUDER_FELDER = ('ruder_pilot', 'ruder_kopilot')
+    SCHUB_FELDER = ('schub_pilot', 'schub_kopilot')
+    FUNK_FELDER = ('funken_pilot', 'funken_1_kopilot', 'funken_2_kopilot')
     KAFFEE_FELDER = ('kaffee_1', 'kaffee_2', 'kaffee_3')
 
     def __init__(self, flughafen):
@@ -51,6 +53,13 @@ class Spielplan():
         self.schub_min = self.compute_schub_min()
         self.bremsen_max = self.compute_bremsen_max()
 
+        # Rundenlauf-/Sieg-Verlust-Zustand (Handbuch S.9-11).
+        self.letzte_runde = False       # Bremsen statt Aerodynamik bei Triebwerke
+        self.warteschleife = False      # zu frueh am Flughafen -> Entfernung eingefroren
+        self.letzte_geschwindigkeit = None
+        self.verloren = False
+        self.verlust_grund = None
+
     ### GETTERS ###
 
     def get_fahrwerke(self):
@@ -69,8 +78,40 @@ class Spielplan():
         return self.schub_min
     def get_bremsen_max(self):
         return self.bremsen_max
+    def get_letzte_geschwindigkeit(self):
+        return self.letzte_geschwindigkeit
+    def ist_letzte_runde(self):
+        return self.letzte_runde
+    def ist_verloren(self):
+        return self.verloren
+    def get_verlust_grund(self):
+        return self.verlust_grund
 
     ### METHODS ###
+
+    def setze_letzte_runde(self, wert=True):
+        self.letzte_runde = wert
+
+    def setze_warteschleife(self, wert=True):
+        self.warteschleife = wert
+
+    def markiere_verloren(self, grund):
+        """Setzt den Verlust-Zustand (idempotent - der erste Grund zaehlt)."""
+        if not self.verloren:
+            self.verloren = True
+            self.verlust_grund = grund
+
+    def pruefe_sieg(self):
+        """Prueft die 4 Siegbedingungen A-D (Handbuch S.11). Nur sinnvoll,
+        nachdem die als `letzte_runde` markierte Runde komplett gespielt
+        wurde (alle 8 Wuerfel platziert)."""
+        a_keine_flugzeuge = self.landung.keine_flugzeuge_mehr()
+        b_schalter_gruen = (all(s == 1 for s in self.fahrwerke)
+                             and all(s == 1 for s in self.klappen))
+        c_waagerecht = self.ruder == 0
+        d_geschwindigkeit = (self.letzte_geschwindigkeit is not None
+                              and self.letzte_geschwindigkeit <= self.bremsen_max)
+        return a_keine_flugzeuge and b_schalter_gruen and c_waagerecht and d_geschwindigkeit
 
     def activate_fahrwerk(self, index):
         erfolg = _activate(self.fahrwerke, index, sequential=False)
@@ -194,5 +235,46 @@ class Spielplan():
                 # negativ = Richtung Co-Pilot (orange). Wer den hoeheren
                 # Wuerfel platziert hat, "gewinnt" die Drehrichtung.
                 self.bewege_ruder(diff)
+                if self.ruder_im_trudeln():
+                    self.markiere_verloren("trudeln")
+
+        if feldname in self.SCHUB_FELDER:
+            self._werte_triebwerke_aus()
+
+        if feldname in self.FUNK_FELDER:
+            self.landung.entferne_flugzeug_per_funk(wuerfel.get_augenzahl())
 
         return True
+
+    def _werte_triebwerke_aus(self):
+        """Sobald der zweite Triebwerke-Wuerfel liegt: Summe bilden und je
+        nach Aerodynamik-Markern (normal) bzw. Bremsen-Marker (letzte
+        Runde) die Entfernungsleiste bewegen bzw. sofort verlieren
+        (Handbuch S.6 und S.10)."""
+        pilot_feld = self.wuerfelfelder.schub_pilot
+        kopilot_feld = self.wuerfelfelder.schub_kopilot
+        if pilot_feld.ist_frei() or kopilot_feld.ist_frei():
+            return  # erst beim zweiten Wuerfel auswerten
+
+        summe = pilot_feld.value + kopilot_feld.value
+        self.letzte_geschwindigkeit = summe
+
+        if self.letzte_runde:
+            # WICHTIG: Bremsen statt Aerodynamik (Handbuch S.10).
+            if summe > self.bremsen_max:
+                self.markiere_verloren("zu_schnell_fuer_landung")
+            return  # in der letzten Runde bewegt sich die Leiste nicht mehr
+
+        if summe < self.schub_min[0]:
+            felder = 0
+        elif summe > self.schub_min[1]:
+            felder = 2
+        else:
+            felder = 1
+
+        if felder == 0 or self.warteschleife:
+            return  # Warteschleife: "duerft die Entfernungsleiste NICHT bewegen"
+
+        ok, grund = self.landung.bewege_entfernung(felder)
+        if not ok:
+            self.markiere_verloren(grund)
