@@ -36,10 +36,20 @@ async function ladeEngine() {
 
   pyodide.FS.mkdirTree("/skyteam/backend/landungen");
   for (const [quelle, ziel] of PY_DATEIEN) {
-    const antwort = await fetch(REPO_BASIS + quelle);
+    const url = REPO_BASIS + quelle;
+    let antwort;
+    try {
+      antwort = await fetch(url);
+    } catch (netzwerkFehler) {
+      throw new Error(`Netzwerkfehler beim Laden von ${url}: ${netzwerkFehler.message}`);
+    }
     if (!antwort.ok) {
-      throw new Error(`Konnte ${quelle} nicht laden (${antwort.status}). ` +
-        "Läuft die Seite über einen lokalen/GitHub-Pages-Webserver (nicht file://)?");
+      throw new Error(
+        `Konnte ${url} nicht laden (HTTP ${antwort.status}). ` +
+        `Aufgerufene Seite: ${window.location.href} - ` +
+        "prüfe, ob genau diese URL im Repo existiert (Tippfehler/Groß-Kleinschreibung/" +
+        "fehlender Ordner) und ob die Seite über http(s):// läuft, nicht über file://."
+      );
     }
     const text = await antwort.text();
     pyodide.FS.writeFile("/skyteam/" + ziel, text);
