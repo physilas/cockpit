@@ -1,37 +1,58 @@
 from backend.spielplan import Spielplan
+from backend.regeln import RUDER_STALL_SCHWELLE
 
 
-def _schalter(zustand):
-    return "".join("*" if s else "." for s in zustand)
+def _balken(werte, aktiv_symbol="●", offen_symbol="○"):
+    return "".join(aktiv_symbol if v else offen_symbol for v in werte)
+
+
+def _wuerfel_zeile(werte, frei):
+    teile = []
+    for i, (wert, ist_frei) in enumerate(zip(werte, frei)):
+        anzeige = str(wert) if wert is not None else "-"
+        markierung = "" if ist_frei else "(gelegt)"
+        teile.append(f"[{i}:{anzeige}{markierung}]")
+    return " ".join(teile)
 
 
 class Displayer:
+    """
+    Einfache, aber vollständig funktionale Textdarstellung des
+    Spielplans - kein Nachbau der Cockpit-Grafik (siehe
+    templates/spielplan.txt für das spätere Layout-Ziel), aber genug,
+    um über die Konsole tatsächlich Sky Team zu spielen.
+    """
 
     def __init__(self, spielplan: Spielplan):
         self.spielplan = spielplan
 
     def display_spielplan(self):
-        sp = self.spielplan
-        landung = sp.landung
+        s = self.spielplan
+        z = s.zustand()
+        cockpit = s.cockpit
 
-        print("=" * 62)
-        print(f" {landung.get_bezeichnung()} ({landung.get_code()})"
-              f"   Hoehe: {landung.get_hoehe():>5} ft"
-              f"   Position: {landung.aktuelle_position_index()}/{landung.get_laenge() - 1}")
-        if sp.warteschleife:
-            print(" [WARTESCHLEIFE - zu frueh am Flughafen, Entfernung eingefroren]")
-        if sp.letzte_runde:
-            print(" [LETZTE RUNDE - Bremsen statt Aerodynamik bei Triebwerke!]")
-        print("-" * 62)
-        trudeln_hinweis = "  !!! GETRUDELT !!!" if sp.ruder_im_trudeln() else ""
-        print(f" Ruder (Fluglage): {sp.get_ruder():+d}   "
-              f"(Trudeln bei <= -3 oder >= +3){trudeln_hinweis}")
-        print(f" Fahrwerk  [1/2,3/4,5/6]: {_schalter(sp.get_fahrwerke())}   "
-              f"Schub-Schwellen [blau,orange]: {sp.get_schub_min()}")
-        print(f" Klappen [1/2,2/3,4/5,5/6]: {_schalter(sp.get_klappen())}")
-        print(f" Bremsen [2,4,6]: {_schalter(sp.get_bremsen())}   "
-              f"max. Landegeschwindigkeit: {sp.get_bremsen_max()}")
-        print(f" Kaffeetassen: {sp.get_kaffees()}   Neuwurf-Marker: {sp.get_anzahl_neuwurf()}")
-        print(f" Flugzeuge auf der Leiste: {landung.get_flugzeuge()}"
-              f"  (aktuelle Position = Index {landung.aktuelle_position_index()})")
-        print("=" * 62)
+        print("=" * 60)
+        print(f" SKY TEAM - {s.landung.get_bezeichnung()} ({s.landung.get_code()})")
+        print(f" Runde {z['runde']}" + (" (LETZTE RUNDE)" if z['letzte_runde'] else "")
+              + (" [WARTESCHLEIFE]" if z['warteschleife'] else ""))
+        print("=" * 60)
+        print(f" Hoehe: {z['hoehe']:>5} ft   Entfernung: {z['entfernung']}   "
+              f"Flugzeuge voraus: {z['flugzeuge']}")
+        print(f" Fluglage: {z['fluglage']:+d}  (Trudeln bei |x| >= {RUDER_STALL_SCHWELLE})")
+        print(f" Aerodynamik blau/orange: {z['aerodynamik_blau']} / {z['aerodynamik_orange']}"
+              f"   Bremsstaerke: {z['bremsstaerke']}")
+        print(f" Fahrwerk:      {_balken(z['fahrwerk_ausgefahren'])}")
+        print(f" Landeklappen:  {_balken(z['landeklappen_ausgefahren'])}")
+        print(f" Bremsen:       {_balken(z['bremsen_aktiviert'])}")
+        print(f" Kaffeetassen: {z['kaffeetassen']}   Neuwurf-Plaettchen: {z['neuwurf_plaettchen']}")
+        print("-" * 60)
+        print(f" Pilot   (blau)  Wuerfel: {_wuerfel_zeile(z['pilot_wuerfel'], z['pilot_wuerfel_frei'])}")
+        print(f" Kopilot (orange) Wuerfel: {_wuerfel_zeile(z['kopilot_wuerfel'], z['kopilot_wuerfel_frei'])}")
+        print("-" * 60)
+        if z["letzte_meldung"]:
+            print(f" > {z['letzte_meldung']}")
+        if z["status"] == "laeuft":
+            print(f" Am Zug: {z['am_zug'].upper()}")
+        else:
+            print(f" SPIELENDE: {z['status'].upper()} ({z['verlust_grund'] or 'Sieg!'})")
+        print("=" * 60)

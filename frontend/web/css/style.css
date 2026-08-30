@@ -1,0 +1,191 @@
+:root {
+  --blau: #2563eb;
+  --orange: #ea580c;
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --panel-hell: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --gruen: #22c55e;
+  --rot: #ef4444;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-hell);
+}
+
+h1 { margin: 0; font-size: 1.4rem; }
+.subtitle { color: var(--muted); font-weight: normal; font-size: 0.9rem; margin-left: 0.5rem; }
+
+#spiel-auswahl { display: flex; align-items: center; gap: 0.5rem; }
+
+select, button {
+  background: var(--panel-hell);
+  color: var(--text);
+  border: 1px solid #475569;
+  border-radius: var(--radius);
+  padding: 0.5rem 0.8rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+button:hover { background: #475569; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#lade-hinweis {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+}
+
+.versteckt { display: none !important; }
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+#status-leiste, #fortschritt-leiste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.status-feld {
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+}
+
+.status-feld .label, #flugzeuge-leiste .label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.status-feld span:last-child { font-size: 1.2rem; font-weight: 600; }
+
+#flugzeuge-leiste { background: var(--panel); border-radius: var(--radius); padding: 1rem; }
+#s-flugzeuge { font-size: 1.1rem; margin-left: 0.5rem; }
+
+.lichter { font-size: 1.2rem; letter-spacing: 0.15em; }
+
+#spieler-bereiche {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  #spieler-bereiche { grid-template-columns: 1fr; }
+}
+
+.spieler-bereich {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 1rem;
+  border-top: 4px solid var(--panel-hell);
+}
+
+#bereich-pilot { border-top-color: var(--blau); }
+#bereich-kopilot { border-top-color: var(--orange); }
+
+.spieler-bereich h2 {
+  margin: 0 0 0.8rem 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.farbe-punkt { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.farbe-punkt.blau { background: var(--blau); }
+.farbe-punkt.orange { background: var(--orange); }
+
+.wuerfel-reihe { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+
+.wuerfel {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+#bereich-pilot .wuerfel { background: var(--blau); }
+#bereich-kopilot .wuerfel { background: var(--orange); }
+.wuerfel.ausgewaehlt { border-color: white; transform: translateY(-2px); }
+.wuerfel.platziert { opacity: 0.3; cursor: not-allowed; }
+
+.ziel-liste { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.ziel-btn {
+  text-align: left;
+  background: var(--panel-hell);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.ziel-btn:hover:not(:disabled) { background: #475569; }
+
+#aktionen-leiste {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel);
+  padding: 1rem;
+  border-radius: var(--radius);
+}
+
+#am-zug-anzeige { font-weight: 600; }
+
+#meldung-leiste {
+  min-height: 1.4rem;
+  padding: 0 0.2rem;
+  color: var(--muted);
+}
+
+#meldung-leiste.fehler { color: var(--rot); }
+#meldung-leiste.erfolg { color: var(--gruen); }
+
+.spiel-ende {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 1rem;
+  border-radius: var(--radius);
+}
+
+.spiel-ende.gewonnen { background: rgba(34,197,94,0.15); color: var(--gruen); }
+.spiel-ende.verloren { background: rgba(239,68,68,0.15); color: var(--rot); }

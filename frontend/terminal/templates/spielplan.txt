@@ -31,9 +31,14 @@
 ║ │     │ ║ ║                       BREMSEN (PILOT)                        ║ ║  [5/6]  ║
 ║ └─────┘ ║ ║                   ┌╥────────────────────┐                    ║ ╚═════════╝
 ║         ║ ║                   │║ 2   3   4   5   6  │                    ║ ╔═════════╗
-║    ●    ║ ║                   └╨────────────────────┘                    ║ ║ NEUWURF ║
-║    ◯    ║ ║                 ┌─────┐   ┌─────┐   ┌─────┐                  ║ ║         ║
-║    ○    ║ ║                 │     │ ▶ │     │ ▶ │     │                  ║ ║    ●    ║
-║         ║ ║                 └─────┘   └─────┘   └─────┘                  ║ ║    ○    ║
-║         ║ ║                   [2]       [4]       [6]                    ║ ║         ║
+║    ●    ║ ║                 ┌─────┐   ┌─────┐   ┌─────┐                  ║ ║ NEUWURF ║
+║    ◯    ║ ║                 │     │ ▶ │     │ ▶ │     │                  ║ ║         ║
+║    ○    ║ ║                 └─────┘   └─────┘   └─────┘                  ║ ║    ●    ║
+║         ║ ║                   [2]       [4]       [6]                    ║ ║    ○    ║
 ╚═════════╝ ╚══════════════════════════════════════════════════════════════╝ ╚═════════╝
+
+Hinweis: Dieses Mockup ist das gestalterische Ziel für eine spätere
+vollständige ASCII-Nachbildung des Cockpits. frontend/terminal/displayer.py
+liefert aktuell bewusst eine simplere, aber vollständig funktionale
+Text-Ausgabe - die pixelgenaue Umsetzung dieses Layouts ist ein
+separater, rein kosmetischer Folgeschritt.

@@ -1,280 +1,265 @@
+from .cockpit import Cockpit, Ergebnis
 from .landung import Landung
-from .wuerfelfelder import Wuerfelfelder
+from .wuerfel import Wuerfel
+
+# S.4: "Legt 1 Neuwurf-Plättchen auf jedes Neuwurf-Symbol der Höhenleiste."
+# ANNAHME: Die Höhenleiste ist (anders als die Entfernungsleiste) für alle
+# Flughäfen gleich, daher hier als globale Konstante. Das Beispiel auf S.4
+# nennt "wie in Runde 1 bei 6000 Fuß" als einen der beiden Symbolplätze -
+# den zweiten Wert (2000 Fuß) konnte ich auf den Fotos nicht zuverlässig
+# erkennen. Bitte am echten Höhenleiste-Bauteil prüfen und ggf. anpassen!
+NEUWURF_HOEHEN = [6000, 2000]
 
 
-def _activate(task, index, sequential):
-    if sequential and index > 0 and task[index - 1] == 0:
-        return False
-    if task[index] == 1:
-        return False
-    task[index] = 1
-    return True
+class Spielplan:
+    """
+    Orchestriert eine komplette Partie Sky Team: Würfelpools,
+    Zugreihenfolge, Neuwurf-Plättchen, Rundenablauf (S.4-S.11) und
+    Sieg-/Verlustauswertung.
 
+    Name/Modul bewusst "spielplan.py"/"Spielplan" belassen, damit
+    bestehende Importe (frontend/terminal/displayer.py) weiter
+    funktionieren.
+    """
 
-class Spielplan():
-
-    # Benannte Cockpit-Felder, die einen Fahrwerk-/Landeklappen-/Bremsen-Schalter
-    # ansteuern -> (Name der Aktivierungsliste, Index darin). Nur diese Felder
-    # brauchen einen Eintrag hier; Ruder/Triebwerke werden gesondert behandelt
-    # (siehe platziere_wuerfel), Funk/Konzentration brauchen keine Reihenfolge.
-    FIELD_GROUPS = {
-        'fahrwerk_12': ('fahrwerke', 0),
-        'fahrwerk_34': ('fahrwerke', 1),
-        'fahrwerk_56': ('fahrwerke', 2),
-        'klappen_12': ('klappen', 0),
-        'klappen_23': ('klappen', 1),
-        'klappen_45': ('klappen', 2),
-        'klappen_56': ('klappen', 3),
-        'bremse_2': ('bremsen', 0),
-        'bremse_4': ('bremsen', 1),
-        'bremse_6': ('bremsen', 2),
-    }
-    RUDER_FELDER = ('ruder_pilot', 'ruder_kopilot')
-    SCHUB_FELDER = ('schub_pilot', 'schub_kopilot')
-    FUNK_FELDER = ('funken_pilot', 'funken_1_kopilot', 'funken_2_kopilot')
-    KAFFEE_FELDER = ('kaffee_1', 'kaffee_2', 'kaffee_3')
-
-    def __init__(self, flughafen):
-
+    def __init__(self, flughafen="YUL", startspieler="pilot"):
         self.landung = Landung(flughafen)
-        self.wuerfelfelder = Wuerfelfelder()
+        self.cockpit = Cockpit(self.landung)
 
-        self.fahrwerke = [0, 0, 0]
-        self.klappen = [0, 0, 0, 0]
-        self.bremsen = [0, 0, 0]
-        self.kaffees = 0
-        self.ruder = 0
+        self.pilot_wuerfel = [Wuerfel("pilot") for _ in range(4)]
+        self.kopilot_wuerfel = [Wuerfel("kopilot") for _ in range(4)]
 
-        if self.landung.get_schwierigkeit() <= 1:
-            self.anzahl_neuwurf = 1
-        else:
-            self.anzahl_neuwurf = 0
-
-        self.schub_min = self.compute_schub_min()
-        self.bremsen_max = self.compute_bremsen_max()
-
-        # Rundenlauf-/Sieg-Verlust-Zustand (Handbuch S.9-11).
-        self.letzte_runde = False       # Bremsen statt Aerodynamik bei Triebwerke
-        self.warteschleife = False      # zu frueh am Flughafen -> Entfernung eingefroren
-        self.letzte_geschwindigkeit = None
-        self.verloren = False
+        self.aktuelle_runde = 1
+        self.status = "laeuft"  # "laeuft" | "gewonnen" | "verloren"
         self.verlust_grund = None
+        self.letzte_meldung = ""
 
-    ### GETTERS ###
+        self.letzte_runde = False
+        self.warteschleife = False
 
-    def get_fahrwerke(self):
-        return self.fahrwerke
-    def get_klappen(self):
-        return self.klappen
-    def get_bremsen(self):
-        return self.bremsen
-    def get_ruder(self):
-        return self.ruder
-    def get_kaffees(self):
-        return self.kaffees
-    def get_anzahl_neuwurf(self):
-        return self.anzahl_neuwurf
-    def get_schub_min(self):
-        return self.schub_min
-    def get_bremsen_max(self):
-        return self.bremsen_max
-    def get_letzte_geschwindigkeit(self):
-        return self.letzte_geschwindigkeit
-    def ist_letzte_runde(self):
-        return self.letzte_runde
-    def ist_verloren(self):
-        return self.verloren
-    def get_verlust_grund(self):
-        return self.verlust_grund
+        # ANNAHME: Startspieler alterniert jede Runde (S.4 sagt nur, dass
+        # ein Pfeil auf der Höhenleiste dies anzeigt und Runde 1 mit der
+        # Pilotin beginnt). Bitte am Bauteil prüfen, ob das Muster wirklich
+        # eine einfache Alternierung ist.
+        self.startspieler = startspieler
+        self.am_zug = startspieler
 
-    ### METHODS ###
+        self._genutzte_neuwurf_hoehen = set()
+        self.neuwurf_plaettchen = 0
 
-    def setze_letzte_runde(self, wert=True):
-        self.letzte_runde = wert
+    ### SETUP / RUNDENABLAUF ###
 
-    def setze_warteschleife(self, wert=True):
-        self.warteschleife = wert
+    def starte_spiel(self):
+        """Vor Runde 1: evtl. Neuwurf-Plättchen bei Starthöhe einsammeln, würfeln."""
+        self._sammle_neuwurf_plaettchen()
+        self.wuerfeln_fuer_runde()
 
-    def markiere_verloren(self, grund):
-        """Setzt den Verlust-Zustand (idempotent - der erste Grund zaehlt)."""
-        if not self.verloren:
-            self.verloren = True
-            self.verlust_grund = grund
+    def wuerfeln_fuer_runde(self):
+        """Phase 1 (S.4): alle 8 Würfel neu werfen."""
+        for w in self.pilot_wuerfel + self.kopilot_wuerfel:
+            w.werfen()
 
-    def pruefe_sieg(self):
-        """Prueft die 4 Siegbedingungen A-D (Handbuch S.11). Nur sinnvoll,
-        nachdem die als `letzte_runde` markierte Runde komplett gespielt
-        wurde (alle 8 Wuerfel platziert)."""
-        a_keine_flugzeuge = self.landung.keine_flugzeuge_mehr()
-        b_schalter_gruen = (all(s == 1 for s in self.fahrwerke)
-                             and all(s == 1 for s in self.klappen))
-        c_waagerecht = self.ruder == 0
-        d_geschwindigkeit = (self.letzte_geschwindigkeit is not None
-                              and self.letzte_geschwindigkeit <= self.bremsen_max)
-        return a_keine_flugzeuge and b_schalter_gruen and c_waagerecht and d_geschwindigkeit
+    def _sammle_neuwurf_plaettchen(self):
+        hoehe = self.landung.get_hoehe()
+        if hoehe in NEUWURF_HOEHEN and hoehe not in self._genutzte_neuwurf_hoehen:
+            self._genutzte_neuwurf_hoehen.add(hoehe)
+            self.neuwurf_plaettchen += 1
 
-    def activate_fahrwerk(self, index):
-        erfolg = _activate(self.fahrwerke, index, sequential=False)
-        # WICHTIG: das Ergebnis muss zurueckgeschrieben werden, sonst bleiben
-        # get_schub_min()-Aufrufe nach der ersten Aktivierung auf einem
-        # veralteten Stand stehen (das war vorher ein stiller Bug).
-        self.schub_min = self.compute_schub_min()
-        return erfolg
-
-    def activate_klappen(self, index):
-        erfolg = _activate(self.klappen, index, sequential=True)
-        self.schub_min = self.compute_schub_min()
-        return erfolg
-
-    def activate_bremsen(self, index):
-        erfolg = _activate(self.bremsen, index, sequential=True)
-        self.bremsen_max = self.compute_bremsen_max()
-        return erfolg
-
-    def compute_schub_min(self):
-        return [5 + sum(self.fahrwerke), 9 + sum(self.klappen)]
-
-    def compute_bremsen_max(self):
-        return 2 * sum(self.bremsen)
-
-    def koche_kaffee(self):
-        if self.kaffees < 3:
-            self.kaffees += 1
-
-    def trinke_kaffee(self, wuerfel, delta):
-        """Gibt Kaffeetassen aus, um den Wert von `wuerfel` um `delta`
-        Schritte zu veraendern (delta>0: erhoehen, delta<0: verringern).
-        Pro Tasse genau 1 Schritt; hoert vorzeitig auf, wenn entweder der
-        Vorrat leer ist oder der Wuerfel an die 1/6-Grenze stoesst (kein
-        Wraparound). Gibt zurueck, wie viele Schritte tatsaechlich
-        angewendet wurden."""
-        richtung = 1 if delta > 0 else -1
-        angewendet = 0
-        for _ in range(abs(delta)):
-            if self.kaffees == 0:
-                break
-            if not wuerfel.veraendere_augenzahl(richtung):
-                break
-            self.kaffees -= 1
-            angewendet += richtung
-        return angewendet
-
-    def bewege_ruder(self, N):
-        self.ruder += N
-        if self.ruder < -2 or self.ruder > 2:
-            return False
-        return True
-
-    def ruder_im_trudeln(self):
-        """True, sobald der Fluglage-Anzeiger ausserhalb von [-2, 2] steht
-        (= sofortiger Verlust, siehe Handbuch S.5)."""
-        return self.ruder < -2 or self.ruder > 2
-
-    def benutze_neuwurf(self):
-        if self.anzahl_neuwurf == 0:
-            return False
-        self.anzahl_neuwurf -= 1
-        return True
-
-    def platziere_wuerfel(self, wuerfel, feldname):
-        """Versucht, `wuerfel` auf dem Cockpit-Feld `feldname` zu platzieren.
-
-        Prueft Verfuegbarkeit, Farb- und Zahlvorgabe. Bei Fahrwerk-/
-        Landeklappen-/Bremsen-Feldern wird sofort die Reihenfolge-Pruefung
-        samt Schalter-/Aerodynamik-Marker-Update ausgeloest (ueber die
-        bestehenden activate_*-Methoden). Bei Ruder-Feldern wird - sobald
-        BEIDE Farben liegen - sofort die Differenz gebildet und der
-        Fluglage-Anzeiger gedreht. Bei Konzentrations-Feldern wird sofort
-        eine Kaffeetasse gekocht.
-
-        Gibt True zurueck bei Erfolg, sonst False (dann wurde NICHTS
-        veraendert - weder der Wuerfel noch das Feld noch irgendein
-        Zaehler).
+    def benutze_neuwurf(self, pilot_indizes=(), kopilot_indizes=()):
         """
-        feld = getattr(self.wuerfelfelder, feldname, None)
-        if feld is None:
-            raise ValueError(f"Unbekanntes Feld: {feldname}")
+        S.4: gibt ein Neuwurf-Plättchen aus, damit BEIDE Spieler beliebig
+        viele ihrer noch nicht platzierten Würfel einmal neu werfen dürfen.
+        `pilot_indizes`/`kopilot_indizes`: Indizes (0-3) der Würfel, die
+        neu geworfen werden sollen.
+        """
+        if self.neuwurf_plaettchen <= 0:
+            return Ergebnis(False, "kein_neuwurf_plaettchen")
+        for i in pilot_indizes:
+            w = self.pilot_wuerfel[i]
+            if w.ist_verfuegbar():
+                w.werfen()
+        for i in kopilot_indizes:
+            w = self.kopilot_wuerfel[i]
+            if w.ist_verfuegbar():
+                w.werfen()
+        self.neuwurf_plaettchen -= 1
+        return Ergebnis(True, meldung="Neuwurf-Plättchen eingelöst.")
 
-        # Vorab-Pruefung, BEVOR irgendein Zustand veraendert wird - so bleibt
-        # bei einer Ablehnung garantiert alles unveraendert (u.a. wichtig,
-        # weil activate_fahrwerk/klappen/bremsen sonst schon den Schalter
-        # umgelegt haetten, bevor wir merken, dass der Wuerfel gar nicht
-        # verfuegbar war).
-        if not wuerfel.verfuegbar or not feld.ist_frei():
-            return False
-        if not feld.erlaubt(wuerfel.get_besitzer(), wuerfel.get_augenzahl()):
-            return False
+    ### WÜRFEL PLATZIEREN (S.4-S.9) ###
 
-        if feldname in self.FIELD_GROUPS:
-            gruppe, index = self.FIELD_GROUPS[feldname]
-            aktivieren = {
-                'fahrwerke': self.activate_fahrwerk,
-                'klappen': self.activate_klappen,
-                'bremsen': self.activate_bremsen,
-            }[gruppe]
-            if not aktivieren(index):
-                return False  # falsche Reihenfolge oder Feld schon aktiv
+    def _wuerfel_liste(self, besitzer):
+        return self.pilot_wuerfel if besitzer == "pilot" else self.kopilot_wuerfel
 
-        if not wuerfel.platzieren(feld):
-            # sollte nach den obigen Pruefungen nicht mehr vorkommen,
-            # aber sicherheitshalber sauber abbrechen statt inkonsistent
-            # weiterzumachen
-            return False
+    def verfuegbare_wuerfel(self, besitzer):
+        return [w for w in self._wuerfel_liste(besitzer) if w.ist_verfuegbar()]
 
-        if feldname in self.KAFFEE_FELDER:
-            self.koche_kaffee()
+    def alle_wuerfel_platziert(self):
+        """S.9: 'Sobald ihr alle 8 Würfel platziert habt' - über die Würfel
+        selbst geprüft, nicht über die (viel zahlreicheren) Felder."""
+        return all(w.ist_platziert() for w in self.pilot_wuerfel + self.kopilot_wuerfel)
 
-        if feldname in self.RUDER_FELDER:
-            pilot_feld = self.wuerfelfelder.ruder_pilot
-            kopilot_feld = self.wuerfelfelder.ruder_kopilot
-            # Erst wenn BEIDE Felder belegt sind (= gerade eben der zweite
-            # Wuerfel platziert wurde) wird verglichen - siehe Handbuch S.5.
-            if not pilot_feld.ist_frei() and not kopilot_feld.ist_frei():
-                diff = pilot_feld.value - kopilot_feld.value
-                # Vorzeichen-Konvention: positiv = Richtung Pilot (blau),
-                # negativ = Richtung Co-Pilot (orange). Wer den hoeheren
-                # Wuerfel platziert hat, "gewinnt" die Drehrichtung.
-                self.bewege_ruder(diff)
-                if self.ruder_im_trudeln():
-                    self.markiere_verloren("trudeln")
+    def trinke_kaffee(self, besitzer, wuerfel_index, delta):
+        """Kaffee auf einen eigenen, noch nicht platzierten Würfel anwenden (S.8)."""
+        wuerfel = self._wuerfel_liste(besitzer)[wuerfel_index]
+        return self.cockpit.trinke_kaffee(wuerfel, delta)
 
-        if feldname in self.SCHUB_FELDER:
-            self._werte_triebwerke_aus()
+    def platziere(self, besitzer, wuerfel_index, ziel, index=None, funk_feld=0):
+        """
+        Zentrale Aktion: `besitzer` platziert seinen Würfel Nr.
+        `wuerfel_index` (0-3) auf `ziel` in {"ruder", "triebwerk", "funk",
+        "fahrwerk", "landeklappe", "bremse", "konzentration"}.
+        `index` wird für die Mehrfach-Felder (Fahrwerk/Landeklappen/
+        Bremsen/Konzentration) gebraucht, `funk_feld` (0/1) wählt beim
+        Co-Piloten zwischen dessen zwei Funk-Feldern.
 
-        if feldname in self.FUNK_FELDER:
-            self.landung.entferne_flugzeug_per_funk(wuerfel.get_augenzahl())
+        Gibt ein Ergebnis zurück und wechselt bei Erfolg den Zug (S.4 A).
+        """
+        if self.status != "laeuft":
+            return Ergebnis(False, "spiel_beendet")
+        if besitzer != self.am_zug:
+            return Ergebnis(False, "nicht_am_zug")
+        wuerfel_liste = self._wuerfel_liste(besitzer)
+        if wuerfel_index < 0 or wuerfel_index >= len(wuerfel_liste):
+            return Ergebnis(False, "ungueltiger_wuerfel_index")
+        wuerfel = wuerfel_liste[wuerfel_index]
+        if not wuerfel.ist_verfuegbar():
+            return Ergebnis(False, "wuerfel_nicht_verfuegbar")
 
-        return True
+        if ziel == "ruder":
+            ergebnis = self.cockpit.platziere_ruder(wuerfel)
+        elif ziel == "triebwerk":
+            ergebnis = self.cockpit.platziere_triebwerk(
+                wuerfel, letzte_runde=self.letzte_runde, warteschleife=self.warteschleife
+            )
+        elif ziel == "funk":
+            feld_index = funk_feld if besitzer == "kopilot" else 0
+            ergebnis = self.cockpit.platziere_funk(wuerfel, feld_index)
+        elif ziel == "fahrwerk":
+            ergebnis = self.cockpit.platziere_fahrwerk(wuerfel, index)
+        elif ziel == "landeklappe":
+            ergebnis = self.cockpit.platziere_landeklappe(wuerfel, index)
+        elif ziel == "bremse":
+            ergebnis = self.cockpit.platziere_bremse(wuerfel, index)
+        elif ziel == "konzentration":
+            ergebnis = self.cockpit.platziere_konzentration(wuerfel, index)
+        else:
+            return Ergebnis(False, "unbekanntes_ziel")
 
-    def _werte_triebwerke_aus(self):
-        """Sobald der zweite Triebwerke-Wuerfel liegt: Summe bilden und je
-        nach Aerodynamik-Markern (normal) bzw. Bremsen-Marker (letzte
-        Runde) die Entfernungsleiste bewegen bzw. sofort verlieren
-        (Handbuch S.6 und S.10)."""
-        pilot_feld = self.wuerfelfelder.schub_pilot
-        kopilot_feld = self.wuerfelfelder.schub_kopilot
-        if pilot_feld.ist_frei() or kopilot_feld.ist_frei():
-            return  # erst beim zweiten Wuerfel auswerten
+        if not ergebnis.erfolg:
+            return ergebnis
 
-        summe = pilot_feld.value + kopilot_feld.value
-        self.letzte_geschwindigkeit = summe
+        self.letzte_meldung = ergebnis.meldung
+        if ergebnis.verloren:
+            self.status = "verloren"
+            self.verlust_grund = ergebnis.grund
+            return ergebnis
+
+        self.am_zug = "kopilot" if besitzer == "pilot" else "pilot"
+        return ergebnis
+
+    ### RUNDENENDE (S.9-S.11) ###
+
+    def rundenende(self):
+        if self.status != "laeuft":
+            return Ergebnis(False, "spiel_beendet")
+        if not self.alle_wuerfel_platziert():
+            return Ergebnis(False, "noch_nicht_alle_wuerfel_platziert")
+
+        # Verlierbedingung S.5: Pflichtfelder müssen VOR dem Leeren geprüft werden.
+        if not self.cockpit.pflichtfelder_erfuellt():
+            self.status = "verloren"
+            self.verlust_grund = "pflichtfelder_nicht_erfuellt"
+            return Ergebnis(True, verloren=True, grund=self.verlust_grund,
+                             meldung="Nicht auf jeder Pflichtfeld-Farbe lag ein Würfel - Absturz.")
 
         if self.letzte_runde:
-            # WICHTIG: Bremsen statt Aerodynamik (Handbuch S.10).
-            if summe > self.bremsen_max:
-                self.markiere_verloren("zu_schnell_fuer_landung")
-            return  # in der letzten Runde bewegt sich die Leiste nicht mehr
+            return self._werte_spielende_aus()
 
-        if summe < self.schub_min[0]:
-            felder = 0
-        elif summe > self.schub_min[1]:
-            felder = 2
-        else:
-            felder = 1
+        # Sinkflug (S.9): 1 Feld runter, alle Würfel zurücknehmen.
+        self.landung.reduce_hoehe(1)
+        self.cockpit.leere_alle_felder()
+        self.aktuelle_runde += 1
+        self._sammle_neuwurf_plaettchen()
 
-        if felder == 0 or self.warteschleife:
-            return  # Warteschleife: "duerft die Entfernungsleiste NICHT bewegen"
+        am_flughafen = self.landung.ist_am_flughafen()
+        auf_hoehe_null = self.landung.ist_auf_hoehe_null()
 
-        ok, grund = self.landung.bewege_entfernung(felder)
-        if not ok:
-            self.markiere_verloren(grund)
+        if am_flughafen and auf_hoehe_null:
+            self.letzte_runde = True
+            self.warteschleife = False
+            self.am_zug = self._naechster_startspieler()
+            return Ergebnis(True, meldung="Perfektes Timing - die letzte Runde beginnt!")
+
+        if am_flughafen and not auf_hoehe_null:
+            self.warteschleife = True
+            self.am_zug = self._naechster_startspieler()
+            return Ergebnis(True, meldung="Zu früh am Flughafen - ihr fliegt eine Warteschleife.")
+
+        if auf_hoehe_null and not am_flughafen:
+            self.status = "verloren"
+            self.verlust_grund = "notlandung"
+            return Ergebnis(True, verloren=True, grund="notlandung",
+                             meldung="Boden erreicht, bevor der Flughafen erreicht wurde - Notlandung!")
+
+        self.am_zug = self._naechster_startspieler()
+        return Ergebnis(True, meldung=f"Runde {self.aktuelle_runde} beginnt.")
+
+    def _naechster_startspieler(self):
+        self.startspieler = "kopilot" if self.startspieler == "pilot" else "pilot"
+        return self.startspieler
+
+    def _werte_spielende_aus(self):
+        gruende = []
+        if not self.landung.ist_frei_von_flugzeugen():
+            gruende.append("flugzeuge_uebrig")
+        if not self.cockpit.fahrwerk_komplett():
+            gruende.append("fahrwerk_unvollstaendig")
+        if not self.cockpit.landeklappen_komplett():
+            gruende.append("landeklappen_unvollstaendig")
+        if not self.cockpit.ist_waagerecht():
+            gruende.append("nicht_waagerecht")
+
+        if gruende:
+            self.status = "verloren"
+            self.verlust_grund = ",".join(gruende)
+            return Ergebnis(True, verloren=True, grund=self.verlust_grund,
+                             meldung="Landung nicht sauber genug.")
+
+        self.status = "gewonnen"
+        return Ergebnis(True, gewonnen=True, meldung="Sicher gelandet - ihr habt gewonnen!")
+
+    ### STATUS FÜR EIN FRONTEND ###
+
+    def zustand(self):
+        """Kompakter Snapshot für UI/Displayer - keine Spiellogik."""
+        return {
+            "status": self.status,
+            "verlust_grund": self.verlust_grund,
+            "letzte_meldung": self.letzte_meldung,
+            "runde": self.aktuelle_runde,
+            "letzte_runde": self.letzte_runde,
+            "warteschleife": self.warteschleife,
+            "am_zug": self.am_zug,
+            "hoehe": self.landung.get_hoehe(),
+            "entfernung": self.landung.get_entfernung(),
+            "flugzeuge": list(self.landung.get_flugzeuge()),
+            "neuwurf_plaettchen": self.neuwurf_plaettchen,
+            "kaffeetassen": self.cockpit.kaffeetassen,
+            "fluglage": self.cockpit.fluglage,
+            "aerodynamik_blau": self.cockpit.aerodynamik_blau,
+            "aerodynamik_orange": self.cockpit.aerodynamik_orange,
+            "bremsstaerke": self.cockpit.bremsstaerke(),
+            "fahrwerk_ausgefahren": list(self.cockpit.fahrwerk_ausgefahren),
+            "landeklappen_ausgefahren": list(self.cockpit.landeklappen_ausgefahren),
+            "bremsen_aktiviert": list(self.cockpit.bremsen_aktiviert),
+            "pilot_wuerfel": [w.get_augenzahl() for w in self.pilot_wuerfel],
+            "kopilot_wuerfel": [w.get_augenzahl() for w in self.kopilot_wuerfel],
+            "pilot_wuerfel_frei": [w.ist_verfuegbar() for w in self.pilot_wuerfel],
+            "kopilot_wuerfel_frei": [w.ist_verfuegbar() for w in self.kopilot_wuerfel],
+        }
+
+
+if __name__ == "__main__":
+    spiel = Spielplan("YUL")
+    spiel.starte_spiel()
+    print(spiel.zustand())
