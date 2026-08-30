@@ -1,5 +1,5 @@
 """
-Minimaler, aber spielbarer Terminal-Client für Sky Team.
+Minimaler, aber spielbarer Terminal-Client für Cockpit.
 
 Start (aus dem Ordner `skyteam/` heraus):
     python3 main.py [FLUGHAFEN-CODE]
@@ -87,7 +87,7 @@ def spielzug(spiel):
 
 
 def main():
-    flughafen = sys.argv[1] if len(sys.argv) > 1 else "YUL"
+    flughafen = sys.argv[1] if len(sys.argv) > 1 else "MUC"
     spiel = Spielplan(flughafen)
     spiel.starte_spiel()
     displayer = Displayer(spiel)

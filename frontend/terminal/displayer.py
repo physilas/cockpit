@@ -20,7 +20,7 @@ class Displayer:
     Einfache, aber vollständig funktionale Textdarstellung des
     Spielplans - kein Nachbau der Cockpit-Grafik (siehe
     templates/spielplan.txt für das spätere Layout-Ziel), aber genug,
-    um über die Konsole tatsächlich Sky Team zu spielen.
+    um über die Konsole tatsächlich Cockpit zu spielen.
     """
 
     def __init__(self, spielplan: Spielplan):
@@ -32,7 +32,7 @@ class Displayer:
         cockpit = s.cockpit
 
         print("=" * 60)
-        print(f" SKY TEAM - {s.landung.get_bezeichnung()} ({s.landung.get_code()})")
+        print(f" COCKPIT - {s.landung.get_bezeichnung()} ({s.landung.get_code()})")
         print(f" Runde {z['runde']}" + (" (LETZTE RUNDE)" if z['letzte_runde'] else "")
               + (" [WARTESCHLEIFE]" if z['warteschleife'] else ""))
         print("=" * 60)

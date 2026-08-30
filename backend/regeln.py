@@ -1,24 +1,15 @@
 """
-Zentrale Spielkonstanten für Sky Team.
+Zentrale Spielkonstanten für Cockpit.
 
-Alle Werte sind mit der Seite des "Handbuch für sichere Landungen"
-(deutsche Regel, KOSMOS 2024) referenziert, auf der sie stehen.
-
-ACHTUNG / ANNAHME:
-    RUDER_STALL_SCHWELLE ist NICHT explizit als Zahl im Regelheft
-    genannt (S.5 sagt nur "sobald der Fluglage-Anzeiger ein X erreicht
-    oder überschreitet"). Ich konnte die genaue Anzahl Schritte bis zum
-    X-Symbol auf dem Foto des Fluglage-Anzeigers nicht zuverlässig
-    auszählen. Bitte am echten Cockpit-Board nachzählen (Schritte von
-    der "0" oben bis zum roten X links bzw. rechts) und den Wert unten
-    anpassen, falls er nicht 5 ist!
+Alle Werte sind mit der Seite des Original-Regelhefts referenziert,
+auf der sie stehen.
 """
 
 ANZAHL_RUNDEN = 7  # S.4: "Eine Partie verläuft über 7 Runden"
 
-# S.5 RUDER: Trudeln, sobald der Anzeiger ein X erreicht/überschreitet.
-# Angenommener Wert - siehe Hinweis oben im Docstring.
-RUDER_STALL_SCHWELLE = 5
+# S.5 RUDER: Trudeln, sobald der Anzeiger das X erreicht/überschreitet.
+# Bestätigt am physischen Board: Trudeln bei |Fluglage| > 2, d.h. ab 3.
+RUDER_STALL_SCHWELLE = 3
 
 # S.3 Aufbau: Aerodynamik-Marker starten zwischen 4/5 (blau) und 8/9 (orange).
 AERODYNAMIK_BLAU_START = 4.5

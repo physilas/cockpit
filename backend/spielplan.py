@@ -13,7 +13,7 @@ NEUWURF_HOEHEN = [6000, 2000]
 
 class Spielplan:
     """
-    Orchestriert eine komplette Partie Sky Team: Würfelpools,
+    Orchestriert eine komplette Partie Cockpit: Würfelpools,
     Zugreihenfolge, Neuwurf-Plättchen, Rundenablauf (S.4-S.11) und
     Sieg-/Verlustauswertung.
 
@@ -22,7 +22,7 @@ class Spielplan:
     funktionieren.
     """
 
-    def __init__(self, flughafen="YUL", startspieler="pilot"):
+    def __init__(self, flughafen="MUC", startspieler="pilot"):
         self.landung = Landung(flughafen)
         self.cockpit = Cockpit(self.landung)
 
@@ -260,6 +260,6 @@ class Spielplan:
 
 
 if __name__ == "__main__":
-    spiel = Spielplan("YUL")
+    spiel = Spielplan("MUC")
     spiel.starte_spiel()
     print(spiel.zustand())

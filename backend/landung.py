@@ -149,5 +149,5 @@ class Landung:
 
 
 if __name__ == "__main__":
-    landung = Landung("YUL")
+    landung = Landung("MUC")
     print(landung.get_bezeichnung(), landung.get_flugzeuge())

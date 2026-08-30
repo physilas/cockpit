@@ -11,7 +11,7 @@ from .spielplan import Spielplan
 _spiel = None
 
 
-def neues_spiel(flughafen="YUL"):
+def neues_spiel(flughafen="MUC"):
     global _spiel
     _spiel = Spielplan(flughafen)
     _spiel.starte_spiel()

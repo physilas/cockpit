@@ -1,5 +1,5 @@
 /*
- * Sky Team - Web-Frontend (Funktions-Gerüst)
+ * Cockpit - Web-Frontend (Funktions-Gerüst)
  *
  * Lädt Pyodide, holt sich die ECHTEN Python-Dateien aus backend/ direkt
  * aus dem Repo (per fetch, funktioniert auf GitHub Pages ohne eigenen
@@ -23,7 +23,7 @@ const PY_DATEIEN = [
   ["backend/landung.py", "backend/landung.py"],
   ["backend/spielplan.py", "backend/spielplan.py"],
   ["backend/bridge.py", "backend/bridge.py"],
-  ["backend/landungen/YUL.yaml", "backend/landungen/YUL.yaml"],
+  ["backend/landungen/MUC.yaml", "backend/landungen/MUC.yaml"],
 ];
 
 let pyodide = null;

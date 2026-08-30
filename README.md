@@ -1,7 +1,9 @@
-# Sky Team – digitaler Zwilling
+# Cockpit – digitaler Zwilling
 
-Digitale Umsetzung von **Sky Team** (Luc Rémond, KOSMOS 2024), Basis-
-Regelwerk laut `Sky-Team-Spieleanleitung.pdf`. Dieses README dokumentiert,
+Digitale Umsetzung eines kooperativen 2-Spieler-Flugzeuglandespiels
+(Würfel platzieren, gemeinsam ein Flugzeug sicher landen). Regelwerk
+laut dem Original-Regelheft, auf das sich alle Seitenangaben (S.X) in
+diesem Projekt beziehen. Dieses README dokumentiert,
 was seit der zuletzt geteilten Version verändert wurde, welche Annahmen
 ich treffen musste (bitte prüfen!), und was ich für die geplante
 Web-Oberfläche noch von dir brauche.
@@ -64,7 +66,7 @@ backend/
   landung.py         Flughafen-/Entfernungs-/Höhen-Daten (pro Flughafen-YAML)
   spielplan.py        Orchestriert eine Partie (Würfelpools, Züge, Runden)
   bridge.py           JSON-Schnittstelle fürs Web-Frontend (Pyodide)
-  landungen/YUL.yaml  Flughafendaten
+  landungen/MUC.yaml  Flughafendaten
 frontend/
   terminal/          Text-UI (funktional, kein Pixel-Nachbau des Boards)
   web/               Browser-UI, lädt die Python-Engine per Pyodide
@@ -76,7 +78,7 @@ tests/
 Spielen im Terminal:
 ```
 cd skyteam
-python3 main.py YUL
+python3 main.py MUC
 ```
 
 Tests laufen lassen:
@@ -102,31 +104,31 @@ Ich hatte nur die Fotos aus der PDF, kein physisches Exemplar. Alle
 folgenden Werte sind in `backend/regeln.py` bzw. `backend/spielplan.py`
 mit Kommentar versehen, falls sie angepasst werden müssen:
 
-1. **`RUDER_STALL_SCHWELLE = 5`** - das Regelheft sagt nur "sobald der
-   Fluglage-Anzeiger ein X erreicht", ohne Zahl. Ich konnte die
-   Schrittzahl bis zum X-Symbol auf dem Foto nicht zuverlässig
-   auszählen. Bitte am Cockpit-Board nachzählen.
-2. **`NEUWURF_HOEHEN = [6000, 2000]`** - S.4 nennt nur 6000 als Beispiel
+1. **`NEUWURF_HOEHEN = [6000, 2000]`** - S.4 nennt nur 6000 als Beispiel
    für eine der beiden Neuwurf-Positionen auf der Höhenleiste; die
    zweite Höhe ist geraten.
-3. **Startspieler-Wechsel**: Ich lasse Pilot/Co-Pilot pro Runde
+2. **Startspieler-Wechsel**: Ich lasse Pilot/Co-Pilot pro Runde
    alternieren. Das Regelheft sagt nur, dass ein Pfeil auf der
    Höhenleiste dies anzeigt (S.4) - ob es wirklich eine einfache
    Alternierung ist, weiß ich nicht sicher.
-4. **Flugzeug-Verteilung auf der YUL-Entfernungsleiste**
-   (`backend/landungen/YUL.yaml`) - im Regelheft nur als Gesamtzahl
+3. **Flugzeug-Verteilung auf der MUC-Entfernungsleiste**
+   (`backend/landungen/MUC.yaml`) - im Regelheft nur als Gesamtzahl
    ("12 Flugzeuge, 9 auf der Leiste") genannt, nicht pro Feld. Meine
    Verteilung `[2,1,2,1,1,1,1]` ist geraten und sollte durch die echten
-   Werte von der YUL-Karte ersetzt werden.
-5. Die YAML-Felder `flugzeugwuerfel`, `kurven_min`, `kurven_max` aus der
+   Werte von der MUC-Karte ersetzt werden.
+4. Die YAML-Felder `flugzeugwuerfel`, `kurven_min`, `kurven_max` aus der
    ursprünglichen Datei kommen im Basis-Regelheft gar nicht vor - ich
    vermute, sie gehören zu den fortgeschrittenen Szenarien unter dem
    Schachteleinsatz (S.3-Hinweis). Sie werden geladen, aber von der
    Engine nicht verwendet. Wenn du weißt, was sie bedeuten sollen, sag
    Bescheid, dann baue ich sie ein.
+5. `RUDER_STALL_SCHWELLE` ist jetzt auf **3** gesetzt (Trudeln bei
+   `|Fluglage| > 2`, wie von dir bestätigt).
 6. Deine `Arrivals.pdf` scheint ein separates Erweiterungsmodul mit
-   weiteren Flughäfen zu sein (LHR, SFO, SYD, MUC, ...). Noch nicht
-   ausgewertet/integriert - aktuell ist nur YUL spielbar.
+   weiteren Flughäfen zu sein (LHR, SFO, SYD, MUC, ...) - MUC taucht
+   dort also möglicherweise nochmal mit eigenen, "offiziellen" Werten
+   auf. Falls ja, sag Bescheid, dann ersetze ich die geratene
+   Platzhalter-Verteilung durch die echten Erweiterungsdaten.
 
 ## Für das Web-Design brauche ich von dir
 

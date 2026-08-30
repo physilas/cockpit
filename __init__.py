@@ -1,1 +1,1 @@
-"""Sky Team - digitaler Zwilling."""
+"""Cockpit - digitaler Zwilling."""

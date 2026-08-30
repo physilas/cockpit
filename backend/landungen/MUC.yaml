@@ -1,6 +1,6 @@
 # FLUGHAFEN INFORMATIONEN
-code: YUL
-bezeichnung: Montreal-Trudeau
+code: MUC
+bezeichnung: München
 
 # MODULE
 module: null
@@ -22,7 +22,7 @@ laenge: 7
 # die Gesamtzahl "12 Flugzeuge (9 auf der Leiste, 3 bleiben übrig)" als
 # allgemeine Materialübersicht für alle Flughäfen. Die folgende
 # Verteilung (Summe = 9) ist daher ein PLATZHALTER, den ich anhand der
-# Gesamtzahl geraten habe. Bitte anhand des echten YUL-Leiste-Bauteils
+# Gesamtzahl geraten habe. Bitte anhand des echten MUC-Leiste-Bauteils
 # korrigieren!
 #
 # "flugzeugwuerfel", "kurven_min" und "kurven_max" kommen im Basis-

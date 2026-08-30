@@ -143,7 +143,7 @@ def _erster_freier(status_liste):
     return len(status_liste)
 
 
-def spiele_kluge_partie(flughafen="YUL"):
+def spiele_kluge_partie(flughafen="MUC"):
     spiel = Spielplan(flughafen)
     spiel.starte_spiel()
     sicherheitsnetz = 0
@@ -203,7 +203,7 @@ def simuliere_zug(spiel):
     return False
 
 
-def spiele_eine_partie(flughafen="YUL", verbose=False):
+def spiele_eine_partie(flughafen="MUC", verbose=False):
     spiel = Spielplan(flughafen)
     spiel.starte_spiel()
 
