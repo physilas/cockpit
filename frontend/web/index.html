@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cockpit – digitaler Zwilling</title>
+
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS: damit Safari die App wie eine native App öffnet -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cockpit">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+
+<!-- Theme-Farbe für die Browser-Titelleiste (Android/Desktop) -->
+<meta name="theme-color" content="#1e293b">
+
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -73,6 +86,15 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <script src="js/engine-src.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    // Service Worker registrieren (PWA-Offline-Support)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js")
+        .then(reg => console.log("SW registered:", reg.scope))
+        .catch(err => console.warn("SW registration failed:", err));
+    }
+  </script>
 </body>
 </html>

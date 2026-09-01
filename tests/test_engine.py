@@ -438,6 +438,9 @@ def test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen():
     wuerfel[0].augenzahl = 3
     ergebnis = spiel.platziere(besitzer, 0, "funk", funk_feld=0)
     assert ergebnis.erfolg and "entfernt" in ergebnis.meldung, ergebnis.meldung
+    # entfernung 7, funk(3) -> ziel_entfernung = 7-(3-1) = 5
+    # _index_fuer_entfernung(5) = laenge - 5 = 7 - 5 = 2
+    idx = spiel.landung._index_fuer_entfernung(ziel_entfernung)
     assert spiel.landung.flugzeuge[idx] == 0
 
 
