@@ -316,7 +316,110 @@ def test_gewinn_pfad_deterministisch():
     assert spiel.status == "gewonnen", f"Erwarteter Sieg, aber Status ist {spiel.status} ({spiel.verlust_grund})"
 
 
+def test_ruder_vorzeichen():
+    """Bug #1: Pilot 5 / Kopilot 4 -> -1. Pilot 3 / Kopilot 5 -> +2."""
+    from backend.spielplan import Spielplan
+
+    spiel = Spielplan("TEST")
+    spiel.starte_spiel()
+
+    def lege_ruder(pilot_wert, kopilot_wert):
+        spiel.pilot_wuerfel[0].werfen()
+        spiel.pilot_wuerfel[0].augenzahl = pilot_wert
+        spiel.pilot_wuerfel[0].platziert = False
+        spiel.kopilot_wuerfel[0].werfen()
+        spiel.kopilot_wuerfel[0].augenzahl = kopilot_wert
+        spiel.kopilot_wuerfel[0].platziert = False
+        erster, zweiter = ("pilot", "kopilot") if spiel.am_zug == "pilot" else ("kopilot", "pilot")
+        spiel.platziere(erster, 0, "ruder")
+        spiel.platziere(zweiter, 0, "ruder")
+
+    lege_ruder(5, 4)
+    assert spiel.cockpit.fluglage == -1, spiel.cockpit.fluglage
+
+    spiel.cockpit.ruder_pilot.leere()
+    spiel.cockpit.ruder_kopilot.leere()
+    spiel.am_zug = "pilot"
+    lege_ruder(3, 5)
+    assert spiel.cockpit.fluglage == -1 + 2 == 1, spiel.cockpit.fluglage
+
+
+def test_triebwerk_wartet_bis_alle_wuerfel_liegen():
+    """
+    Bugs #2/#3: eine Kollision, die spät in der Runde per Funk noch
+    geräumt wird, darf NICHT vorzeitig zum Verlust führen - und Funk
+    muss unabhängig davon funktionieren, ob die Triebwerke schon
+    platziert wurden oder nicht.
+    """
+    from backend.spielplan import Spielplan
+
+    spiel = Spielplan("MUC")
+    spiel.starte_spiel()
+    # Ein Flugzeug direkt vor die aktuelle Position setzen, das die
+    # Triebwerke ohne Funk garantiert rammen würden.
+    entfernung = spiel.landung.get_entfernung()
+    idx = spiel.landung._index_fuer_entfernung(entfernung)
+    spiel.landung.flugzeuge[idx] = 1
+
+    def setze(besitzer, werte):
+        for w, v in zip(spiel._wuerfel_liste(besitzer), werte):
+            w.werfen()
+            w.augenzahl = v
+            w.platziert = False
+
+    # Engine-Summe erzwingt eine Bewegung (>= Bewegung 1), OBWOHL das
+    # Hindernis noch auf dem aktuellen Feld steht - das wird erst am
+    # Rundenende ausgewertet, NACHDEM Funk das Feld geräumt hat.
+    setze("pilot", [3, 4, 1, 2])       # ruder, triebwerk, fahrwerk, bremse
+    setze("kopilot", [3, 4, 1, 2])     # ruder, triebwerk, funk(wert 1 -> aktuelle Position), landeklappe
+
+    queues = {
+        "pilot": [(0, "ruder", {}), (1, "triebwerk", {}), (2, "fahrwerk", {"index": 0}), (3, "bremse", {"index": 0})],
+        "kopilot": [(0, "ruder", {}), (1, "triebwerk", {}), (2, "funk", {"funk_feld": 0}), (3, "landeklappe", {"index": 0})],
+    }
+    for _ in range(8):
+        besitzer = spiel.am_zug
+        idx2, ziel, kwargs = queues[besitzer].pop(0)
+        ergebnis = spiel.platziere(besitzer, idx2, ziel, **kwargs)
+        assert ergebnis.erfolg, (besitzer, idx2, ziel, kwargs, ergebnis)
+        # Zentrale Behauptung von Bug #2: während der Runde darf NIE ein
+        # Sieg/Verlust ausgelöst werden (außer durch Trudeln, hier nicht der Fall).
+        assert spiel.status == "laeuft", f"Vorzeitige Auswertung während der Runde: {ergebnis}"
+
+    ergebnis = spiel.rundenende()
+    assert spiel.status == "laeuft", f"Fälschlich verloren, obwohl Funk das Hindernis geräumt hat: {ergebnis}"
+
+
+def test_funk_zielt_richtig_unabhaengig_von_reihenfolge():
+    """Bug #3 direkt: Funk-Zielberechnung bleibt korrekt, unabhängig
+    davon, ob Triebwerke in derselben Runde schon platziert wurden."""
+    from backend.spielplan import Spielplan
+
+    spiel = Spielplan("MUC")
+    spiel.starte_spiel()
+    spiel.landung.entfernung = 3  # wie im gemeldeten Bug: "an Position 3"
+    start_entfernung = spiel.landung.get_entfernung()
+    ziel_entfernung = start_entfernung + 2  # mit einer 3 erreichbar: current + (3-1) = 5
+    idx = spiel.landung._index_fuer_entfernung(ziel_entfernung)
+    spiel.landung.flugzeuge[idx] = 1
+
+    wuerfel = spiel._wuerfel_liste(spiel.am_zug)
+    # Ruder zuerst platzieren (Pflicht), dann Funk mit einer 3 - die
+    # aktuelle Position darf sich zwischendurch NICHT verschoben haben.
+    besitzer = spiel.am_zug
+    for w in wuerfel:
+        w.werfen()
+    wuerfel[0].augenzahl = 3
+    ergebnis = spiel.platziere(besitzer, 0, "funk", funk_feld=0)
+    assert ergebnis.erfolg
+    assert "entfernt" in ergebnis.meldung, ergebnis.meldung
+    assert spiel.landung.flugzeuge[idx] == 0
+
+
 if __name__ == "__main__":
     test_viele_zufallspartien()
     test_gewinn_pfad_deterministisch()
-    print("Deterministischer Gewinn-Pfad: OK")
+    test_ruder_vorzeichen()
+    test_triebwerk_wartet_bis_alle_wuerfel_liegen()
+    test_funk_zielt_richtig_unabhaengig_von_reihenfolge()
+    print("Alle Regressionstests: OK")

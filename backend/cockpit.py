@@ -6,6 +6,8 @@ from .regeln import (
     BREMSSTAERKE_PRO_AKTIVIERUNG,
     MAX_KAFFEETASSEN,
     RUDER_STALL_SCHWELLE,
+    WUERFEL_MAX,
+    WUERFEL_MIN,
 )
 
 
@@ -93,7 +95,8 @@ class Cockpit:
         self.aerodynamik_orange = AERODYNAMIK_ORANGE_START
 
         # FLUGLAGE-ANZEIGER (Ruder-Dial, S.5). 0 = waagerecht/level.
-        # Positiv = Richtung Pilot (blau/links), negativ = Richtung Co-Pilot.
+        # Vorzeichen: (orange - blau) beim 2. Ruder-Würfel, siehe
+        # platziere_ruder() - bestätigt am physischen Board.
         self.fluglage = 0
 
         # KAFFEE (S.8)
@@ -168,10 +171,11 @@ class Cockpit:
         # Zweiter Würfel liegt jetzt - vergleichen (S.5).
         blau = self.ruder_pilot.wuerfel.get_augenzahl()
         orange = self.ruder_kopilot.wuerfel.get_augenzahl()
-        differenz = blau - orange
+        # Vorzeichen wie am physischen Board bestätigt: Pilot 5 / Kopilot 4
+        # -> -1, Pilot 3 / Kopilot 5 -> +2. Das ist (orange - blau).
+        differenz = orange - blau
         if differenz != 0:
-            richtung = 1 if differenz > 0 else -1
-            self.fluglage += richtung * abs(differenz)
+            self.fluglage += differenz
 
         if self.ist_im_trudeln():
             return Ergebnis(True, verloren=True, grund="trudeln",
@@ -179,23 +183,37 @@ class Cockpit:
         return Ergebnis(True)
 
     ### TRIEBWERKE (S.6, S.10 für die letzte Runde) ###
+    #
+    # WICHTIG: Das Platzieren selbst hat KEINEN sofortigen Effekt mehr.
+    # Die Auswertung (Bewegung/Kollision/"übers Ziel hinaus" bzw. der
+    # Bremsen-Vergleich in der letzten Runde) passiert erst am
+    # Rundenende, siehe loese_triebwerke_auf(). Das verhindert, dass
+    # eine Kollision erkannt wird, obwohl ein Funk-Würfel später in
+    # derselben Runde das Hindernis noch geräumt hätte - und ist die
+    # einzige "echte" Gewinn-/Verlustauswertung, die NICHT sofort beim
+    # Platzieren passiert (Ausnahme: Ruder/Trudeln, s.o.).
 
-    def platziere_triebwerk(self, wuerfel, letzte_runde=False, warteschleife=False):
+    def platziere_triebwerk(self, wuerfel):
         feld = self.schub_pilot if wuerfel.get_besitzer() == "pilot" else self.schub_kopilot
-        anderes = self.schub_kopilot if wuerfel.get_besitzer() == "pilot" else self.schub_pilot
-
         if not feld.platziere(wuerfel):
             return Ergebnis(False, "feld_ungueltig")
+        return Ergebnis(True)
 
-        if anderes.ist_frei():
-            return Ergebnis(True)
+    def triebwerk_geschwindigkeit(self):
+        """Summe beider Triebwerk-Würfel, oder None falls noch nicht beide liegen."""
+        if self.schub_pilot.ist_frei() or self.schub_kopilot.ist_frei():
+            return None
+        return self.schub_pilot.wuerfel.get_augenzahl() + self.schub_kopilot.wuerfel.get_augenzahl()
 
-        geschwindigkeit = self.schub_pilot.wuerfel.get_augenzahl() + self.schub_kopilot.wuerfel.get_augenzahl()
-
-        if warteschleife and not letzte_runde:
-            # S.10 Sonderfall "Zu früh am Flughafen": Entfernungsleiste darf
-            # nicht weiter bewegt werden, solange die Warteschleife läuft.
-            return Ergebnis(True, meldung=f"Warteschleife: Geschwindigkeit {geschwindigkeit}, keine Bewegung.")
+    def loese_triebwerke_auf(self, letzte_runde=False, warteschleife=False):
+        """
+        Wird von Spielplan.rundenende() aufgerufen, NACHDEM alle 8 Würfel
+        der Runde platziert sind (siehe Kommentar oben).
+        """
+        geschwindigkeit = self.triebwerk_geschwindigkeit()
+        if geschwindigkeit is None:
+            # Sollte nie passieren, pflichtfelder_erfuellt() wird vorher geprüft.
+            return Ergebnis(False, "triebwerke_nicht_platziert")
 
         if letzte_runde:
             # S.10: WICHTIG - Bremsen statt Aerodynamik in der letzten Runde.
@@ -204,6 +222,11 @@ class Cockpit:
                                  meldung=f"Geschwindigkeit {geschwindigkeit} überschreitet die Bremsstärke "
                                          f"({self.bremsstaerke()}) - über die Landebahn hinausgeschossen.")
             return Ergebnis(True, meldung=f"Geschwindigkeit {geschwindigkeit}, Bremsstärke {self.bremsstaerke()}.")
+
+        if warteschleife:
+            # S.10 Sonderfall "Zu früh am Flughafen": Entfernungsleiste darf
+            # nicht weiter bewegt werden, solange die Warteschleife läuft.
+            return Ergebnis(True, meldung=f"Warteschleife: Geschwindigkeit {geschwindigkeit}, keine Bewegung.")
 
         # Normale Runde: Bewegung anhand der Aerodynamik-Marker (S.6).
         if geschwindigkeit < self.aerodynamik_blau:
@@ -325,6 +348,49 @@ class Cockpit:
 
     def kaffee_verfuegbar(self):
         return self.kaffeetassen
+
+    def moegliche_kaffee_deltas(self, augenzahl):
+        """
+        Für die UI (Bug #5): alle Delta-Werte, die mit dem aktuellen
+        Kaffeevorrat auf `augenzahl` angewendet werden dürfen (Ergebnis
+        bleibt 1-6, |delta| <= Vorrat, delta != 0).
+        """
+        n = self.kaffeetassen
+        return [
+            d for d in range(-n, n + 1)
+            if d != 0 and WUERFEL_MIN <= augenzahl + d <= WUERFEL_MAX
+        ]
+
+    ### SNAPSHOT FÜR DIE UI ###
+
+    @staticmethod
+    def _feld_wert(feld):
+        if feld is None or feld.ist_frei():
+            return None
+        return {"wert": feld.wuerfel.get_augenzahl(), "besitzer": feld.wuerfel.get_besitzer()}
+
+    def felder_snapshot(self):
+        """
+        Für die UI: der tatsächlich abgelegte Würfel (Wert + Besitzer)
+        auf jedem einzelnen Feld, oder None wenn leer. Damit lässt sich
+        JEDER Würfel, den der Partner gelegt hat, direkt anzeigen (Bug
+        #4) - es gibt kein "verstecktes" Feld, nur die eigenen noch
+        nicht gelegten Würfel bleiben unsichtbar (das übernimmt die
+        Sichtschirm-Logik im Frontend, nicht das Cockpit).
+        """
+        fw = self._feld_wert
+        return {
+            "ruder": {"pilot": fw(self.ruder_pilot), "kopilot": fw(self.ruder_kopilot)},
+            "triebwerk": {"pilot": fw(self.schub_pilot), "kopilot": fw(self.schub_kopilot)},
+            "funk_pilot": [fw(self.funk_pilot)],
+            "funk_kopilot": [fw(f) for f in self.funk_kopilot],
+            "fahrwerk": [fw(f) for f in self.fahrwerk],
+            "landeklappe": [fw(f) for f in self.landeklappen],
+            "bremse": [fw(f) for f in self.bremsen],
+            "konzentration": [fw(f) for f in self.konzentration],
+        }
+
+    ### KAFFEE (S.8) ###
 
     def trinke_kaffee(self, wuerfel, delta):
         """

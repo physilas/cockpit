@@ -103,6 +103,10 @@ class Spielplan:
         wuerfel = self._wuerfel_liste(besitzer)[wuerfel_index]
         return self.cockpit.trinke_kaffee(wuerfel, delta)
 
+    def moegliche_kaffee_deltas(self, besitzer, wuerfel_index):
+        wuerfel = self._wuerfel_liste(besitzer)[wuerfel_index]
+        return self.cockpit.moegliche_kaffee_deltas(wuerfel.get_augenzahl())
+
     def platziere(self, besitzer, wuerfel_index, ziel, index=None, funk_feld=0):
         """
         Zentrale Aktion: `besitzer` platziert seinen Würfel Nr.
@@ -128,9 +132,7 @@ class Spielplan:
         if ziel == "ruder":
             ergebnis = self.cockpit.platziere_ruder(wuerfel)
         elif ziel == "triebwerk":
-            ergebnis = self.cockpit.platziere_triebwerk(
-                wuerfel, letzte_runde=self.letzte_runde, warteschleife=self.warteschleife
-            )
+            ergebnis = self.cockpit.platziere_triebwerk(wuerfel)
         elif ziel == "funk":
             feld_index = funk_feld if besitzer == "kopilot" else 0
             ergebnis = self.cockpit.platziere_funk(wuerfel, feld_index)
@@ -171,6 +173,20 @@ class Spielplan:
             self.verlust_grund = "pflichtfelder_nicht_erfuellt"
             return Ergebnis(True, verloren=True, grund=self.verlust_grund,
                              meldung="Nicht auf jeder Pflichtfeld-Farbe lag ein Würfel - Absturz.")
+
+        # Triebwerke werden erst JETZT ausgewertet - nicht mehr sofort beim
+        # Platzieren des 2. Würfels. So kann ein Funk-Würfel, der später in
+        # derselben Runde gelegt wird, ein Hindernis noch rechtzeitig
+        # räumen, bevor auf Kollision geprüft wird. Einzige Ausnahme bleibt
+        # das Ruder/Trudeln (sofort beim 2. Würfel, siehe cockpit.py).
+        triebwerk_ergebnis = self.cockpit.loese_triebwerke_auf(
+            letzte_runde=self.letzte_runde, warteschleife=self.warteschleife
+        )
+        self.letzte_meldung = triebwerk_ergebnis.meldung
+        if triebwerk_ergebnis.verloren:
+            self.status = "verloren"
+            self.verlust_grund = triebwerk_ergebnis.grund
+            return triebwerk_ergebnis
 
         if self.letzte_runde:
             return self._werte_spielende_aus()
@@ -242,6 +258,7 @@ class Spielplan:
             "am_zug": self.am_zug,
             "hoehe": self.landung.get_hoehe(),
             "entfernung": self.landung.get_entfernung(),
+            "laenge": self.landung.get_laenge(),
             "flugzeuge": list(self.landung.get_flugzeuge()),
             "neuwurf_plaettchen": self.neuwurf_plaettchen,
             "kaffeetassen": self.cockpit.kaffeetassen,
@@ -256,6 +273,7 @@ class Spielplan:
             "kopilot_wuerfel": [w.get_augenzahl() for w in self.kopilot_wuerfel],
             "pilot_wuerfel_frei": [w.ist_verfuegbar() for w in self.pilot_wuerfel],
             "kopilot_wuerfel_frei": [w.ist_verfuegbar() for w in self.kopilot_wuerfel],
+            "felder": self.cockpit.felder_snapshot(),
         }
 
 

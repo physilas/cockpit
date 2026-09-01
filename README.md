@@ -130,7 +130,38 @@ mit Kommentar versehen, falls sie angepasst werden müssen:
    auf. Falls ja, sag Bescheid, dann ersetze ich die geratene
    Platzhalter-Verteilung durch die echten Erweiterungsdaten.
 
+## Bugfixes (nach deinem Feedback)
+
+1. **Ruder-Vorzeichen gedreht**: Pilot 5 / Kopilot 4 ergibt jetzt -1
+   (vorher +1), Pilot 3 / Kopilot 5 ergibt +2 - am physischen Board
+   bestätigt. Formel ist jetzt `fluglage += (kopilot_wert - pilot_wert)`.
+2. **Triebwerke werten erst am Rundenende aus**: Bewegung/Kollision/
+   "übers Ziel hinaus" (bzw. der Bremsen-Vergleich in der letzten Runde)
+   passieren jetzt NICHT mehr sofort beim Platzieren des 2. Triebwerk-
+   Würfels, sondern erst in `rundenende()`, nachdem alle 8 Würfel liegen.
+   Einzige Ausnahme bleibt das Ruder: Trudeln führt weiterhin sofort zum
+   Verlust, sobald der 2. Ruder-Würfel liegt.
+3. **Funk-Bug war ein Folgefehler von #2**: Weil Triebwerke vorher
+   mitten in der Runde die Entfernung verschieben konnten, änderte sich
+   die "aktuelle Position" unter der Hand, bevor Funk sein Ziel
+   ausrechnete. Mit #2 behoben bleibt die Position während der ganzen
+   Runde stabil - die Funk-Formel selbst war schon korrekt.
+4. **Cockpit-Board zeigt jetzt jedes gelegte Würfelfeld** (Wert + Farbe
+   des Besitzers), egal wer es platziert hat - `backend/cockpit.py:
+   felder_snapshot()` liefert das, `frontend/web/js/app.js:
+   renderCockpitBoard()` zeichnet es.
+5. **Kaffee-Auswahl als Buttons** statt Texteingabe: nur noch gültige
+   Deltas (Bereich 1-6, begrenzt durch verfügbare Tassen) werden
+   angezeigt (`backend/cockpit.py: moegliche_kaffee_deltas()`).
+6. **Flugzeugleiste "rutscht" jetzt nach links**: die UI zeigt nur noch
+   den Teil der Liste ab der aktuellen Position (`flugzeuge.slice(...)`
+   in app.js) - das Backend speichert weiterhin die volle Liste.
+7. **Aerodynamik-Anzeige als durchgehende Skala** (`2 3 4 | 5 6 7 8 |
+   9 10 11 12` statt `4.5 / 8.5`) - siehe `aeroSkalaHTML()` in app.js.
+
 ## Für das Web-Design brauche ich von dir
+
+
 
 Die Engine und ein klickbares Grundgerüst stehen; für den Feinschliff:
 

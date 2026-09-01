@@ -49,6 +49,10 @@ def trinke_kaffee(besitzer, wuerfel_index, delta):
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
+def moegliche_kaffee_deltas(besitzer, wuerfel_index):
+    return _spiel.moegliche_kaffee_deltas(besitzer, wuerfel_index)
+
+
 def benutze_neuwurf(pilot_indizes, kopilot_indizes):
     ergebnis = _spiel.benutze_neuwurf(list(pilot_indizes), list(kopilot_indizes))
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
@@ -70,13 +74,13 @@ def wuerfeln_fuer_runde():
 # nach Auswahl aufrufen.
 def feld_layout():
     return [
-        {"ziel": "ruder", "index": None, "zugriff": ["pilot", "kopilot"], "pflicht": True},
-        {"ziel": "triebwerk", "index": None, "zugriff": ["pilot", "kopilot"], "pflicht": True},
-        {"ziel": "funk", "index": None, "zugriff": ["pilot"], "slots": 1},
-        {"ziel": "funk", "index": None, "zugriff": ["kopilot"], "slots": 2},
-        {"ziel": "fahrwerk", "index": None, "zugriff": ["pilot"], "slots": 3, "zahlen": [[1, 2], [3, 4], [5, 6]]},
-        {"ziel": "landeklappe", "index": None, "zugriff": ["kopilot"], "slots": 4,
+        {"ziel": "ruder", "snapshot_key": "ruder", "zugriff": ["pilot", "kopilot"], "pflicht": True, "art": "farbpaar"},
+        {"ziel": "triebwerk", "snapshot_key": "triebwerk", "zugriff": ["pilot", "kopilot"], "pflicht": True, "art": "farbpaar"},
+        {"ziel": "funk", "snapshot_key": "funk_pilot", "zugriff": ["pilot"], "slots": 1, "funk_feld_basis": 0},
+        {"ziel": "funk", "snapshot_key": "funk_kopilot", "zugriff": ["kopilot"], "slots": 2, "funk_feld_basis": 0},
+        {"ziel": "fahrwerk", "snapshot_key": "fahrwerk", "zugriff": ["pilot"], "slots": 3, "zahlen": [[1, 2], [3, 4], [5, 6]]},
+        {"ziel": "landeklappe", "snapshot_key": "landeklappe", "zugriff": ["kopilot"], "slots": 4,
          "zahlen": [[1, 2], [2, 3], [4, 5], [5, 6]]},
-        {"ziel": "bremse", "index": None, "zugriff": ["pilot"], "slots": 3, "zahlen": [[2], [4], [6]]},
-        {"ziel": "konzentration", "index": None, "zugriff": ["pilot", "kopilot"], "slots": 3},
+        {"ziel": "bremse", "snapshot_key": "bremse", "zugriff": ["pilot"], "slots": 3, "zahlen": [[2], [4], [6]]},
+        {"ziel": "konzentration", "snapshot_key": "konzentration", "zugriff": ["pilot", "kopilot"], "slots": 3},
     ]

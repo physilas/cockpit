@@ -29,6 +29,8 @@ const PY_DATEIEN = [
 let pyodide = null;
 let bridge = null;
 let ausgewaehlterWuerfel = null; // {besitzer, index}
+let kaffeeMenuOffenFuer = null; // {besitzer, index}
+let aktuellerZustand = null;
 
 async function ladeEngine() {
   pyodide = await loadPyodide();
@@ -62,14 +64,50 @@ sys.path.insert(0, "/skyteam")
   bridge = pyodide.pyimport("backend.bridge");
 }
 
+function pyToJs(pyResult) {
+  return pyResult.toJs({ dict_converter: Object.fromEntries });
+}
+
 function setzeMeldung(text, art) {
   const el = document.getElementById("meldung-leiste");
   el.textContent = text || "";
   el.className = art || "";
 }
 
+// ---------------------------------------------------------------------
+// Aerodynamik-Skala (Bug #7): statt "4.5 / 8.5" eine durchgehende
+// Zahlenreihe 2..12 mit "|" an den Schwellen. z.B. 4.5/8.5 wird zu
+// "2 3 4 | 5 6 7 8 | 9 10 11 12".
+// ---------------------------------------------------------------------
+function aeroSkalaHTML(blau, orange) {
+  const bGrenze = Math.floor(blau);
+  const oGrenze = Math.floor(orange);
+  const teile = [];
+  for (let n = 2; n <= 12; n++) {
+    teile.push(String(n));
+    if ((n === bGrenze || n === oGrenze) && n < 12) teile.push('<span class="trenner">|</span>');
+  }
+  return teile.join(" ");
+}
+
+// ---------------------------------------------------------------------
+// Flugzeuge auf der Entfernungsleiste (Bug #6): nur der Teil der Liste
+// AB der aktuellen Position anzeigen - bereits passierte Felder
+// "verschwinden" damit automatisch von links, ohne dass das Backend
+// seine interne Indizierung ändern muss.
+// ---------------------------------------------------------------------
+function renderFlugzeuge(zustand) {
+  const startIndex = Math.max(0, zustand.laenge - zustand.entfernung);
+  const sichtbar = zustand.flugzeuge.slice(startIndex);
+  const el = document.getElementById("s-flugzeuge");
+  el.textContent = sichtbar.length
+    ? sichtbar.map(n => (n > 0 ? "✈".repeat(n) : "·")).join(" | ")
+    : "(keine Hindernisse mehr voraus)";
+}
+
 function render(zustand) {
   if (!zustand) return;
+  aktuellerZustand = zustand;
 
   document.getElementById("s-runde").textContent =
     zustand.runde + (zustand.letzte_runde ? " (letzte!)" : "") + (zustand.warteschleife ? " ⟳" : "");
@@ -77,8 +115,7 @@ function render(zustand) {
   document.getElementById("s-entfernung").textContent = zustand.entfernung;
   document.getElementById("s-fluglage").textContent =
     (zustand.fluglage > 0 ? "+" : "") + zustand.fluglage;
-  document.getElementById("s-aero").textContent =
-    `${zustand.aerodynamik_blau} / ${zustand.aerodynamik_orange}`;
+  document.getElementById("s-aero").innerHTML = aeroSkalaHTML(zustand.aerodynamik_blau, zustand.aerodynamik_orange);
   document.getElementById("s-brems").textContent = zustand.bremsstaerke;
   document.getElementById("s-kaffee").textContent = `${zustand.kaffeetassen} / 3`;
   document.getElementById("s-neuwurf").textContent = zustand.neuwurf_plaettchen;
@@ -90,13 +127,10 @@ function render(zustand) {
   document.getElementById("s-bremsen").textContent =
     zustand.bremsen_aktiviert.map(v => v ? "🟢" : "⚪").join(" ");
 
-  document.getElementById("s-flugzeuge").textContent =
-    zustand.flugzeuge.map(n => "✈".repeat(n) || "–").join(" | ");
-
+  renderFlugzeuge(zustand);
+  renderCockpitBoard(zustand);
   renderWuerfel("pilot", zustand);
   renderWuerfel("kopilot", zustand);
-  renderZiele("pilot", zustand);
-  renderZiele("kopilot", zustand);
 
   const amZugEl = document.getElementById("am-zug-anzeige");
   const rundenendeBtn = document.getElementById("rundenende-btn");
@@ -111,6 +145,101 @@ function render(zustand) {
   }
 }
 
+// ---------------------------------------------------------------------
+// Gemeinsames Cockpit-Board (Bug #4): JEDES Feld zeigt, was tatsächlich
+// dort liegt - Wert + Farbe des Besitzers - unabhängig davon, wer es
+// platziert hat. Nur die eigenen, noch nicht gelegten Würfel bleiben
+// (wie im echten Spiel) unsichtbar für den Partner.
+// ---------------------------------------------------------------------
+const ZIEL_BESCHRIFTUNG = {
+  ruder: "Ruder",
+  triebwerk: "Triebwerke",
+  funk: "Funk",
+  fahrwerk: "Fahrwerk",
+  landeklappe: "Landeklappe",
+  bremse: "Bremse",
+  konzentration: "Konzentration",
+};
+
+function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand) {
+  const div = document.createElement("div");
+  div.className = "feld-zelle";
+
+  if (wertObjekt) {
+    div.classList.add("belegt", wertObjekt.besitzer);
+    div.textContent = wertObjekt.wert;
+    return div;
+  }
+
+  if (eintrag.zahlen && slotIndex !== null) {
+    div.innerHTML = `<small>${eintrag.zahlen[slotIndex].join("/")}</small>`;
+  }
+
+  const kannHierPlatzieren = fixierterBesitzer
+    ? ausgewaehlterWuerfel && ausgewaehlterWuerfel.besitzer === fixierterBesitzer
+    : ausgewaehlterWuerfel && eintrag.zugriff.includes(ausgewaehlterWuerfel.besitzer);
+
+  const istKlickbar = zustand.status === "laeuft" && ausgewaehlterWuerfel &&
+    zustand.am_zug === ausgewaehlterWuerfel.besitzer && kannHierPlatzieren;
+
+  if (istKlickbar) {
+    div.classList.add("klickbar");
+    div.title = "Ausgewählten Würfel hier platzieren";
+    div.addEventListener("click", () => platziereAusgewaehlten(eintrag, slotIndex));
+  }
+  return div;
+}
+
+function platziereAusgewaehlten(eintrag, slotIndex) {
+  if (!ausgewaehlterWuerfel) return;
+  const brauchtIndex = ["fahrwerk", "landeklappe", "bremse", "konzentration"].includes(eintrag.ziel);
+  const index = brauchtIndex ? slotIndex : null;
+  const funkFeld = eintrag.ziel === "funk" ? slotIndex : 0;
+  const antwort = pyToJs(bridge.platziere(
+    ausgewaehlterWuerfel.besitzer, ausgewaehlterWuerfel.index, eintrag.ziel, index, funkFeld
+  ));
+  ausgewaehlterWuerfel = null;
+  nachAktion(antwort);
+}
+
+function renderCockpitBoard(zustand) {
+  const board = document.getElementById("cockpit-board");
+  board.innerHTML = "";
+  const layout = pyToJs(bridge.feld_layout());
+  const felder = zustand.felder;
+
+  layout.forEach(eintrag => {
+    const zeile = document.createElement("div");
+    zeile.className = "feld-zeile";
+
+    const label = document.createElement("span");
+    label.className = "feld-label";
+    label.textContent = ZIEL_BESCHRIFTUNG[eintrag.ziel] + (eintrag.pflicht ? " *" : "");
+    zeile.appendChild(label);
+
+    const slots = document.createElement("div");
+    slots.className = "feld-slots";
+
+    if (eintrag.art === "farbpaar") {
+      const werte = felder[eintrag.snapshot_key];
+      slots.appendChild(feldZelle("pilot", werte.pilot, null, eintrag, zustand));
+      slots.appendChild(feldZelle("kopilot", werte.kopilot, null, eintrag, zustand));
+    } else {
+      const werte = felder[eintrag.snapshot_key];
+      for (let i = 0; i < eintrag.slots; i++) {
+        slots.appendChild(feldZelle(null, werte[i], i, eintrag, zustand));
+      }
+    }
+    zeile.appendChild(slots);
+    board.appendChild(zeile);
+  });
+}
+
+// ---------------------------------------------------------------------
+// Würfel-Trays + Kaffee (Bug #5): Delta-Buttons statt Texteingabe,
+// nur mit Werten, die tatsächlich gültig sind (Bereich 1-6, |delta| <=
+// verfügbare Tassen).
+// ---------------------------------------------------------------------
 function renderWuerfel(besitzer, zustand) {
   const container = document.getElementById(`wuerfel-${besitzer}`);
   container.innerHTML = "";
@@ -118,6 +247,9 @@ function renderWuerfel(besitzer, zustand) {
   const frei = zustand[`${besitzer}_wuerfel_frei`];
 
   werte.forEach((wert, i) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "wuerfel-slot";
+
     const div = document.createElement("div");
     div.className = "wuerfel" + (frei[i] ? "" : " platziert");
     div.textContent = wert;
@@ -125,87 +257,50 @@ function renderWuerfel(besitzer, zustand) {
       ausgewaehlterWuerfel.besitzer === besitzer && ausgewaehlterWuerfel.index === i;
     if (istAusgewaehlt) div.classList.add("ausgewaehlt");
 
-    if (frei[i] && zustand.am_zug === besitzer && zustand.status === "laeuft") {
+    const istAmZug = zustand.am_zug === besitzer && zustand.status === "laeuft";
+    if (frei[i] && istAmZug) {
+      div.title = "Klicken zum Auswählen, dann ein Feld im Cockpit-Board anklicken.";
       div.addEventListener("click", () => {
         ausgewaehlterWuerfel = istAusgewaehlt ? null : { besitzer, index: i };
+        kaffeeMenuOffenFuer = null;
         render(zustand);
       });
-      div.title = "Klicken zum Auswählen, dann ein Ziel wählen.";
-
-      if (istAusgewaehlt && zustand.kaffeetassen > 0) {
-        const kaffeeBtn = document.createElement("button");
-        kaffeeBtn.textContent = "☕";
-        kaffeeBtn.title = "Kaffee einsetzen, um diesen Würfel zu verändern";
-        kaffeeBtn.style.marginLeft = "2px";
-        kaffeeBtn.addEventListener("click", async (ev) => {
-          ev.stopPropagation();
-          const delta = window.prompt(
-            `Wert um wie viel verändern? (max. ±${zustand.kaffeetassen}, Bereich bleibt 1-6)`, "1");
-          if (delta === null) return;
-          const d = parseInt(delta, 10);
-          if (!Number.isInteger(d) || d === 0) return;
-          const antwort = bridge.trinke_kaffee(besitzer, i, d).toJs({ dict_converter: Object.fromEntries });
-          nachAktion(antwort);
-        });
-        container.appendChild(div);
-        container.appendChild(kaffeeBtn);
-        return;
-      }
     }
-    container.appendChild(div);
-  });
-}
+    wrapper.appendChild(div);
 
-// Statisches Layout (siehe backend/bridge.py:feld_layout) - hier nur
-// einmal geholt und mit dem Frontend-Text angereichert.
-const ZIEL_BESCHRIFTUNG = {
-  ruder: "Ruder (Pflicht)",
-  triebwerk: "Triebwerke (Pflicht)",
-  funk: "Funk",
-  fahrwerk: "Fahrwerk",
-  landeklappe: "Landeklappe",
-  bremse: "Bremse",
-  konzentration: "Konzentration (Kaffee)",
-};
-
-function renderZiele(besitzer, zustand) {
-  const container = document.getElementById(`ziele-${besitzer}`);
-  container.innerHTML = "";
-
-  const layout = bridge.feld_layout().toJs({ dict_converter: Object.fromEntries })
-    .filter(eintrag => eintrag.zugriff.includes(besitzer));
-
-  const istAmZug = zustand.am_zug === besitzer && zustand.status === "laeuft";
-  const aktiverWuerfel = ausgewaehlterWuerfel && ausgewaehlterWuerfel.besitzer === besitzer
-    ? ausgewaehlterWuerfel.index : null;
-
-  layout.forEach(eintrag => {
-    const slots = eintrag.slots || 1;
-    for (let slot = 0; slot < slots; slot++) {
-      const btn = document.createElement("button");
-      btn.className = "ziel-btn";
-      let beschriftung = ZIEL_BESCHRIFTUNG[eintrag.ziel];
-      if (eintrag.zahlen) beschriftung += ` [${eintrag.zahlen[slot].join("/")}]`;
-      if (eintrag.ziel === "funk" && slots > 1) beschriftung += ` #${slot + 1}`;
-      if ((eintrag.ziel === "fahrwerk" || eintrag.ziel === "landeklappe" ||
-           eintrag.ziel === "bremse" || eintrag.ziel === "konzentration") && slots > 1) {
-        beschriftung += ` #${slot + 1}`;
-      }
-      btn.textContent = beschriftung;
-      btn.disabled = !istAmZug || aktiverWuerfel === null;
-
-      btn.addEventListener("click", () => {
-        const index = (eintrag.ziel === "fahrwerk" || eintrag.ziel === "landeklappe" ||
-          eintrag.ziel === "bremse" || eintrag.ziel === "konzentration") ? slot : null;
-        const funkFeld = eintrag.ziel === "funk" ? slot : 0;
-        const antwort = bridge.platziere(
-          besitzer, aktiverWuerfel, eintrag.ziel, index, funkFeld
-        ).toJs({ dict_converter: Object.fromEntries });
-        ausgewaehlterWuerfel = null;
-        nachAktion(antwort);
+    if (istAusgewaehlt && frei[i] && zustand.kaffeetassen > 0) {
+      const kaffeeBtn = document.createElement("button");
+      kaffeeBtn.textContent = "☕";
+      kaffeeBtn.title = "Kaffee einsetzen, um diesen Würfel zu verändern";
+      kaffeeBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const offenFuerDiesen = kaffeeMenuOffenFuer &&
+          kaffeeMenuOffenFuer.besitzer === besitzer && kaffeeMenuOffenFuer.index === i;
+        kaffeeMenuOffenFuer = offenFuerDiesen ? null : { besitzer, index: i };
+        render(zustand);
       });
-      container.appendChild(btn);
+      wrapper.appendChild(kaffeeBtn);
+
+      if (kaffeeMenuOffenFuer && kaffeeMenuOffenFuer.besitzer === besitzer && kaffeeMenuOffenFuer.index === i) {
+        const deltas = bridge.moegliche_kaffee_deltas(besitzer, i).toJs();
+        const menu = document.createElement("div");
+        menu.className = "kaffee-auswahl";
+        deltas.forEach(d => {
+          const btn = document.createElement("button");
+          btn.textContent = (d > 0 ? "+" : "") + d;
+          btn.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            kaffeeMenuOffenFuer = null;
+            const antwort = pyToJs(bridge.trinke_kaffee(besitzer, i, d));
+            nachAktion(antwort);
+          });
+          menu.appendChild(btn);
+        });
+        wrapper.appendChild(menu);
+      }
     }
+
+    container.appendChild(wrapper);
   });
 }
 
@@ -220,7 +315,7 @@ function nachAktion(antwort) {
 }
 
 async function rundenendeKlick() {
-  const antwort = bridge.rundenende().toJs({ dict_converter: Object.fromEntries });
+  const antwort = pyToJs(bridge.rundenende());
   if (!antwort.ergebnis.erfolg) {
     setzeMeldung(`Runde kann noch nicht enden: ${antwort.ergebnis.grund}`, "fehler");
     render(antwort.zustand);
@@ -229,7 +324,7 @@ async function rundenendeKlick() {
   setzeMeldung(antwort.ergebnis.meldung, "erfolg");
   render(antwort.zustand);
   if (antwort.zustand.status === "laeuft") {
-    const neuerZustand = bridge.wuerfeln_fuer_runde().toJs({ dict_converter: Object.fromEntries });
+    const neuerZustand = pyToJs(bridge.wuerfeln_fuer_runde());
     render(neuerZustand);
   }
 }
@@ -237,7 +332,8 @@ async function rundenendeKlick() {
 async function neuesSpiel() {
   const flughafen = document.getElementById("flughafen-auswahl").value;
   ausgewaehlterWuerfel = null;
-  const zustand = bridge.neues_spiel(flughafen).toJs({ dict_converter: Object.fromEntries });
+  kaffeeMenuOffenFuer = null;
+  const zustand = pyToJs(bridge.neues_spiel(flughafen));
   setzeMeldung("Neue Partie gestartet.", "erfolg");
   render(zustand);
 }
