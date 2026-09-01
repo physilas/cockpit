@@ -7,8 +7,13 @@ bool/None) zurück, nie Wuerfel-/Ergebnis-Objekte direkt - das macht die
 und hält die Spielregeln komplett in Python (kein Regel-Code in JS).
 """
 from .spielplan import Spielplan
+from .regeln import grund_text as _grund_text
 
 _spiel = None
+
+
+def grund_text(code):
+    return _grund_text(code)
 
 
 def neues_spiel(flughafen="MUC"):

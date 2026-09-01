@@ -270,3 +270,68 @@ main {
   align-items: center;
   gap: 0.25rem;
 }
+
+/* Aktionen-Leiste Buttons nebeneinander */
+.aktionen-buttons { display: flex; gap: 0.6rem; }
+
+/* Ressourcen als Boxen (Bug #5): Kaffee/Neuwurf */
+.ressourcen-box {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #475569;
+  border-radius: 6px;
+  margin-right: 4px;
+  font-size: 1.05rem;
+  vertical-align: middle;
+}
+
+.ressourcen-box.gefuellt {
+  border-style: solid;
+  border-color: #a16207;
+  background: rgba(161, 98, 7, 0.18);
+}
+
+/* Neuwurf-Panel (Bug #4) */
+#neuwurf-panel {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.neuwurf-gruppe {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.neuwurf-gruppe label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--panel-hell);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#neuwurf-panel .neuwurf-aktionen { display: flex; gap: 0.5rem; }
+
+/* Wider status fields for scale displays (Aerodynamik, Bremsen-Marker) */
+#s-aero, #s-brems {
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  font-family: "SF Mono", "Consolas", monospace;
+  letter-spacing: 0.03em;
+}
+
+.status-feld:has(#s-aero),
+.status-feld:has(#s-brems) {
+  min-width: 180px;
+}

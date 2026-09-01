@@ -1,5 +1,5 @@
 from backend.spielplan import Spielplan
-from backend.regeln import RUDER_STALL_SCHWELLE
+from backend.regeln import RUDER_STALL_SCHWELLE, grund_text
 
 
 def _balken(werte, aktiv_symbol="●", offen_symbol="○"):
@@ -54,5 +54,5 @@ class Displayer:
         if z["status"] == "laeuft":
             print(f" Am Zug: {z['am_zug'].upper()}")
         else:
-            print(f" SPIELENDE: {z['status'].upper()} ({z['verlust_grund'] or 'Sieg!'})")
+            print(f" SPIELENDE: {z['status'].upper()} ({grund_text(z['verlust_grund']) or 'Sieg!'})")
         print("=" * 60)

@@ -29,7 +29,7 @@
       <div class="status-feld"><span class="label">Entfernung</span><span id="s-entfernung">-</span></div>
       <div class="status-feld"><span class="label">Fluglage</span><span id="s-fluglage">-</span></div>
       <div class="status-feld"><span class="label">Aerodynamik</span><span id="s-aero">-</span></div>
-      <div class="status-feld"><span class="label">Bremsstärke</span><span id="s-brems">-</span></div>
+      <div class="status-feld"><span class="label">Bremsen-Marker</span><span id="s-brems">-</span></div>
       <div class="status-feld"><span class="label">Kaffee</span><span id="s-kaffee">-</span></div>
       <div class="status-feld"><span class="label">Neuwurf</span><span id="s-neuwurf">-</span></div>
     </section>
@@ -60,8 +60,13 @@
 
     <section id="aktionen-leiste">
       <span id="am-zug-anzeige"></span>
-      <button id="rundenende-btn">Runde beenden</button>
+      <div class="aktionen-buttons">
+        <button id="neuwurf-btn">🔄 Neuwurf</button>
+        <button id="rundenende-btn">Runde beenden</button>
+      </div>
     </section>
+
+    <section id="neuwurf-panel" class="versteckt"></section>
 
     <section id="meldung-leiste"></section>
 

@@ -391,21 +391,20 @@ def test_triebwerk_wartet_bis_alle_wuerfel_liegen():
 
 
 def test_funk_zielt_richtig_unabhaengig_von_reihenfolge():
-    """Bug #3 direkt: Funk-Zielberechnung bleibt korrekt, unabhängig
-    davon, ob Triebwerke in derselben Runde schon platziert wurden."""
+    """Bug #3 direkt: Funk zählt Richtung Flughafen (sinkende Entfernung,
+    siehe S.7-Beispiel/Foto), und das bleibt korrekt unabhängig davon, ob
+    Triebwerke in derselben Runde schon platziert wurden."""
     from backend.spielplan import Spielplan
 
     spiel = Spielplan("MUC")
     spiel.starte_spiel()
     spiel.landung.entfernung = 3  # wie im gemeldeten Bug: "an Position 3"
     start_entfernung = spiel.landung.get_entfernung()
-    ziel_entfernung = start_entfernung + 2  # mit einer 3 erreichbar: current + (3-1) = 5
+    ziel_entfernung = start_entfernung - 2  # mit einer 3 erreichbar: current - (3-1) = 1
     idx = spiel.landung._index_fuer_entfernung(ziel_entfernung)
     spiel.landung.flugzeuge[idx] = 1
 
     wuerfel = spiel._wuerfel_liste(spiel.am_zug)
-    # Ruder zuerst platzieren (Pflicht), dann Funk mit einer 3 - die
-    # aktuelle Position darf sich zwischendurch NICHT verschoben haben.
     besitzer = spiel.am_zug
     for w in wuerfel:
         w.werfen()
@@ -416,10 +415,37 @@ def test_funk_zielt_richtig_unabhaengig_von_reihenfolge():
     assert spiel.landung.flugzeuge[idx] == 0
 
 
+def test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen():
+    """
+    Regressionstest für den konkret gemeldeten Bug: in Runde 1 (Entfernung
+    == laenge, also der denkbar ungünstigste Fall) muss ein Würfel > 1
+    trotzdem ein Flugzeug entfernen können, wenn eines im Zielbereich
+    liegt - vorher (falsche Zählrichtung) ging dort NUR die 1.
+    """
+    from backend.spielplan import Spielplan
+
+    spiel = Spielplan("MUC")
+    spiel.starte_spiel()
+    entfernung = spiel.landung.get_entfernung()  # == laenge (7) in Runde 1
+    ziel_entfernung = entfernung - 2  # mit einer 3 erreichbar
+    idx = spiel.landung._index_fuer_entfernung(ziel_entfernung)
+    spiel.landung.flugzeuge[idx] = 1
+
+    besitzer = spiel.am_zug
+    wuerfel = spiel._wuerfel_liste(besitzer)
+    for w in wuerfel:
+        w.werfen()
+    wuerfel[0].augenzahl = 3
+    ergebnis = spiel.platziere(besitzer, 0, "funk", funk_feld=0)
+    assert ergebnis.erfolg and "entfernt" in ergebnis.meldung, ergebnis.meldung
+    assert spiel.landung.flugzeuge[idx] == 0
+
+
 if __name__ == "__main__":
     test_viele_zufallspartien()
     test_gewinn_pfad_deterministisch()
     test_ruder_vorzeichen()
     test_triebwerk_wartet_bis_alle_wuerfel_liegen()
     test_funk_zielt_richtig_unabhaengig_von_reihenfolge()
+    test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen()
     print("Alle Regressionstests: OK")

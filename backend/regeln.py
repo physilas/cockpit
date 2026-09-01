@@ -38,3 +38,47 @@ MAX_KAFFEETASSEN = 3
 # verschieben (aus einer 1 wird durch Verringern keine 6, S.8).
 WUERFEL_MIN = 1
 WUERFEL_MAX = 6
+
+# Menschlich lesbare (großgeschriebene) Anzeige-Texte für die internen
+# grund-Codes von Ergebnis - sowohl Verlust-Gründe als auch abgelehnte
+# Aktionen (Bug #6: "kollision" -> "Kollision" usw.). Zentral hier
+# gepflegt, damit Terminal- und Web-Frontend denselben Text zeigen.
+GRUND_TEXT = {
+    # Verlust-/Siegauswertung
+    "trudeln": "Trudeln",
+    "kollision": "Kollision",
+    "uebers_ziel_hinaus": "Übers Ziel hinaus",
+    "zu_schnell_gelandet": "Zu schnell gelandet",
+    "notlandung": "Notlandung",
+    "pflichtfelder_nicht_erfuellt": "Pflichtfelder nicht erfüllt",
+    "flugzeuge_uebrig": "Flugzeuge übrig",
+    "fahrwerk_unvollstaendig": "Fahrwerk unvollständig",
+    "landeklappen_unvollstaendig": "Landeklappen unvollständig",
+    "nicht_waagerecht": "Nicht waagerecht",
+    # Abgelehnte Aktionen (Ergebnis.erfolg == False)
+    "feld_ungueltig": "Feld ungültig",
+    "ungueltiger_index": "Ungültiger Index",
+    "falsche_reihenfolge": "Falsche Reihenfolge",
+    "triebwerke_nicht_platziert": "Triebwerke noch nicht platziert",
+    "wuerfel_bereits_platziert": "Würfel bereits platziert",
+    "nicht_genug_kaffee": "Nicht genug Kaffee",
+    "kein_neuwurf_plaettchen": "Kein Neuwurf-Plättchen verfügbar",
+    "spiel_beendet": "Spiel beendet",
+    "nicht_am_zug": "Nicht am Zug",
+    "ungueltiger_wuerfel_index": "Ungültiger Würfel-Index",
+    "wuerfel_nicht_verfuegbar": "Würfel nicht verfügbar",
+    "unbekanntes_ziel": "Unbekanntes Ziel",
+    "noch_nicht_alle_wuerfel_platziert": "Noch nicht alle Würfel platziert",
+}
+
+
+def grund_text(code):
+    """
+    Wandelt einen (evtl. kommagetrennten, siehe _werte_spielende_aus)
+    verlust_grund-Code in lesbaren, korrekt großgeschriebenen deutschen
+    Text um. Unbekannte Codes werden unverändert durchgereicht, statt
+    einen Fehler zu werfen.
+    """
+    if not code:
+        return ""
+    return ", ".join(GRUND_TEXT.get(teil, teil) for teil in code.split(","))

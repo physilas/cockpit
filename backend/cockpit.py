@@ -256,7 +256,12 @@ class Cockpit:
             return Ergebnis(False, "feld_ungueltig")
 
         wert = wuerfel.get_augenzahl()
-        ziel_entfernung = self.landung.get_entfernung() + (wert - 1)
+        # S.7-Beispiel/Foto: das Zielfeld für den Wert 2 liegt EINE Position
+        # NÄHER am Flughafen als die aktuelle Position (im gedruckten
+        # Fenster liegt der Flughafen "oberhalb", die aktuelle Position
+        # "unten" - Zählen "von unten nach oben" bewegt sich also Richtung
+        # Flughafen, d.h. Richtung sinkender Entfernung).
+        ziel_entfernung = self.landung.get_entfernung() - (wert - 1)
         entfernt = self.landung.remove_flugzeug_bei_entfernung(ziel_entfernung)
         meldung = (
             f"Flugzeug bei Entfernung {ziel_entfernung} entfernt."

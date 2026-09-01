@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from backend.spielplan import Spielplan  # noqa: E402
+from backend.regeln import grund_text  # noqa: E402
 from frontend.terminal.displayer import Displayer  # noqa: E402
 
 ZIELE_MIT_INDEX = {
@@ -81,7 +82,7 @@ def spielzug(spiel):
 
     ergebnis = spiel.platziere(besitzer, wuerfel_index, ziel, **kwargs)
     if not ergebnis.erfolg:
-        print(f"Nicht möglich: {ergebnis.grund}")
+        print(f"Nicht möglich: {grund_text(ergebnis.grund)}")
     elif ergebnis.meldung:
         print(ergebnis.meldung)
 
