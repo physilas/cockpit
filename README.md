@@ -183,3 +183,37 @@ Die Engine und ein klickbares Grundgerüst stehen; für den Feinschliff:
 Sag mir außerdem, ob ich Bild-Generierung (Visualizer) für erste
 Mockups des Boards/Icons nutzen soll, oder ob du lieber mit echten
 Fotos/Scans der Cockpit-Teile arbeitest.
+
+## Lokaler Multiplayer (zwei Geräte, gleiches WLAN)
+
+```
+pip install websockets   # einmalig
+python3 server.py        # aus dem Repo-Root starten
+```
+
+Der Server gibt dann zwei URLs aus, z.B.:
+
+```
+Pilotin  → http://192.168.1.5:8080/frontend/web/multiplayer.html?rolle=pilot
+Co-Pilot → http://192.168.1.5:8080/frontend/web/multiplayer.html?rolle=kopilot
+```
+
+**Ablauf in der App:**
+1. Spieler 1 (Host) öffnet die URL im Browser → klickt **"Spiel hosten"**
+   → QR-Code erscheint auf dem Bildschirm.
+2. Spieler 2 öffnet `multiplayer.html` (oder scannt direkt mit der Kamera-App)
+   → klickt **"Beitreten (QR)"** → Kamera öffnet sich → QR-Code scannen.
+3. Verbindung steht. Jeder Spieler sieht nur seine eigenen Würfel,
+   aber alle gelegten Felder sind für beide sichtbar.
+
+Alternativ: Spieler 2 kann auch **"IP manuell eingeben"** klicken und die
+IP-Adresse von Spieler 1 eintippen.
+
+**Warum kein WebRTC / Bluetooth?**
+- *Web Bluetooth* erlaubt nur Verbindungen zu BLE-Peripheriegeräten
+  (Arduino, Sensoren), nicht Browser-zu-Browser — das ist eine
+  Plattformbeschränkung, kein Bug.
+- *WebRTC* bräuchte einen Signaling-Server für den initialen Handshake;
+  das lokale WebSocket ist für Same-Room-Spiele einfacher und genauso schnell.
+- Für Spiele über verschiedene Netzwerke (z.B. online) wäre Firebase
+  Realtime Database die nächste Option (kostenlos, kein eigener Server).
