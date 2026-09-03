@@ -11,9 +11,7 @@
   --radius: 10px;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -21,11 +19,6 @@ body {
   background: var(--bg);
   color: var(--text);
 }
-
-
-/* =========================================================
-   HEADER
-   ========================================================= */
 
 header {
   display: flex;
@@ -38,26 +31,12 @@ header {
   border-bottom: 1px solid var(--panel-hell);
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.4rem;
-}
+h1 { margin: 0; font-size: 1.4rem; }
+.subtitle { color: var(--muted); font-weight: normal; font-size: 0.9rem; margin-left: 0.5rem; }
 
-.subtitle {
-  color: var(--muted);
-  font-weight: normal;
-  font-size: 0.9rem;
-  margin-left: 0.5rem;
-}
+#spiel-auswahl { display: flex; align-items: center; gap: 0.5rem; }
 
-#spiel-auswahl {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-select,
-button {
+select, button {
   background: var(--panel-hell);
   color: var(--text);
   border: 1px solid #475569;
@@ -67,111 +46,19 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background: #475569;
-}
+button:hover { background: #475569; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.multiplayer-link {
-  background: var(--panel-hell);
-  color: var(--text);
-  border: 1px solid #475569;
-  border-radius: var(--radius);
-  padding: 0.5rem 0.8rem;
-  font-size: 0.95rem;
-  text-decoration: none;
-  display: inline-block;
-}
-
-
-/* =========================================================
-   STARTMENÜ
-   ========================================================= */
-
-#start-menu {
-  position: fixed;
-  inset: 0;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.8rem;
-  z-index: 100;
-  padding: 2rem;
-}
-
-.start-menu-inhalt {
-  width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-.start-logo {
+#lade-hinweis {
   text-align: center;
-}
-
-.start-flugzeug {
-  font-size: 3rem;
-}
-
-.start-logo h1 {
-  margin: 0.3rem 0 0.2rem;
-  font-size: 2rem;
-}
-
-.start-logo p {
+  padding: 3rem;
   color: var(--muted);
-  margin: 0;
 }
 
-.start-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-}
-
-.start-button {
-  padding: 1.1rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: 12px;
-  color: white;
-  border: none;
-}
-
-.start-button span {
-  font-weight: 400;
-  font-size: 0.8rem;
-}
-
-.pass-play-button {
-  background: var(--blau);
-}
-
-.multiplayer-button {
-  background: var(--orange);
-}
-
-
-/* =========================================================
-   ALLGEMEINES LAYOUT
-   ========================================================= */
-
-.versteckt {
-  display: none !important;
-}
+.versteckt { display: none !important; }
 
 main {
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 1.5rem;
   display: flex;
@@ -179,12 +66,7 @@ main {
   gap: 1.2rem;
 }
 
-
-/* =========================================================
-   STATUSLEISTE
-   ========================================================= */
-
-#status-leiste {
+#status-leiste, #fortschritt-leiste {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -199,204 +81,120 @@ main {
   min-width: 90px;
 }
 
-.status-feld .label {
+.status-feld .label, #flugzeuge-leiste .label {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--muted);
 }
 
-.status-feld span:last-child {
-  font-size: 1.2rem;
-  font-weight: 600;
-}
+.status-feld span:last-child { font-size: 1.2rem; font-weight: 600; }
 
-.status-ressource {
-  min-width: 180px;
-}
+#flugzeuge-leiste { background: var(--panel); border-radius: var(--radius); padding: 1rem; }
+#s-flugzeuge { font-size: 1.1rem; margin-left: 0.5rem; }
 
+.lichter { font-size: 1.2rem; letter-spacing: 0.15em; }
 
-/*
- * Höhe und Entfernung werden weiterhin von app.js
- * aktualisiert, aber nicht mehr in der normalen
- * Statusleiste angezeigt.
- */
-.status-wert-versteckt {
-  display: none !important;
-}
-
-
-/* =========================================================
-   ENTFERNUNG + HÖHE
-   ========================================================= */
-
-#flugbahnen {
+#spieler-bereiche {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
+@media (max-width: 700px) {
+  #spieler-bereiche { grid-template-columns: 1fr; }
+}
 
-/*
- * Eine komplette vertikale Anzeige.
- */
-.flugbahn-container {
+.spieler-bereich {
   background: var(--panel);
   border-radius: var(--radius);
   padding: 1rem;
-
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
+  border-top: 4px solid var(--panel-hell);
 }
 
-.flugbahn-titel {
+#bereich-pilot { border-top-color: var(--blau); }
+#bereich-kopilot { border-top-color: var(--orange); }
+
+.spieler-bereich h2 {
+  margin: 0 0 0.8rem 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.farbe-punkt { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.farbe-punkt.blau { background: var(--blau); }
+.farbe-punkt.orange { background: var(--orange); }
+
+.wuerfel-reihe { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+
+.wuerfel {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+#bereich-pilot .wuerfel { background: var(--blau); }
+#bereich-kopilot .wuerfel { background: var(--orange); }
+.wuerfel.ausgewaehlt { border-color: white; transform: translateY(-2px); }
+.wuerfel.platziert { opacity: 0.3; cursor: not-allowed; }
+
+.ziel-liste { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.ziel-btn {
+  text-align: left;
+  background: var(--panel-hell);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.ziel-btn:hover:not(:disabled) { background: #475569; }
+
+#aktionen-leiste {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.flugbahn-einheit {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 400;
-}
-
-
-/*
- * Die eigentliche vertikale Leiste.
- */
-.flugbahn {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-
-/*
- * Entfernungstiles
- */
-.flug-tile {
-  min-height: 38px;
-
-  display: flex;
   align-items: center;
-  justify-content: center;
-
-  background: var(--panel-hell);
-  border: 1px solid #475569;
-  border-radius: 6px;
-
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-
-  position: relative;
-}
-
-
-/*
- * Höhen-Tiles
- */
-.hoehen-tile {
-  min-height: 31px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: var(--panel-hell);
-  border: 1px solid #475569;
-  border-radius: 6px;
-
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-
-/*
- * Landefeld
- */
-.landungs-tile {
-  min-height: 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(34, 197, 94, 0.12);
-  border: 2px solid var(--gruen);
-  border-radius: 7px;
-
-  color: var(--gruen);
-  font-size: 1.3rem;
-}
-
-
-/* =========================================================
-   FLUGZEUGE AUF DER ENTFERNUNGSLEISTE
-   ========================================================= */
-
-.flugzeuge-auf-balken {
-  position: absolute;
-
-  left: 50%;
-  top: 0;
-
-  transform: translateX(-50%);
-
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-
-  pointer-events: none;
-  z-index: 5;
-}
-
-
-/*
- * Falls app.js einzelne Flugzeug-Elemente erzeugt,
- * werden sie etwas größer und kompakter dargestellt.
- */
-.flugzeuge-auf-balken > * {
-  font-size: 1.2rem;
-}
-
-
-/* =========================================================
-   FORTSCHRITT
-   ========================================================= */
-
-#fortschritt-leiste {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
   background: var(--panel);
-  border-radius: var(--radius);
   padding: 1rem;
+  border-radius: var(--radius);
 }
 
-.lichter {
-  font-size: 1.2rem;
-  letter-spacing: 0.15em;
+#am-zug-anzeige { font-weight: 600; }
+
+#meldung-leiste {
+  min-height: 1.4rem;
+  padding: 0 0.2rem;
+  color: var(--muted);
 }
 
+#meldung-leiste.fehler { color: var(--rot); }
+#meldung-leiste.erfolg { color: var(--gruen); }
 
-/* =========================================================
-   COCKPIT BOARD
-   ========================================================= */
+.spiel-ende {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 1rem;
+  border-radius: var(--radius);
+}
 
+.spiel-ende.gewonnen { background: rgba(34,197,94,0.15); color: var(--gruen); }
+.spiel-ende.verloren { background: rgba(239,68,68,0.15); color: var(--rot); }
+
+/* Shared cockpit board (bug #4) */
 #cockpit-board {
   background: var(--panel);
   border-radius: var(--radius);
   padding: 1rem;
-
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -415,29 +213,20 @@ main {
   color: var(--muted);
 }
 
-.feld-slots {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
+.feld-slots { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
 .feld-zelle {
   width: 38px;
   height: 38px;
-
   border-radius: 6px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-weight: 700;
   font-size: 1.05rem;
-
   border: 2px dashed #475569;
   color: var(--muted);
   background: transparent;
-
   cursor: default;
 }
 
@@ -447,13 +236,8 @@ main {
   color: white;
 }
 
-.feld-zelle.belegt.pilot {
-  background: var(--blau);
-}
-
-.feld-zelle.belegt.kopilot {
-  background: var(--orange);
-}
+.feld-zelle.belegt.pilot { background: var(--blau); }
+.feld-zelle.belegt.kopilot { background: var(--orange); }
 
 .feld-zelle.klickbar {
   cursor: pointer;
@@ -461,220 +245,13 @@ main {
   color: var(--gruen);
 }
 
-.feld-zelle.klickbar:hover {
-  background: rgba(34, 197, 94, 0.15);
-}
+.feld-zelle.klickbar:hover { background: rgba(34,197,94,0.15); }
 
+/* Aerodynamik-Skala (bug #7) */
+#s-aero { font-family: "SF Mono", "Consolas", monospace; letter-spacing: 0.05em; }
+#s-aero .trenner { color: var(--muted); margin: 0 0.3rem; }
 
-/* =========================================================
-   SPIELERBEREICHE
-   ========================================================= */
-
-#spieler-bereiche {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.spieler-bereich {
-  background: var(--panel);
-  border-radius: var(--radius);
-  padding: 1rem;
-  border-top: 4px solid var(--panel-hell);
-}
-
-#bereich-pilot {
-  border-top-color: var(--blau);
-}
-
-#bereich-kopilot {
-  border-top-color: var(--orange);
-}
-
-.spieler-bereich h2 {
-  margin: 0 0 0.8rem 0;
-  font-size: 1.1rem;
-
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.farbe-punkt {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.farbe-punkt.blau {
-  background: var(--blau);
-}
-
-.farbe-punkt.orange {
-  background: var(--orange);
-}
-
-.wuerfel-reihe {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.8rem;
-  flex-wrap: wrap;
-}
-
-.wuerfel {
-  width: 42px;
-  height: 42px;
-
-  border-radius: 8px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-weight: 700;
-  font-size: 1.1rem;
-
-  border: 2px solid transparent;
-
-  cursor: pointer;
-  user-select: none;
-}
-
-#bereich-pilot .wuerfel {
-  background: var(--blau);
-}
-
-#bereich-kopilot .wuerfel {
-  background: var(--orange);
-}
-
-.wuerfel.ausgewaehlt {
-  border-color: white;
-  transform: translateY(-2px);
-}
-
-.wuerfel.platziert {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-
-/* =========================================================
-   ZIELE
-   ========================================================= */
-
-.ziel-liste {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.ziel-btn {
-  text-align: left;
-  background: var(--panel-hell);
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-
-.ziel-btn:hover:not(:disabled) {
-  background: #475569;
-}
-
-
-/* =========================================================
-   AKTIONEN
-   ========================================================= */
-
-#aktionen-leiste {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  background: var(--panel);
-  padding: 1rem;
-  border-radius: var(--radius);
-}
-
-#am-zug-anzeige {
-  font-weight: 600;
-}
-
-.aktionen-buttons {
-  display: flex;
-  gap: 0.6rem;
-}
-
-
-/* =========================================================
-   MELDUNGEN
-   ========================================================= */
-
-#meldung-leiste {
-  min-height: 1.4rem;
-  padding: 0 0.2rem;
-  color: var(--muted);
-}
-
-#meldung-leiste.fehler {
-  color: var(--rot);
-}
-
-#meldung-leiste.erfolg {
-  color: var(--gruen);
-}
-
-
-/* =========================================================
-   SPIELENDE
-   ========================================================= */
-
-.spiel-ende {
-  text-align: center;
-  font-size: 1.4rem;
-  font-weight: 700;
-  padding: 1rem;
-  border-radius: var(--radius);
-}
-
-.spiel-ende.gewonnen {
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--gruen);
-}
-
-.spiel-ende.verloren {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--rot);
-}
-
-
-/* =========================================================
-   AERODYNAMIK
-   ========================================================= */
-
-#s-aero {
-  font-family: "SF Mono", "Consolas", monospace;
-  letter-spacing: 0.05em;
-}
-
-#s-aero .trenner {
-  color: var(--muted);
-  margin: 0 0.3rem;
-}
-
-#s-aero,
-#s-brems {
-  font-size: 0.85rem !important;
-  font-weight: 600;
-  font-family: "SF Mono", "Consolas", monospace;
-  letter-spacing: 0.03em;
-}
-
-
-/* =========================================================
-   KAFFEE
-   ========================================================= */
-
+/* Kaffee-Auswahl (bug #5) */
 .kaffee-auswahl {
   display: flex;
   gap: 0.3rem;
@@ -687,11 +264,6 @@ main {
   font-size: 0.8rem;
 }
 
-
-/* =========================================================
-   WÜRFEL-SLOTS
-   ========================================================= */
-
 .wuerfel-slot {
   display: flex;
   flex-direction: column;
@@ -699,25 +271,19 @@ main {
   gap: 0.25rem;
 }
 
+/* Aktionen-Leiste Buttons nebeneinander */
+.aktionen-buttons { display: flex; gap: 0.6rem; }
 
-/* =========================================================
-   RESSOURCEN
-   ========================================================= */
-
+/* Ressourcen als Boxen (Bug #5): Kaffee/Neuwurf */
 .ressourcen-box {
   display: inline-flex;
-
   width: 30px;
   height: 30px;
-
   align-items: center;
   justify-content: center;
-
   border: 2px dashed #475569;
   border-radius: 6px;
-
   margin-right: 4px;
-
   font-size: 1.05rem;
   vertical-align: middle;
 }
@@ -728,16 +294,11 @@ main {
   background: rgba(161, 98, 7, 0.18);
 }
 
-
-/* =========================================================
-   NEUWURF-PANEL
-   ========================================================= */
-
+/* Neuwurf-Panel (Bug #4) */
 #neuwurf-panel {
   background: var(--panel);
   border-radius: var(--radius);
   padding: 1rem;
-
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
@@ -754,60 +315,23 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-
   background: var(--panel-hell);
   padding: 0.3rem 0.6rem;
-
   border-radius: 6px;
   cursor: pointer;
 }
 
-#neuwurf-panel .neuwurf-aktionen {
-  display: flex;
-  gap: 0.5rem;
+#neuwurf-panel .neuwurf-aktionen { display: flex; gap: 0.5rem; }
+
+/* Wider status fields for scale displays (Aerodynamik, Bremsen-Marker) */
+#s-aero, #s-brems {
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  font-family: "SF Mono", "Consolas", monospace;
+  letter-spacing: 0.03em;
 }
 
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-  #spieler-bereiche {
-    grid-template-columns: 1fr;
-  }
-
-  #flugbahnen {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  main {
-    padding: 1rem;
-  }
-
-  header {
-    padding: 0.8rem 1rem;
-  }
-}
-
-
-@media (max-width: 500px) {
-
-  #flugbahnen {
-    grid-template-columns: 1fr;
-  }
-
-  #spiel-auswahl {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  #spiel-auswahl select {
-    flex: 1;
-  }
-
-  .aktionen-buttons {
-    flex-wrap: wrap;
-  }
+.status-feld:has(#s-aero),
+.status-feld:has(#s-brems) {
+  min-width: 180px;
 }
