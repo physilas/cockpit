@@ -1,0 +1,629 @@
+❯ python -m frontend.terminal.cli
+SKY TEAM - Terminal-Prototyp (YUL Montreal-Trudeau)
+Hotseat: Wuerfel sind hier fuer beide sichtbar (keine Sichtschirme in dieser Version).
+
+
+############ RUNDE 1 ############
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +0   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ...   Schub-Schwellen [blau,orange]: [5, 9]
+ Klappen [1/2,2/3,4/5,5/6]: ....
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 0   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [6, 6, 2, 5]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 6
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 1
+  -> OK: pilot hat 6 auf ruder_pilot gelegt. 
+
+###
+frontend side: In general, I should be able to somehow see what dye was put where with what number. The copilot has no chance to know what rudder value the pilot put for example. In general, knowing the numbers the partner put is a valuable information.
+###
+
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +0   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ...   Schub-Schwellen [blau,orange]: [5, 9]
+ Klappen [1/2,2/3,4/5,5/6]: ....
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 0   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4, 5, 4, 1]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 5
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 2
+  -> OK: kopilot hat 5 auf ruder_kopilot gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ...   Schub-Schwellen [blau,orange]: [5, 9]
+ Klappen [1/2,2/3,4/5,5/6]: ....
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 0   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [6, 2, 5]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 6
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 7
+  -> OK: pilot hat 6 auf fahrwerk_56 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 9]
+ Klappen [1/2,2/3,4/5,5/6]: ....
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 0   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4, 4, 1]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 19
+  -> OK: kopilot hat 4 auf kaffee_2 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 9]
+ Klappen [1/2,2/3,4/5,5/6]: ....
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 1   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [2, 5]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 5
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 3
+  -> OK: pilot hat 5 auf schub_pilot gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 9]
+ Klappen [1/2,2/3,4/5,5/6]: ....
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 1   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4, 1]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 1
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 14
+  -> OK: kopilot hat 1 auf klappen_12 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 1   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [2]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 2
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 19
+  -> ABGELEHNT (falsches Feld/Farbe/Zahl oder schon belegt).
+Pilot ist dran. Deine Wuerfel: [2]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 2
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 4
+  -> ABGELEHNT (falsches Feld/Farbe/Zahl oder schon belegt).
+Pilot ist dran. Deine Wuerfel: [2]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 2
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 18
+  -> OK: pilot hat 2 auf kaffee_1 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 0/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 2   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 0)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 4
+  -> OK: kopilot hat 4 auf schub_kopilot gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  6000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 2   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+
+Alle Wuerfel platziert - Enter fuer Sinkflug/Rundenende...
+
+############ RUNDE 2 ############
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 2   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4, 4, 6, 4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 1
+  -> ABGELEHNT (falsches Feld/Farbe/Zahl oder schon belegt).
+Kopilot ist dran. Deine Wuerfel: [4, 4, 6, 4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 2
+  -> OK: kopilot hat 4 auf ruder_kopilot gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 2   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [5, 6, 6, 3]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 5
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 6
+  -> ABGELEHNT (falsches Feld/Farbe/Zahl oder schon belegt).
+Pilot ist dran. Deine Wuerfel: [5, 6, 6, 3]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 5
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 18
+  -> OK: pilot hat 5 auf kaffee_1 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 3   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4, 6, 4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 6
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 19
+  -> OK: kopilot hat 6 auf kaffee_2 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 3   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [6, 6, 3]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 6
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 20
+  -> OK: pilot hat 6 auf kaffee_3 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 3   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4, 4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 16
+  -> ABGELEHNT (falsches Feld/Farbe/Zahl oder schon belegt).
+Kopilot ist dran. Deine Wuerfel: [4, 4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 12
+  -> OK: kopilot hat 4 auf funken_1_kopilot gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: ..*   Schub-Schwellen [blau,orange]: [6, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 3   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [6, 3]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 6
+  -> OK: pilot hat 3 auf fahrwerk_34 gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: .**   Schub-Schwellen [blau,orange]: [7, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 3   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Kopilot ist dran. Deine Wuerfel: [4]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 4
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 13
+  -> OK: kopilot hat 4 auf funken_2_kopilot gelegt.
+==============================================================
+ Montreal-Trudeau (YUL)   Hoehe:  5000 ft   Position: 1/6
+--------------------------------------------------------------
+ Ruder (Fluglage): +1   (Trudeln bei <= -3 oder >= +3)
+ Fahrwerk  [1/2,3/4,5/6]: .**   Schub-Schwellen [blau,orange]: [7, 10]
+ Klappen [1/2,2/3,4/5,5/6]: *...
+ Bremsen [2,4,6]: ...   max. Landegeschwindigkeit: 0
+ Kaffeetassen: 3   Neuwurf-Marker: 1
+ Flugzeuge auf der Leiste: [0, 0, 0, 0, 0, 0, 0]  (aktuelle Position = Index 1)
+==============================================================
+Pilot ist dran. Deine Wuerfel: [6]
+  Welchen Wuerfel spielen (Wert eingeben, 'f' fuer Feldliste, 'q' zum Beenden)? 6
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? f
+Felder:
+    1: ruder_pilot
+    2: ruder_kopilot
+    3: schub_pilot
+    4: schub_kopilot
+    5: fahrwerk_12
+    6: fahrwerk_34
+    7: fahrwerk_56
+    8: bremse_2
+    9: bremse_4
+   10: bremse_6
+   11: funken_pilot
+   12: funken_1_kopilot
+   13: funken_2_kopilot
+   14: klappen_12
+   15: klappen_23
+   16: klappen_45
+   17: klappen_56
+   18: kaffee_1
+   19: kaffee_2
+   20: kaffee_3
+  Auf welches Feld (Nummer, 'f' fuer Feldliste)? 1 
+  -> OK: pilot hat 6 auf ruder_pilot gelegt.
+
+########################################
+VERLOREN. Grund: trudeln
+########################################
+
+###
+Here are still some problems. First of all, the round was lost not because the rudder was out of balance, but because not all fields ruder_pilot, ruder_kopilot, schub_pilot, schub_kopilot had dice on them! In case this happens, do not evaluate the rudder or thrust, but immediately call it a loss.
+###

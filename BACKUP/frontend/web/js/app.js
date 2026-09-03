@@ -418,5 +418,4 @@ async function init() {
   await neuesSpiel();
 }
 
-// Expose for the landing menu
-window.startPassAndPlay = init;
+init();

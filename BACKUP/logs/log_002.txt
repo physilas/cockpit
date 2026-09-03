@@ -1,0 +1,118 @@
+❯ python main.py 
+============================================================
+ COCKPIT - München (MUC)
+ Runde 1
+============================================================
+ Hoehe:  6000 ft   Entfernung: 7   Flugzeuge voraus: [2, 1, 2, 1, 1, 1, 1]
+ Fluglage: +0  (Trudeln bei |x| >= 3)
+ Aerodynamik blau/orange: 4.5 / 8.5   Bremsstaerke: 0
+ Fahrwerk:      ○○○
+ Landeklappen:  ○○○○
+ Bremsen:       ○○○
+ Kaffeetassen: 0   Neuwurf-Plaettchen: 1
+------------------------------------------------------------
+ Pilot   (blau)  Wuerfel: [0:4] [1:2] [2:3] [3:5]
+ Kopilot (orange) Wuerfel: [0:2] [1:4] [2:3] [3:2]
+------------------------------------------------------------
+ Am Zug: PILOT
+============================================================
+
+PILOT ist am Zug.
+Verfügbare Würfel: 0=4, 1=2, 2=3, 3=5
+Welchen Würfel platzieren (Index)? 3
+Ziele: 0=ruder, 1=triebwerk, 2=funk, 3=konzentration, 4=fahrwerk, 5=bremse
+Auf welches Ziel platzieren (Index)? 0
+============================================================
+ COCKPIT - München (MUC)
+ Runde 1
+============================================================
+ Hoehe:  6000 ft   Entfernung: 7   Flugzeuge voraus: [2, 1, 2, 1, 1, 1, 1]
+ Fluglage: +0  (Trudeln bei |x| >= 3)
+ Aerodynamik blau/orange: 4.5 / 8.5   Bremsstaerke: 0
+ Fahrwerk:      ○○○
+ Landeklappen:  ○○○○
+ Bremsen:       ○○○
+ Kaffeetassen: 0   Neuwurf-Plaettchen: 1
+------------------------------------------------------------
+ Pilot   (blau)  Wuerfel: [0:4] [1:2] [2:3] [3:5(gelegt)]
+ Kopilot (orange) Wuerfel: [0:2] [1:4] [2:3] [3:2]
+------------------------------------------------------------
+ Am Zug: KOPILOT
+============================================================
+
+KOPILOT ist am Zug.
+Verfügbare Würfel: 0=2, 1=4, 2=3, 3=2
+Welchen Würfel platzieren (Index)? 1
+Ziele: 0=ruder, 1=triebwerk, 2=funk, 3=konzentration, 4=landeklappe
+Auf welches Ziel platzieren (Index)? 0
+============================================================
+ COCKPIT - München (MUC)
+ Runde 1
+============================================================
+ Hoehe:  6000 ft   Entfernung: 7   Flugzeuge voraus: [2, 1, 2, 1, 1, 1, 1]
+ Fluglage: +1  (Trudeln bei |x| >= 3)
+ Aerodynamik blau/orange: 4.5 / 8.5   Bremsstaerke: 0
+ Fahrwerk:      ○○○
+ Landeklappen:  ○○○○
+ Bremsen:       ○○○
+ Kaffeetassen: 0   Neuwurf-Plaettchen: 1
+------------------------------------------------------------
+ Pilot   (blau)  Wuerfel: [0:4] [1:2] [2:3] [3:5(gelegt)]
+ Kopilot (orange) Wuerfel: [0:2] [1:4(gelegt)] [2:3] [3:2]
+------------------------------------------------------------
+ Am Zug: PILOT
+============================================================
+
+PILOT ist am Zug.
+Verfügbare Würfel: 0=4, 1=2, 2=3
+Welchen Würfel platzieren (Index)? 0
+Ziele: 0=ruder, 1=triebwerk, 2=funk, 3=konzentration, 4=fahrwerk, 5=bremse
+Auf welches Ziel platzieren (Index)? 1
+============================================================
+ COCKPIT - München (MUC)
+ Runde 1
+============================================================
+ Hoehe:  6000 ft   Entfernung: 7   Flugzeuge voraus: [2, 1, 2, 1, 1, 1, 1]
+ Fluglage: +1  (Trudeln bei |x| >= 3)
+ Aerodynamik blau/orange: 4.5 / 8.5   Bremsstaerke: 0
+ Fahrwerk:      ○○○
+ Landeklappen:  ○○○○
+ Bremsen:       ○○○
+ Kaffeetassen: 0   Neuwurf-Plaettchen: 1
+------------------------------------------------------------
+ Pilot   (blau)  Wuerfel: [0:4(gelegt)] [1:2] [2:3] [3:5(gelegt)]
+ Kopilot (orange) Wuerfel: [0:2] [1:4(gelegt)] [2:3] [3:2]
+------------------------------------------------------------
+ Am Zug: KOPILOT
+============================================================
+
+KOPILOT ist am Zug.
+Verfügbare Würfel: 0=2, 2=3, 3=2
+Welchen Würfel platzieren (Index)? 2
+Ziele: 0=ruder, 1=triebwerk, 2=funk, 3=konzentration, 4=landeklappe
+Auf welches Ziel platzieren (Index)? 1
+Kollision mit einem Flugzeug auf der Entfernungsleiste.
+============================================================
+ COCKPIT - München (MUC)
+ Runde 1
+============================================================
+ Hoehe:  6000 ft   Entfernung: 7   Flugzeuge voraus: [2, 1, 2, 1, 1, 1, 1]
+ Fluglage: +1  (Trudeln bei |x| >= 3)
+ Aerodynamik blau/orange: 4.5 / 8.5   Bremsstaerke: 0
+ Fahrwerk:      ○○○
+ Landeklappen:  ○○○○
+ Bremsen:       ○○○
+ Kaffeetassen: 0   Neuwurf-Plaettchen: 1
+------------------------------------------------------------
+ Pilot   (blau)  Wuerfel: [0:4(gelegt)] [1:2] [2:3] [3:5(gelegt)]
+ Kopilot (orange) Wuerfel: [0:2] [1:4(gelegt)] [2:3(gelegt)] [3:2]
+------------------------------------------------------------
+ > Kollision mit einem Flugzeug auf der Entfernungsleiste.
+ SPIELENDE: VERLOREN (kollision)
+============================================================
+
+###
+Warte, bitte erst auswerten, nachdem alle Würfel gelegt wurden! Das gilt für Ruder und Schub. Wenn alle Würfel platziert wurden, einmalig alle Kriterien analysieren.
+Ausserdem ist es verwirrend, dass ich den Index von dem Würfel auswählen soll. Ich fände es schöner, wenn ich direkt den Würfelwert eingeben könnte. 
+Ansonsten sehe ich immer noch nicht, was der Partner auf welches Feld gelegt hat.
+###
