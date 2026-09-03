@@ -23,10 +23,7 @@
 
   <header>
     <h1>✈ Cockpit <span class="subtitle">Sichere Landung</span></h1>
-<<<<<<< HEAD
 
-=======
->>>>>>> 528fb99db769cbbf2130611d9afb858adbb28732
     <div id="spiel-auswahl">
       <label for="flughafen-auswahl">Flughafen:</label>
 
@@ -113,9 +110,8 @@
       </div>
 
       <!--
-        Die alten Werte bleiben erhalten, damit app.js
-        weiterhin #s-hoehe und #s-entfernung aktualisieren kann.
-        Sie werden nur nicht mehr prominent angezeigt.
+        Höhe und Entfernung werden weiterhin von app.js
+        verwendet, aber nicht mehr separat angezeigt.
       -->
       <span id="s-hoehe" class="status-wert-versteckt">-</span>
       <span id="s-entfernung" class="status-wert-versteckt">-</span>
@@ -129,7 +125,8 @@
 
     <section id="flugbahnen">
 
-      <!-- Entfernung -->
+      <!-- ===================== Entfernung ===================== -->
+
       <div class="flugbahn-container">
 
         <div class="flugbahn-titel">
@@ -137,36 +134,22 @@
           <span class="flugbahn-einheit">km</span>
         </div>
 
-        <div id="entfernungs-balken" class="flugbahn">
+        <!--
+          Wird vollständig dynamisch von app.js erzeugt.
 
-          <!--
-            Platzhalter-Tiles.
-            Später können diese durch app.js dynamisch erzeugt werden.
-          -->
+          Oben:
+            🛬 Landung / 0 km
 
-          <div class="flug-tile">6</div>
-          <div class="flug-tile">5</div>
-          <div class="flug-tile">4</div>
-          <div class="flug-tile">3</div>
-          <div class="flug-tile">2</div>
-          <div class="flug-tile">1</div>
-
-          <div class="landungs-tile">
-            <span>🛬</span>
-          </div>
-
-          <!--
-            Bestehende JS-Ausgabe der Flugzeuge.
-            app.js schreibt weiterhin in #s-flugzeuge.
-          -->
-          <div id="s-flugzeuge" class="flugzeuge-auf-balken"></div>
-
-        </div>
+          Unten:
+            aktuelle bzw. weiteste noch zu fliegende Entfernung
+        -->
+        <div id="entfernungs-balken" class="flugbahn"></div>
 
       </div>
 
 
-      <!-- Höhe -->
+      <!-- ======================== Höhe ======================== -->
+
       <div class="flugbahn-container">
 
         <div class="flugbahn-titel">
@@ -174,29 +157,16 @@
           <span class="flugbahn-einheit">ft</span>
         </div>
 
-        <div id="hoehen-balken" class="flugbahn">
+        <!--
+          Wird vollständig dynamisch von app.js erzeugt.
 
-          <!--
-            Platzhalter-Tiles.
-            0 ft ist die Landung.
-          -->
+          Oben:
+            🛬 Landung / 0 ft
 
-          <div class="hoehen-tile">10.000</div>
-          <div class="hoehen-tile">9.000</div>
-          <div class="hoehen-tile">8.000</div>
-          <div class="hoehen-tile">7.000</div>
-          <div class="hoehen-tile">6.000</div>
-          <div class="hoehen-tile">5.000</div>
-          <div class="hoehen-tile">4.000</div>
-          <div class="hoehen-tile">3.000</div>
-          <div class="hoehen-tile">2.000</div>
-          <div class="hoehen-tile">1.000</div>
-
-          <div class="landungs-tile">
-            <span>🛬</span>
-          </div>
-
-        </div>
+          Unten:
+            aktuelle Höhe
+        -->
+        <div id="hoehen-balken" class="flugbahn"></div>
 
       </div>
 

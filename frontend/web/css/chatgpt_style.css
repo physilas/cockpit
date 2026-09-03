@@ -87,6 +87,10 @@ button:disabled {
   display: inline-block;
 }
 
+.multiplayer-link:hover {
+  background: #475569;
+}
+
 
 /* =========================================================
    STARTMENÜ
@@ -248,6 +252,8 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+
+  min-width: 0;
 }
 
 .flugbahn-titel {
@@ -270,6 +276,14 @@ main {
 
 /*
  * Die eigentliche vertikale Leiste.
+ *
+ * Wichtig:
+ * Die Elemente werden von app.js bereits in der
+ * gewünschten Reihenfolge erzeugt:
+ *
+ * oben    = Landung / 0
+ * ...
+ * unten   = aktuelle / weiteste Entfernung bzw. Höhe
  */
 .flugbahn {
   display: flex;
@@ -278,11 +292,12 @@ main {
 }
 
 
-/*
- * Entfernungstiles
- */
+/* =========================================================
+   ENTFERNUNGSTILES
+   ========================================================= */
+
 .flug-tile {
-  min-height: 38px;
+  min-height: 42px;
 
   display: flex;
   align-items: center;
@@ -297,14 +312,98 @@ main {
   font-weight: 600;
 
   position: relative;
+
+  overflow: hidden;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 
 /*
- * Höhen-Tiles
+ * Aktuelle Position.
  */
+.flug-tile.aktuell {
+  border-color: var(--blau);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.25);
+  color: var(--text);
+}
+
+
+/*
+ * Landung
+ */
+.landungs-tile {
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(34, 197, 94, 0.12);
+  border: 2px solid var(--gruen);
+  border-radius: 7px;
+
+  color: var(--gruen);
+  font-size: 1.3rem;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   FLUGZEUGE AUF DER ENTFERNUNGSLEISTE
+   ========================================================= */
+
+.flugzeuge-auf-balken {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.2rem;
+
+  pointer-events: none;
+  z-index: 5;
+
+  white-space: nowrap;
+}
+
+
+/*
+ * Einzelne Flugzeuge.
+ */
+.flugzeug-auf-balken {
+  font-size: 1.35rem;
+  line-height: 1;
+
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+
+/*
+ * Wenn mehrere Flugzeuge im selben Feld stehen,
+ * werden sie kompakt nebeneinander dargestellt.
+ */
+.flugzeuge-auf-balken.mehrere .flugzeug-auf-balken {
+  font-size: 1.15rem;
+}
+
+
+/* =========================================================
+   HÖHEN-TILES
+   ========================================================= */
+
 .hoehen-tile {
-  min-height: 31px;
+  min-height: 36px;
 
   display: flex;
   align-items: center;
@@ -317,55 +416,18 @@ main {
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 600;
+
+  position: relative;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
-
-/*
- * Landefeld
- */
-.landungs-tile {
-  min-height: 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(34, 197, 94, 0.12);
-  border: 2px solid var(--gruen);
-  border-radius: 7px;
-
-  color: var(--gruen);
-  font-size: 1.3rem;
-}
-
-
-/* =========================================================
-   FLUGZEUGE AUF DER ENTFERNUNGSLEISTE
-   ========================================================= */
-
-.flugzeuge-auf-balken {
-  position: absolute;
-
-  left: 50%;
-  top: 0;
-
-  transform: translateX(-50%);
-
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-
-  pointer-events: none;
-  z-index: 5;
-}
-
-
-/*
- * Falls app.js einzelne Flugzeug-Elemente erzeugt,
- * werden sie etwas größer und kompakter dargestellt.
- */
-.flugzeuge-auf-balken > * {
-  font-size: 1.2rem;
+.hoehen-tile.aktuell {
+  border-color: var(--blau);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.25);
 }
 
 
