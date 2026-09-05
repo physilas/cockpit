@@ -1,0 +1,15 @@
+# Nur für Engine-Tests: kurze, hindernisfreie Strecke, um Sieg-/Verlust-
+# Logik ohne Zufallseinfluss durch Flugzeuge/Kollisionen durchzuskripten.
+code: TEST
+bezeichnung: Testflughafen (hindernisfrei)
+
+module: null
+faehigkeitskarten: 0
+
+schwierigkeit: 0
+laenge: 3
+
+flugzeuge_wuerfel_kurven_min_max:
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2

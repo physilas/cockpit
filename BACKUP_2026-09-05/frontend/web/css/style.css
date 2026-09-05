@@ -335,24 +335,3 @@ main {
 .status-feld:has(#s-brems) {
   min-width: 180px;
 }
-
-/* ── Würfel-Sichtbarkeit (Pass & Play) ── */
-.wuerfel.verborgen {
-  background: var(--panel-hell) !important;
-  color: var(--muted);
-  cursor: default;
-  font-style: italic;
-  border: 2px dashed #475569;
-}
-
-.view-btn {
-  background: transparent;
-  border: 2px solid var(--gruen);
-  color: var(--gruen);
-  border-radius: 8px;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  margin-bottom: 0.4rem;
-}
-.view-btn:hover { background: rgba(34,197,94,0.12); }

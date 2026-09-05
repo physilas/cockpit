@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit – Multiplayer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cockpit">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="theme-color" content="#1e293b">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.mp-screen {
+  max-width: 480px; margin: 0 auto; padding: 2rem 1.5rem;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1.4rem; text-align: center;
+}
+.mp-screen h2 { margin: 0; font-size: 1.6rem; }
+.mp-screen p  { color: var(--muted); margin: 0; }
+.big-btn {
+  width: 100%; padding: 1rem; font-size: 1.1rem; font-weight: 700;
+  border-radius: 12px; border: none; cursor: pointer;
+}
+.big-btn.blau   { background: var(--blau);   color: white; }
+.big-btn.orange { background: var(--orange);  color: white; }
+.big-btn.grau   { background: var(--panel-hell); color: var(--text); font-size:0.95rem; }
+.code-display {
+  font-size: 2.8rem; font-weight: 900; letter-spacing: 0.25em;
+  font-family: monospace; color: var(--text);
+  background: var(--panel); padding: 0.7rem 1.4rem;
+  border-radius: var(--radius);
+}
+.status-pill {
+  padding: 0.35rem 0.9rem; border-radius: 99px;
+  font-size: 0.85rem; background: var(--panel-hell); color: var(--muted);
+}
+.status-pill.ok  { background: rgba(34,197,94,.2); color: var(--gruen); }
+.status-pill.err { background: rgba(239,68,68,.2);  color: var(--rot);  }
+#qr-box { background: #1e293b; padding: 1rem; border-radius: var(--radius); }
+#qr-box canvas, #qr-box img { display: block; }
+.code-input {
+  width: 100%; padding: 0.8rem; font-size: 1.4rem; font-weight: 700;
+  text-align: center; letter-spacing: 0.2em; text-transform: uppercase;
+  background: var(--panel-hell); border: 2px solid #475569;
+  border-radius: var(--radius); color: var(--text);
+}
+.meine-rolle-badge {
+  display: inline-block; padding: 0.2rem 0.8rem; border-radius: 99px;
+  font-size: 0.82rem; font-weight: 700; margin-left: 0.4rem;
+}
+.meine-rolle-badge.pilot   { background: var(--blau);   color: white; }
+.meine-rolle-badge.kopilot { background: var(--orange);  color: white; }
+.partner-wuerfel { font-style: italic; }
+#lade-balken {
+  width: 100%; height: 6px; background: var(--panel-hell);
+  border-radius: 3px; overflow: hidden;
+}
+#lade-balken-fill {
+  height: 100%; width: 0; background: var(--blau);
+  transition: width 0.4s;
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SCREEN: Startmenü ============ -->
+<div id="screen-menu" class="mp-screen" style="margin-top:4rem">
+  <div>
+    <div style="font-size:2.5rem">✈</div>
+    <h2>Cockpit <span style="font-weight:400;color:var(--muted)">Multiplayer</span></h2>
+    <p>Zwei Geräte, gleiches WLAN oder Internet. Kein Server nötig.</p>
+  </div>
+  <button class="big-btn blau"   id="btn-host">📡 Spiel hosten<br>
+    <span style="font-weight:400;font-size:0.8rem">Ich bin die Pilotin</span></button>
+  <button class="big-btn orange" id="btn-join">📷 Spiel beitreten<br>
+    <span style="font-weight:400;font-size:0.8rem">Ich bin der Co-Pilot</span></button>
+  <a href="index.html" style="color:var(--muted);font-size:0.85rem">← Zurück zum Startmenü</a>
+</div>
+
+<!-- ============ SCREEN: Hosten – QR + Warten ============ -->
+<div id="screen-host" class="mp-screen versteckt" style="margin-top:2rem">
+  <h2>Spiel hosten</h2>
+  <p>Zeige Co-Pilot diesen Code oder QR:</p>
+  <div class="code-display" id="host-code">······</div>
+  <div id="qr-box"></div>
+  <div id="host-status" class="status-pill">Warte auf Co-Pilot …</div>
+  <div id="lade-balken"><div id="lade-balken-fill"></div></div>
+  <p id="lade-text" style="font-size:0.8rem">Engine wird geladen …</p>
+  <button class="big-btn grau" onclick="location.reload()">Abbrechen</button>
+</div>
+
+<!-- ============ SCREEN: Beitreten ============ -->
+<div id="screen-join" class="mp-screen versteckt" style="margin-top:2rem">
+  <h2>Spiel beitreten</h2>
+  <p>Gib den 6-stelligen Code des Hosts ein:</p>
+  <input class="code-input" id="join-code-input" maxlength="6"
+         placeholder="ABC123" autocapitalize="characters" autocomplete="off">
+  <button class="big-btn orange" id="btn-do-join">Verbinden</button>
+  <div id="join-status" class="status-pill"></div>
+  <button class="big-btn grau" onclick="location.reload()">Abbrechen</button>
+</div>
+
+<!-- ============ SCREEN: Spiel ============ -->
+<header id="spiel-header" class="versteckt">
+  <h1>✈ Cockpit
+    <span class="subtitle">Multiplayer</span>
+    <span id="meine-rolle-badge" class="meine-rolle-badge"></span>
+  </h1>
+  <div id="spiel-auswahl">
+    <button id="neues-spiel-btn">Neues Spiel</button>
+    <span id="verbindungs-status" class="status-pill ok" style="font-size:0.8rem">● Verbunden</span>
+  </div>
+</header>
+
+<main id="spiel-ui" class="versteckt">
+  <section id="status-leiste">
+    <div class="status-feld"><span class="label">Runde</span><span id="s-runde">-</span></div>
+    <div class="status-feld"><span class="label">Höhe</span><span id="s-hoehe">-</span> ft</div>
+    <div class="status-feld"><span class="label">Entfernung</span><span id="s-entfernung">-</span></div>
+    <div class="status-feld"><span class="label">Fluglage</span><span id="s-fluglage">-</span></div>
+    <div class="status-feld"><span class="label">Aerodynamik</span><span id="s-aero">-</span></div>
+    <div class="status-feld"><span class="label">Bremsen-Marker</span><span id="s-brems">-</span></div>
+    <div class="status-feld"><span class="label">Kaffee</span><span id="s-kaffee">-</span></div>
+    <div class="status-feld"><span class="label">Neuwurf</span><span id="s-neuwurf">-</span></div>
+  </section>
+  <section id="fortschritt-leiste">
+    <div>Fahrwerk: <span id="s-fahrwerk" class="lichter"></span></div>
+    <div>Landeklappen: <span id="s-klappen" class="lichter"></span></div>
+    <div>Bremsen: <span id="s-bremsen" class="lichter"></span></div>
+  </section>
+  <section id="flugzeuge-leiste">
+    <span class="label">Flugzeuge voraus:</span>
+    <span id="s-flugzeuge"></span>
+  </section>
+  <section id="cockpit-board"></section>
+  <section id="spieler-bereiche">
+    <div class="spieler-bereich" id="bereich-pilot">
+      <h2>Pilotin <span class="farbe-punkt blau"></span></h2>
+      <div class="wuerfel-reihe" id="wuerfel-pilot"></div>
+    </div>
+    <div class="spieler-bereich" id="bereich-kopilot">
+      <h2>Co-Pilot <span class="farbe-punkt orange"></span></h2>
+      <div class="wuerfel-reihe" id="wuerfel-kopilot"></div>
+    </div>
+  </section>
+  <section id="aktionen-leiste">
+    <span id="am-zug-anzeige"></span>
+    <div class="aktionen-buttons">
+      <button id="neuwurf-btn">🔄 Neuwurf</button>
+      <button id="rundenende-btn">Runde beenden</button>
+    </div>
+  </section>
+  <section id="neuwurf-panel" class="versteckt"></section>
+  <section id="meldung-leiste"></section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+<script src="js/engine-src.js"></script>
+<script src="js/multiplayer.js"></script>
+</body>
+</html>
