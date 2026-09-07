@@ -285,7 +285,7 @@ function renderWuerfel(besitzer, zustand) {
     viewBtn.textContent = "👁 Würfel anzeigen";
     viewBtn.addEventListener("click", () => {
       diceVisible = besitzer;
-      render(zustand);
+      render(aktuellerZustand);  // always use freshest state
     });
     container.appendChild(viewBtn);
   }
@@ -393,7 +393,7 @@ function renderNeuwurfPanel(zustand) {
       const viewBtn = document.createElement("button");
       viewBtn.className = "view-btn";
       viewBtn.textContent = "👁 Würfel anzeigen";
-      viewBtn.addEventListener("click", () => { diceVisible = neuwurfInitiatorRolle; render(zustand); });
+      viewBtn.addEventListener("click", () => { diceVisible = neuwurfInitiatorRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
     } else {
       // Würfel sind sichtbar – Checkboxen zeigen
@@ -430,11 +430,10 @@ function renderNeuwurfPanel(zustand) {
       const weiter = document.createElement("button");
       weiter.textContent = `Weiter → ${partnerName} ist dran`;
       weiter.addEventListener("click", () => {
-        // Auswahl sichern, in Phase 2 wechseln, Würfel verbergen
-        neuwurfPhase1Indizes = new Set(neuwurfPhase1Indizes); // snapshot
+        neuwurfPhase1Indizes = new Set(neuwurfPhase1Indizes);
         neuwurfPhase = 2;
         diceVisible = null;
-        render(zustand);
+        render(aktuellerZustand);
       });
       ak.appendChild(weiter);
 
@@ -444,7 +443,7 @@ function renderNeuwurfPanel(zustand) {
         neuwurfPhase = 0; neuwurfInitiatorRolle = null;
         neuwurfPhase1Indizes = new Set();
         diceVisible = null;
-        render(zustand);
+        render(aktuellerZustand);
       });
       ak.appendChild(ab);
       panel.appendChild(ak);
@@ -461,7 +460,7 @@ function renderNeuwurfPanel(zustand) {
       const viewBtn = document.createElement("button");
       viewBtn.className = "view-btn";
       viewBtn.textContent = "👁 Würfel anzeigen";
-      viewBtn.addEventListener("click", () => { diceVisible = partnerRolle; render(zustand); });
+      viewBtn.addEventListener("click", () => { diceVisible = partnerRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
     } else {
       const gruppe = document.createElement("div");
@@ -521,7 +520,7 @@ function renderNeuwurfPanel(zustand) {
         neuwurfPhase = 0; neuwurfInitiatorRolle = null;
         neuwurfPhase1Indizes = new Set();
         diceVisible = null;
-        render(zustand);
+        render(aktuellerZustand);
       });
       ak.appendChild(ab);
       panel.appendChild(ak);

@@ -9,7 +9,7 @@
  *   Cache-Header, also kein manuelles Cachen nötig.
  */
 
-const CACHE_NAME = "cockpit-v3";
+const CACHE_NAME = "cockpit-v4";
 
 // Alle Dateien, die offline verfügbar sein sollen.
 // Pyodide-WASM (~10 MB) holen wir NICHT selbst - das macht Pyodide intern.
