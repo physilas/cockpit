@@ -275,6 +275,125 @@ main {
   gap: 2px;
 }
 
+/* ── Höhen-/Entfernungs-Slider (statt reinem Text) ── */
+#tracks-leiste {
+  display: flex;
+  gap: 0.45rem;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.5rem;
+  align-items: stretch;
+}
+
+.altitude-track {
+  display: flex;
+  align-items: stretch;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.altitude-track-labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.5rem;
+  color: var(--muted);
+  text-align: right;
+  padding: 2px 0;
+}
+
+.altitude-track-bar {
+  position: relative;
+  width: 14px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #1c3a63, #16324f 60%, #0f2a44);
+  border: 1px solid #334155;
+  overflow: visible;
+}
+
+.altitude-track-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 0 0 6px 6px;
+  background: rgba(37, 99, 235, 0.35);
+}
+
+.altitude-marker {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
+  transition: top 0.4s ease;
+}
+
+.distance-track-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.distance-track-bar {
+  position: relative;
+  height: 22px;
+  border-radius: 11px;
+  background: linear-gradient(90deg, #1c3a63, #16324f 60%, #0f2a44);
+  border: 1px solid #334155;
+  margin: 0 2px;
+}
+
+.distance-track-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  border-radius: 0 11px 11px 0;
+  background: rgba(37, 99, 235, 0.35);
+}
+
+.distance-airport {
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translate(50%, -50%);
+  font-size: 1rem;
+}
+
+.distance-obstacle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.72rem;
+  color: #fca5a5;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.distance-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.95rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
+  transition: left 0.4s ease;
+  z-index: 2;
+}
+
+.distance-track-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.5rem;
+  color: var(--muted);
+  padding: 0 2px;
+}
+
 /* Aerodynamik-Skala */
 #s-aero { font-family: "SF Mono", "Consolas", monospace; letter-spacing: 0.02em; font-size: 0.68rem !important; }
 #s-aero .trenner { color: var(--muted); margin: 0 0.15rem; }

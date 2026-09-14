@@ -297,17 +297,47 @@ function neuwurfHTML(n) {
            :'<span class="ressourcen-box"></span>';
 }
 
+function renderTracks(z) {
+  const laenge = z.laenge || 1;
+  const entfernung = z.entfernung;
+  const hoehe = z.hoehe;
+
+  const altPct = Math.max(0, Math.min(1, hoehe / 6000));
+  document.getElementById("altitude-fill").style.height = (altPct * 100) + "%";
+  document.getElementById("altitude-marker").style.top = ((1 - altPct) * 100) + "%";
+  const altLabels = document.getElementById("altitude-labels");
+  if (!altLabels.childElementCount) {
+    altLabels.innerHTML = [6, 5, 4, 3, 2, 1, 0].map(v => `<span>${v}k</span>`).join("");
+  }
+
+  const distPct = Math.max(0, Math.min(1, 1 - entfernung / laenge));
+  document.getElementById("distance-fill").style.width = (distPct * 100) + "%";
+  document.getElementById("distance-marker").style.left = (distPct * 100) + "%";
+
+  const obstaclesEl = document.getElementById("distance-obstacles");
+  obstaclesEl.innerHTML = "";
+  (z.flugzeuge || []).forEach((count, i) => {
+    if (count <= 0) return;
+    const posPct = (i / laenge) * 100;
+    const el = document.createElement("span");
+    el.className = "distance-obstacle";
+    el.style.left = posPct + "%";
+    el.textContent = count > 1 ? `✈×${count}` : "✈";
+    obstaclesEl.appendChild(el);
+  });
+
+  document.getElementById("s-entfernung-label").textContent = `Entf. ${entfernung}`;
+  document.getElementById("s-hoehe-label").textContent = `Höhe ${hoehe} ft`;
+}
+
 function render(z) {
   if(!z)return;
   document.getElementById("s-runde").textContent = z.runde+(z.letzte_runde?" (l.)":"")+(z.warteschleife?" ⟳":"");
-  document.getElementById("s-hoehe").textContent = z.hoehe;
-  document.getElementById("s-entfernung").textContent = z.entfernung;
   document.getElementById("s-fluglage").textContent = (z.fluglage>0?"+":"")+z.fluglage;
   document.getElementById("s-aero").innerHTML  = aeroSkalaHTML(z.aerodynamik_blau,z.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(z.bremsstaerke);
   document.getElementById("s-neuwurf").innerHTML = neuwurfHTML(z.neuwurf_plaettchen);
-  const si=Math.max(0,z.laenge-z.entfernung);
-  document.getElementById("s-flugzeuge").textContent = z.flugzeuge.slice(si).map(n=>n>0?"✈".repeat(n):"·").join(" | ")||"(frei)";
+  renderTracks(z);
 
   if(myRole) {
     const b=document.getElementById("meine-rolle-badge");
