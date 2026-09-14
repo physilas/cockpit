@@ -20,7 +20,7 @@
     align-items: center;
     justify-content: center;
     gap: 1.8rem;
-    padding: 2rem;
+    padding: calc(2rem + env(safe-area-inset-top)) 2rem calc(2rem + env(safe-area-inset-bottom));
     background: var(--bg);
   }
   #start-menu h1 { margin: 0.3rem 0 0.2rem; font-size: 2rem; }
@@ -75,7 +75,7 @@
 
   <!-- ═══ 3. LADEHINWEIS (sichtbar während Pyodide lädt) ═══ -->
   <div id="lade-hinweis" class="versteckt"
-       style="text-align:center;padding:2rem;color:var(--muted)">
+       style="text-align:center;padding:calc(2rem + env(safe-area-inset-top)) 2rem 2rem;color:var(--muted)">
     Python-Engine wird geladen …
   </div>
 

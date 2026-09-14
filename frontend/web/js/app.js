@@ -295,13 +295,23 @@ function renderWuerfel(besitzer, zustand) {
   const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft";
   const sichtbar  = diceVisible === besitzer;
 
-  // "Würfel anzeigen"-Button (nur Auge, kompakt): erscheint für den aktiven
-  // Spieler (und in Neuwurf Phase 2 auch für den Partner), solange die
-  // Würfel noch verborgen sind.
-  const zeigeViewBtn = !sichtbar && (
-    istAmZug ||
-    (neuwurfPhase === 2 && besitzer !== neuwurfInitiatorRolle)
-  );
+  // "Würfel anzeigen"-Button (nur Auge, kompakt).
+  //
+  // WICHTIG (Privatsphäre): Solange der Neuwurf-Dialog offen ist, gilt
+  // ausschließlich die Neuwurf-Phase, NICHT "wer ist am Zug" - sonst
+  // bliebe der Knopf für die Würfel des Initiators während Phase 2 aktiv
+  // (er/sie ist ja weiterhin "am Zug"), und der Partner könnte am
+  // gemeinsamen Gerät versehentlich fremde Würfel aufdecken. Außerhalb
+  // eines Neuwurfs gilt wie gewohnt: nur der aktive Spieler sieht seine
+  // eigenen, noch nicht platzierten Würfel.
+  let zeigeViewBtn;
+  if (neuwurfPhase === 1) {
+    zeigeViewBtn = !sichtbar && besitzer === neuwurfInitiatorRolle;
+  } else if (neuwurfPhase === 2) {
+    zeigeViewBtn = !sichtbar && besitzer !== neuwurfInitiatorRolle;
+  } else {
+    zeigeViewBtn = !sichtbar && istAmZug;
+  }
   if (zeigeViewBtn) {
     const viewBtn = document.createElement("button");
     viewBtn.className = "view-btn";

@@ -31,7 +31,7 @@ header {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.4rem;
-  padding: 0.4rem 0.6rem;
+  padding: calc(0.4rem + env(safe-area-inset-top)) 0.6rem 0.4rem;
   background: var(--panel);
   border-bottom: 1px solid var(--panel-hell);
 }
@@ -73,7 +73,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 main {
   max-width: 620px;
   margin: 0 auto;
-  padding: 0.4rem;
+  padding: 0.4rem 0.4rem calc(0.4rem + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
