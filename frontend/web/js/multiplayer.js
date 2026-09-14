@@ -6,6 +6,10 @@
  * Partner (Co-Pilot): verbindet sich über den Code, braucht kein Pyodide.
  *
  * Kommunikation: WebRTC DataChannel via peerjs.com (kostenloser Relay-Server).
+ *
+ * Kompaktes Layout: Fahrwerk-/Landeklappen-/Bremsen-Lichter sitzen direkt
+ * unter den jeweiligen Würfelfeldern statt in einer eigenen Leiste; die
+ * Kaffeetassen-Boxen sitzen direkt neben dem Konzentrations-Feld.
  */
 
 // ── Konstanten ──────────────────────────────────────────────────────────────
@@ -32,8 +36,8 @@ const FELD_LAYOUT = [
   {ziel:"bremse",      snap:"bremse",      zugriff:["pilot"],           slots:3, zahlen:[[2],[4],[6]]},
   {ziel:"konzentration",snap:"konzentration",zugriff:["pilot","kopilot"],slots:3},
 ];
-const LABEL = {ruder:"Ruder",triebwerk:"Triebwerke",funk:"Funk",
-  fahrwerk:"Fahrwerk",landeklappe:"Landeklappe",bremse:"Bremse",konzentration:"Konzentration"};
+const LABEL = {ruder:"Ruder",triebwerk:"Trieb.",funk:"Funk",
+  fahrwerk:"Fahrw.",landeklappe:"Klappen",bremse:"Bremse",konzentration:"Konz."};
 
 // ── Zustand ─────────────────────────────────────────────────────────────────
 let myRole = null;       // "pilot" | "kopilot"
@@ -176,7 +180,6 @@ function meineAktion(msg) {
   if (myRole === "pilot") {
     hostAktion(msg);
   } else {
-    // Partner sendet an Host
     if (conn?.open) conn.send(JSON.stringify(msg));
   }
 }
@@ -188,7 +191,6 @@ function starteHosting() {
   const code = genCode();
   document.getElementById("host-code").textContent = code;
 
-  // QR-Code generieren
   const qrBox = document.getElementById("qr-box");
   qrBox.innerHTML = "";
   if (window.QRCode) {
@@ -205,7 +207,7 @@ function starteHosting() {
 
   peer.on("open", () => {
     setHostStatus("Warte auf Co-Pilot … Code: " + code, "");
-    ladeEngine();  // parallel laden
+    ladeEngine();
   });
 
   peer.on("connection", c => {
@@ -215,11 +217,10 @@ function starteHosting() {
       setHostStatus("Co-Pilot verbunden ✓", "ok");
       document.getElementById("verbindungs-status")?.classList.add("ok");
       if (pyodideReady) startGame();
-      // else: startGame() called from ladeEngine() when ready
     });
     conn.on("data", raw => {
       const msg = JSON.parse(raw);
-      hostAktion(msg);  // Host verarbeitet Partner-Aktionen
+      hostAktion(msg);
     });
     conn.on("close", () => {
       setMeldung("Verbindung zum Co-Piloten unterbrochen.", "fehler");
@@ -228,7 +229,6 @@ function starteHosting() {
 
   peer.on("error", e => {
     if (e.type === "unavailable-id") {
-      // Code bereits vergeben – neuen generieren
       peer.destroy();
       starteHosting();
     } else {
@@ -277,7 +277,7 @@ function starte_Beitreten(code) {
   peer.on("error", e => setJoinStatus("Fehler: " + e.message + " – Code korrekt?", "err"));
 }
 
-// ── Rendering (identisch mit app.js) ────────────────────────────────────────
+// ── Rendering ────────────────────────────────────────────────────────────
 function aeroSkalaHTML(b,o) {
   const bg=Math.floor(b),og=Math.floor(o),t=[];
   for(let n=2;n<=12;n++){t.push(n);if((n===bg||n===og)&&n<12)t.push('<span class="trenner">|</span>');}
@@ -299,21 +299,16 @@ function neuwurfHTML(n) {
 
 function render(z) {
   if(!z)return;
-  document.getElementById("s-runde").textContent = z.runde+(z.letzte_runde?" (letzte!)":"")+(z.warteschleife?" ⟳":"");
+  document.getElementById("s-runde").textContent = z.runde+(z.letzte_runde?" (l.)":"")+(z.warteschleife?" ⟳":"");
   document.getElementById("s-hoehe").textContent = z.hoehe;
   document.getElementById("s-entfernung").textContent = z.entfernung;
   document.getElementById("s-fluglage").textContent = (z.fluglage>0?"+":"")+z.fluglage;
   document.getElementById("s-aero").innerHTML  = aeroSkalaHTML(z.aerodynamik_blau,z.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(z.bremsstaerke);
-  document.getElementById("s-kaffee").innerHTML  = kaffeeHTML(z.kaffeetassen);
   document.getElementById("s-neuwurf").innerHTML = neuwurfHTML(z.neuwurf_plaettchen);
-  document.getElementById("s-fahrwerk").textContent = z.fahrwerk_ausgefahren.map(v=>v?"🟢":"⚪").join(" ");
-  document.getElementById("s-klappen").textContent  = z.landeklappen_ausgefahren.map(v=>v?"🟢":"⚪").join(" ");
-  document.getElementById("s-bremsen").textContent  = z.bremsen_aktiviert.map(v=>v?"🟢":"⚪").join(" ");
   const si=Math.max(0,z.laenge-z.entfernung);
   document.getElementById("s-flugzeuge").textContent = z.flugzeuge.slice(si).map(n=>n>0?"✈".repeat(n):"·").join(" | ")||"(frei)";
 
-  // Meine-Rolle-Badge
   if(myRole) {
     const b=document.getElementById("meine-rolle-badge");
     b.textContent=myRole==="pilot"?"Pilotin":"Co-Pilot";
@@ -358,6 +353,13 @@ function renderBoard(z) {
     lbl.textContent=LABEL[e.ziel]+(e.pflicht?" *":"");
     zeile.appendChild(lbl);
 
+    if (e.ziel === "konzentration") {
+      const res = document.createElement("span");
+      res.className = "ressourcen-inline";
+      res.innerHTML = kaffeeHTML(z.kaffeetassen);
+      zeile.appendChild(res);
+    }
+
     const slots=document.createElement("div");
     slots.className="feld-slots";
 
@@ -367,11 +369,23 @@ function renderBoard(z) {
       slots.appendChild(zelle("kopilot",w.kopilot,null,e,z));
     } else {
       const werte=felder[e.snap]||Array(e.slots).fill(null);
-      const statusArr=e.ziel==="landeklappe"?z.landeklappen_ausgefahren:e.ziel==="bremse"?z.bremsen_aktiviert:null;
+      const statusArr=e.ziel==="fahrwerk"?z.fahrwerk_ausgefahren:
+                       e.ziel==="landeklappe"?z.landeklappen_ausgefahren:
+                       e.ziel==="bremse"?z.bremsen_aktiviert:null;
       const nx=statusArr?statusArr.indexOf(false):null;
       for(let i=0;i<e.slots;i++) {
         const gesperrt=statusArr!==null&&nx!==-1&&i!==nx;
-        slots.appendChild(zelle(null,werte[i],i,e,z,gesperrt));
+        if (statusArr) {
+          const wrap = document.createElement("div");
+          wrap.className = "feld-slot-mit-licht";
+          wrap.appendChild(zelle(null,werte[i],i,e,z,gesperrt));
+          const licht = document.createElement("span");
+          licht.className = "feld-licht" + (statusArr[i] ? " an" : "");
+          wrap.appendChild(licht);
+          slots.appendChild(wrap);
+        } else {
+          slots.appendChild(zelle(null,werte[i],i,e,z,gesperrt));
+        }
       }
     }
     zeile.appendChild(slots);
@@ -476,10 +490,9 @@ function renderNeuwurf(z) {
   panel.classList.remove("versteckt");
 
   const intro=document.createElement("p");
-  intro.textContent=`Neuwurf (${z.neuwurf_plaettchen} Plättchen): wähle deine Würfel zum Neuwerfen:`;
+  intro.textContent=`Neuwurf (${z.neuwurf_plaettchen}): eigene Würfel wählen:`;
   panel.appendChild(intro);
 
-  // Nur eigene Würfel auswählen
   const g=document.createElement("div");
   g.className="neuwurf-gruppe";
   const werte=z[`${myRole}_wuerfel`];
@@ -494,7 +507,7 @@ function renderNeuwurf(z) {
     cb.checked=neuwurfAuswahl[myRole].has(i);
     cb.addEventListener("change",()=>{if(cb.checked)neuwurfAuswahl[myRole].add(i);else neuwurfAuswahl[myRole].delete(i);});
     lbl.appendChild(cb);
-    lbl.append(` Würfel ${i+1} (${w})`);
+    lbl.append(` ${i+1}:${w}`);
     g.appendChild(lbl);
   });
   if(!hat){const s=document.createElement("span");s.textContent="(keine unplatzierten Würfel)";g.appendChild(s);}
@@ -521,7 +534,6 @@ function renderNeuwurf(z) {
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener("DOMContentLoaded", () => {
-  // Auto-Join aus URL-Parameter ?join=CODE
   const params = new URLSearchParams(window.location.search);
   const joinCode = params.get("join");
   if (joinCode) {
@@ -531,7 +543,6 @@ window.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Buttons verdrahten
   document.getElementById("btn-host").addEventListener("click", starteHosting);
   document.getElementById("btn-join").addEventListener("click", () => showScreen("screen-join"));
   document.getElementById("btn-do-join").addEventListener("click", () => {
@@ -549,5 +560,8 @@ window.addEventListener("DOMContentLoaded", () => {
     neuwurfAuswahl={pilot:new Set(),kopilot:new Set()};
     ausgewaehlterWuerfel=null;
     if(aktuellerZustand)render(aktuellerZustand);
+  });
+  document.getElementById("menue-btn")?.addEventListener("click", () => {
+    window.location = "index.html";
   });
 });

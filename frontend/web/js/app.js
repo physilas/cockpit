@@ -1,5 +1,5 @@
 /*
- * Cockpit - Web-Frontend
+ * Cockpit - Web-Frontend (Pass & Play)
  *
  * Lädt die Python-Engine aus engine-src.js (eine gebündelte JS-Datei,
  * die alle Backend-.py-Dateien als Strings enthält) und übergibt sie
@@ -7,6 +7,11 @@
  * Fetch-Anfragen - eine einzige Datei, die immer funktioniert.
  *
  * Nach Änderungen am Backend:  python3 build.py  (aus dem Repo-Root)
+ *
+ * Kompaktes Layout (iPhone, keine Scrollbar): Fahrwerk-/Landeklappen-/
+ * Bremsen-Lichter sitzen direkt unter den jeweiligen Würfelfeldern statt
+ * in einer eigenen Leiste; die Kaffeetassen-Boxen sitzen direkt neben
+ * dem Konzentrations-Feld statt in der Statusleiste.
  */
 
 let pyodide = null;
@@ -89,10 +94,10 @@ function renderFlugzeuge(zustand) {
   const sichtbar = zustand.flugzeuge.slice(startIndex);
   document.getElementById("s-flugzeuge").textContent = sichtbar.length
     ? sichtbar.map(n => n > 0 ? "✈".repeat(n) : "·").join(" | ")
-    : "(keine Hindernisse mehr voraus)";
+    : "(frei)";
 }
 
-// Kaffee und Neuwurf als Boxen
+// Kaffee und Neuwurf als kompakte Boxen
 function kaffeeBoxenHTML(anzahl) {
   let html = "";
   for (let i = 0; i < 3; i++) {
@@ -112,21 +117,13 @@ function render(zustand) {
   aktuellerZustand = zustand;
 
   document.getElementById("s-runde").textContent =
-    zustand.runde + (zustand.letzte_runde ? " (letzte!)" : "") + (zustand.warteschleife ? " ⟳" : "");
+    zustand.runde + (zustand.letzte_runde ? " (l.)" : "") + (zustand.warteschleife ? " ⟳" : "");
   document.getElementById("s-hoehe").textContent = zustand.hoehe;
   document.getElementById("s-entfernung").textContent = zustand.entfernung;
   document.getElementById("s-fluglage").textContent = (zustand.fluglage > 0 ? "+" : "") + zustand.fluglage;
   document.getElementById("s-aero").innerHTML = aeroSkalaHTML(zustand.aerodynamik_blau, zustand.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(zustand.bremsstaerke);
-  document.getElementById("s-kaffee").innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
   document.getElementById("s-neuwurf").innerHTML = neuwurfBoxenHTML(zustand.neuwurf_plaettchen);
-
-  document.getElementById("s-fahrwerk").textContent =
-    zustand.fahrwerk_ausgefahren.map(v => v ? "🟢" : "⚪").join(" ");
-  document.getElementById("s-klappen").textContent =
-    zustand.landeklappen_ausgefahren.map(v => v ? "🟢" : "⚪").join(" ");
-  document.getElementById("s-bremsen").textContent =
-    zustand.bremsen_aktiviert.map(v => v ? "🟢" : "⚪").join(" ");
 
   renderFlugzeuge(zustand);
   renderCockpitBoard(zustand);
@@ -155,9 +152,9 @@ function render(zustand) {
 
 // --- Cockpit-Board (zeigt jedes gelegte Feld; Bremsen/Klappen: nur nächstes frei) ---
 const ZIEL_BESCHRIFTUNG = {
-  ruder: "Ruder", triebwerk: "Triebwerke", funk: "Funk",
-  fahrwerk: "Fahrwerk", landeklappe: "Landeklappe",
-  bremse: "Bremse", konzentration: "Konzentration",
+  ruder: "Ruder", triebwerk: "Trieb.", funk: "Funk",
+  fahrwerk: "Fahrw.", landeklappe: "Klappen",
+  bremse: "Bremse", konzentration: "Konz.",
 };
 
 function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, gesperrt) {
@@ -192,8 +189,21 @@ function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, g
   return div;
 }
 
+// Baut eine Zelle plus optionalem kleinen Licht-Indikator darunter (statt
+// einer eigenen Fortschritts-Leiste - kompakter fürs iPhone).
+function feldZelleMitLicht(wertObjekt, slotIndex, eintrag, zustand, gesperrt, statusArray) {
+  const wrap = document.createElement("div");
+  wrap.className = "feld-slot-mit-licht";
+  wrap.appendChild(feldZelle(null, wertObjekt, slotIndex, eintrag, zustand, gesperrt));
+  if (statusArray) {
+    const licht = document.createElement("span");
+    licht.className = "feld-licht" + (statusArray[slotIndex] ? " an" : "");
+    wrap.appendChild(licht);
+  }
+  return wrap;
+}
+
 function keinEffektWarnung(eintrag, slotIndex, zustand) {
-  // Gibt eine Warnmeldung zurück, wenn das Feld keinen Effekt hätte – sonst null.
   if (!zustand) return null;
   const z = zustand;
   if (eintrag.ziel === "fahrwerk" && z.fahrwerk_ausgefahren[slotIndex])
@@ -210,7 +220,6 @@ function keinEffektWarnung(eintrag, slotIndex, zustand) {
 function platziereAusgewaehlten(eintrag, slotIndex) {
   if (!ausgewaehlterWuerfel) return;
 
-  // Warnung bei Feldern ohne Effekt
   const warnung = keinEffektWarnung(eintrag, slotIndex, aktuellerZustand);
   if (warnung && !window.confirm(`⚠️ ${warnung}\n\nTrotzdem platzieren?`)) return;
 
@@ -240,6 +249,14 @@ function renderCockpitBoard(zustand) {
     label.textContent = ZIEL_BESCHRIFTUNG[eintrag.ziel] + (eintrag.pflicht ? " *" : "");
     zeile.appendChild(label);
 
+    // Kaffee/Neuwurf-Ressourcen direkt neben das Konzentrations-Label hängen
+    if (eintrag.ziel === "konzentration") {
+      const res = document.createElement("span");
+      res.className = "ressourcen-inline";
+      res.innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
+      zeile.appendChild(res);
+    }
+
     const slots = document.createElement("div");
     slots.className = "feld-slots";
 
@@ -250,12 +267,17 @@ function renderCockpitBoard(zustand) {
     } else {
       const werte = felder[eintrag.snapshot_key];
       const statusArray =
-        eintrag.ziel === "landeklappe" ? zustand.landeklappen_ausgefahren :
-        eintrag.ziel === "bremse"      ? zustand.bremsen_aktiviert : null;
+        eintrag.ziel === "fahrwerk"     ? zustand.fahrwerk_ausgefahren :
+        eintrag.ziel === "landeklappe"  ? zustand.landeklappen_ausgefahren :
+        eintrag.ziel === "bremse"       ? zustand.bremsen_aktiviert : null;
       const naechsterIndex = statusArray ? statusArray.indexOf(false) : null;
       for (let i = 0; i < eintrag.slots; i++) {
         const gesperrt = statusArray !== null && naechsterIndex !== -1 && i !== naechsterIndex;
-        slots.appendChild(feldZelle(null, werte[i], i, eintrag, zustand, gesperrt));
+        if (statusArray) {
+          slots.appendChild(feldZelleMitLicht(werte[i], i, eintrag, zustand, gesperrt, statusArray));
+        } else {
+          slots.appendChild(feldZelle(null, werte[i], i, eintrag, zustand, gesperrt));
+        }
       }
     }
     zeile.appendChild(slots);
@@ -273,8 +295,9 @@ function renderWuerfel(besitzer, zustand) {
   const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft";
   const sichtbar  = diceVisible === besitzer;
 
-  // "Würfel anzeigen"-Button: erscheint für den aktiven Spieler (und in Neuwurf Phase 2
-  // auch für den Partner), solange die Würfel noch verborgen sind.
+  // "Würfel anzeigen"-Button (nur Auge, kompakt): erscheint für den aktiven
+  // Spieler (und in Neuwurf Phase 2 auch für den Partner), solange die
+  // Würfel noch verborgen sind.
   const zeigeViewBtn = !sichtbar && (
     istAmZug ||
     (neuwurfPhase === 2 && besitzer !== neuwurfInitiatorRolle)
@@ -282,10 +305,11 @@ function renderWuerfel(besitzer, zustand) {
   if (zeigeViewBtn) {
     const viewBtn = document.createElement("button");
     viewBtn.className = "view-btn";
-    viewBtn.textContent = "👁 Würfel anzeigen";
+    viewBtn.textContent = "👁";
+    viewBtn.title = "Würfel anzeigen";
     viewBtn.addEventListener("click", () => {
       diceVisible = besitzer;
-      render(aktuellerZustand);  // always use freshest state
+      render(aktuellerZustand);
     });
     container.appendChild(viewBtn);
   }
@@ -295,7 +319,6 @@ function renderWuerfel(besitzer, zustand) {
     wrapper.className = "wuerfel-slot";
 
     const div = document.createElement("div");
-    // Ungespielte Würfel: sichtbar wenn diceVisible === besitzer, sonst "?"
     const verberge = frei[i] && !sichtbar;
     div.className = "wuerfel" + (frei[i] ? "" : " platziert") + (verberge ? " verborgen" : "");
     div.textContent = verberge ? "?" : (wert ?? "");
@@ -350,7 +373,6 @@ function renderWuerfel(besitzer, zustand) {
 function toggleNeuwurfPanel() {
   if (!aktuellerZustand || aktuellerZustand.neuwurf_plaettchen <= 0) return;
   if (neuwurfPhase !== 0) {
-    // Abbrechen
     neuwurfPhase = 0;
     neuwurfInitiatorRolle = null;
     neuwurfPhase1Indizes = new Set();
@@ -363,7 +385,6 @@ function toggleNeuwurfPanel() {
   neuwurfPhase1Indizes = new Set();
   neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
   ausgewaehlterWuerfel = null;
-  // Würfel verbergen bevor Panel öffnet
   diceVisible = null;
   render(aktuellerZustand);
 }
@@ -382,21 +403,19 @@ function renderNeuwurfPanel(zustand) {
   const initiatorName = neuwurfInitiatorRolle === "pilot" ? "Pilotin" : "Co-Pilot";
   const partnerName   = partnerRolle === "pilot" ? "Pilotin" : "Co-Pilot";
 
-  // ── Phase 1: Initiator wählt eigene Würfel ──
   if (neuwurfPhase === 1) {
     const hinweis = document.createElement("p");
-    hinweis.innerHTML = `<strong>${initiatorName}</strong>: Klicke "Würfel anzeigen" und wähle, welche deiner Würfel neu geworfen werden sollen.`;
+    hinweis.innerHTML = `<strong>${initiatorName}</strong>: Würfel wählen, die neu geworfen werden.`;
     panel.appendChild(hinweis);
 
     if (diceVisible !== neuwurfInitiatorRolle) {
-      // View-Button hier nochmal für den Fall, dass es oben nicht sichtbar ist
       const viewBtn = document.createElement("button");
       viewBtn.className = "view-btn";
-      viewBtn.textContent = "👁 Würfel anzeigen";
+      viewBtn.textContent = "👁";
+      viewBtn.title = "Würfel anzeigen";
       viewBtn.addEventListener("click", () => { diceVisible = neuwurfInitiatorRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
     } else {
-      // Würfel sind sichtbar – Checkboxen zeigen
       const gruppe = document.createElement("div");
       gruppe.className = "neuwurf-gruppe";
       const frei  = zustand[`${neuwurfInitiatorRolle}_wuerfel_frei`];
@@ -414,7 +433,7 @@ function renderNeuwurfPanel(zustand) {
           else            neuwurfPhase1Indizes.delete(i);
         });
         lbl.appendChild(cb);
-        lbl.append(` Würfel ${i + 1} (${wert})`);
+        lbl.append(` ${i + 1}:${wert}`);
         gruppe.appendChild(lbl);
       });
       if (!hat) {
@@ -428,7 +447,7 @@ function renderNeuwurfPanel(zustand) {
       ak.className = "neuwurf-aktionen";
 
       const weiter = document.createElement("button");
-      weiter.textContent = `Weiter → ${partnerName} ist dran`;
+      weiter.textContent = `Weiter → ${partnerName}`;
       weiter.addEventListener("click", () => {
         neuwurfPhase1Indizes = new Set(neuwurfPhase1Indizes);
         neuwurfPhase = 2;
@@ -450,16 +469,16 @@ function renderNeuwurfPanel(zustand) {
     }
   }
 
-  // ── Phase 2: Partner wählt eigene Würfel ──
   if (neuwurfPhase === 2) {
     const hinweis = document.createElement("p");
-    hinweis.innerHTML = `<strong>${partnerName}</strong>: Klicke "Würfel anzeigen" und wähle, welche deiner Würfel neu geworfen werden sollen.`;
+    hinweis.innerHTML = `<strong>${partnerName}</strong>: Würfel wählen, die neu geworfen werden.`;
     panel.appendChild(hinweis);
 
     if (diceVisible !== partnerRolle) {
       const viewBtn = document.createElement("button");
       viewBtn.className = "view-btn";
-      viewBtn.textContent = "👁 Würfel anzeigen";
+      viewBtn.textContent = "👁";
+      viewBtn.title = "Würfel anzeigen";
       viewBtn.addEventListener("click", () => { diceVisible = partnerRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
     } else {
@@ -480,7 +499,7 @@ function renderNeuwurfPanel(zustand) {
           else            neuwurfAuswahl[partnerRolle].delete(i);
         });
         lbl.appendChild(cb);
-        lbl.append(` Würfel ${i + 1} (${wert})`);
+        lbl.append(` ${i + 1}:${wert}`);
         gruppe.appendChild(lbl);
       });
       if (!hat) {
@@ -496,7 +515,6 @@ function renderNeuwurfPanel(zustand) {
       const neuwerfen = document.createElement("button");
       neuwerfen.textContent = "🎲 Neu würfeln";
       neuwerfen.addEventListener("click", () => {
-        // Beide Selektionen zusammenführen
         const pilotIdx   = neuwurfInitiatorRolle === "pilot"
           ? Array.from(neuwurfPhase1Indizes)
           : Array.from(neuwurfAuswahl[partnerRolle]);
@@ -534,7 +552,7 @@ function nachAktion(antwort) {
     ergebnis.erfolg ? ergebnis.meldung : `Nicht möglich: ${grundText(ergebnis.grund)}`,
     ergebnis.erfolg ? "erfolg" : "fehler"
   );
-  diceVisible = null;   // nach jeder Aktion Würfel wieder verbergen
+  diceVisible = null;
   render(antwort.zustand);
 }
 
@@ -546,7 +564,7 @@ async function rundenendeKlick() {
     return;
   }
   setzeMeldung(antwort.ergebnis.meldung, "erfolg");
-  diceVisible = null;   // neue Runde – alle Würfel sofort verbergen
+  diceVisible = null;
   render(antwort.zustand);
   if (antwort.zustand.status === "laeuft") {
     render(pyToJs(bridge.wuerfeln_fuer_runde()));
@@ -568,6 +586,14 @@ async function neuesSpiel() {
   render(zustand);
 }
 
+// Zurück zum Startmenü (Pass & Play <-> Multiplayer Auswahl)
+function zurueckZumMenue() {
+  document.getElementById("game-header").classList.add("versteckt");
+  document.getElementById("spiel-ui").classList.add("versteckt");
+  document.getElementById("lade-hinweis").classList.add("versteckt");
+  document.getElementById("start-menu").classList.remove("versteckt");
+}
+
 async function init() {
   document.getElementById("neues-spiel-btn").disabled = true;
   try {
@@ -584,6 +610,8 @@ async function init() {
   document.getElementById("neues-spiel-btn").addEventListener("click", neuesSpiel);
   document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
   document.getElementById("neuwurf-btn").addEventListener("click", toggleNeuwurfPanel);
+  const menuBtn = document.getElementById("menue-btn");
+  if (menuBtn) menuBtn.addEventListener("click", zurueckZumMenue);
   await neuesSpiel();
 }
 
@@ -591,5 +619,13 @@ async function init() {
 window.startPassAndPlay = function() {
   document.getElementById("start-menu").classList.add("versteckt");
   document.getElementById("lade-hinweis").classList.remove("versteckt");
-  init();
+  if (bridge) {
+    // Engine schon geladen (z.B. nach Rückkehr vom Menü) - direkt weiter.
+    document.getElementById("lade-hinweis").classList.add("versteckt");
+    document.getElementById("game-header").classList.remove("versteckt");
+    document.getElementById("spiel-ui").classList.remove("versteckt");
+    neuesSpiel();
+  } else {
+    init();
+  }
 };
