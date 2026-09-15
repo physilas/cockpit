@@ -297,37 +297,34 @@ function neuwurfHTML(n) {
            :'<span class="ressourcen-box"></span>';
 }
 
+const TRACK_UNIT_PX = 20;
+const ALTITUDE_MAX_UNITS = 6; // 6000 ft in 1000-ft-Schritten
+
 function renderTracks(z) {
   const laenge = z.laenge || 1;
-  const entfernung = z.entfernung;
-  const hoehe = z.hoehe;
 
-  const altPct = Math.max(0, Math.min(1, hoehe / 6000));
-  document.getElementById("altitude-fill").style.height = (altPct * 100) + "%";
-  document.getElementById("altitude-marker").style.top = ((1 - altPct) * 100) + "%";
-  const altLabels = document.getElementById("altitude-labels");
-  if (!altLabels.childElementCount) {
-    altLabels.innerHTML = [6, 5, 4, 3, 2, 1, 0].map(v => `<span>${v}k</span>`).join("");
-  }
+  const altRemaining = z.hoehe / 1000;
+  const altTrack = document.getElementById("altitude-track");
+  altTrack.style.height = (ALTITUDE_MAX_UNITS * TRACK_UNIT_PX) + "px";
+  document.getElementById("altitude-fill").style.height = (altRemaining * TRACK_UNIT_PX) + "px";
+  document.getElementById("s-hoehe-label").textContent = z.hoehe + " ft";
 
-  const distPct = Math.max(0, Math.min(1, 1 - entfernung / laenge));
-  document.getElementById("distance-fill").style.width = (distPct * 100) + "%";
-  document.getElementById("distance-marker").style.left = (distPct * 100) + "%";
+  const distRemaining = z.entfernung;
+  const distTrack = document.getElementById("distance-track");
+  distTrack.style.height = (laenge * TRACK_UNIT_PX) + "px";
+  document.getElementById("distance-fill").style.height = (distRemaining * TRACK_UNIT_PX) + "px";
+  document.getElementById("s-entfernung-label").textContent = "Entf. " + z.entfernung;
 
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
   (z.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
-    const posPct = (i / laenge) * 100;
     const el = document.createElement("span");
-    el.className = "distance-obstacle";
-    el.style.left = posPct + "%";
+    el.className = "vtrack-obstacle";
+    el.style.bottom = (i * TRACK_UNIT_PX) + "px";
     el.textContent = count > 1 ? `✈×${count}` : "✈";
     obstaclesEl.appendChild(el);
   });
-
-  document.getElementById("s-entfernung-label").textContent = `Entf. ${entfernung}`;
-  document.getElementById("s-hoehe-label").textContent = `Höhe ${hoehe} ft`;
 }
 
 function render(z) {

@@ -88,40 +88,41 @@ function bremsSkalaHTML(bs) {
   return teile.join(" ");
 }
 
-// Höhen-/Entfernungs-Slider (Sky-Team-artige Leisten statt reinem Text)
+// Höhen-/Entfernungs-Gauges (Sky-Team-artig): das Flugzeug-Symbol bleibt
+// fix am Fuß der Leiste; die farbige Säule (verbleibende Felder) wächst
+// von unten, der graue Rest oben zeigt "schon verbraucht". Beide Leisten
+// nutzen denselben UNIT_PX-Maßstab, damit man Höhen- und Entfernungs-
+// Restfelder direkt optisch vergleichen kann.
+const TRACK_UNIT_PX = 20;
+const ALTITUDE_MAX_UNITS = 6; // 6000 ft in 1000-ft-Schritten
+
 function renderTracks(zustand) {
   const laenge = zustand.laenge || 1;
-  const entfernung = zustand.entfernung;
-  const hoehe = zustand.hoehe;
 
-  // Höhenleiste: 6000 ft oben, 0 ft unten.
-  const altPct = Math.max(0, Math.min(1, hoehe / 6000));
-  document.getElementById("altitude-fill").style.height = (altPct * 100) + "%";
-  document.getElementById("altitude-marker").style.top = ((1 - altPct) * 100) + "%";
-  const altLabels = document.getElementById("altitude-labels");
-  if (!altLabels.childElementCount) {
-    altLabels.innerHTML = [6, 5, 4, 3, 2, 1, 0].map(v => `<span>${v}k</span>`).join("");
-  }
+  // Höhe: 6 Einheiten (6000..0 in 1000er-Schritten).
+  const altRemaining = zustand.hoehe / 1000;
+  const altTrack = document.getElementById("altitude-track");
+  altTrack.style.height = (ALTITUDE_MAX_UNITS * TRACK_UNIT_PX) + "px";
+  document.getElementById("altitude-fill").style.height = (altRemaining * TRACK_UNIT_PX) + "px";
+  document.getElementById("s-hoehe-label").textContent = zustand.hoehe + " ft";
 
-  // Entfernungsleiste: links = weit weg, rechts = Flughafen (🏁).
-  const distPct = Math.max(0, Math.min(1, 1 - entfernung / laenge));
-  document.getElementById("distance-fill").style.width = (distPct * 100) + "%";
-  document.getElementById("distance-marker").style.left = (distPct * 100) + "%";
+  // Entfernung: `laenge` Einheiten (variiert je Flughafen).
+  const distRemaining = zustand.entfernung;
+  const distTrack = document.getElementById("distance-track");
+  distTrack.style.height = (laenge * TRACK_UNIT_PX) + "px";
+  document.getElementById("distance-fill").style.height = (distRemaining * TRACK_UNIT_PX) + "px";
+  document.getElementById("s-entfernung-label").textContent = "Entf. " + zustand.entfernung;
 
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
   (zustand.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
-    const posPct = (i / laenge) * 100;
     const el = document.createElement("span");
-    el.className = "distance-obstacle";
-    el.style.left = posPct + "%";
+    el.className = "vtrack-obstacle";
+    el.style.bottom = (i * TRACK_UNIT_PX) + "px";
     el.textContent = count > 1 ? `✈×${count}` : "✈";
     obstaclesEl.appendChild(el);
   });
-
-  document.getElementById("s-entfernung-label").textContent = `Entf. ${entfernung}`;
-  document.getElementById("s-hoehe-label").textContent = `Höhe ${hoehe} ft`;
 }
 
 // Kaffee und Neuwurf als kompakte Boxen

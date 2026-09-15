@@ -125,29 +125,32 @@
     <div class="status-feld"><span class="label">Neuwurf</span><span id="s-neuwurf">-</span></div>
   </section>
 
-  <section id="tracks-leiste">
-    <div class="altitude-track">
-      <div class="altitude-track-labels" id="altitude-labels"></div>
-      <div class="altitude-track-bar" id="altitude-bar">
-        <div class="altitude-track-fill" id="altitude-fill"></div>
-        <div class="altitude-marker" id="altitude-marker" title="Höhe">✈</div>
+  <div class="cockpit-row">
+    <section id="cockpit-board"></section>
+    <section id="tracks-leiste">
+      <div class="vtrack-col">
+        <div class="vtrack-wrap">
+          <div class="vtrack" id="altitude-track">
+            <div class="vtrack-fill" id="altitude-fill"></div>
+          </div>
+          <div class="vtrack-marker">✈</div>
+        </div>
+        <div class="vtrack-caption" id="s-hoehe-label">-</div>
       </div>
-    </div>
-    <div class="distance-track-wrap">
-      <div class="distance-track-bar" id="distance-bar">
-        <div class="distance-track-fill" id="distance-fill"></div>
-        <span class="distance-airport">🏁</span>
-        <div id="distance-obstacles"></div>
-        <div class="distance-marker" id="distance-marker" title="Position">✈</div>
+      <div class="vtrack-col">
+        <span class="vtrack-top-icon">🏁</span>
+        <div class="vtrack-wrap">
+          <div class="vtrack" id="distance-track">
+            <div class="vtrack-fill" id="distance-fill"></div>
+            <div id="distance-obstacles"></div>
+          </div>
+          <div class="vtrack-marker">✈</div>
+        </div>
+        <div class="vtrack-caption" id="s-entfernung-label">-</div>
       </div>
-      <div class="distance-track-scale">
-        <span id="s-entfernung-label">Entf. -</span>
-        <span id="s-hoehe-label">Höhe -</span>
-      </div>
-    </div>
-  </section>
+    </section>
+  </div>
 
-  <section id="cockpit-board"></section>
   <section id="spieler-bereiche">
     <div class="spieler-bereich" id="bereich-pilot">
       <h2>Pilotin <span class="farbe-punkt blau"></span></h2>
