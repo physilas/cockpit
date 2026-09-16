@@ -13,7 +13,7 @@
  * Dateien nicht zu sehen (der Cache liefert weiter die alte Version aus).
  */
 
-const CACHE_NAME = "cockpit-v7";
+const CACHE_NAME = "cockpit-v8";
 
 const STATIC_ASSETS = [
   "./index.html",

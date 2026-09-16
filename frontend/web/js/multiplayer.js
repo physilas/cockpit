@@ -297,44 +297,46 @@ function neuwurfHTML(n) {
            :'<span class="ressourcen-box"></span>';
 }
 
-const TRACK_UNIT_PX = 34;
+const TRACK_UNIT_PX = 26;
 const ALTITUDE_MAX_UNITS = 6; // 6000 ft in 1000-ft-Schritten
 
-function setzeGauge(prefix, maxUnits, remaining) {
-  const used = maxUnits - remaining;
-  const zoneHeight = maxUnits * TRACK_UNIT_PX;
+function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
+  const used = ownMax - remaining;
 
-  document.getElementById(`${prefix}-track`).style.height = (2 * zoneHeight) + "px";
+  document.getElementById(`${prefix}-track`).style.height = totalHeight + "px";
 
-  const above = document.getElementById(`${prefix}-above`);
-  above.style.top = "0px";
-  above.style.height = zoneHeight + "px";
+  const fill = document.getElementById(`${prefix}-fill`);
+  fill.style.bottom = (totalHeight - markerY) + "px";
+  fill.style.height = (remaining * TRACK_UNIT_PX) + "px";
 
-  const below = document.getElementById(`${prefix}-below`);
-  below.style.top = zoneHeight + "px";
-  below.style.height = zoneHeight + "px";
+  const usedEl = document.getElementById(`${prefix}-used`);
+  usedEl.style.top = markerY + "px";
+  usedEl.style.height = TRACK_UNIT_PX + "px";
+  usedEl.classList.toggle("sichtbar", used >= 1);
 
-  document.getElementById(`${prefix}-fill`).style.height = (remaining * TRACK_UNIT_PX) + "px";
-  document.getElementById(`${prefix}-used`).style.height = (used * TRACK_UNIT_PX) + "px";
-  document.getElementById(`${prefix}-marker`).style.top = zoneHeight + "px";
-
-  return { used, zoneHeight };
+  return used;
 }
 
 function renderTracks(z) {
   const laenge = z.laenge || 1;
+  const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
+  const totalHeight = (maxGlobal + 1) * TRACK_UNIT_PX;
+  const markerY = maxGlobal * TRACK_UNIT_PX;
 
-  setzeGauge("altitude", ALTITUDE_MAX_UNITS, z.hoehe / 1000);
+  document.getElementById("tracks-marker").style.top = markerY + "px";
+
+  setzeGauge("altitude", ALTITUDE_MAX_UNITS, z.hoehe / 1000, totalHeight, markerY);
   document.getElementById("s-hoehe-label").textContent = z.hoehe + " ft";
 
-  const { used: distUsed } = setzeGauge("distance", laenge, z.entfernung);
+  const distUsed = setzeGauge("distance", laenge, z.entfernung, totalHeight, markerY);
   document.getElementById("s-entfernung-label").textContent = "Entf. " + z.entfernung;
 
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
   (z.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
-    const y = (laenge - i + distUsed) * TRACK_UNIT_PX;
+    const y = (maxGlobal - i + distUsed) * TRACK_UNIT_PX;
+    if (y > markerY + TRACK_UNIT_PX) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
     el.style.top = y + "px";

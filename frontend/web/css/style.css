@@ -321,10 +321,16 @@ main {
    unten wandern. Beide Leisten nutzen denselben Pixel-pro-Feld-
    Maßstab (TRACK_UNIT_PX in app.js/multiplayer.js), damit man auf
    einen Blick vergleicht, wie viele Höhen- vs. Entfernungsfelder noch
-   übrig sind. */
+   übrig sind. Nur EIN bereits verbrauchtes Feld bleibt sichtbar (grau,
+   direkt unterm Flugzeug) - alles, was weiter zurückliegt, ist für die
+   Entscheidungsfindung nicht mehr relevant und wird nicht gezeichnet.
+   Das Flugzeug selbst sitzt NICHT in den Leisten, sondern in einer
+   eigenen, schmalen Spalte dazwischen, mit kurzen Linien zu beiden
+   Leisten - so bleiben Höhen- und Entfernungs-Flugzeug IMMER exakt auf
+   derselben Höhe, unabhängig davon, wie lang die jeweilige Leiste ist. */
 #tracks-leiste {
   display: flex;
-  gap: 0.6rem;
+  gap: 0;
   flex: 0 0 auto;
   align-items: flex-start;
   padding-top: 0.2rem;
@@ -337,16 +343,14 @@ main {
   gap: 0.2rem;
 }
 
-.vtrack-top-icon {
-  font-size: 0.7rem;
-  line-height: 1;
-}
-
 .vtrack-wrap {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* etwas Luft oben/unten, damit Symbole an den Rändern nie am
+     Leisten-/Viewport-Rand "abgeschnitten" wirken. */
+  padding: 8px 0;
 }
 
 .vtrack {
@@ -355,7 +359,7 @@ main {
   border-radius: 6px;
   background: #0b1c30;
   border: 1px solid #334155;
-  overflow: visible;   /* nichts wird mehr am Rand abgeschnitten */
+  overflow: visible;   /* nichts wird am Rand abgeschnitten */
 }
 
 /* Feine Trennlinien zwischen den einzelnen Feldern (jedes TRACK_UNIT_PX). */
@@ -373,34 +377,27 @@ main {
   );
 }
 
-.vtrack-zone {
-  position: absolute;
-  left: 0;
-  right: 0;
-  overflow: hidden;   /* die Füllung innerhalb IHRER EIGENEN Zone darf geclippt werden */
-  border-radius: 5px;
-}
-
-.vtrack-zone-above { top: 0; }
-.vtrack-zone-below { }
-
 .vtrack-fill-remaining {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
   background: linear-gradient(180deg, rgba(37,99,235,0.55), rgba(37,99,235,0.92));
-  transition: height 0.4s ease;
+  border-radius: 5px 5px 0 0;
+  transition: height 0.4s ease, bottom 0.4s ease;
 }
 
+/* Nur EIN Feld tief - das zuletzt verbrauchte. Blendet per Opacity ein,
+   sobald mindestens 1 Feld verbraucht wurde. */
 .vtrack-fill-used {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  border-radius: 0 0 5px 5px;
   background: linear-gradient(180deg, rgba(100,116,139,0.85), rgba(71,85,105,0.6));
-  transition: height 0.4s ease;
+  transition: opacity 0.4s ease, top 0.4s ease;
+  opacity: 0;
 }
+.vtrack-fill-used.sichtbar { opacity: 1; }
 
 #distance-obstacles {
   position: absolute;
@@ -413,23 +410,12 @@ main {
   position: absolute;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   color: #fca5a5;
   line-height: 1;
   white-space: nowrap;
   text-shadow: 0 0 2px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.9);
-}
-
-/* Das Flugzeug sitzt fix auf der Grenze zwischen den beiden Zonen und
-   bewegt sich nie - siehe Erklärung oben. */
-.vtrack-marker {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.95rem;
-  line-height: 1;
-  z-index: 3;
-  filter: drop-shadow(0 0 3px rgba(0,0,0,0.9)) drop-shadow(0 0 5px rgba(255,255,255,0.5));
+  transition: opacity 0.3s ease;
 }
 
 .vtrack-caption {
@@ -437,7 +423,41 @@ main {
   color: var(--muted);
   text-align: center;
   white-space: nowrap;
-  margin-top: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+/* Gemeinsame Flugzeug-Spalte zwischen den beiden Leisten: garantiert,
+   dass beide Marker (Höhe/Entfernung) exakt auf derselben Bildschirm-
+   höhe sitzen, egal wie lang die einzelnen Leisten sind. */
+.tracks-marker-col {
+  position: relative;
+  width: 30px;
+  align-self: stretch;
+}
+
+.tracks-marker-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
+.tracks-marker-line {
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255,255,255,0.55);
+}
+
+.tracks-marker-plane {
+  font-size: 1.05rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.9)) drop-shadow(0 0 5px rgba(255,255,255,0.5));
 }
 
 /* Aerodynamik-Skala */

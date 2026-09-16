@@ -88,69 +88,71 @@ function bremsSkalaHTML(bs) {
   return teile.join(" ");
 }
 
-// Höhen-/Entfernungs-Gauges (Sky-Team-artig): das Flugzeug-Symbol bleibt
-// IMMER an derselben Bildschirmposition - es sitzt exakt auf der Grenze
-// zwischen zwei gleich großen Zonen (je `maxUnits` * TRACK_UNIT_PX hoch):
-//   - "oben" = Rest-Strecke/-Höhe (blau), am UNTEREN Rand dieser Zone
-//     (= am Flugzeug) angedockt, wächst nach oben.
-//   - "unten" = bereits Verbrauchtes (grau), am OBEREN Rand dieser Zone
-//     (= am Flugzeug) angedockt, wächst nach unten.
-// Da beide Zonen konstant groß sind, bewegt sich NUR die Füllung -
-// die Grenze (= das Flugzeug) bleibt fix. Optisch wirkt das genauso,
-// als würde die komplette Leiste (inkl. Hindernis-Flugzeugen) am
-// feststehenden Flugzeug vorbei nach unten wandern.
-const TRACK_UNIT_PX = 34;
+// Höhen-/Entfernungs-Gauges (Sky-Team-artig): das Flugzeug-Symbol sitzt
+// NICHT in den Leisten selbst, sondern in einer eigenen, gemeinsamen
+// Spalte dazwischen (siehe HTML: .tracks-marker-col) - so bleiben die
+// Höhen- und Entfernungs-Flugzeuge IMMER exakt auf derselben Höhe,
+// unabhängig davon, wie lang die jeweilige Leiste ist (ALTITUDE_MAX_UNITS
+// vs. `laenge` können unterschiedlich groß sein).
+//
+// Jede Leiste hat oberhalb der (gemeinsamen) Marker-Linie Platz für ihre
+// eigene maximale Länge (`ownMax` Felder), und darunter genau EIN
+// zusätzliches Feld für das zuletzt verbrauchte ("gerade hinter uns") -
+// alles, was weiter zurückliegt, ist strategisch nicht mehr relevant und
+// wird gar nicht erst gezeichnet. Beide Leisten werden an der Marker-
+// Linie ausgerichtet, indem die kürzere Leiste oben etwas eingerückt
+// wird (`topPad`).
+const TRACK_UNIT_PX = 26;
 const ALTITUDE_MAX_UNITS = 6; // 6000 ft in 1000-ft-Schritten
 
-function setzeGauge(prefix, maxUnits, remaining) {
-  const used = maxUnits - remaining;
-  const zoneHeight = maxUnits * TRACK_UNIT_PX;
+function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
+  const used = ownMax - remaining;
 
-  document.getElementById(`${prefix}-track`).style.height = (2 * zoneHeight) + "px";
+  document.getElementById(`${prefix}-track`).style.height = totalHeight + "px";
 
-  const above = document.getElementById(`${prefix}-above`);
-  above.style.top = "0px";
-  above.style.height = zoneHeight + "px";
+  // Beide Leisten haben dieselbe Gesamthöhe und denselben Marker (siehe
+  // renderTracks), also reicht ein einfaches "bottom", damit die
+  // Füllung direkt oberhalb der grauen Spur beginnt.
+  const fill = document.getElementById(`${prefix}-fill`);
+  fill.style.bottom = (totalHeight - markerY) + "px";
+  fill.style.height = (remaining * TRACK_UNIT_PX) + "px";
 
-  const below = document.getElementById(`${prefix}-below`);
-  below.style.top = zoneHeight + "px";
-  below.style.height = zoneHeight + "px";
+  const usedEl = document.getElementById(`${prefix}-used`);
+  usedEl.style.top = markerY + "px";
+  usedEl.style.height = TRACK_UNIT_PX + "px";
+  usedEl.classList.toggle("sichtbar", used >= 1);
 
-  document.getElementById(`${prefix}-fill`).style.height = (remaining * TRACK_UNIT_PX) + "px";
-  document.getElementById(`${prefix}-used`).style.height = (used * TRACK_UNIT_PX) + "px";
-
-  // Das Flugzeug sitzt exakt auf der Zonengrenze - für jeden Aufruf
-  // derselbe Wert (maxUnits ändert sich während eines Flugs nicht),
-  // aber wir setzen ihn trotzdem jedes Mal mit, das ist unschädlich
-  // und deckt z.B. einen Flughafenwechsel automatisch mit ab.
-  document.getElementById(`${prefix}-marker`).style.top = zoneHeight + "px";
-
-  return { used, zoneHeight };
+  return used;
 }
 
 function renderTracks(zustand) {
   const laenge = zustand.laenge || 1;
+  const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
+  const totalHeight = (maxGlobal + 1) * TRACK_UNIT_PX; // + 1 Feld für die graue Spur
+  const markerY = maxGlobal * TRACK_UNIT_PX;
+
+  // Gemeinsamer Flugzeug-Marker zwischen den beiden Leisten.
+  document.getElementById("tracks-marker").style.top = markerY + "px";
 
   // Höhe: 6 Einheiten (6000..0 in 1000er-Schritten).
-  setzeGauge("altitude", ALTITUDE_MAX_UNITS, zustand.hoehe / 1000);
+  setzeGauge("altitude", ALTITUDE_MAX_UNITS, zustand.hoehe / 1000, totalHeight, markerY);
   document.getElementById("s-hoehe-label").textContent = zustand.hoehe + " ft";
 
   // Entfernung: `laenge` Einheiten (variiert je Flughafen).
-  const { used: distUsed } = setzeGauge("distance", laenge, zustand.entfernung);
+  const distUsed = setzeGauge("distance", laenge, zustand.entfernung, totalHeight, markerY);
   document.getElementById("s-entfernung-label").textContent = "Entf. " + zustand.entfernung;
 
   // Hindernis-Flugzeuge: Index i (0 = am weitesten weg/Start) sitzt an
-  // einer FESTEN Position auf der Leiste. Ihre Position relativ zum
-  // (fixen) Flugzeug-Marker: y = (laenge - i + verbraucht) * UNIT_PX,
-  // gemessen vom oberen Rand der Leiste. Je mehr Entfernung schon
-  // verbraucht wurde, desto weiter wandert jedes Hindernis (rechnerisch)
-  // nach unten Richtung/über den Marker hinweg - exakt der gewünschte
-  // "die Leiste wandert am Flugzeug vorbei"-Effekt.
+  // einer FESTEN Position auf der Leiste. y = (maxGlobal - i + verbraucht)
+  // * UNIT_PX, gemessen vom oberen Rand der Leiste. Alles, was mehr als
+  // ein Feld hinter dem Marker liegt, wird nicht mehr gezeichnet (nicht
+  // mehr relevant für die Entscheidungsfindung).
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
   (zustand.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
-    const y = (laenge - i + distUsed) * TRACK_UNIT_PX;
+    const y = (maxGlobal - i + distUsed) * TRACK_UNIT_PX;
+    if (y > markerY + TRACK_UNIT_PX) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
     el.style.top = y + "px";
