@@ -89,37 +89,71 @@ function bremsSkalaHTML(bs) {
 }
 
 // Höhen-/Entfernungs-Gauges (Sky-Team-artig): das Flugzeug-Symbol bleibt
-// fix am Fuß der Leiste; die farbige Säule (verbleibende Felder) wächst
-// von unten, der graue Rest oben zeigt "schon verbraucht". Beide Leisten
-// nutzen denselben UNIT_PX-Maßstab, damit man Höhen- und Entfernungs-
-// Restfelder direkt optisch vergleichen kann.
-const TRACK_UNIT_PX = 20;
+// IMMER an derselben Bildschirmposition - es sitzt exakt auf der Grenze
+// zwischen zwei gleich großen Zonen (je `maxUnits` * TRACK_UNIT_PX hoch):
+//   - "oben" = Rest-Strecke/-Höhe (blau), am UNTEREN Rand dieser Zone
+//     (= am Flugzeug) angedockt, wächst nach oben.
+//   - "unten" = bereits Verbrauchtes (grau), am OBEREN Rand dieser Zone
+//     (= am Flugzeug) angedockt, wächst nach unten.
+// Da beide Zonen konstant groß sind, bewegt sich NUR die Füllung -
+// die Grenze (= das Flugzeug) bleibt fix. Optisch wirkt das genauso,
+// als würde die komplette Leiste (inkl. Hindernis-Flugzeugen) am
+// feststehenden Flugzeug vorbei nach unten wandern.
+const TRACK_UNIT_PX = 34;
 const ALTITUDE_MAX_UNITS = 6; // 6000 ft in 1000-ft-Schritten
+
+function setzeGauge(prefix, maxUnits, remaining) {
+  const used = maxUnits - remaining;
+  const zoneHeight = maxUnits * TRACK_UNIT_PX;
+
+  document.getElementById(`${prefix}-track`).style.height = (2 * zoneHeight) + "px";
+
+  const above = document.getElementById(`${prefix}-above`);
+  above.style.top = "0px";
+  above.style.height = zoneHeight + "px";
+
+  const below = document.getElementById(`${prefix}-below`);
+  below.style.top = zoneHeight + "px";
+  below.style.height = zoneHeight + "px";
+
+  document.getElementById(`${prefix}-fill`).style.height = (remaining * TRACK_UNIT_PX) + "px";
+  document.getElementById(`${prefix}-used`).style.height = (used * TRACK_UNIT_PX) + "px";
+
+  // Das Flugzeug sitzt exakt auf der Zonengrenze - für jeden Aufruf
+  // derselbe Wert (maxUnits ändert sich während eines Flugs nicht),
+  // aber wir setzen ihn trotzdem jedes Mal mit, das ist unschädlich
+  // und deckt z.B. einen Flughafenwechsel automatisch mit ab.
+  document.getElementById(`${prefix}-marker`).style.top = zoneHeight + "px";
+
+  return { used, zoneHeight };
+}
 
 function renderTracks(zustand) {
   const laenge = zustand.laenge || 1;
 
   // Höhe: 6 Einheiten (6000..0 in 1000er-Schritten).
-  const altRemaining = zustand.hoehe / 1000;
-  const altTrack = document.getElementById("altitude-track");
-  altTrack.style.height = (ALTITUDE_MAX_UNITS * TRACK_UNIT_PX) + "px";
-  document.getElementById("altitude-fill").style.height = (altRemaining * TRACK_UNIT_PX) + "px";
+  setzeGauge("altitude", ALTITUDE_MAX_UNITS, zustand.hoehe / 1000);
   document.getElementById("s-hoehe-label").textContent = zustand.hoehe + " ft";
 
   // Entfernung: `laenge` Einheiten (variiert je Flughafen).
-  const distRemaining = zustand.entfernung;
-  const distTrack = document.getElementById("distance-track");
-  distTrack.style.height = (laenge * TRACK_UNIT_PX) + "px";
-  document.getElementById("distance-fill").style.height = (distRemaining * TRACK_UNIT_PX) + "px";
+  const { used: distUsed } = setzeGauge("distance", laenge, zustand.entfernung);
   document.getElementById("s-entfernung-label").textContent = "Entf. " + zustand.entfernung;
 
+  // Hindernis-Flugzeuge: Index i (0 = am weitesten weg/Start) sitzt an
+  // einer FESTEN Position auf der Leiste. Ihre Position relativ zum
+  // (fixen) Flugzeug-Marker: y = (laenge - i + verbraucht) * UNIT_PX,
+  // gemessen vom oberen Rand der Leiste. Je mehr Entfernung schon
+  // verbraucht wurde, desto weiter wandert jedes Hindernis (rechnerisch)
+  // nach unten Richtung/über den Marker hinweg - exakt der gewünschte
+  // "die Leiste wandert am Flugzeug vorbei"-Effekt.
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
   (zustand.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
+    const y = (laenge - i + distUsed) * TRACK_UNIT_PX;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
-    el.style.bottom = (i * TRACK_UNIT_PX) + "px";
+    el.style.top = y + "px";
     el.textContent = count > 1 ? `✈×${count}` : "✈";
     obstaclesEl.appendChild(el);
   });
