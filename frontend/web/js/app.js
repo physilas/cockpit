@@ -125,6 +125,21 @@ function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
   return used;
 }
 
+// Fluglage als künstlicher Horizont (S.5): statt einer Zahl dreht sich
+// die Himmel/Boden-Grafik um den Fluglage-Wert - der weiße Pfeil/Strich
+// bleibt fix (= Referenz "waagerecht"), genau wie bei einem echten
+// Fluglage-Instrument. RUDER_STALL_SCHWELLE (Trudeln) liegt bei 3, wir
+// nutzen also einen Bereich von ±3 für die maximale Auslenkung.
+const ATTITUDE_DEG_PRO_EINHEIT = 18; // 3 * 18° = 54° maximale Neigung
+
+function renderAttitude(fluglage) {
+  const horizon = document.getElementById("attitude-horizon");
+  if (!horizon) return;
+  const deg = -fluglage * ATTITUDE_DEG_PRO_EINHEIT;
+  horizon.style.transform = `rotate(${deg}deg)`;
+  horizon.style.transformOrigin = "20px 20px";
+}
+
 function renderTracks(zustand) {
   const laenge = zustand.laenge || 1;
   const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
@@ -182,11 +197,11 @@ function render(zustand) {
 
   document.getElementById("s-runde").textContent =
     zustand.runde + (zustand.letzte_runde ? " (l.)" : "") + (zustand.warteschleife ? " ⟳" : "");
-  document.getElementById("s-fluglage").textContent = (zustand.fluglage > 0 ? "+" : "") + zustand.fluglage;
   document.getElementById("s-aero").innerHTML = aeroSkalaHTML(zustand.aerodynamik_blau, zustand.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(zustand.bremsstaerke);
   document.getElementById("s-neuwurf").innerHTML = neuwurfBoxenHTML(zustand.neuwurf_plaettchen);
 
+  renderAttitude(zustand.fluglage);
   renderTracks(zustand);
   renderCockpitBoard(zustand);
   renderWuerfel("pilot", zustand);

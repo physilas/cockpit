@@ -317,6 +317,16 @@ function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
   return used;
 }
 
+const ATTITUDE_DEG_PRO_EINHEIT = 18; // 3 * 18° = 54° maximale Neigung (Trudeln bei ±3)
+
+function renderAttitude(fluglage) {
+  const horizon = document.getElementById("attitude-horizon");
+  if (!horizon) return;
+  const deg = -fluglage * ATTITUDE_DEG_PRO_EINHEIT;
+  horizon.style.transform = `rotate(${deg}deg)`;
+  horizon.style.transformOrigin = "20px 20px";
+}
+
 function renderTracks(z) {
   const laenge = z.laenge || 1;
   const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
@@ -348,10 +358,10 @@ function renderTracks(z) {
 function render(z) {
   if(!z)return;
   document.getElementById("s-runde").textContent = z.runde+(z.letzte_runde?" (l.)":"")+(z.warteschleife?" ⟳":"");
-  document.getElementById("s-fluglage").textContent = (z.fluglage>0?"+":"")+z.fluglage;
   document.getElementById("s-aero").innerHTML  = aeroSkalaHTML(z.aerodynamik_blau,z.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(z.bremsstaerke);
   document.getElementById("s-neuwurf").innerHTML = neuwurfHTML(z.neuwurf_plaettchen);
+  renderAttitude(z.fluglage);
   renderTracks(z);
 
   if(myRole) {
