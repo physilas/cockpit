@@ -125,19 +125,20 @@ function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
   return used;
 }
 
-// Fluglage als künstlicher Horizont (S.5): statt einer Zahl dreht sich
-// die Himmel/Boden-Grafik um den Fluglage-Wert - der weiße Pfeil/Strich
-// bleibt fix (= Referenz "waagerecht"), genau wie bei einem echten
-// Fluglage-Instrument. RUDER_STALL_SCHWELLE (Trudeln) liegt bei 3, wir
-// nutzen also einen Bereich von ±3 für die maximale Auslenkung.
-const ATTITUDE_DEG_PRO_EINHEIT = 18; // 3 * 18° = 54° maximale Neigung
+// Fluglage als künstlicher Horizont (S.5): der Himmel/Boden-Hintergrund
+// steht fest, nur der weiße Zeiger dreht sich - wie bei einem echten
+// Fluglage-Instrument. 20°/Einheit, damit der Zeiger bei jedem der 5
+// festen Marker (-2/-1/0/+1/+2) sichtbar exakt einrastet; RUDER_STALL_
+// SCHWELLE (Trudeln) liegt bei ±3, der Zeiger kann also auch noch etwas
+// darüber hinauszeigen, kurz bevor die Partie endet.
+const ATTITUDE_DEG_PRO_EINHEIT = 20;
 
 function renderAttitude(fluglage) {
-  const horizon = document.getElementById("attitude-horizon");
-  if (!horizon) return;
-  const deg = -fluglage * ATTITUDE_DEG_PRO_EINHEIT;
-  horizon.style.transform = `rotate(${deg}deg)`;
-  horizon.style.transformOrigin = "20px 20px";
+  const needle = document.getElementById("attitude-needle");
+  if (!needle) return;
+  const deg = fluglage * ATTITUDE_DEG_PRO_EINHEIT;
+  needle.style.transform = `rotate(${deg}deg)`;
+  needle.style.transformOrigin = "50px 60px";
 }
 
 function renderTracks(zustand) {

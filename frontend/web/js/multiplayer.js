@@ -317,14 +317,14 @@ function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
   return used;
 }
 
-const ATTITUDE_DEG_PRO_EINHEIT = 18; // 3 * 18° = 54° maximale Neigung (Trudeln bei ±3)
+const ATTITUDE_DEG_PRO_EINHEIT = 20;
 
 function renderAttitude(fluglage) {
-  const horizon = document.getElementById("attitude-horizon");
-  if (!horizon) return;
-  const deg = -fluglage * ATTITUDE_DEG_PRO_EINHEIT;
-  horizon.style.transform = `rotate(${deg}deg)`;
-  horizon.style.transformOrigin = "20px 20px";
+  const needle = document.getElementById("attitude-needle");
+  if (!needle) return;
+  const deg = fluglage * ATTITUDE_DEG_PRO_EINHEIT;
+  needle.style.transform = `rotate(${deg}deg)`;
+  needle.style.transformOrigin = "50px 60px";
 }
 
 function renderTracks(z) {
