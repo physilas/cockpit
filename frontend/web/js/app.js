@@ -112,15 +112,16 @@ function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
 
   // Beide Leisten haben dieselbe Gesamthöhe und denselben Marker (siehe
   // renderTracks), also reicht ein einfaches "bottom", damit die
-  // Füllung direkt oberhalb der grauen Spur beginnt.
+  // Füllung direkt oberhalb des Markers beginnt.
   const fill = document.getElementById(`${prefix}-fill`);
   fill.style.bottom = (totalHeight - markerY) + "px";
   fill.style.height = (remaining * TRACK_UNIT_PX) + "px";
 
+  // Das unterste ("bereits verbrauchte") Feld unterhalb des Markers wurde
+  // entfernt, da es keine zusätzliche Information trägt - der Marker
+  // selbst sitzt jetzt direkt am unteren Rand der Leiste.
   const usedEl = document.getElementById(`${prefix}-used`);
-  usedEl.style.top = markerY + "px";
-  usedEl.style.height = TRACK_UNIT_PX + "px";
-  usedEl.classList.toggle("sichtbar", used >= 1);
+  if (usedEl) usedEl.classList.remove("sichtbar");
 
   return used;
 }
@@ -144,8 +145,8 @@ function renderAttitude(fluglage) {
 function renderTracks(zustand) {
   const laenge = zustand.laenge || 1;
   const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
-  const totalHeight = (maxGlobal + 1) * TRACK_UNIT_PX; // + 1 Feld für die graue Spur
-  const markerY = maxGlobal * TRACK_UNIT_PX;
+  const totalHeight = maxGlobal * TRACK_UNIT_PX; // kein zusätzliches Feld mehr für die verbrauchte Spur
+  const markerY = totalHeight;
 
   // Gemeinsamer Flugzeug-Marker zwischen den beiden Leisten.
   document.getElementById("tracks-marker").style.top = markerY + "px";
@@ -167,8 +168,10 @@ function renderTracks(zustand) {
   obstaclesEl.innerHTML = "";
   (zustand.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
-    const y = (maxGlobal - i + distUsed) * TRACK_UNIT_PX;
-    if (y > markerY + TRACK_UNIT_PX) return;
+    // -0.5 Einheiten, damit das Flugzeug-Symbol in der Mitte seines
+    // Feldes sitzt statt auf der Trennlinie zum nächsten Feld.
+    const y = (maxGlobal - i + distUsed - 0.5) * TRACK_UNIT_PX;
+    if (y > markerY) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
     el.style.top = y + "px";

@@ -309,10 +309,10 @@ function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
   fill.style.bottom = (totalHeight - markerY) + "px";
   fill.style.height = (remaining * TRACK_UNIT_PX) + "px";
 
+  // Das unterste ("bereits verbrauchte") Feld unterhalb des Markers wurde
+  // entfernt, da es keine zusätzliche Information trägt.
   const usedEl = document.getElementById(`${prefix}-used`);
-  usedEl.style.top = markerY + "px";
-  usedEl.style.height = TRACK_UNIT_PX + "px";
-  usedEl.classList.toggle("sichtbar", used >= 1);
+  if (usedEl) usedEl.classList.remove("sichtbar");
 
   return used;
 }
@@ -330,8 +330,8 @@ function renderAttitude(fluglage) {
 function renderTracks(z) {
   const laenge = z.laenge || 1;
   const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
-  const totalHeight = (maxGlobal + 1) * TRACK_UNIT_PX;
-  const markerY = maxGlobal * TRACK_UNIT_PX;
+  const totalHeight = maxGlobal * TRACK_UNIT_PX; // kein zusätzliches Feld mehr für die verbrauchte Spur
+  const markerY = totalHeight;
 
   document.getElementById("tracks-marker").style.top = markerY + "px";
 
@@ -345,8 +345,10 @@ function renderTracks(z) {
   obstaclesEl.innerHTML = "";
   (z.flugzeuge || []).forEach((count, i) => {
     if (count <= 0) return;
-    const y = (maxGlobal - i + distUsed) * TRACK_UNIT_PX;
-    if (y > markerY + TRACK_UNIT_PX) return;
+    // -0.5 Einheiten, damit das Flugzeug-Symbol in der Mitte seines
+    // Feldes sitzt statt auf der Trennlinie zum nächsten Feld.
+    const y = (maxGlobal - i + distUsed - 0.5) * TRACK_UNIT_PX;
+    if (y > markerY) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
     el.style.top = y + "px";
