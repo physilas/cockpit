@@ -298,7 +298,11 @@ function neuwurfHTML(n) {
 }
 
 const TRACK_UNIT_PX = 26;
-const ALTITUDE_MAX_UNITS = 6; // 6000 ft in 1000-ft-Schritten
+// 7 statt 6 Einheiten: 6 echte 1000-ft-Schritte (6000->0) PLUS ein
+// zusätzliches "Bereitschafts"-Feld, damit 0 ft noch als 1 blaues Feld
+// angezeigt wird (S.9/S.10: "Perfektes Timing" ist erst erreicht, wenn
+// Höhe UND Entfernung gleichzeitig bei ihrem letzten Feld stehen).
+const ALTITUDE_MAX_UNITS = 7;
 
 function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
   const used = ownMax - remaining;
@@ -329,17 +333,23 @@ function renderAttitude(fluglage) {
 
 function renderTracks(z) {
   const laenge = z.laenge || 1;
-  const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, laenge);
+  // Auch die Entfernung bekommt das gleiche "+1"-Bereitschaftsfeld wie die
+  // Höhe, damit "angekommen" (Entfernung 0) ebenfalls als 1 blaues Feld
+  // erscheint - beide Leisten zeigen "1 blaues Feld" exakt im selben
+  // Moment: wenn Höhe UND Entfernung beide ihr letztes reales Feld
+  // erreicht haben (S.9 "Perfektes Timing").
+  const distanzEinheiten = laenge + 1;
+  const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, distanzEinheiten);
   const totalHeight = maxGlobal * TRACK_UNIT_PX; // kein zusätzliches Feld mehr für die verbrauchte Spur
   const markerY = totalHeight;
 
   document.getElementById("tracks-marker").style.top = markerY + "px";
 
-  setzeGauge("altitude", ALTITUDE_MAX_UNITS, z.hoehe / 1000, totalHeight, markerY);
+  setzeGauge("altitude", ALTITUDE_MAX_UNITS, z.hoehe / 1000 + 1, totalHeight, markerY);
   document.getElementById("s-hoehe-label").textContent = z.hoehe + " ft";
-  renderAltitudeLabels(markerY);
+  renderAltitudeLabels(markerY, z.hoehe);
 
-  const distUsed = setzeGauge("distance", laenge, z.entfernung, totalHeight, markerY);
+  const distUsed = setzeGauge("distance", distanzEinheiten, z.entfernung + 1, totalHeight, markerY);
   document.getElementById("s-entfernung-label").textContent = "Entf. " + z.entfernung;
 
   const obstaclesEl = document.getElementById("distance-obstacles");
@@ -363,23 +373,37 @@ function renderTracks(z) {
   });
 }
 
-// Höhen-Zahlen auf der Höhenleiste: "0" ganz unten, danach in 1000-ft-
-// Schritten nach oben. Bei 2000 ft sitzt zusätzlich ein Neuwurf-Plättchen-
-// Symbol - die Engine vergibt dort automatisch ein Plättchen (siehe
-// backend/spielplan.py: NEUWURF_HOEHEN).
-const NEUWURF_HOEHEN_FT = [2000];
+// Höhen-Zahlen: mitlaufende Skala. Das unterste (Marker-nächste) Feld zeigt
+// immer die AKTUELLE Höhe, darüber in 1000-ft-Schritten absteigend bis 0 ft;
+// Felder mit negativem Wert bleiben leer ("nichts") - nach jeder Runde
+// rutscht so oben ein Feld "aus dem Bild" und unten rückt die neue
+// (niedrigere) aktuelle Höhe an den Marker heran. Bei 2000 ft sitzt
+// zusätzlich ein Neuwurf-Plättchen-Symbol - die Engine vergibt dort
+// automatisch ein Plättchen (siehe backend/spielplan.py: NEUWURF_HOEHEN);
+// sobald diese Höhe erreicht/unterschritten ist, verschwindet das Symbol
+// wieder (bereits eingesammelt).
+const NEUWURF_HOEHEN_FT = 2000;
 
-function renderAltitudeLabels(markerY) {
+function renderAltitudeLabels(markerY, aktuelleHoehe) {
   const el = document.getElementById("altitude-labels");
   if (!el) return;
   el.innerHTML = "";
   for (let v = 0; v < ALTITUDE_MAX_UNITS; v++) {
-    const hoeheFt = v * 1000;
+    const hoeheFt = aktuelleHoehe - v * 1000;
+    if (hoeheFt < 0) continue; // "nichts" - Feld bleibt leer/unbeschriftet
+
     const y = markerY - (v + 0.5) * TRACK_UNIT_PX;
     const label = document.createElement("span");
     label.className = "vtrack-heightlabel";
     label.style.top = y + "px";
-    label.textContent = NEUWURF_HOEHEN_FT.includes(hoeheFt) ? `${hoeheFt} 🔄` : String(hoeheFt);
+    label.textContent = String(hoeheFt);
+
+    if (hoeheFt === NEUWURF_HOEHEN_FT && aktuelleHoehe > NEUWURF_HOEHEN_FT) {
+      const badge = document.createElement("span");
+      badge.className = "reroll-badge";
+      badge.textContent = "🔄";
+      label.appendChild(badge);
+    }
     el.appendChild(label);
   }
 }
