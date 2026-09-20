@@ -197,7 +197,72 @@ main {
 .spiel-ende.gewonnen { background: rgba(34,197,94,0.15); color: var(--gruen); }
 .spiel-ende.verloren { background: rgba(239,68,68,0.15); color: var(--rot); }
 
-/* Cockpit board */
+/* Cockpit board: Pilot-Spalte | Mitte (Ruder/Trieb. oben, Wheel+Leisten,
+   Bremse/Konz. unten) | Kopilot-Spalte. */
+.board-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.4rem;
+}
+
+.center-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.board-top-row, .board-bottom-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* Schmale Seitenspalten: Pilot links (Funk, dann Fahrwerk gestapelt),
+   Kopilot rechts (Funk, dann Landeklappen gestapelt). Jede Zeile steht
+   hier hochkant (Label über den Feldern statt daneben), damit die Spalte
+   nur so breit wie eine einzelne Zelle sein muss. */
+.side-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+  padding-top: 0.1rem;
+}
+
+.side-col .feld-zeile {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.side-col .feld-zeile .feld-label {
+  min-width: 0;
+  width: 42px;
+  text-align: center;
+  font-size: 0.58rem;
+  line-height: 1.05;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.side-col .feld-slots {
+  flex-direction: column;
+  align-items: center;
+}
+
+/* In den Seitenspalten sitzt das Aktivierungs-Lämpchen neben (statt unter)
+   der Zelle, damit jede Reihe nur so hoch wie die Zelle selbst bleibt. */
+.side-col .feld-slot-mit-licht {
+  flex-direction: row;
+  gap: 3px;
+}
+
 #cockpit-board {
   background: var(--panel);
   border-radius: var(--radius);
@@ -283,16 +348,6 @@ main {
   background: var(--panel);
   border-radius: var(--radius);
   padding: 0.35rem 0.5rem;
-}
-
-/* #cockpit-board sits inside .cockpit-row now, so it no longer needs its
-   own panel background/padding - just its internal row layout. */
-.cockpit-row #cockpit-board {
-  flex: 1 1 auto;
-  min-width: 0;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
 }
 
 /* Zwei vertikale Gauges (Höhe/Entfernung), rechts neben dem Board.
@@ -642,3 +697,13 @@ main {
 .view-btn:hover { background: rgba(34,197,94,0.12); }
 
 .partner-wuerfel { font-style: italic; }
+
+/* Auf sehr schmalen Displays (iPhone SE u.ä.) ist neben den beiden
+   Seitenspalten (Pilot/Kopilot) nicht genug Platz für die volle Breite von
+   Wheel + beiden Leisten - hier etwas verkleinern, damit nichts überläuft. */
+@media (max-width: 380px) {
+  .vtrack { width: 52px; }
+  .attitude-gauge svg { width: 90px; height: 90px; }
+  .tracks-marker-col { width: 24px; }
+  .side-col .feld-zeile .feld-label { width: 36px; font-size: 0.54rem; }
+}

@@ -261,6 +261,7 @@ function render(zustand) {
     zustand.runde + (zustand.letzte_runde ? " (l.)" : "") + (zustand.warteschleife ? " ⟳" : "");
   document.getElementById("s-aero").innerHTML = aeroSkalaHTML(zustand.aerodynamik_blau, zustand.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(zustand.bremsstaerke);
+  document.getElementById("s-kaffee-status").innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
   document.getElementById("s-neuwurf").innerHTML = neuwurfBoxenHTML(zustand.neuwurf_plaettchen);
 
   renderAttitude(zustand.fluglage);
@@ -373,13 +374,42 @@ function platziereAusgewaehlten(eintrag, slotIndex) {
   nachAktion(antwort);
 }
 
+// Ordnet jeden Feld-Layout-Eintrag seinem Bereich auf dem neu geordneten
+// Board zu: Ruder/Triebwerke oben in der Mitte, Pilot-Felder (Funk +
+// Fahrwerk) links, Kopilot-Felder (Funk + Landeklappen) rechts, Bremse +
+// Konzentration unten in der Mitte (dort breit genug, um bis in die Mitte
+// des Boards hineinzuragen).
+function containerFuerEintrag(eintrag) {
+  if (eintrag.ziel === "ruder" || eintrag.ziel === "triebwerk") {
+    return document.getElementById("board-top-row");
+  }
+  if (eintrag.ziel === "bremse" || eintrag.ziel === "konzentration") {
+    return document.getElementById("board-bottom-row");
+  }
+  if (eintrag.ziel === "fahrwerk") {
+    return document.getElementById("col-pilot");
+  }
+  if (eintrag.ziel === "landeklappe") {
+    return document.getElementById("col-kopilot");
+  }
+  if (eintrag.ziel === "funk") {
+    return eintrag.zugriff.includes("pilot")
+      ? document.getElementById("col-pilot")
+      : document.getElementById("col-kopilot");
+  }
+  return document.getElementById("board-top-row");
+}
+
 function renderCockpitBoard(zustand) {
-  const board = document.getElementById("cockpit-board");
-  board.innerHTML = "";
+  const bereiche = ["board-top-row", "col-pilot", "col-kopilot", "board-bottom-row"]
+    .map(id => document.getElementById(id));
+  bereiche.forEach(el => { if (el) el.innerHTML = ""; });
+
   const layout = pyToJs(bridge.feld_layout());
   const felder = zustand.felder;
 
   layout.forEach(eintrag => {
+    const board = containerFuerEintrag(eintrag);
     const zeile = document.createElement("div");
     zeile.className = "feld-zeile";
 
@@ -387,14 +417,6 @@ function renderCockpitBoard(zustand) {
     label.className = "feld-label";
     label.textContent = ZIEL_BESCHRIFTUNG[eintrag.ziel] + (eintrag.pflicht ? " *" : "");
     zeile.appendChild(label);
-
-    // Kaffee/Neuwurf-Ressourcen direkt neben das Konzentrations-Label hängen
-    if (eintrag.ziel === "konzentration") {
-      const res = document.createElement("span");
-      res.className = "ressourcen-inline";
-      res.innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
-      zeile.appendChild(res);
-    }
 
     const slots = document.createElement("div");
     slots.className = "feld-slots";

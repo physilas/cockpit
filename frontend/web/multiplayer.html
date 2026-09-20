@@ -121,11 +121,17 @@
     <div class="status-feld"><span class="label">Runde</span><span id="s-runde">-</span></div>
     <div class="status-feld"><span class="label">Aerodynamik</span><span id="s-aero">-</span></div>
     <div class="status-feld"><span class="label">Bremsen</span><span id="s-brems">-</span></div>
+    <div class="status-feld"><span class="label">Kaffee</span><span id="s-kaffee-status">-</span></div>
     <div class="status-feld"><span class="label">Neuwurf</span><span id="s-neuwurf">-</span></div>
   </section>
 
-  <div class="cockpit-row">
-    <section id="cockpit-board"></section>
+  <div class="board-grid">
+    <div class="side-col" id="col-pilot"></div>
+
+    <div class="center-col">
+      <div class="board-top-row" id="board-top-row"></div>
+
+      <div class="cockpit-row">
     <div class="attitude-col">
       <div class="attitude-gauge" id="attitude-gauge" title="Fluglage">
         <svg viewBox="0 0 100 100" width="108" height="108">
@@ -184,6 +190,12 @@
         <div class="vtrack-caption" id="s-entfernung-label">-</div>
       </div>
     </section>
+      </div>
+
+      <div class="board-bottom-row" id="board-bottom-row"></div>
+    </div>
+
+    <div class="side-col" id="col-kopilot"></div>
   </div>
 
   <section id="spieler-bereiche">

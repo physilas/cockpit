@@ -413,6 +413,7 @@ function render(z) {
   document.getElementById("s-runde").textContent = z.runde+(z.letzte_runde?" (l.)":"")+(z.warteschleife?" ⟳":"");
   document.getElementById("s-aero").innerHTML  = aeroSkalaHTML(z.aerodynamik_blau,z.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(z.bremsstaerke);
+  document.getElementById("s-kaffee-status").innerHTML = kaffeeHTML(z.kaffeetassen);
   document.getElementById("s-neuwurf").innerHTML = neuwurfHTML(z.neuwurf_plaettchen);
   renderAttitude(z.fluglage);
   renderTracks(z);
@@ -447,12 +448,39 @@ function render(z) {
   }
 }
 
+// Ordnet jeden Feld-Layout-Eintrag seinem Bereich auf dem neu geordneten
+// Board zu: Ruder/Triebwerke oben in der Mitte, Pilot-Felder (Funk +
+// Fahrwerk) links, Kopilot-Felder (Funk + Landeklappen) rechts, Bremse +
+// Konzentration unten in der Mitte.
+function containerFuerEintrag(e) {
+  if (e.ziel === "ruder" || e.ziel === "triebwerk") {
+    return document.getElementById("board-top-row");
+  }
+  if (e.ziel === "bremse" || e.ziel === "konzentration") {
+    return document.getElementById("board-bottom-row");
+  }
+  if (e.ziel === "fahrwerk") {
+    return document.getElementById("col-pilot");
+  }
+  if (e.ziel === "landeklappe") {
+    return document.getElementById("col-kopilot");
+  }
+  if (e.ziel === "funk") {
+    return e.zugriff.includes("pilot")
+      ? document.getElementById("col-pilot")
+      : document.getElementById("col-kopilot");
+  }
+  return document.getElementById("board-top-row");
+}
+
 function renderBoard(z) {
-  const board=document.getElementById("cockpit-board");
-  board.innerHTML="";
+  const bereiche = ["board-top-row", "col-pilot", "col-kopilot", "board-bottom-row"]
+    .map(id => document.getElementById(id));
+  bereiche.forEach(el => { if (el) el.innerHTML = ""; });
   const felder=z.felder||{};
 
   FELD_LAYOUT.forEach(e=>{
+    const board = containerFuerEintrag(e);
     const zeile=document.createElement("div");
     zeile.className="feld-zeile";
 
@@ -460,13 +488,6 @@ function renderBoard(z) {
     lbl.className="feld-label";
     lbl.textContent=LABEL[e.ziel]+(e.pflicht?" *":"");
     zeile.appendChild(lbl);
-
-    if (e.ziel === "konzentration") {
-      const res = document.createElement("span");
-      res.className = "ressourcen-inline";
-      res.innerHTML = kaffeeHTML(z.kaffeetassen);
-      zeile.appendChild(res);
-    }
 
     const slots=document.createElement("div");
     slots.className="feld-slots";
