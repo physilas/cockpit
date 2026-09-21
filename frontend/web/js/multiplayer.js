@@ -449,37 +449,56 @@ function render(z) {
 }
 
 // Ordnet jeden Feld-Layout-Eintrag seinem Bereich auf dem neu geordneten
-// Board zu: Ruder/Triebwerke oben in der Mitte, Pilot-Felder (Funk +
-// Fahrwerk) links, Kopilot-Felder (Funk + Landeklappen) rechts, Bremse +
-// Konzentration unten in der Mitte.
-function containerFuerEintrag(e) {
-  if (e.ziel === "ruder" || e.ziel === "triebwerk") {
-    return document.getElementById("board-top-row");
-  }
-  if (e.ziel === "bremse" || e.ziel === "konzentration") {
-    return document.getElementById("board-bottom-row");
-  }
-  if (e.ziel === "fahrwerk") {
-    return document.getElementById("col-pilot");
+// Board zu: alle Pilot-Aufgaben (Ruder/Triebwerk-Hälfte, Funk, Fahrwerk,
+// Bremse) links in einer Spalte, alle Kopilot-Aufgaben (Ruder/Triebwerk-
+// Hälfte, Funk, Landeklappen) rechts in einer Spalte, nur die gemeinsame
+// Konzentration (beide Farben) unten in der Mitte neben Wheel + Leisten.
+function containerFuerEintrag(e, besitzer) {
+  if (e.ziel === "konzentration") {
+    return document.getElementById("center-bottom-row");
   }
   if (e.ziel === "landeklappe") {
     return document.getElementById("col-kopilot");
+  }
+  if (e.ziel === "fahrwerk" || e.ziel === "bremse") {
+    return document.getElementById("col-pilot");
   }
   if (e.ziel === "funk") {
     return e.zugriff.includes("pilot")
       ? document.getElementById("col-pilot")
       : document.getElementById("col-kopilot");
   }
-  return document.getElementById("board-top-row");
+  // ruder/triebwerk: Farbpaar, je Hälfte in die passende Spalte.
+  return besitzer === "pilot"
+    ? document.getElementById("col-pilot")
+    : document.getElementById("col-kopilot");
 }
 
 function renderBoard(z) {
-  const bereiche = ["board-top-row", "col-pilot", "col-kopilot", "board-bottom-row"]
+  const bereiche = ["col-pilot", "col-kopilot", "center-bottom-row"]
     .map(id => document.getElementById(id));
   bereiche.forEach(el => { if (el) el.innerHTML = ""; });
   const felder=z.felder||{};
 
   FELD_LAYOUT.forEach(e=>{
+    if (e.art === "farbpaar") {
+      const w = felder[e.snap] || {};
+      ["pilot", "kopilot"].forEach(besitzer => {
+        const zeile = document.createElement("div");
+        zeile.className = "feld-zeile";
+        const lbl = document.createElement("span");
+        lbl.className = "feld-label";
+        lbl.textContent = LABEL[e.ziel] + (e.pflicht ? " *" : "");
+        zeile.appendChild(lbl);
+        const slots = document.createElement("div");
+        slots.className = "feld-slots";
+        slots.appendChild(zelle(besitzer, w[besitzer], null, e, z));
+        zeile.appendChild(slots);
+        containerFuerEintrag(e, besitzer).appendChild(zeile);
+      });
+      return;
+    }
+
     const board = containerFuerEintrag(e);
     const zeile=document.createElement("div");
     zeile.className="feld-zeile";
@@ -492,11 +511,7 @@ function renderBoard(z) {
     const slots=document.createElement("div");
     slots.className="feld-slots";
 
-    if(e.art==="farbpaar") {
-      const w=felder[e.snap]||{};
-      slots.appendChild(zelle("pilot",  w.pilot,  null,e,z));
-      slots.appendChild(zelle("kopilot",w.kopilot,null,e,z));
-    } else {
+    {
       const werte=felder[e.snap]||Array(e.slots).fill(null);
       const statusArr=e.ziel==="fahrwerk"?z.fahrwerk_ausgefahren:
                        e.ziel==="landeklappe"?z.landeklappen_ausgefahren:
