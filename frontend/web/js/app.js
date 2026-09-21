@@ -447,9 +447,13 @@ function renderCockpitBoard(zustand) {
       eintrag.ziel === "fahrwerk"     ? zustand.fahrwerk_ausgefahren :
       eintrag.ziel === "landeklappe"  ? zustand.landeklappen_ausgefahren :
       eintrag.ziel === "bremse"       ? zustand.bremsen_aktiviert : null;
-    const naechsterIndex = statusArray ? statusArray.indexOf(false) : null;
+    // Nur Landeklappen und Bremsen müssen strikt der Reihe nach ausgefahren
+    // werden (S.8/S.9) - beim Fahrwerk ist laut Regelheft jede Reihenfolge
+    // erlaubt (S.7), daher hier keine Sperre über die anderen Felder.
+    const reihenfolgeZaehlt = eintrag.ziel === "landeklappe" || eintrag.ziel === "bremse";
+    const naechsterIndex = reihenfolgeZaehlt ? statusArray.indexOf(false) : null;
     for (let i = 0; i < eintrag.slots; i++) {
-      const gesperrt = statusArray !== null && naechsterIndex !== -1 && i !== naechsterIndex;
+      const gesperrt = reihenfolgeZaehlt && naechsterIndex !== -1 && i !== naechsterIndex;
       if (statusArray) {
         slots.appendChild(feldZelleMitLicht(werte[i], i, eintrag, zustand, gesperrt, statusArray));
       } else {
@@ -544,7 +548,10 @@ function renderWuerfel(besitzer, zustand) {
           btn.addEventListener("click", ev => {
             ev.stopPropagation();
             kaffeeMenuOffenFuer = null;
-            nachAktion(pyToJs(bridge.trinke_kaffee(besitzer, i, d)));
+            // Anders als beim Platzieren bleibt hier derselbe Spieler am Zug -
+            // die eigenen Würfel sollen daher sichtbar bleiben, damit der neue
+            // Wert direkt gesehen und der Würfel weiter platziert werden kann.
+            nachAktion(pyToJs(bridge.trinke_kaffee(besitzer, i, d)), { verbirgWuerfel: false });
           });
           menu.appendChild(btn);
         });
@@ -732,13 +739,13 @@ function renderNeuwurfPanel(zustand) {
   }
 }
 
-function nachAktion(antwort) {
+function nachAktion(antwort, { verbirgWuerfel = true } = {}) {
   const ergebnis = antwort.ergebnis;
   setzeMeldung(
     ergebnis.erfolg ? ergebnis.meldung : `Nicht möglich: ${grundText(ergebnis.grund)}`,
     ergebnis.erfolg ? "erfolg" : "fehler"
   );
-  diceVisible = null;
+  if (verbirgWuerfel) diceVisible = null;
   render(antwort.zustand);
 }
 

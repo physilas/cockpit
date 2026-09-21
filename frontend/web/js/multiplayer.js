@@ -516,9 +516,12 @@ function renderBoard(z) {
       const statusArr=e.ziel==="fahrwerk"?z.fahrwerk_ausgefahren:
                        e.ziel==="landeklappe"?z.landeklappen_ausgefahren:
                        e.ziel==="bremse"?z.bremsen_aktiviert:null;
-      const nx=statusArr?statusArr.indexOf(false):null;
+      // Nur Landeklappen und Bremsen müssen strikt der Reihe nach ausgefahren
+      // werden - beim Fahrwerk ist jede Reihenfolge erlaubt (S.7).
+      const reihenfolgeZaehlt = e.ziel==="landeklappe" || e.ziel==="bremse";
+      const nx=reihenfolgeZaehlt?statusArr.indexOf(false):null;
       for(let i=0;i<e.slots;i++) {
-        const gesperrt=statusArr!==null&&nx!==-1&&i!==nx;
+        const gesperrt=reihenfolgeZaehlt&&nx!==-1&&i!==nx;
         if (statusArr) {
           const wrap = document.createElement("div");
           wrap.className = "feld-slot-mit-licht";
