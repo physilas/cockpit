@@ -64,28 +64,40 @@ function setzeMeldung(text, art) {
   el.className = art || "";
 }
 
-// Aerodynamik-Skala: "4.5 / 8.5" → "2 3 4 | 5 6 7 8 | 9 10 11 12"
+// Aerodynamik-Skala als horizontale Leiste: eine Zahl je Zelle, an den
+// beiden Schwellen (blau = Fahrwerk-Marker, orange = Landeklappen-Marker)
+// sitzt statt eines simplen "|" ein kleiner, farbiger vertikaler Balken
+// in der jeweiligen Spielerfarbe (S.6/S.7/S.8).
 function aeroSkalaHTML(blau, orange) {
   const bGrenze = Math.floor(blau);
   const oGrenze = Math.floor(orange);
-  const teile = [];
+  let html = '<div class="skala-leiste">';
   for (let n = 2; n <= 12; n++) {
-    teile.push(String(n));
-    if ((n === bGrenze || n === oGrenze) && n < 12)
-      teile.push('<span class="trenner">|</span>');
+    html += `<span class="skala-zahl">${n}</span>`;
+    if (n < 12) {
+      if (n === bGrenze) html += '<span class="skala-sep skala-sep-blau"></span>';
+      if (n === oGrenze) html += '<span class="skala-sep skala-sep-orange"></span>';
+      if (n !== bGrenze && n !== oGrenze) html += '<span class="skala-luecke"></span>';
+    }
   }
-  return teile.join(" ");
+  html += '</div>';
+  return html;
 }
 
-// Bremsen-Marker-Skala: 0 → "| 2 3 4 5 6", 2 → "2 | 3 4 5 6" …
+// Bremsen-Marker-Skala, gleiches Prinzip wie oben, aber mit einem roten
+// Balken an der aktuellen Bremsstärke (S.9-S.11).
 function bremsSkalaHTML(bs) {
-  const teile = [];
-  if (bs < 2) teile.push('<span class="trenner">|</span>');
+  let html = '<div class="skala-leiste">';
+  if (bs < 2) html += '<span class="skala-sep skala-sep-rot"></span>';
   for (let n = 2; n <= 6; n++) {
-    teile.push(String(n));
-    if (n === bs) teile.push('<span class="trenner">|</span>');
+    html += `<span class="skala-zahl">${n}</span>`;
+    if (n < 6) {
+      if (n === bs) html += '<span class="skala-sep skala-sep-rot"></span>';
+      else html += '<span class="skala-luecke"></span>';
+    }
   }
-  return teile.join(" ");
+  html += '</div>';
+  return html;
 }
 
 // Höhen-/Entfernungs-Gauges (Sky-Team-artig): das Flugzeug-Symbol sitzt

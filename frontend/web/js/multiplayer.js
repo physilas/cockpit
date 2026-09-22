@@ -278,16 +278,38 @@ function starte_Beitreten(code) {
 }
 
 // ── Rendering ────────────────────────────────────────────────────────────
+// Aerodynamik-Skala als horizontale Leiste: eine Zahl je Zelle, an den
+// beiden Schwellen (blau = Fahrwerk-Marker, orange = Landeklappen-Marker)
+// sitzt statt eines simplen "|" ein kleiner, farbiger vertikaler Balken
+// in der jeweiligen Spielerfarbe.
 function aeroSkalaHTML(b,o) {
-  const bg=Math.floor(b),og=Math.floor(o),t=[];
-  for(let n=2;n<=12;n++){t.push(n);if((n===bg||n===og)&&n<12)t.push('<span class="trenner">|</span>');}
-  return t.join(" ");
+  const bg=Math.floor(b),og=Math.floor(o);
+  let html = '<div class="skala-leiste">';
+  for (let n=2;n<=12;n++) {
+    html += `<span class="skala-zahl">${n}</span>`;
+    if (n < 12) {
+      if (n === bg) html += '<span class="skala-sep skala-sep-blau"></span>';
+      if (n === og) html += '<span class="skala-sep skala-sep-orange"></span>';
+      if (n !== bg && n !== og) html += '<span class="skala-luecke"></span>';
+    }
+  }
+  html += '</div>';
+  return html;
 }
+// Bremsen-Marker-Skala, gleiches Prinzip, mit einem roten Balken an der
+// aktuellen Bremsstärke.
 function bremsSkalaHTML(bs) {
-  const t=[];
-  if(bs<2)t.push('<span class="trenner">|</span>');
-  for(let n=2;n<=6;n++){t.push(n);if(n===bs)t.push('<span class="trenner">|</span>');}
-  return t.join(" ");
+  let html = '<div class="skala-leiste">';
+  if (bs < 2) html += '<span class="skala-sep skala-sep-rot"></span>';
+  for (let n=2;n<=6;n++) {
+    html += `<span class="skala-zahl">${n}</span>`;
+    if (n < 6) {
+      if (n === bs) html += '<span class="skala-sep skala-sep-rot"></span>';
+      else html += '<span class="skala-luecke"></span>';
+    }
+  }
+  html += '</div>';
+  return html;
 }
 function kaffeeHTML(n) {
   return Array.from({length:3},(_,i)=>`<span class="ressourcen-box${i<n?" gefuellt":""}">${i<n?"☕":""}</span>`).join("");

@@ -576,9 +576,49 @@ main {
   transition: transform 0.4s ease;
 }
 
-/* Aerodynamik-Skala */
-#s-aero { font-family: "SF Mono", "Consolas", monospace; letter-spacing: 0.02em; font-size: 0.68rem !important; }
-#s-aero .trenner { color: var(--muted); margin: 0 0.15rem; }
+/* ── Aerodynamik-/Bremsen-Skala als horizontale Leiste ──
+   Jede Zahl sitzt in einer eigenen kleinen Zelle; an den relevanten
+   Schwellen steht statt eines schlichten "|" ein kleiner, farbiger
+   vertikaler Balken in der Farbe des Spielers, der den jeweiligen
+   Marker bewegt (Fahrwerk = Pilotin/blau, Landeklappen = Co-Pilot/
+   orange, Bremsen = rot als neutrale dritte Farbe). */
+.skala-leiste {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-family: "SF Mono", "Consolas", monospace;
+}
+
+.skala-zahl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1em;
+  padding: 0.05rem 0.12rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.skala-luecke {
+  display: inline-block;
+  width: 4px;
+}
+
+.skala-sep {
+  display: inline-block;
+  width: 4px;
+  height: 15px;
+  border-radius: 2px;
+  margin: 0 2px;
+  flex: 0 0 auto;
+}
+
+.skala-sep-blau   { background: var(--blau); box-shadow: 0 0 3px rgba(37,99,235,0.7); }
+.skala-sep-orange { background: var(--orange); box-shadow: 0 0 3px rgba(234,88,12,0.7); }
+.skala-sep-rot    { background: var(--rot); box-shadow: 0 0 3px rgba(239,68,68,0.7); }
+
+#s-aero, #s-brems { font-size: 0.72rem !important; }
 
 
 
@@ -666,7 +706,7 @@ main {
 
 .status-feld:has(#s-aero),
 .status-feld:has(#s-brems) {
-  min-width: 110px;
+  min-width: 118px;
 }
 
 /* Würfel-Sichtbarkeit (Pass & Play) */
