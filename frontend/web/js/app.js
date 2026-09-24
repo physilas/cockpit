@@ -478,6 +478,24 @@ function renderCockpitBoard(zustand) {
 }
 
 // --- Würfel-Trays + Kaffee ---
+//
+// Neuwurf-Auswahl (Reroll): läuft nicht mehr über eine separate Liste mit
+// Checkboxen ("1:4", "2:2", ...), sondern direkt über Klicks auf die
+// bereits angezeigten Würfel - genau wie beim normalen Platzieren, nur
+// dass hier mehrere Würfel gleichzeitig markiert werden können (Toggle),
+// bis "Weiter"/"Neu würfeln" bestätigt wird.
+function neuwurfAktivBesitzer() {
+  if (neuwurfPhase === 1) return neuwurfInitiatorRolle;
+  if (neuwurfPhase === 2) return neuwurfInitiatorRolle === "pilot" ? "kopilot" : "pilot";
+  return null;
+}
+
+function neuwurfAuswahlSetFuer(besitzer) {
+  if (neuwurfPhase === 1) return neuwurfPhase1Indizes;
+  if (neuwurfPhase === 2) return neuwurfAuswahl[besitzer];
+  return null;
+}
+
 function renderWuerfel(besitzer, zustand) {
   const container = document.getElementById(`wuerfel-${besitzer}`);
   container.innerHTML = "";
@@ -486,6 +504,11 @@ function renderWuerfel(besitzer, zustand) {
   const frei  = zustand[`${besitzer}_wuerfel_frei`];
   const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft";
   const sichtbar  = diceVisible === besitzer;
+
+  const imNeuwurf = neuwurfPhase !== 0;
+  const aktiverNeuwurfBesitzer = neuwurfAktivBesitzer();
+  const istNeuwurfAktiv = imNeuwurf && besitzer === aktiverNeuwurfBesitzer;
+  const neuwurfAuswahlSet = istNeuwurfAktiv ? neuwurfAuswahlSetFuer(besitzer) : null;
 
   // "Würfel anzeigen"-Button (nur Auge, kompakt).
   //
@@ -497,10 +520,8 @@ function renderWuerfel(besitzer, zustand) {
   // eines Neuwurfs gilt wie gewohnt: nur der aktive Spieler sieht seine
   // eigenen, noch nicht platzierten Würfel.
   let zeigeViewBtn;
-  if (neuwurfPhase === 1) {
-    zeigeViewBtn = !sichtbar && besitzer === neuwurfInitiatorRolle;
-  } else if (neuwurfPhase === 2) {
-    zeigeViewBtn = !sichtbar && besitzer !== neuwurfInitiatorRolle;
+  if (imNeuwurf) {
+    zeigeViewBtn = !sichtbar && istNeuwurfAktiv;
   } else {
     zeigeViewBtn = !sichtbar && istAmZug;
   }
@@ -525,20 +546,31 @@ function renderWuerfel(besitzer, zustand) {
     div.className = "wuerfel" + (frei[i] ? "" : " platziert") + (verberge ? " verborgen" : "");
     div.textContent = verberge ? "?" : (wert ?? "");
 
-    const istAusgewaehlt = sichtbar && ausgewaehlterWuerfel?.besitzer === besitzer && ausgewaehlterWuerfel?.index === i;
-    if (istAusgewaehlt) div.classList.add("ausgewaehlt");
+    // Markierung: entweder "für's Platzieren ausgewählt" (normaler Modus)
+    // oder "für den Neuwurf ausgewählt" (Reroll-Modus) - nie beides.
+    const istPlatzierAusgewaehlt = !imNeuwurf && sichtbar &&
+      ausgewaehlterWuerfel?.besitzer === besitzer && ausgewaehlterWuerfel?.index === i;
+    const istNeuwurfMarkiert = istNeuwurfAktiv && sichtbar && neuwurfAuswahlSet?.has(i);
+    if (istPlatzierAusgewaehlt || istNeuwurfMarkiert) div.classList.add("ausgewaehlt");
 
-    if (sichtbar && frei[i] && istAmZug) {
+    if (!imNeuwurf && sichtbar && frei[i] && istAmZug) {
       div.title = "Klicken zum Auswählen, dann ein Feld im Board anklicken.";
       div.addEventListener("click", () => {
-        ausgewaehlterWuerfel = istAusgewaehlt ? null : { besitzer, index: i };
+        ausgewaehlterWuerfel = istPlatzierAusgewaehlt ? null : { besitzer, index: i };
         kaffeeMenuOffenFuer = null;
+        render(zustand);
+      });
+    } else if (istNeuwurfAktiv && sichtbar && frei[i]) {
+      div.title = "Klicken, um diesen Würfel für den Neuwurf zu markieren/abzuwählen.";
+      div.addEventListener("click", () => {
+        if (neuwurfAuswahlSet.has(i)) neuwurfAuswahlSet.delete(i);
+        else neuwurfAuswahlSet.add(i);
         render(zustand);
       });
     }
     wrapper.appendChild(div);
 
-    if (sichtbar && istAusgewaehlt && frei[i] && zustand.kaffeetassen > 0) {
+    if (!imNeuwurf && istPlatzierAusgewaehlt && frei[i] && zustand.kaffeetassen > 0) {
       const kaffeeBtn = document.createElement("button");
       kaffeeBtn.textContent = "☕";
       kaffeeBtn.title = "Kaffee einsetzen";
@@ -575,14 +607,27 @@ function renderWuerfel(besitzer, zustand) {
 }
 
 // --- Neuwurf-Panel (zwei Phasen für Pass & Play) ---
+//
+// Statt einer eigenen Checkbox-Liste ("1:4", "2:2", ...) wird direkt auf
+// den ohnehin sichtbaren Würfeln oben ausgewählt (siehe renderWuerfel) -
+// das Panel zeigt hier nur noch die Anweisung sowie die Aktions-Buttons.
+function neuwurfReset() {
+  neuwurfPhase = 0;
+  neuwurfInitiatorRolle = null;
+  neuwurfPhase1Indizes = new Set();
+  neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
+  diceVisible = null;
+}
+
+function neuwurfAbbrechen() {
+  neuwurfReset();
+  render(aktuellerZustand);
+}
+
 function toggleNeuwurfPanel() {
   if (!aktuellerZustand || aktuellerZustand.neuwurf_plaettchen <= 0) return;
   if (neuwurfPhase !== 0) {
-    neuwurfPhase = 0;
-    neuwurfInitiatorRolle = null;
-    neuwurfPhase1Indizes = new Set();
-    neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
-    render(aktuellerZustand);
+    neuwurfAbbrechen();
     return;
   }
   neuwurfPhase = 1;
@@ -610,7 +655,7 @@ function renderNeuwurfPanel(zustand) {
 
   if (neuwurfPhase === 1) {
     const hinweis = document.createElement("p");
-    hinweis.innerHTML = `<strong>${initiatorName}</strong>: Würfel wählen, die neu geworfen werden.`;
+    hinweis.innerHTML = `<strong>${initiatorName}</strong>: oben die Würfel antippen, die neu geworfen werden sollen.`;
     panel.appendChild(hinweis);
 
     if (diceVisible !== neuwurfInitiatorRolle) {
@@ -621,32 +666,12 @@ function renderNeuwurfPanel(zustand) {
       viewBtn.addEventListener("click", () => { diceVisible = neuwurfInitiatorRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
     } else {
-      const gruppe = document.createElement("div");
-      gruppe.className = "neuwurf-gruppe";
-      const frei  = zustand[`${neuwurfInitiatorRolle}_wuerfel_frei`];
-      const werte = zustand[`${neuwurfInitiatorRolle}_wuerfel`];
-      let hat = false;
-      werte.forEach((wert, i) => {
-        if (!frei[i]) return;
-        hat = true;
-        const lbl = document.createElement("label");
-        const cb  = document.createElement("input");
-        cb.type = "checkbox";
-        cb.checked = neuwurfPhase1Indizes.has(i);
-        cb.addEventListener("change", () => {
-          if (cb.checked) neuwurfPhase1Indizes.add(i);
-          else            neuwurfPhase1Indizes.delete(i);
-        });
-        lbl.appendChild(cb);
-        lbl.append(` ${i + 1}:${wert}`);
-        gruppe.appendChild(lbl);
-      });
-      if (!hat) {
-        const s = document.createElement("span");
-        s.textContent = "(keine unplatzierten Würfel)";
-        gruppe.appendChild(s);
+      const frei = zustand[`${neuwurfInitiatorRolle}_wuerfel_frei`];
+      if (!frei.some(Boolean)) {
+        const s = document.createElement("p");
+        s.textContent = "(keine unplatzierten Würfel verfügbar)";
+        panel.appendChild(s);
       }
-      panel.appendChild(gruppe);
 
       const ak = document.createElement("div");
       ak.className = "neuwurf-aktionen";
@@ -654,7 +679,6 @@ function renderNeuwurfPanel(zustand) {
       const weiter = document.createElement("button");
       weiter.textContent = `Weiter → ${partnerName}`;
       weiter.addEventListener("click", () => {
-        neuwurfPhase1Indizes = new Set(neuwurfPhase1Indizes);
         neuwurfPhase = 2;
         diceVisible = null;
         render(aktuellerZustand);
@@ -663,12 +687,7 @@ function renderNeuwurfPanel(zustand) {
 
       const ab = document.createElement("button");
       ab.textContent = "Abbrechen";
-      ab.addEventListener("click", () => {
-        neuwurfPhase = 0; neuwurfInitiatorRolle = null;
-        neuwurfPhase1Indizes = new Set();
-        diceVisible = null;
-        render(aktuellerZustand);
-      });
+      ab.addEventListener("click", () => neuwurfAbbrechen());
       ak.appendChild(ab);
       panel.appendChild(ak);
     }
@@ -676,7 +695,7 @@ function renderNeuwurfPanel(zustand) {
 
   if (neuwurfPhase === 2) {
     const hinweis = document.createElement("p");
-    hinweis.innerHTML = `<strong>${partnerName}</strong>: Würfel wählen, die neu geworfen werden.`;
+    hinweis.innerHTML = `<strong>${partnerName}</strong>: oben die Würfel antippen, die neu geworfen werden sollen.`;
     panel.appendChild(hinweis);
 
     if (diceVisible !== partnerRolle) {
@@ -687,32 +706,12 @@ function renderNeuwurfPanel(zustand) {
       viewBtn.addEventListener("click", () => { diceVisible = partnerRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
     } else {
-      const gruppe = document.createElement("div");
-      gruppe.className = "neuwurf-gruppe";
-      const frei  = zustand[`${partnerRolle}_wuerfel_frei`];
-      const werte = zustand[`${partnerRolle}_wuerfel`];
-      let hat = false;
-      werte.forEach((wert, i) => {
-        if (!frei[i]) return;
-        hat = true;
-        const lbl = document.createElement("label");
-        const cb  = document.createElement("input");
-        cb.type = "checkbox";
-        cb.checked = neuwurfAuswahl[partnerRolle].has(i);
-        cb.addEventListener("change", () => {
-          if (cb.checked) neuwurfAuswahl[partnerRolle].add(i);
-          else            neuwurfAuswahl[partnerRolle].delete(i);
-        });
-        lbl.appendChild(cb);
-        lbl.append(` ${i + 1}:${wert}`);
-        gruppe.appendChild(lbl);
-      });
-      if (!hat) {
-        const s = document.createElement("span");
-        s.textContent = "(keine unplatzierten Würfel)";
-        gruppe.appendChild(s);
+      const frei = zustand[`${partnerRolle}_wuerfel_frei`];
+      if (!frei.some(Boolean)) {
+        const s = document.createElement("p");
+        s.textContent = "(keine unplatzierten Würfel verfügbar)";
+        panel.appendChild(s);
       }
-      panel.appendChild(gruppe);
 
       const ak = document.createElement("div");
       ak.className = "neuwurf-aktionen";
@@ -728,23 +727,14 @@ function renderNeuwurfPanel(zustand) {
           : Array.from(neuwurfAuswahl[partnerRolle]);
 
         const antwort = pyToJs(bridge.benutze_neuwurf(pilotIdx, kopilotIdx));
-        neuwurfPhase = 0;
-        neuwurfInitiatorRolle = null;
-        neuwurfPhase1Indizes = new Set();
-        neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
-        diceVisible = null;
+        neuwurfReset();
         nachAktion(antwort);
       });
       ak.appendChild(neuwerfen);
 
       const ab = document.createElement("button");
       ab.textContent = "Abbrechen";
-      ab.addEventListener("click", () => {
-        neuwurfPhase = 0; neuwurfInitiatorRolle = null;
-        neuwurfPhase1Indizes = new Set();
-        diceVisible = null;
-        render(aktuellerZustand);
-      });
+      ab.addEventListener("click", () => neuwurfAbbrechen());
       ak.appendChild(ab);
       panel.appendChild(ak);
     }

@@ -49,8 +49,46 @@ let partnerConnected = false;
 let aktuellerZustand = null;
 let ausgewaehlterWuerfel = null;
 let kaffeeMenuFuer = null;
-let neuwurfOffen = false;
-let neuwurfAuswahl = {pilot: new Set(), kopilot: new Set()};
+
+// Neuwurf (Reroll) über zwei Geräte hinweg: die Engine selbst (spielplan.py)
+// weiß nichts von "Phasen" - benutze_neuwurf() bekommt einfach beide
+// Indexlisten auf einmal. Der Zwei-Schritt-Ablauf (erst Initiator, dann
+// Partner) ist reine UI-Choreografie und lebt daher hier als eigenes,
+// vom Host verwaltetes Objekt, das bei jedem Zustands-Update mitgeschickt
+// wird (siehe sendState()) - so sehen beide Geräte immer denselben
+// Neuwurf-Fortschritt, unabhängig davon, wer ihn gestartet hat.
+//   phase: 0 = kein Neuwurf | 1 = Initiator wählt | 2 = Partner wählt
+//   initiator: "pilot" | "kopilot" | null
+//   initiatorAuswahl / partnerAuswahl: Arrays von Würfel-Indizes (0-3)
+// WICHTIG: der eigentliche Zug (z.am_zug) wird von alldem nie berührt -
+// nach Abschluss des Neuwurfs geht es also automatisch exakt dort weiter,
+// wo die Partie vor dem Neuwurf stand.
+let neuwurfUi = { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
+
+function neuwurfUiReset() {
+  neuwurfUi = { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
+}
+
+// Wessen Würfel gerade ausgewählt werden dürfen (oder null, falls kein
+// Neuwurf läuft bzw. gerade niemand dran ist).
+function neuwurfAktivBesitzer() {
+  if (neuwurfUi.phase === 1) return neuwurfUi.initiator;
+  if (neuwurfUi.phase === 2) return neuwurfUi.initiator === "pilot" ? "kopilot" : "pilot";
+  return null;
+}
+
+// Die Auswahl-Liste für `besitzer`, aber nur wenn `besitzer` gerade aktiv
+// dran ist (sonst null - fremde Auswahl wird nie angezeigt/verändert).
+function neuwurfAuswahlFuer(besitzer) {
+  if (neuwurfUi.phase === 1 && besitzer === neuwurfUi.initiator) return neuwurfUi.initiatorAuswahl;
+  if (neuwurfUi.phase === 2 && besitzer !== neuwurfUi.initiator) return neuwurfUi.partnerAuswahl;
+  return null;
+}
+
+function neuwurfIndexToggle(liste, index) {
+  const pos = liste.indexOf(index);
+  if (pos === -1) liste.push(index); else liste.splice(pos, 1);
+}
 
 // ── Hilfsfunktionen ─────────────────────────────────────────────────────────
 function pyToJs(r) { return r.toJs({dict_converter: Object.fromEntries}); }
@@ -134,7 +172,11 @@ function sendState(rawZ) {
   aktuellerZustand = filteredState(rawZ, "pilot");
   render(aktuellerZustand);
   if (conn && conn.open) {
-    conn.send(JSON.stringify({typ:"zustand", zustand: filteredState(rawZ, "kopilot")}));
+    conn.send(JSON.stringify({
+      typ:"zustand",
+      zustand: filteredState(rawZ, "kopilot"),
+      neuwurf: neuwurfUi,
+    }));
   }
 }
 
@@ -156,9 +198,6 @@ function hostAktion(msg) {
     } else if (msg.typ === "trinke_kaffee") {
       const r = pyToJs(bridge.trinke_kaffee(msg.besitzer, msg.wuerfel_index, msg.delta));
       raw = r.zustand;
-    } else if (msg.typ === "benutze_neuwurf") {
-      const r = pyToJs(bridge.benutze_neuwurf(msg.pilot_indizes||[], msg.kopilot_indizes||[]));
-      raw = r.zustand;
     } else if (msg.typ === "rundenende") {
       const r = pyToJs(bridge.rundenende());
       if (r.ergebnis.erfolg && r.zustand.status === "laeuft") {
@@ -169,6 +208,39 @@ function hostAktion(msg) {
       }
     } else if (msg.typ === "neues_spiel") {
       raw = pyToJs(bridge.neues_spiel());
+      neuwurfUiReset();
+
+    // ── Neuwurf: zwei-Schritt-Choreografie, siehe Kommentar bei neuwurfUi ──
+    } else if (msg.typ === "neuwurf_start") {
+      const z = pyToJs(bridge.zustand());
+      if (neuwurfUi.phase === 0 && z.neuwurf_plaettchen > 0 && z.status === "laeuft") {
+        neuwurfUi = { phase: 1, initiator: msg.besitzer, initiatorAuswahl: [], partnerAuswahl: [] };
+      }
+      raw = pyToJs(bridge.zustand());
+    } else if (msg.typ === "neuwurf_toggle") {
+      const aktiver = neuwurfAktivBesitzer();
+      if (aktiver && msg.besitzer === aktiver) {
+        const liste = neuwurfUi.phase === 1 ? neuwurfUi.initiatorAuswahl : neuwurfUi.partnerAuswahl;
+        neuwurfIndexToggle(liste, msg.index);
+      }
+      raw = pyToJs(bridge.zustand());
+    } else if (msg.typ === "neuwurf_next") {
+      if (neuwurfUi.phase === 1 && msg.besitzer === neuwurfUi.initiator) {
+        neuwurfUi.phase = 2;
+      }
+      raw = pyToJs(bridge.zustand());
+    } else if (msg.typ === "neuwurf_confirm") {
+      const partner = neuwurfUi.initiator === "pilot" ? "kopilot" : "pilot";
+      if (neuwurfUi.phase === 2 && msg.besitzer === partner) {
+        const pilotIdx   = neuwurfUi.initiator === "pilot"   ? neuwurfUi.initiatorAuswahl : neuwurfUi.partnerAuswahl;
+        const kopilotIdx = neuwurfUi.initiator === "kopilot" ? neuwurfUi.initiatorAuswahl : neuwurfUi.partnerAuswahl;
+        bridge.benutze_neuwurf(pilotIdx, kopilotIdx);
+        neuwurfUiReset();
+      }
+      raw = pyToJs(bridge.zustand());
+    } else if (msg.typ === "neuwurf_cancel") {
+      neuwurfUiReset();
+      raw = pyToJs(bridge.zustand());
     }
   } catch(e) { console.error(e); return; }
   if (raw) sendState(raw);
@@ -262,6 +334,7 @@ function starte_Beitreten(code) {
       const msg = JSON.parse(raw);
       if (msg.typ === "zustand" && msg.zustand) {
         aktuellerZustand = msg.zustand;
+        neuwurfUi = msg.neuwurf || { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
         render(msg.zustand);
       }
       if (msg.typ === "ergebnis") {
@@ -454,6 +527,7 @@ function render(z) {
   const amZug=document.getElementById("am-zug-anzeige");
   const rBtn=document.getElementById("rundenende-btn");
   const nBtn=document.getElementById("neuwurf-btn");
+  const imNeuwurf = neuwurfUi.phase !== 0;
 
   if(z.status!=="laeuft") {
     amZug.innerHTML=`<div class="spiel-ende ${z.status}">`+
@@ -461,12 +535,24 @@ function render(z) {
       "</div>";
     if(rBtn)rBtn.disabled=true;
     if(nBtn)nBtn.disabled=true;
+  } else if (imNeuwurf) {
+    // Während des Neuwurfs ruht die Platzier-Reihenfolge - der eigentliche
+    // Zug (z.am_zug) bleibt dabei unverändert und läuft danach genau dort
+    // weiter, wo er stand (siehe neuwurfUi-Kommentar oben).
+    const aktiverBesitzer = neuwurfAktivBesitzer();
+    const ichBinAktiv = myRole === aktiverBesitzer;
+    amZug.textContent = ichBinAktiv
+      ? "🔄 Neuwurf: du bist dran ✦"
+      : `🔄 Neuwurf: ${aktiverBesitzer === "pilot" ? "Pilotin" : "Co-Pilot"} wählt …`;
+    amZug.style.color = ichBinAktiv ? "var(--gruen)" : "var(--muted)";
+    if(rBtn)rBtn.disabled=true;
+    if(nBtn) { nBtn.disabled=false; nBtn.textContent="✖"; nBtn.title="Neuwurf abbrechen"; }
   } else {
     const ichDran=myRole&&z.am_zug===myRole;
     amZug.textContent=ichDran?"Du bist am Zug ✦":(z.am_zug==="pilot"?"Pilotin":"Co-Pilot")+" ist am Zug …";
     amZug.style.color=ichDran?"var(--gruen)":"var(--muted)";
     if(rBtn)rBtn.disabled=!ichDran;
-    if(nBtn)nBtn.disabled=z.neuwurf_plaettchen<=0;
+    if(nBtn) { nBtn.disabled=z.neuwurf_plaettchen<=0; nBtn.textContent="🔄"; nBtn.title="Neuwurf-Plättchen einlösen"; }
   }
 }
 
@@ -598,6 +684,11 @@ function renderWuerfel(besitzer,z) {
   const frei =z[`${besitzer}_wuerfel_frei`];
   const istMeins=besitzer===myRole;
 
+  const imNeuwurf = neuwurfUi.phase !== 0;
+  const aktiverBesitzer = neuwurfAktivBesitzer();
+  const istNeuwurfAktiv = imNeuwurf && besitzer === aktiverBesitzer;
+  const neuwurfAuswahl = istNeuwurfAktiv ? neuwurfAuswahlFuer(besitzer) : null;
+
   werte.forEach((wert,i)=>{
     const wrap=document.createElement("div");
     wrap.className="wuerfel-slot";
@@ -608,20 +699,28 @@ function renderWuerfel(besitzer,z) {
     if(verborgen)div.classList.add("partner-wuerfel");
     div.textContent=verborgen?"?":String(wert);
 
-    const istAus=ausgewaehlterWuerfel?.besitzer===besitzer&&ausgewaehlterWuerfel?.index===i;
-    if(istAus)div.classList.add("ausgewaehlt");
+    // Markierung: entweder "für's Platzieren ausgewählt" oder (während
+    // eines Neuwurfs) "für den Neuwurf markiert" - nie beides gleichzeitig.
+    const istPlatzierAus = !imNeuwurf && ausgewaehlterWuerfel?.besitzer===besitzer&&ausgewaehlterWuerfel?.index===i;
+    const istNeuwurfMarkiert = istNeuwurfAktiv && istMeins && neuwurfAuswahl?.includes(i);
+    if(istPlatzierAus || istNeuwurfMarkiert) div.classList.add("ausgewaehlt");
 
     const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft";
-    if(istMeins&&frei[i]&&!verborgen&&ichDran){
+    if(!imNeuwurf && istMeins&&frei[i]&&!verborgen&&ichDran){
       div.addEventListener("click",()=>{
-        ausgewaehlterWuerfel=istAus?null:{besitzer,index:i};
+        ausgewaehlterWuerfel=istPlatzierAus?null:{besitzer,index:i};
         kaffeeMenuFuer=null;
         render(z);
+      });
+    } else if (imNeuwurf && istNeuwurfAktiv && istMeins && frei[i] && !verborgen) {
+      div.title = "Klicken, um diesen Würfel für den Neuwurf zu markieren/abzuwählen.";
+      div.addEventListener("click", () => {
+        meineAktion({ typ: "neuwurf_toggle", index: i });
       });
     }
     wrap.appendChild(div);
 
-    if(istMeins&&istAus&&frei[i]&&!verborgen&&z.kaffeetassen>0){
+    if(!imNeuwurf && istMeins&&istPlatzierAus&&frei[i]&&!verborgen&&z.kaffeetassen>0){
       const kb=document.createElement("button");
       kb.textContent="☕";
       kb.addEventListener("click",ev=>{
@@ -652,51 +751,61 @@ function renderWuerfel(besitzer,z) {
   });
 }
 
+// Neuwurf-Panel: zeigt nur noch die Anweisung + Aktions-Buttons - die
+// Auswahl selbst passiert direkt an den (eigenen) Würfeln oben, siehe
+// renderWuerfel(). Beide Geräte sehen dank neuwurfUi (vom Host verteilt)
+// jederzeit denselben Fortschritt.
 function renderNeuwurf(z) {
   const panel=document.getElementById("neuwurf-panel");
   panel.innerHTML="";
-  if(!neuwurfOffen||z.status!=="laeuft"){panel.classList.add("versteckt");return;}
+  if(neuwurfUi.phase===0||z.status!=="laeuft"){panel.classList.add("versteckt");return;}
   panel.classList.remove("versteckt");
 
+  const partnerRolle = neuwurfUi.initiator === "pilot" ? "kopilot" : "pilot";
+  const initiatorName = neuwurfUi.initiator === "pilot" ? "Pilotin" : "Co-Pilot";
+  const partnerName   = partnerRolle === "pilot" ? "Pilotin" : "Co-Pilot";
+  const aktiverBesitzer = neuwurfAktivBesitzer();
+  const ichBinAktiv = myRole === aktiverBesitzer;
+
   const intro=document.createElement("p");
-  intro.textContent=`Neuwurf (${z.neuwurf_plaettchen}): eigene Würfel wählen:`;
+  if (neuwurfUi.phase === 1) {
+    intro.innerHTML = ichBinAktiv
+      ? "Tippe oben deine Würfel an, die neu geworfen werden sollen."
+      : `<strong>${initiatorName}</strong> wählt gerade Würfel zum Neuwerfen aus …`;
+  } else {
+    intro.innerHTML = ichBinAktiv
+      ? "Jetzt du: tippe oben deine Würfel an, die neu geworfen werden sollen."
+      : `Warte auf <strong>${partnerName}</strong> …`;
+  }
   panel.appendChild(intro);
 
-  const g=document.createElement("div");
-  g.className="neuwurf-gruppe";
-  const werte=z[`${myRole}_wuerfel`];
-  const frei =z[`${myRole}_wuerfel_frei`];
-  let hat=false;
-  werte.forEach((w,i)=>{
-    if(!frei[i]||w===null)return;
-    hat=true;
-    const lbl=document.createElement("label");
-    const cb=document.createElement("input");
-    cb.type="checkbox";
-    cb.checked=neuwurfAuswahl[myRole].has(i);
-    cb.addEventListener("change",()=>{if(cb.checked)neuwurfAuswahl[myRole].add(i);else neuwurfAuswahl[myRole].delete(i);});
-    lbl.appendChild(cb);
-    lbl.append(` ${i+1}:${w}`);
-    g.appendChild(lbl);
-  });
-  if(!hat){const s=document.createElement("span");s.textContent="(keine unplatzierten Würfel)";g.appendChild(s);}
-  panel.appendChild(g);
+  if (ichBinAktiv) {
+    const frei = z[`${myRole}_wuerfel_frei`];
+    if (!frei.some(Boolean)) {
+      const s = document.createElement("p");
+      s.textContent = "(keine unplatzierten Würfel verfügbar)";
+      panel.appendChild(s);
+    }
+  }
 
   const ak=document.createElement("div");
   ak.className="neuwurf-aktionen";
-  const ok=document.createElement("button");
-  ok.textContent="Neu würfeln ✓";
-  ok.addEventListener("click",()=>{
-    const pi=[...neuwurfAuswahl.pilot];
-    const ki=[...neuwurfAuswahl.kopilot];
-    meineAktion({typ:"benutze_neuwurf",pilot_indizes:pi,kopilot_indizes:ki});
-    neuwurfOffen=false;
-    neuwurfAuswahl={pilot:new Set(),kopilot:new Set()};
-  });
-  ak.appendChild(ok);
+
+  if (neuwurfUi.phase === 1 && ichBinAktiv) {
+    const weiter=document.createElement("button");
+    weiter.textContent=`Weiter → ${partnerName}`;
+    weiter.addEventListener("click", () => meineAktion({typ:"neuwurf_next"}));
+    ak.appendChild(weiter);
+  }
+  if (neuwurfUi.phase === 2 && ichBinAktiv) {
+    const ok=document.createElement("button");
+    ok.textContent="🎲 Neu würfeln";
+    ok.addEventListener("click", () => meineAktion({typ:"neuwurf_confirm"}));
+    ak.appendChild(ok);
+  }
   const ab=document.createElement("button");
   ab.textContent="Abbrechen";
-  ab.addEventListener("click",()=>{neuwurfOffen=false;if(aktuellerZustand)render(aktuellerZustand);});
+  ab.addEventListener("click", () => meineAktion({typ:"neuwurf_cancel"}));
   ak.appendChild(ab);
   panel.appendChild(ak);
 }
@@ -724,11 +833,14 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("neues-spiel-btn")?.addEventListener("click", () => meineAktion({typ:"neues_spiel"}));
   document.getElementById("rundenende-btn")?.addEventListener("click", () => meineAktion({typ:"rundenende"}));
   document.getElementById("neuwurf-btn")?.addEventListener("click", () => {
-    if(!aktuellerZustand||aktuellerZustand.neuwurf_plaettchen<=0)return;
-    neuwurfOffen=!neuwurfOffen;
-    neuwurfAuswahl={pilot:new Set(),kopilot:new Set()};
-    ausgewaehlterWuerfel=null;
-    if(aktuellerZustand)render(aktuellerZustand);
+    if (!aktuellerZustand) return;
+    if (neuwurfUi.phase !== 0) {
+      meineAktion({ typ: "neuwurf_cancel" });
+      return;
+    }
+    if (aktuellerZustand.neuwurf_plaettchen <= 0) return;
+    ausgewaehlterWuerfel = null;
+    meineAktion({ typ: "neuwurf_start" });
   });
   document.getElementById("menue-btn")?.addEventListener("click", () => {
     window.location = "index.html";
