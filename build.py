@@ -10,30 +10,41 @@ Ausführen (aus dem Repo-Root):
     python3 build.py
 """
 import json
-import os
 from pathlib import Path
 
 ROOT = Path(__file__).parent
 
-DATEIEN = [
-    ("backend/__init__.py",         "backend/__init__.py"),
-    ("backend/regeln.py",           "backend/regeln.py"),
-    ("backend/wuerfel.py",          "backend/wuerfel.py"),
-    ("backend/wuerfelfeld.py",      "backend/wuerfelfeld.py"),
-    ("backend/cockpit.py",          "backend/cockpit.py"),
-    ("backend/landung.py",          "backend/landung.py"),
-    ("backend/spielplan.py",        "backend/spielplan.py"),
-    ("backend/bridge.py",           "backend/bridge.py"),
-    ("backend/landungen/MUC.yaml",  "backend/landungen/MUC.yaml"),
+PYTHON_DATEIEN = [
+    "backend/__init__.py",
+    "backend/regeln.py",
+    "backend/wuerfel.py",
+    "backend/wuerfelfeld.py",
+    "backend/cockpit.py",
+    "backend/landung.py",
+    "backend/spielplan.py",
+    "backend/bridge.py",
 ]
+
 
 def build():
     sources = {}
-    for quelle, ziel in DATEIEN:
-        pfad = ROOT / quelle
+
+    for rel in PYTHON_DATEIEN:
+        pfad = ROOT / rel
         text = pfad.read_text(encoding="utf-8")
-        sources[ziel] = text
-        print(f"  {quelle}: {len(text):>6} Zeichen")
+        sources[rel] = text
+        print(f"  {rel}: {len(text):>6} Zeichen")
+
+    # Jede YAML-Datei unter backend/landungen/ wird automatisch mit
+    # eingebündelt - neue Flughäfen (z.B. LHR.yaml) tauchen so ohne
+    # Anpassung an dieser Datei sowohl in der Engine als auch in der
+    # Frontend-Auswahl (backend/landung.py: flughafen_liste()) auf.
+    landungen_dir = ROOT / "backend" / "landungen"
+    for yaml_pfad in sorted(landungen_dir.glob("*.yaml")):
+        rel = f"backend/landungen/{yaml_pfad.name}"
+        text = yaml_pfad.read_text(encoding="utf-8")
+        sources[rel] = text
+        print(f"  {rel}: {len(text):>6} Zeichen")
 
     out = ROOT / "frontend" / "web" / "js" / "engine-src.js"
     content = (
@@ -45,6 +56,7 @@ def build():
     )
     out.write_text(content, encoding="utf-8")
     print(f"\nFertig: {out.relative_to(ROOT)}  ({out.stat().st_size // 1024} KB)")
+
 
 if __name__ == "__main__":
     build()

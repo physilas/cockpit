@@ -3,6 +3,12 @@
 code: TEST
 bezeichnung: Testflughafen (hindernisfrei)
 
+# Kein echter Flughafen - taucht daher nicht in der Flughafen-Auswahl im
+# Frontend auf (siehe backend/landung.py: flughafen_liste()). Über
+# Spielplan("TEST") bzw. Landung("TEST") bleibt er trotzdem ganz normal
+# nutzbar (siehe tests/test_engine.py).
+sichtbar: false
+
 module: null
 faehigkeitskarten: 0
 

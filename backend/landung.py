@@ -12,6 +12,34 @@ def load_yaml(flughafen):
     return data
 
 
+def flughafen_liste():
+    """
+    Liste aller Flughäfen, die in backend/landungen/*.yaml liegen - fürs
+    Frontend, damit die Flughafen-Auswahl nicht mehr hart codiert werden
+    muss, sondern jede neu hinzugefügte YAML-Datei automatisch auftaucht.
+
+    Eine YAML-Datei kann sich mit `sichtbar: false` aus dieser Liste
+    ausblenden (z.B. die reine Engine-Test-Strecke TEST.yaml), taucht
+    dann aber weiterhin ganz normal auf, wenn man sie über ihren Code
+    direkt anfordert (Landung(code) liest sie unabhängig davon).
+    """
+    ergebnisse = []
+    for pfad in sorted(_LANDUNGEN_DIR.glob("*.yaml")):
+        try:
+            with open(pfad, "r", encoding="utf-8") as file:
+                data = yaml.safe_load(file) or {}
+        except Exception:
+            continue
+        if data.get("sichtbar", True) is False:
+            continue
+        ergebnisse.append({
+            "code": data.get("code", pfad.stem),
+            "bezeichnung": data.get("bezeichnung", pfad.stem),
+        })
+    ergebnisse.sort(key=lambda eintrag: eintrag["bezeichnung"])
+    return ergebnisse
+
+
 class Landung:
     """
     Der flughafenspezifische Teil des Spielplans: Entfernungsleiste

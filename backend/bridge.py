@@ -8,12 +8,20 @@ und hält die Spielregeln komplett in Python (kein Regel-Code in JS).
 """
 from .spielplan import Spielplan
 from .regeln import grund_text as _grund_text
+from .landung import flughafen_liste as _flughafen_liste
 
 _spiel = None
 
 
 def grund_text(code):
     return _grund_text(code)
+
+
+def flughaefen_liste():
+    """Für die Flughafen-Auswahl im Frontend (siehe landung.py:
+    flughafen_liste()) - jede YAML-Datei unter backend/landungen/ taucht
+    hier automatisch auf, ohne dass das Frontend angepasst werden muss."""
+    return _flughafen_liste()
 
 
 def neues_spiel(flughafen="MUC"):

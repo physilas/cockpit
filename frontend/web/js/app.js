@@ -789,6 +789,24 @@ function zurueckZumMenue() {
   document.getElementById("start-menu").classList.remove("versteckt");
 }
 
+// Füllt die Flughafen-Auswahl dynamisch aus backend/landungen/*.yaml -
+// jede neu hinzugefügte YAML-Datei taucht so automatisch hier auf, ohne
+// dass index.html angepasst werden müsste (siehe backend/landung.py:
+// flughafen_liste()).
+function populiereFlughafenAuswahl() {
+  const auswahl = document.getElementById("flughafen-auswahl");
+  const bisheriger = auswahl.value;
+  const liste = pyToJs(bridge.flughaefen_liste());
+  auswahl.innerHTML = "";
+  liste.forEach(f => {
+    const opt = document.createElement("option");
+    opt.value = f.code;
+    opt.textContent = `${f.code} – ${f.bezeichnung}`;
+    auswahl.appendChild(opt);
+  });
+  if (liste.some(f => f.code === bisheriger)) auswahl.value = bisheriger;
+}
+
 async function init() {
   document.getElementById("neues-spiel-btn").disabled = true;
   try {
@@ -798,6 +816,7 @@ async function init() {
     document.getElementById("lade-hinweis").textContent = "Fehler beim Laden der Engine: " + err.message;
     return;
   }
+  populiereFlughafenAuswahl();
   document.getElementById("lade-hinweis").classList.add("versteckt");
   document.getElementById("game-header").classList.remove("versteckt");
   document.getElementById("spiel-ui").classList.remove("versteckt");
