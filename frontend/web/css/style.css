@@ -747,3 +747,35 @@ main {
   .tracks-marker-col { width: 24px; }
   .side-col .feld-zeile .feld-label { width: 36px; font-size: 0.54rem; }
 }
+
+/* ── Erlaubte Ruderstellung je Entfernungsfeld (kurven_min/kurven_max) ──
+   Wie auf den gedruckten Distanz-Modulen: ◁ ▼ ▷ in Grün/Schwarz = erlaubt,
+   rotes ✚ = verboten. Sitzt am oberen Rand des jeweiligen Feldes. */
+#distance-kurven {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.vtrack-kurve {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 1px 3px;
+  border-radius: 0 0 5px 5px;
+  background: #fff;
+  font-size: 0.52rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.vtrack-kurve > span { width: 8px; text-align: center; }
+.kurve-erlaubt  { color: #15803d; }
+.kurve-null     { color: #000; }
+.kurve-verboten { color: #dc2626; font-weight: 900; }

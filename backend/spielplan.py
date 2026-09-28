@@ -260,6 +260,10 @@ class Spielplan:
             "entfernung": self.landung.get_entfernung(),
             "laenge": self.landung.get_laenge(),
             "flugzeuge": list(self.landung.get_flugzeuge()),
+            # Erlaubte Ruderstellung je Entfernungsfeld (gleiche Indizierung
+            # wie "flugzeuge": Index 0 = am weitesten vom Flughafen weg).
+            "kurven_min": list(self.landung.get_kurven_min()),
+            "kurven_max": list(self.landung.get_kurven_max()),
             "neuwurf_plaettchen": self.neuwurf_plaettchen,
             "kaffeetassen": self.cockpit.kaffeetassen,
             "fluglage": self.cockpit.fluglage,

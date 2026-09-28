@@ -45,14 +45,14 @@ class Landung:
     Der flughafenspezifische Teil des Spielplans: Entfernungsleiste
     (S.3/S.6) und Höhenleiste (S.3/S.9).
 
-    ANNAHME / OFFENE FRAGE (siehe README):
-        Das YAML-Feld "flugzeugwuerfel" sowie "kurven_min"/"kurven_max"
-        kommen im Basis-Regelheft NICHT vor. Ich vermute, dass sie für
-        die fortgeschrittenen Szenarien (Schachteleinsatz, S.3 Hinweis)
-        gedacht sind, die dieses Handbuch nicht abdeckt. Sie werden hier
-        geladen und über Getter bereitgestellt, aber vom Basis-Regelwerk
-        (cockpit.py / spiel.py) nicht verwendet. Bitte prüfen, ob das so
-        gewünscht ist, oder ob sie etwas anderes bedeuten sollen.
+    "kurven_min"/"kurven_max" (bestätigt): je Entfernungsfeld die erlaubte
+        Ruderstellung (Fluglage) beim Überfliegen dieses Feldes, wie auf
+        den Distanz-Modulen (z.B. aus dem skyteam.fly.dev-Generator)
+        aufgedruckt: -2/+2 = keine Einschränkung. Aktuell nur ANZEIGE im
+        Frontend (siehe zustand()); die Engine erzwingt es noch nicht.
+
+    OFFENE FRAGE: "flugzeugwuerfel" (Würfel-Symbol auf dem Modul) wird
+        geladen, aber weder angezeigt noch ausgewertet.
     """
 
     def __init__(self, flughafen):

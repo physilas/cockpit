@@ -457,7 +457,7 @@ function renderTracks(z) {
     if (y > markerY) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
-    el.style.top = y + "px";
+    el.style.top = (y + 3) + "px";
     // Einzelne Flugzeug-Symbole statt "✈×n" - eines je Flugzeug auf diesem Feld.
     for (let k = 0; k < count; k++) {
       const plane = document.createElement("span");
@@ -465,6 +465,46 @@ function renderTracks(z) {
       el.appendChild(plane);
     }
     obstaclesEl.appendChild(el);
+  });
+
+  renderKurven(z.kurven_min, z.kurven_max, maxGlobal, distUsed, markerY);
+}
+
+// Erlaubte Ruderstellung je Entfernungsfeld (kurven_min/kurven_max), wie
+// auf den gedruckten Distanz-Modulen: fünf Positionen -2..+2, schwarzes ▼
+// = Mitte (0), grüne Dreiecke = erlaubt, rote Kreuze = verboten. Felder
+// ohne Einschränkung (-2..+2) bekommen wie auf der Karte kein Symbol.
+function kurvenBadgeEl(min, max) {
+  const el = document.createElement("span");
+  el.className = "vtrack-kurve";
+  el.title = `Erlaubte Ruderstellung auf diesem Feld: ${min} bis ${max}`;
+  for (let v = -2; v <= 2; v++) {
+    const g = document.createElement("span");
+    if (v < min || v > max) { g.className = "kurve-verboten"; g.textContent = "✚"; }
+    else if (v === 0)       { g.className = "kurve-null";     g.textContent = "▼"; }
+    else                    { g.className = "kurve-erlaubt";  g.textContent = v < 0 ? "◁" : "▷"; }
+    el.appendChild(g);
+  }
+  return el;
+}
+
+function renderKurven(kmin, kmax, maxGlobal, distUsed, markerY) {
+  const track = document.getElementById("distance-track");
+  let cont = document.getElementById("distance-kurven");
+  if (!cont) {
+    cont = document.createElement("div");
+    cont.id = "distance-kurven";
+    track.appendChild(cont);
+  }
+  cont.innerHTML = "";
+  (kmin || []).forEach((min, i) => {
+    const max = (kmax || [])[i];
+    if (max === undefined || (min <= -2 && max >= 2)) return;   // keine Einschränkung
+    const center = (maxGlobal - i + distUsed - 0.5) * TRACK_UNIT_PX;
+    if (center > markerY) return;                               // schon überflogen
+    const badge = kurvenBadgeEl(min, max);
+    badge.style.top = (center - TRACK_UNIT_PX / 2) + "px";      // oberer Rand des Feldes
+    cont.appendChild(badge);
   });
 }
 
