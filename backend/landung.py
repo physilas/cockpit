@@ -134,6 +134,22 @@ class Landung:
             return None
         return self._laenge - entfernung
 
+    def verbotenes_feld_fuer_ruder(self, fluglage, bewegung):
+        """
+        Prüft die Ruder-Korridore (kurven_min/kurven_max) aller Felder, die
+        bei einer Bewegung um `bewegung` Felder überflogen werden: das
+        aktuelle Feld sowie (bei Bewegung 2) das nächste. Gibt die Entfernung
+        des ersten Feldes zurück, dessen Korridor `fluglage` verbietet,
+        sonst None.
+        """
+        aktuell = self._laenge - self.entfernung
+        for idx in range(aktuell, min(aktuell + bewegung, self._laenge)):
+            if idx < 0:
+                continue
+            if not (self._kurven_min[idx] <= fluglage <= self._kurven_max[idx]):
+                return self._laenge - idx
+        return None
+
     def flugzeuge_an_aktueller_position(self):
         idx = self._index_fuer_entfernung(self.entfernung)
         if idx is None:

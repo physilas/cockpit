@@ -131,6 +131,26 @@ function setJoinStatus(t, cls) {
 }
 
 // ── Pyodide / Engine (nur Host) ──────────────────────────────────────────────
+let gewaehlterFlughafen = "MUC";
+
+// Füllt die Flughafen-Auswahl auf dem Host-Bildschirm aus
+// backend/landungen/*.yaml, sobald die Engine geladen ist - genau wie im
+// Pass & Play, nur eben einmalig vor dem Hosten statt bei jedem "Neues Spiel".
+function populiereFlughafenAuswahlHost() {
+  const auswahl = document.getElementById("flughafen-auswahl-host");
+  if (!auswahl || !bridge) return;
+  const liste = pyToJs(bridge.flughaefen_liste());
+  auswahl.innerHTML = "";
+  liste.forEach(f => {
+    const opt = document.createElement("option");
+    opt.value = f.code;
+    opt.textContent = `${f.code} – ${f.bezeichnung}`;
+    auswahl.appendChild(opt);
+  });
+  auswahl.disabled = false;
+  if (liste.length) gewaehlterFlughafen = liste[0].code;
+}
+
 async function ladeEngine() {
   const fill = document.getElementById("lade-balken-fill");
   const txt  = document.getElementById("lade-text");
@@ -151,6 +171,7 @@ async function ladeEngine() {
     bridge = pyodide.pyimport("backend.bridge");
     setP(100); txt && (txt.textContent = "Bereit ✓");
     pyodideReady = true;
+    populiereFlughafenAuswahlHost();
     if (partnerConnected) startGame();
   } catch(e) {
     console.error(e);
@@ -160,7 +181,9 @@ async function ladeEngine() {
 
 // ── Spielstart (Host) ────────────────────────────────────────────────────────
 function startGame() {
-  const rawZ = pyToJs(bridge.neues_spiel());
+  const auswahl = document.getElementById("flughafen-auswahl-host");
+  if (auswahl && auswahl.value) gewaehlterFlughafen = auswahl.value;
+  const rawZ = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
   document.getElementById("screen-host").classList.add("versteckt");
   document.getElementById("spiel-header").classList.remove("versteckt");
   document.getElementById("spiel-ui").classList.remove("versteckt");
@@ -207,7 +230,7 @@ function hostAktion(msg) {
         raw = r.zustand;
       }
     } else if (msg.typ === "neues_spiel") {
-      raw = pyToJs(bridge.neues_spiel());
+      raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
       neuwurfUiReset();
 
     // ── Neuwurf: zwei-Schritt-Choreografie, siehe Kommentar bei neuwurfUi ──
@@ -392,7 +415,10 @@ function neuwurfHTML(n) {
            :'<span class="ressourcen-box"></span>';
 }
 
-const TRACK_UNIT_PX = 26;
+// 34 statt 26px: jedes Feld braucht Platz für Hindernis-Icons UND
+// (falls vorhanden) ein Kurven-Badge oben - alle Felder bekommen
+// dieselbe, etwas grössere Höhe, egal ob ein Badge gezeichnet wird.
+const TRACK_UNIT_PX = 34;
 // 7 statt 6 Einheiten: 6 echte 1000-ft-Schritte (6000->0) PLUS ein
 // zusätzliches "Bereitschafts"-Feld, damit 0 ft noch als 1 blaues Feld
 // angezeigt wird (S.9/S.10: "Perfektes Timing" ist erst erreicht, wenn
@@ -427,6 +453,9 @@ function renderAttitude(fluglage) {
 }
 
 function renderTracks(z) {
+  document.getElementById("altitude-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
+  document.getElementById("distance-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
+
   const laenge = z.laenge || 1;
   // Auch die Entfernung bekommt das gleiche "+1"-Bereitschaftsfeld wie die
   // Höhe, damit "angekommen" (Entfernung 0) ebenfalls als 1 blaues Feld
@@ -457,7 +486,7 @@ function renderTracks(z) {
     if (y > markerY) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
-    el.style.top = (y + 3) + "px";
+    el.style.top = (y + 8) + "px";  // unterer Bereich des Feldes, Platz fürs Badge oben
     // Einzelne Flugzeug-Symbole statt "✈×n" - eines je Flugzeug auf diesem Feld.
     for (let k = 0; k < count; k++) {
       const plane = document.createElement("span");
@@ -503,7 +532,7 @@ function renderKurven(kmin, kmax, maxGlobal, distUsed, markerY) {
     const center = (maxGlobal - i + distUsed - 0.5) * TRACK_UNIT_PX;
     if (center > markerY) return;                               // schon überflogen
     const badge = kurvenBadgeEl(min, max);
-    badge.style.top = (center - TRACK_UNIT_PX / 2) + "px";      // oberer Rand des Feldes
+    badge.style.top = (center - TRACK_UNIT_PX / 2 + 2) + "px";  // knapp innerhalb der oberen Feldgrenze
     cont.appendChild(badge);
   });
 }

@@ -47,6 +47,7 @@ GRUND_TEXT = {
     # Verlust-/Siegauswertung
     "trudeln": "Trudeln",
     "kollision": "Kollision",
+    "ruder_verbotene_stellung": "Ruderstellung nicht erlaubt",
     "uebers_ziel_hinaus": "Übers Ziel hinaus",
     "zu_schnell_gelandet": "Zu schnell gelandet",
     "notlandung": "Notlandung",

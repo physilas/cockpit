@@ -244,6 +244,13 @@ class Cockpit:
             if self.landung.flugzeuge_an_aktueller_position() > 0:
                 return Ergebnis(True, verloren=True, grund="kollision",
                                  meldung="Kollision mit einem Flugzeug auf der Entfernungsleiste.")
+            # Ruder-Korridor: die Fluglage muss für JEDES überflogene Feld
+            # erlaubt sein (kurven_min/kurven_max der Distanz-Module).
+            verboten = self.landung.verbotenes_feld_fuer_ruder(self.fluglage, bewegung)
+            if verboten is not None:
+                return Ergebnis(True, verloren=True, grund="ruder_verbotene_stellung",
+                                 meldung=f"Ruderstellung {self.fluglage:+d} ist auf dem Feld "
+                                         f"bei Entfernung {verboten} nicht erlaubt.")
             self.landung.reduce_entfernung(bewegung)
 
         return Ergebnis(True, meldung=f"Geschwindigkeit {geschwindigkeit}, Entfernungsleiste um {bewegung} bewegt.")
