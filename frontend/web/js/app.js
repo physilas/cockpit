@@ -315,8 +315,9 @@ function render(zustand) {
   if (!zustand) return;
   aktuellerZustand = zustand;
 
-  document.getElementById("s-runde").textContent =
-    zustand.runde + (zustand.letzte_runde ? " (l.)" : "") + (zustand.warteschleife ? " ⟳" : "");
+  document.getElementById("s-runde").textContent = zustand.letzte_runde
+    ? "🛬 Landung"
+    : "Runde " + zustand.runde + (zustand.warteschleife ? " ⟳" : "");
   document.getElementById("s-aero").innerHTML = aeroSkalaHTML(zustand.aerodynamik_blau, zustand.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(zustand.bremsstaerke);
   document.getElementById("s-kaffee-status").innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
@@ -432,63 +433,82 @@ function platziereAusgewaehlten(eintrag, slotIndex) {
   nachAktion(antwort);
 }
 
-// Ordnet jeden Feld-Layout-Eintrag seinem Bereich auf dem neu geordneten
-// Board zu: alle Pilot-Aufgaben (Ruder/Triebwerk-Hälfte, Funk, Fahrwerk,
-// Bremse) links in einer Spalte, alle Kopilot-Aufgaben (Ruder/Triebwerk-
-// Hälfte, Funk, Landeklappen) rechts in einer Spalte, nur die gemeinsame
-// Konzentration (beide Farben) unten in der Mitte neben Wheel + Leisten.
-function containerFuerEintrag(eintrag, besitzer) {
-  if (eintrag.ziel === "konzentration") {
-    return document.getElementById("center-bottom-row");
-  }
+// Ordnet Funk/Fahrwerk/Landeklappen (die weiterhin als beschriftete Zeile
+// mit Slots dargestellt werden) ihrer Seitenspalte zu. Ruder, Triebwerk,
+// Bremse und Konzentration werden weiter unten als Sonderfälle behandelt,
+// weil sie im physischen Board nicht in den Seitenspalten liegen, sondern
+// in der Mitte (Ruder flankiert das Fluglage-Rad, Triebwerk/Bremse/
+// Konzentration sitzen als eigene Reihen darunter).
+function containerFuerEintrag(eintrag) {
   if (eintrag.ziel === "landeklappe") {
-    return document.getElementById("col-kopilot");
+    return document.getElementById("col-kopilot-felder");
   }
-  if (eintrag.ziel === "fahrwerk" || eintrag.ziel === "bremse") {
-    return document.getElementById("col-pilot");
+  if (eintrag.ziel === "fahrwerk") {
+    return document.getElementById("col-pilot-felder");
   }
   if (eintrag.ziel === "funk") {
     return eintrag.zugriff.includes("pilot")
-      ? document.getElementById("col-pilot")
-      : document.getElementById("col-kopilot");
+      ? document.getElementById("col-pilot-felder")
+      : document.getElementById("col-kopilot-felder");
   }
-  // ruder/triebwerk: Farbpaar, je Hälfte in die passende Spalte.
-  return besitzer === "pilot"
-    ? document.getElementById("col-pilot")
-    : document.getElementById("col-kopilot");
+  return null;
 }
 
 function renderCockpitBoard(zustand) {
-  const bereiche = ["col-pilot", "col-kopilot", "center-bottom-row"]
-    .map(id => document.getElementById(id));
-  bereiche.forEach(el => { if (el) el.innerHTML = ""; });
+  ["col-pilot-felder", "col-kopilot-felder", "schub-reihe", "bremse-reihe", "konzentration-reihe"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
 
   const layout = pyToJs(bridge.feld_layout());
   const felder = zustand.felder;
 
   layout.forEach(eintrag => {
-    if (eintrag.art === "farbpaar") {
-      // Ruder/Triebwerk: statt einer gemeinsamen Zeile mit 2 Zellen, je
-      // eine einzellige Zeile pro Farbe - eine für die Pilot-, eine für
-      // die Kopilot-Spalte (S.5/S.6 bleiben pro Spieler eigene Würfel).
-      const werte = felder[eintrag.snapshot_key];
-      ["pilot", "kopilot"].forEach(besitzer => {
-        const zeile = document.createElement("div");
-        zeile.className = "feld-zeile";
-        const label = document.createElement("span");
-        label.className = "feld-label";
-        label.textContent = ZIEL_BESCHRIFTUNG[eintrag.ziel] + (eintrag.pflicht ? " *" : "");
-        zeile.appendChild(label);
-        const slots = document.createElement("div");
-        slots.className = "feld-slots";
-        slots.appendChild(feldZelle(besitzer, werte[besitzer], null, eintrag, zustand, false));
-        zeile.appendChild(slots);
-        containerFuerEintrag(eintrag, besitzer).appendChild(zeile);
-      });
+    // Ruder: je eine Zelle direkt links/rechts vom Fluglage-Rad, ohne
+    // eigenes Label (die Position an sich zeigt schon, wessen Würfel
+    // dort hingehört - genau wie auf dem physischen Board).
+    if (eintrag.ziel === "ruder") {
+      const werte = felder.ruder;
+      const pilotSlot = document.getElementById("ruder-slot-pilot");
+      const kopilotSlot = document.getElementById("ruder-slot-kopilot");
+      pilotSlot.innerHTML = "";
+      kopilotSlot.innerHTML = "";
+      pilotSlot.appendChild(feldZelle("pilot", werte.pilot, null, eintrag, zustand, false));
+      kopilotSlot.appendChild(feldZelle("kopilot", werte.kopilot, null, eintrag, zustand, false));
       return;
     }
 
+    // Triebwerk (Schub): beide Farben nebeneinander in einer eigenen
+    // Reihe unterhalb der Aerodynamik-Skala.
+    if (eintrag.ziel === "triebwerk") {
+      const werte = felder.triebwerk;
+      const reihe = document.getElementById("schub-reihe");
+      reihe.appendChild(feldZelle("pilot", werte.pilot, null, eintrag, zustand, false));
+      reihe.appendChild(feldZelle("kopilot", werte.kopilot, null, eintrag, zustand, false));
+      return;
+    }
+
+    // Bremse (nur Pilotin) und Konzentration (beide): eigene Reihen unter
+    // der Bremsen-Skala, ebenfalls ohne Textlabel.
+    if (eintrag.ziel === "bremse" || eintrag.ziel === "konzentration") {
+      const reihe = document.getElementById(eintrag.ziel === "bremse" ? "bremse-reihe" : "konzentration-reihe");
+      const werte = felder[eintrag.snapshot_key];
+      const statusArray = eintrag.ziel === "bremse" ? zustand.bremsen_aktiviert : null;
+      const naechsterIndex = statusArray ? statusArray.indexOf(false) : null;
+      for (let i = 0; i < eintrag.slots; i++) {
+        const gesperrt = statusArray && naechsterIndex !== -1 && i !== naechsterIndex;
+        if (statusArray) {
+          reihe.appendChild(feldZelleMitLicht(werte[i], i, eintrag, zustand, gesperrt, statusArray));
+        } else {
+          reihe.appendChild(feldZelle(null, werte[i], i, eintrag, zustand, gesperrt));
+        }
+      }
+      return;
+    }
+
+    // Funk, Fahrwerk, Landeklappen: unverändertes Zeilen-mit-Label-Layout,
+    // nur in die jeweilige Seitenspalte einsortiert (siehe containerFuerEintrag).
     const board = containerFuerEintrag(eintrag);
+    if (!board) return;
+
     const zeile = document.createElement("div");
     zeile.className = "feld-zeile";
 
@@ -503,12 +523,10 @@ function renderCockpitBoard(zustand) {
     const werte = felder[eintrag.snapshot_key];
     const statusArray =
       eintrag.ziel === "fahrwerk"     ? zustand.fahrwerk_ausgefahren :
-      eintrag.ziel === "landeklappe"  ? zustand.landeklappen_ausgefahren :
-      eintrag.ziel === "bremse"       ? zustand.bremsen_aktiviert : null;
-    // Nur Landeklappen und Bremsen müssen strikt der Reihe nach ausgefahren
-    // werden (S.8/S.9) - beim Fahrwerk ist laut Regelheft jede Reihenfolge
-    // erlaubt (S.7), daher hier keine Sperre über die anderen Felder.
-    const reihenfolgeZaehlt = eintrag.ziel === "landeklappe" || eintrag.ziel === "bremse";
+      eintrag.ziel === "landeklappe"  ? zustand.landeklappen_ausgefahren : null;
+    // Nur Landeklappen müssen strikt der Reihe nach ausgefahren werden
+    // (S.8) - beim Fahrwerk ist laut Regelheft jede Reihenfolge erlaubt (S.7).
+    const reihenfolgeZaehlt = eintrag.ziel === "landeklappe";
     const naechsterIndex = reihenfolgeZaehlt ? statusArray.indexOf(false) : null;
     for (let i = 0; i < eintrag.slots; i++) {
       const gesperrt = reihenfolgeZaehlt && naechsterIndex !== -1 && i !== naechsterIndex;

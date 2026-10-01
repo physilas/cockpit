@@ -131,82 +131,102 @@
 
 <main id="spiel-ui" class="versteckt">
   <section id="status-leiste">
-    <div class="status-feld"><span class="label">Runde</span><span id="s-runde">-</span></div>
-    <div class="status-feld"><span class="label">Aerodynamik</span><span id="s-aero">-</span></div>
-    <div class="status-feld"><span class="label">Bremsen</span><span id="s-brems">-</span></div>
-    <div class="status-feld"><span class="label">Kaffee</span><span id="s-kaffee-status">-</span></div>
-    <div class="status-feld"><span class="label">Neuwurf</span><span id="s-neuwurf">-</span></div>
+    <div class="status-feld"><span class="label">Status</span><span id="s-runde">-</span></div>
+  </section>
+
+  <section id="tracks-leiste">
+    <div class="vtrack-col">
+      <div class="vtrack-wrap">
+        <div class="vtrack" id="distance-track">
+          <div class="vtrack-grid"></div>
+          <div class="vtrack-fill-remaining" id="distance-fill"></div>
+          <div class="vtrack-fill-used" id="distance-used"></div>
+          <div id="distance-obstacles"></div>
+          <span class="vtrack-zielicon" title="Flughafen">🏢</span>
+        </div>
+      </div>
+      <div class="vtrack-caption" id="s-entfernung-label">-</div>
+    </div>
+    <div class="tracks-marker-col">
+      <div class="tracks-marker-row" id="tracks-marker">
+        <span class="tracks-marker-line"></span>
+        <span class="tracks-marker-plane">✈</span>
+        <span class="tracks-marker-line"></span>
+      </div>
+    </div>
+    <div class="vtrack-col">
+      <div class="vtrack-wrap">
+        <div class="vtrack" id="altitude-track">
+          <div class="vtrack-grid"></div>
+          <div class="vtrack-fill-remaining" id="altitude-fill"></div>
+          <div class="vtrack-fill-used" id="altitude-used"></div>
+          <div id="altitude-labels"></div>
+          <span class="vtrack-zielicon" title="Landung">🛬</span>
+        </div>
+      </div>
+      <div class="vtrack-caption" id="s-hoehe-label">-</div>
+    </div>
   </section>
 
   <div class="board-grid">
-    <div class="side-col" id="col-pilot"></div>
+
+    <div class="side-col" id="col-pilot">
+      <div class="side-block" id="reroll-slot-pilot" title="Neuwurf-Plättchen">
+        <span class="side-block-label">🔄 Neuwurf</span>
+        <span id="s-neuwurf">-</span>
+      </div>
+      <div id="col-pilot-felder"></div>
+      <div class="side-block" id="kaffee-pilot-anzeige" title="Kaffeetassen">
+        <span class="side-block-label">☕ Kaffee</span>
+        <span id="s-kaffee-status">-</span>
+      </div>
+    </div>
 
     <div class="center-col">
-      <div class="cockpit-row">
-    <div class="attitude-col">
-      <div class="attitude-gauge" id="attitude-gauge" title="Fluglage">
-        <svg viewBox="0 0 100 100" width="100" height="100">
-          <clipPath id="attitude-clip-mp"><circle cx="50" cy="60" r="35"/></clipPath>
-          <g clip-path="url(#attitude-clip-mp)">
-            <rect x="-10" y="-10" width="120" height="70" fill="#5b9bd5"/>
-            <rect x="-10" y="60" width="120" height="70" fill="#c9a874"/>
-          </g>
-          <circle cx="50" cy="60" r="35" fill="none" stroke="#0f172a" stroke-width="3"/>
+      <div class="attitude-gauge-row">
+        <div class="ruder-dice-slot" id="ruder-slot-pilot"></div>
+        <div class="attitude-gauge" id="attitude-gauge" title="Fluglage">
+          <svg viewBox="0 0 100 100" width="100" height="100">
+            <clipPath id="attitude-clip-mp"><circle cx="50" cy="60" r="35"/></clipPath>
+            <g clip-path="url(#attitude-clip-mp)">
+              <rect x="-10" y="-10" width="120" height="70" fill="#5b9bd5"/>
+              <rect x="-10" y="60" width="120" height="70" fill="#c9a874"/>
+            </g>
+            <circle cx="50" cy="60" r="35" fill="none" stroke="#0f172a" stroke-width="3"/>
 
-          <g fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="0.7">
-            <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(21,26) rotate(-40)"/>
-            <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(35,18) rotate(-20)"/>
-            <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(50,15) rotate(0)"/>
-            <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(65,18) rotate(20)"/>
-            <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(79,26) rotate(40)"/>
-          </g>
+            <g fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="0.7">
+              <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(21,26) rotate(-40)"/>
+              <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(35,18) rotate(-20)"/>
+              <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(50,15) rotate(0)"/>
+              <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(65,18) rotate(20)"/>
+              <polygon points="-4.5,-3.5 4.5,-3.5 0,4.5" transform="translate(79,26) rotate(40)"/>
+            </g>
 
-          <g id="attitude-needle">
-            <line x1="30" y1="60" x2="70" y2="60" stroke="white" stroke-width="3"/>
-            <polygon points="50,20 43,35 57,35" fill="white" stroke="#0f172a" stroke-width="1"/>
-            <circle cx="50" cy="60" r="4.5" fill="white" stroke="#0f172a" stroke-width="1"/>
-          </g>
-        </svg>
-      </div>
-      <div class="vtrack-caption">Fluglage</div>
-    </div>
-    <section id="tracks-leiste">
-      <div class="vtrack-col">
-        <div class="vtrack-wrap">
-          <div class="vtrack" id="altitude-track">
-            <div class="vtrack-grid"></div>
-            <div class="vtrack-fill-remaining" id="altitude-fill"></div>
-            <div class="vtrack-fill-used" id="altitude-used"></div>
-            <div id="altitude-labels"></div>
-          </div>
+            <g id="attitude-needle">
+              <line x1="30" y1="60" x2="70" y2="60" stroke="white" stroke-width="3"/>
+              <polygon points="50,20 43,35 57,35" fill="white" stroke="#0f172a" stroke-width="1"/>
+              <circle cx="50" cy="60" r="4.5" fill="white" stroke="#0f172a" stroke-width="1"/>
+            </g>
+          </svg>
         </div>
-        <div class="vtrack-caption" id="s-hoehe-label">-</div>
+        <div class="ruder-dice-slot" id="ruder-slot-kopilot"></div>
       </div>
-      <div class="tracks-marker-col">
-        <div class="tracks-marker-row" id="tracks-marker">
-          <span class="tracks-marker-line"></span>
-          <span class="tracks-marker-plane">✈</span>
-          <span class="tracks-marker-line"></span>
-        </div>
-      </div>
-      <div class="vtrack-col">
-        <div class="vtrack-wrap">
-          <div class="vtrack" id="distance-track">
-            <div class="vtrack-grid"></div>
-            <div class="vtrack-fill-remaining" id="distance-fill"></div>
-            <div class="vtrack-fill-used" id="distance-used"></div>
-            <div id="distance-obstacles"></div>
-          </div>
-        </div>
-        <div class="vtrack-caption" id="s-entfernung-label">-</div>
-      </div>
-    </section>
-      </div>
+      <div class="vtrack-caption" style="text-align:center">Fluglage</div>
 
-      <div class="center-bottom-row" id="center-bottom-row"></div>
+      <div id="s-aero" class="skala-wrap"></div>
+
+      <div class="mitte-reihe" id="schub-reihe"></div>
+
+      <div id="s-brems" class="skala-wrap"></div>
+
+      <div class="mitte-reihe" id="bremse-reihe"></div>
+      <div class="mitte-reihe" id="konzentration-reihe"></div>
     </div>
 
-    <div class="side-col" id="col-kopilot"></div>
+    <div class="side-col" id="col-kopilot">
+      <div id="col-kopilot-felder"></div>
+    </div>
+
   </div>
 
   <section id="spieler-bereiche">

@@ -216,10 +216,50 @@ main {
   gap: 0.35rem;
 }
 
-.center-bottom-row {
+.mitte-reihe {
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+/* Ruder-Würfelfelder links/rechts vom Fluglage-Rad. */
+.attitude-gauge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.ruder-dice-slot { flex: 0 0 auto; }
+
+/* Aerodynamik-/Bremsen-Skala als eigene, zentrierte Zeile (vorher Teil
+   der Statusleiste, jetzt direkt zwischen den jeweils zugehörigen
+   Würfelfeldern platziert, wie auf dem physischen Board). */
+.skala-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0.05rem 0;
+}
+
+/* Neuwurf-/Kaffee-Anzeige oben bzw. unten in der Pilot-Spalte, wie das
+   gestapelte Neuwurf-Plättchen-Feld und der Kaffeetassen-Zähler auf dem
+   physischen Board. */
+.side-block {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.15rem;
+  background: rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 0.25rem 0.2rem;
+}
+
+.side-block-label {
+  font-size: 0.55rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* Schmale Seitenspalten: Pilot links (Funk, dann Fahrwerk gestapelt),
@@ -386,9 +426,11 @@ main {
 #tracks-leiste {
   display: flex;
   gap: 0;
-  flex: 0 0 auto;
+  justify-content: center;
   align-items: flex-start;
-  padding-top: 0.2rem;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.5rem;
 }
 
 .vtrack-col {
@@ -415,6 +457,20 @@ main {
   background: #0b1c30;
   border: 1px solid #334155;
   overflow: visible;   /* nichts wird am Rand abgeschnitten */
+}
+
+/* Fest am unteren Rand ("Position 0") sitzendes Symbol - Flughafen für
+   die Entfernungsleiste, Landung für die Höhenleiste - unabhängig vom
+   aktuellen Spielstand, genau wie auf den gedruckten Modul-Streifen. */
+.vtrack-zielicon {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.95rem;
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Feine Trennlinien zwischen den einzelnen Feldern (jedes TRACK_UNIT_PX). */

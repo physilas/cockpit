@@ -574,7 +574,9 @@ function renderAltitudeLabels(markerY, aktuelleHoehe) {
 
 function render(z) {
   if(!z)return;
-  document.getElementById("s-runde").textContent = z.runde+(z.letzte_runde?" (l.)":"")+(z.warteschleife?" ⟳":"");
+  document.getElementById("s-runde").textContent = z.letzte_runde
+    ? "🛬 Landung"
+    : "Runde " + z.runde + (z.warteschleife ? " ⟳" : "");
   document.getElementById("s-aero").innerHTML  = aeroSkalaHTML(z.aerodynamik_blau,z.aerodynamik_orange);
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(z.bremsstaerke);
   document.getElementById("s-kaffee-status").innerHTML = kaffeeHTML(z.kaffeetassen);
@@ -625,58 +627,78 @@ function render(z) {
   }
 }
 
-// Ordnet jeden Feld-Layout-Eintrag seinem Bereich auf dem neu geordneten
-// Board zu: alle Pilot-Aufgaben (Ruder/Triebwerk-Hälfte, Funk, Fahrwerk,
-// Bremse) links in einer Spalte, alle Kopilot-Aufgaben (Ruder/Triebwerk-
-// Hälfte, Funk, Landeklappen) rechts in einer Spalte, nur die gemeinsame
-// Konzentration (beide Farben) unten in der Mitte neben Wheel + Leisten.
-function containerFuerEintrag(e, besitzer) {
-  if (e.ziel === "konzentration") {
-    return document.getElementById("center-bottom-row");
-  }
+// Ordnet Funk/Fahrwerk/Landeklappen ihrer Seitenspalte zu. Ruder, Triebwerk,
+// Bremse und Konzentration werden als Sonderfälle behandelt (siehe unten),
+// weil sie im physischen Board in der Mitte liegen statt in den Seiten-
+// spalten: Ruder flankiert das Fluglage-Rad, Triebwerk/Bremse/Konzentration
+// sitzen als eigene Reihen darunter.
+function containerFuerEintrag(e) {
   if (e.ziel === "landeklappe") {
-    return document.getElementById("col-kopilot");
+    return document.getElementById("col-kopilot-felder");
   }
-  if (e.ziel === "fahrwerk" || e.ziel === "bremse") {
-    return document.getElementById("col-pilot");
+  if (e.ziel === "fahrwerk") {
+    return document.getElementById("col-pilot-felder");
   }
   if (e.ziel === "funk") {
     return e.zugriff.includes("pilot")
-      ? document.getElementById("col-pilot")
-      : document.getElementById("col-kopilot");
+      ? document.getElementById("col-pilot-felder")
+      : document.getElementById("col-kopilot-felder");
   }
-  // ruder/triebwerk: Farbpaar, je Hälfte in die passende Spalte.
-  return besitzer === "pilot"
-    ? document.getElementById("col-pilot")
-    : document.getElementById("col-kopilot");
+  return null;
 }
 
 function renderBoard(z) {
-  const bereiche = ["col-pilot", "col-kopilot", "center-bottom-row"]
-    .map(id => document.getElementById(id));
-  bereiche.forEach(el => { if (el) el.innerHTML = ""; });
+  ["col-pilot-felder", "col-kopilot-felder", "schub-reihe", "bremse-reihe", "konzentration-reihe"]
+    .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
   const felder=z.felder||{};
 
   FELD_LAYOUT.forEach(e=>{
-    if (e.art === "farbpaar") {
-      const w = felder[e.snap] || {};
-      ["pilot", "kopilot"].forEach(besitzer => {
-        const zeile = document.createElement("div");
-        zeile.className = "feld-zeile";
-        const lbl = document.createElement("span");
-        lbl.className = "feld-label";
-        lbl.textContent = LABEL[e.ziel] + (e.pflicht ? " *" : "");
-        zeile.appendChild(lbl);
-        const slots = document.createElement("div");
-        slots.className = "feld-slots";
-        slots.appendChild(zelle(besitzer, w[besitzer], null, e, z));
-        zeile.appendChild(slots);
-        containerFuerEintrag(e, besitzer).appendChild(zeile);
-      });
+    if (e.ziel === "ruder") {
+      const w = felder.ruder || {};
+      const pilotSlot = document.getElementById("ruder-slot-pilot");
+      const kopilotSlot = document.getElementById("ruder-slot-kopilot");
+      pilotSlot.innerHTML = "";
+      kopilotSlot.innerHTML = "";
+      pilotSlot.appendChild(zelle("pilot", w.pilot, null, e, z));
+      kopilotSlot.appendChild(zelle("kopilot", w.kopilot, null, e, z));
       return;
     }
 
+    if (e.ziel === "triebwerk") {
+      const w = felder.triebwerk || {};
+      const reihe = document.getElementById("schub-reihe");
+      reihe.appendChild(zelle("pilot", w.pilot, null, e, z));
+      reihe.appendChild(zelle("kopilot", w.kopilot, null, e, z));
+      return;
+    }
+
+    if (e.ziel === "bremse" || e.ziel === "konzentration") {
+      const reihe = document.getElementById(e.ziel === "bremse" ? "bremse-reihe" : "konzentration-reihe");
+      const werte = felder[e.snap] || Array(e.slots).fill(null);
+      const statusArr = e.ziel === "bremse" ? z.bremsen_aktiviert : null;
+      const nx = statusArr ? statusArr.indexOf(false) : null;
+      for (let i = 0; i < e.slots; i++) {
+        const gesperrt = statusArr && nx !== -1 && i !== nx;
+        if (statusArr) {
+          const wrap = document.createElement("div");
+          wrap.className = "feld-slot-mit-licht";
+          wrap.appendChild(zelle(null, werte[i], i, e, z, gesperrt));
+          const licht = document.createElement("span");
+          licht.className = "feld-licht" + (statusArr[i] ? " an" : "");
+          wrap.appendChild(licht);
+          reihe.appendChild(wrap);
+        } else {
+          reihe.appendChild(zelle(null, werte[i], i, e, z, gesperrt));
+        }
+      }
+      return;
+    }
+
+    // Funk, Fahrwerk, Landeklappen: unverändertes Zeilen-mit-Label-Layout,
+    // nur in die jeweilige Seitenspalte einsortiert.
     const board = containerFuerEintrag(e);
+    if (!board) return;
+
     const zeile=document.createElement("div");
     zeile.className="feld-zeile";
 
@@ -691,11 +713,10 @@ function renderBoard(z) {
     {
       const werte=felder[e.snap]||Array(e.slots).fill(null);
       const statusArr=e.ziel==="fahrwerk"?z.fahrwerk_ausgefahren:
-                       e.ziel==="landeklappe"?z.landeklappen_ausgefahren:
-                       e.ziel==="bremse"?z.bremsen_aktiviert:null;
-      // Nur Landeklappen und Bremsen müssen strikt der Reihe nach ausgefahren
-      // werden - beim Fahrwerk ist jede Reihenfolge erlaubt (S.7).
-      const reihenfolgeZaehlt = e.ziel==="landeklappe" || e.ziel==="bremse";
+                       e.ziel==="landeklappe"?z.landeklappen_ausgefahren:null;
+      // Nur Landeklappen müssen strikt der Reihe nach ausgefahren werden -
+      // beim Fahrwerk ist jede Reihenfolge erlaubt (S.7).
+      const reihenfolgeZaehlt = e.ziel==="landeklappe";
       const nx=reihenfolgeZaehlt?statusArr.indexOf(false):null;
       for(let i=0;i<e.slots;i++) {
         const gesperrt=reihenfolgeZaehlt&&nx!==-1&&i!==nx;
