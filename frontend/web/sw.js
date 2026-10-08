@@ -18,7 +18,6 @@ const CACHE_NAME = `cockpit-${COCKPIT_BUILD_VERSION}`;
 const STATIC_ASSETS = [
   "./index.html",
   "./css/style.css",
-  "./assets/skyteam-board.png",
   "./js/engine-src.js",
   "./js/game-schema.js",
   "./js/build-info.js",
