@@ -444,9 +444,9 @@ main {
    Leisten - so bleiben Höhen- und Entfernungs-Flugzeug IMMER exakt auf
    derselben Höhe, unabhängig davon, wie lang die jeweilige Leiste ist. */
 #tracks-leiste {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(48px, 1fr) 58px 26px 58px minmax(48px, 1fr);
   gap: 0.22rem;
-  justify-content: center;
   align-items: flex-end;
   background: var(--panel);
   border-radius: var(--radius);
@@ -634,20 +634,31 @@ main {
    bewusst untereinander, damit dieser Bereich auf kleinen iPhones schmal
    und ohne zusätzliche Bildschirmhöhe bleibt. */
 .dice-tray {
-  align-self: stretch;
+  align-self: flex-end;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0.2rem;
-  padding-bottom: 1.3rem;
-  min-width: 34px;
+  padding: 0.25rem 0.18rem;
+  margin-bottom: 1.3rem;
+  min-width: 48px;
+  background: var(--panel-hell);
+  border: 1px solid #475569;
+  border-top: 3px solid var(--panel-hell);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
+.dice-tray.pilot { border-top-color: var(--blau); }
+.dice-tray.kopilot { border-top-color: var(--orange); }
+.dice-tray.pilot { justify-self: start; }
+.dice-tray.kopilot { justify-self: end; }
 .dice-tray-label {
   color: var(--muted);
   font-size: 0.56rem;
   line-height: 1;
   white-space: nowrap;
+  padding-top: 0.02rem;
 }
 .dice-tray .wuerfel-reihe {
   flex-direction: column;
@@ -856,9 +867,11 @@ main {
    Wheel + beiden Leisten - hier etwas verkleinern, damit nichts überläuft. */
 @media (max-width: 380px) {
   .vtrack { width: 52px; }
+  #tracks-leiste { grid-template-columns: minmax(44px, 1fr) 52px 24px 52px minmax(44px, 1fr); }
   .attitude-gauge svg { width: 90px; height: 90px; }
   .tracks-marker-col { width: 24px; }
   .side-col .feld-zeile .feld-label { width: 36px; font-size: 0.54rem; }
+  .dice-tray { min-width: 44px; }
   .dice-tray .wuerfel { width: 28px; height: 28px; }
   .dice-tray-label { font-size: 0.5rem; }
   .attitude-gauge-row { gap: 0.28rem; }
