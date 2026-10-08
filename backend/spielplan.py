@@ -1,14 +1,6 @@
 from .cockpit import Cockpit, Ergebnis
 from .landung import Landung
-from .wuerfel import Wuerfel
-
-# S.4: "Legt 1 Neuwurf-Plättchen auf jedes Neuwurf-Symbol der Höhenleiste."
-# ANNAHME: Die Höhenleiste ist (anders als die Entfernungsleiste) für alle
-# Flughäfen gleich, daher hier als globale Konstante. Das Beispiel auf S.4
-# nennt "wie in Runde 1 bei 6000 Fuß" als einen der beiden Symbolplätze -
-# den zweiten Wert (2000 Fuß) konnte ich auf den Fotos nicht zuverlässig
-# erkennen. Bitte am echten Höhenleiste-Bauteil prüfen und ggf. anpassen!
-NEUWURF_HOEHEN = [6000, 2000]
+from .wuerfel import Wuerfel, BESITZER
 
 
 class Spielplan:
@@ -61,7 +53,7 @@ class Spielplan:
 
     def _sammle_neuwurf_plaettchen(self):
         hoehe = self.landung.get_hoehe()
-        if hoehe in NEUWURF_HOEHEN and hoehe not in self._genutzte_neuwurf_hoehen:
+        if hoehe in self.landung.get_neuwurf_hoehen() and hoehe not in self._genutzte_neuwurf_hoehen:
             self._genutzte_neuwurf_hoehen.add(hoehe)
             self.neuwurf_plaettchen += 1
 
@@ -72,23 +64,45 @@ class Spielplan:
         `pilot_indizes`/`kopilot_indizes`: Indizes (0-3) der Würfel, die
         neu geworfen werden sollen.
         """
+        if self.status != "laeuft":
+            return Ergebnis(False, "spiel_beendet")
         if self.neuwurf_plaettchen <= 0:
             return Ergebnis(False, "kein_neuwurf_plaettchen")
+        pruefung = self._pruefe_neuwurf_auswahl(pilot_indizes, self.pilot_wuerfel)
+        if pruefung is None:
+            pruefung = self._pruefe_neuwurf_auswahl(kopilot_indizes, self.kopilot_wuerfel)
+        if pruefung is not None:
+            return pruefung
         for i in pilot_indizes:
-            w = self.pilot_wuerfel[i]
-            if w.ist_verfuegbar():
-                w.werfen()
+            self.pilot_wuerfel[i].werfen()
         for i in kopilot_indizes:
-            w = self.kopilot_wuerfel[i]
-            if w.ist_verfuegbar():
-                w.werfen()
+            self.kopilot_wuerfel[i].werfen()
         self.neuwurf_plaettchen -= 1
         return Ergebnis(True, meldung="Neuwurf-Plättchen eingelöst.")
+
+    @staticmethod
+    def _pruefe_neuwurf_auswahl(indizes, wuerfel_liste):
+        if not isinstance(indizes, (list, tuple, set)):
+            return Ergebnis(False, "ungueltige_neuwurf_auswahl")
+        gesehen = set()
+        for index in indizes:
+            if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(wuerfel_liste):
+                return Ergebnis(False, "ungueltige_neuwurf_auswahl")
+            if index in gesehen:
+                return Ergebnis(False, "ungueltige_neuwurf_auswahl")
+            gesehen.add(index)
+            if not wuerfel_liste[index].ist_verfuegbar():
+                return Ergebnis(False, "wuerfel_nicht_verfuegbar")
+        return None
 
     ### WÜRFEL PLATZIEREN (S.4-S.9) ###
 
     def _wuerfel_liste(self, besitzer):
-        return self.pilot_wuerfel if besitzer == "pilot" else self.kopilot_wuerfel
+        if besitzer == "pilot":
+            return self.pilot_wuerfel
+        if besitzer == "kopilot":
+            return self.kopilot_wuerfel
+        raise ValueError(f"Ungültiger Besitzer: {besitzer!r}")
 
     def verfuegbare_wuerfel(self, besitzer):
         return [w for w in self._wuerfel_liste(besitzer) if w.ist_verfuegbar()]
@@ -100,10 +114,22 @@ class Spielplan:
 
     def trinke_kaffee(self, besitzer, wuerfel_index, delta):
         """Kaffee auf einen eigenen, noch nicht platzierten Würfel anwenden (S.8)."""
+        if self.status != "laeuft":
+            return Ergebnis(False, "spiel_beendet")
+        if besitzer not in BESITZER:
+            return Ergebnis(False, "ungueltiger_besitzer")
+        if besitzer != self.am_zug:
+            return Ergebnis(False, "nicht_am_zug")
+        if not self._gueltiger_wuerfel_index(wuerfel_index):
+            return Ergebnis(False, "ungueltiger_wuerfel_index")
+        if not isinstance(delta, int) or isinstance(delta, bool) or delta == 0:
+            return Ergebnis(False, "ungueltiger_delta")
         wuerfel = self._wuerfel_liste(besitzer)[wuerfel_index]
         return self.cockpit.trinke_kaffee(wuerfel, delta)
 
     def moegliche_kaffee_deltas(self, besitzer, wuerfel_index):
+        if besitzer not in BESITZER or not self._gueltiger_wuerfel_index(wuerfel_index):
+            return []
         wuerfel = self._wuerfel_liste(besitzer)[wuerfel_index]
         return self.cockpit.moegliche_kaffee_deltas(wuerfel.get_augenzahl())
 
@@ -120,14 +146,29 @@ class Spielplan:
         """
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
+        if besitzer not in BESITZER:
+            return Ergebnis(False, "ungueltiger_besitzer")
         if besitzer != self.am_zug:
             return Ergebnis(False, "nicht_am_zug")
-        wuerfel_liste = self._wuerfel_liste(besitzer)
-        if wuerfel_index < 0 or wuerfel_index >= len(wuerfel_liste):
+        if not self._gueltiger_wuerfel_index(wuerfel_index):
             return Ergebnis(False, "ungueltiger_wuerfel_index")
+        wuerfel_liste = self._wuerfel_liste(besitzer)
         wuerfel = wuerfel_liste[wuerfel_index]
         if not wuerfel.ist_verfuegbar():
             return Ergebnis(False, "wuerfel_nicht_verfuegbar")
+
+        if not isinstance(ziel, str):
+            return Ergebnis(False, "unbekanntes_ziel")
+        felder_mit_index = {"fahrwerk", "landeklappe", "bremse", "konzentration"}
+        if ziel in felder_mit_index and (not isinstance(index, int) or isinstance(index, bool)):
+            return Ergebnis(False, "ungueltiger_index")
+        if ziel == "funk":
+            if not isinstance(funk_feld, int) or isinstance(funk_feld, bool):
+                return Ergebnis(False, "ungueltiger_funk_index")
+            if besitzer == "pilot" and funk_feld != 0:
+                return Ergebnis(False, "ungueltiger_funk_index")
+            if besitzer == "kopilot" and funk_feld not in (0, 1):
+                return Ergebnis(False, "ungueltiger_funk_index")
 
         if ziel == "ruder":
             ergebnis = self.cockpit.platziere_ruder(wuerfel)
@@ -158,6 +199,10 @@ class Spielplan:
 
         self.am_zug = "kopilot" if besitzer == "pilot" else "pilot"
         return ergebnis
+
+    @staticmethod
+    def _gueltiger_wuerfel_index(index):
+        return isinstance(index, int) and not isinstance(index, bool) and 0 <= index < 4
 
     ### RUNDENENDE (S.9-S.11) ###
 
@@ -265,6 +310,7 @@ class Spielplan:
             "kurven_min": list(self.landung.get_kurven_min()),
             "kurven_max": list(self.landung.get_kurven_max()),
             "neuwurf_plaettchen": self.neuwurf_plaettchen,
+            "neuwurf_hoehen": self.landung.get_neuwurf_hoehen(),
             "kaffeetassen": self.cockpit.kaffeetassen,
             "fluglage": self.cockpit.fluglage,
             "aerodynamik_blau": self.cockpit.aerodynamik_blau,

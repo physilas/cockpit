@@ -4,22 +4,26 @@
  * Strategie: "Cache first, then network"
  * - Beim ersten Besuch: alle statischen Dateien cachen (inkl. der
  *   Python-Engine-Dateien, die Pyodide später holt).
- * - Bei jedem weiteren Besuch: aus dem Cache laden (funktioniert offline).
- * - Pyodide selbst wird von einem CDN geladen; das CDN hat seinen eigenen
- *   Cache-Header, also kein manuelles Cachen nötig.
+ * - Bei jedem weiteren Besuch: App-Shell aus dem Cache laden.
+ * - Pyodide/PeerJS kommen bewusst weiter vom CDN; ohne einen zuvor vom
+ *   Browser gecachten CDN-Download ist ein Spielstart daher nicht offline.
  *
- * WICHTIG: CACHE_NAME bei jedem Deploy mit sichtbaren Änderungen erhöhen -
- * sonst bekommen Handys, die die Seite schonmal geöffnet haben, die neuen
- * Dateien nicht zu sehen (der Cache liefert weiter die alte Version aus).
+ * build.py regeneriert build-info.js bei jeder Änderung. Als importierte
+ * Abhängigkeit löst sie auch ein Service-Worker-Update aus.
  */
 
-const CACHE_NAME = "cockpit-v10";
+importScripts("./js/build-info.js");
+const CACHE_NAME = `cockpit-${COCKPIT_BUILD_VERSION}`;
 
 const STATIC_ASSETS = [
   "./index.html",
   "./css/style.css",
   "./js/engine-src.js",
+  "./js/game-schema.js",
+  "./js/build-info.js",
   "./js/app.js",
+  "./multiplayer.html",
+  "./js/multiplayer.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

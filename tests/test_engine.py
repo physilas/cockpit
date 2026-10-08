@@ -8,6 +8,7 @@ in der Spiel-Engine aufzudecken. Führe es aus mit:
 """
 import random
 import sys
+import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -98,10 +99,9 @@ def kluger_zug(spiel):
     entfernung = spiel.landung.get_entfernung()
     for i in verfuegbar:
         wert = wuerfel_liste[i].get_augenzahl()
-        ziel_e = entfernung + (wert - 1)
+        ziel_e = entfernung - (wert - 1)
         idx = spiel.landung._index_fuer_entfernung(ziel_e)
         if idx is not None and spiel.landung.flugzeuge[idx] > 0:
-            feld = 0 if besitzer == "pilot" else 0
             if _versuche(spiel, besitzer, i, "funk", funk_feld=0):
                 return True
 
@@ -228,6 +228,7 @@ def spiele_eine_partie(flughafen="MUC", verbose=False):
 
 
 def test_viele_zufallspartien():
+    random.seed(20261007)
     ausgaenge = {"gewonnen": 0, "verloren": 0, "unentschieden_abgebrochen": 0}
     for _ in range(200):
         spiel = spiele_eine_partie()
@@ -444,11 +445,35 @@ def test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen():
     assert spiel.landung.flugzeuge[idx] == 0
 
 
+def test_ungueltige_aktionen_geben_ergebnis_statt_ausnahme_zurueck():
+    """Network/UI input must never get Python negative-index semantics."""
+    spiel = Spielplan("TEST")
+    spiel.starte_spiel()
+
+    assert spiel.platziere("pilot", -1, "ruder").grund == "ungueltiger_wuerfel_index"
+    assert spiel.platziere("pilot", 0, "funk", funk_feld=1).grund == "ungueltiger_funk_index"
+    assert spiel.trinke_kaffee("pilot", -1, 1).grund == "ungueltiger_wuerfel_index"
+
+    spiel.neuwurf_plaettchen = 1
+    assert spiel.benutze_neuwurf([-1], []).grund == "ungueltige_neuwurf_auswahl"
+    assert spiel.neuwurf_plaettchen == 1
+
+
+def load_tests(loader, tests, pattern):
+    """Expose the existing scenario-style functions to unittest discovery."""
+    suite = unittest.TestSuite()
+    for test in (
+        test_viele_zufallspartien,
+        test_gewinn_pfad_deterministisch,
+        test_ruder_vorzeichen,
+        test_triebwerk_wartet_bis_alle_wuerfel_liegen,
+        test_funk_zielt_richtig_unabhaengig_von_reihenfolge,
+        test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen,
+        test_ungueltige_aktionen_geben_ergebnis_statt_ausnahme_zurueck,
+    ):
+        suite.addTest(unittest.FunctionTestCase(test))
+    return suite
+
+
 if __name__ == "__main__":
-    test_viele_zufallspartien()
-    test_gewinn_pfad_deterministisch()
-    test_ruder_vorzeichen()
-    test_triebwerk_wartet_bis_alle_wuerfel_liegen()
-    test_funk_zielt_richtig_unabhaengig_von_reihenfolge()
-    test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen()
-    print("Alle Regressionstests: OK")
+    unittest.main(verbosity=2)

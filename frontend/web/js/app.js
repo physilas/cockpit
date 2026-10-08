@@ -55,7 +55,7 @@ function pyToJs(pyResult) {
 
 function grundText(code) {
   if (!code) return "";
-  return bridge.grund_text(code);
+  return code.split(",").map(k => COCKPIT_SCHEMA.grund_texte[k.trim()] || k.trim()).join(", ");
 }
 
 function setzeMeldung(text, art) {
@@ -100,50 +100,19 @@ function bremsSkalaHTML(bs) {
   return html;
 }
 
-// Höhen-/Entfernungs-Gauges (Sky-Team-artig): das Flugzeug-Symbol sitzt
-// NICHT in den Leisten selbst, sondern in einer eigenen, gemeinsamen
-// Spalte dazwischen (siehe HTML: .tracks-marker-col) - so bleiben die
-// Höhen- und Entfernungs-Flugzeuge IMMER exakt auf derselben Höhe,
-// unabhängig davon, wie lang die jeweilige Leiste ist (ALTITUDE_MAX_UNITS
-// vs. `laenge` können unterschiedlich groß sein).
-//
-// Jede Leiste hat oberhalb der (gemeinsamen) Marker-Linie Platz für ihre
-// eigene maximale Länge (`ownMax` Felder), und darunter genau EIN
-// zusätzliches Feld für das zuletzt verbrauchte ("gerade hinter uns") -
-// alles, was weiter zurückliegt, ist strategisch nicht mehr relevant und
-// wird gar nicht erst gezeichnet. Beide Leisten werden an der Marker-
-// Linie ausgerichtet, indem die kürzere Leiste oben etwas eingerückt
-// wird (`topPad`).
-// 34 statt 26px: jedes Feld braucht Platz für Hindernis-Icons UND
-// (falls vorhanden) ein Kurven-Badge oben - alle Felder bekommen
-// dieselbe, etwas grössere Höhe, egal ob ein Badge gezeichnet wird.
+// Jede Leiste ist nur so hoch wie ihre aktuell sichtbaren Felder. Dadurch
+// entstehen weder beim Start noch nach einer Bewegung leere Felder oben.
 const TRACK_UNIT_PX = 34;
-// 7 statt 6 Einheiten: 6 echte 1000-ft-Schritte (6000->0) PLUS ein
-// zusätzliches "Bereitschafts"-Feld, damit 0 ft noch als 1 blaues Feld
-// angezeigt wird (S.9/S.10: "Perfektes Timing" ist erst erreicht, wenn
-// Höhe UND Entfernung gleichzeitig bei ihrem letzten Feld stehen - nicht
-// erst, wenn beide Leisten schon leer sind).
-const ALTITUDE_MAX_UNITS = 7;
-
-function setzeGauge(prefix, ownMax, remaining, totalHeight, markerY) {
-  const used = ownMax - remaining;
-
-  document.getElementById(`${prefix}-track`).style.height = totalHeight + "px";
-
-  // Beide Leisten haben dieselbe Gesamthöhe und denselben Marker (siehe
-  // renderTracks), also reicht ein einfaches "bottom", damit die
-  // Füllung direkt oberhalb des Markers beginnt.
+function setzeGauge(prefix, remaining) {
+  const track = document.getElementById(`${prefix}-track`);
+  const height = Math.max(0, remaining) * TRACK_UNIT_PX;
+  track.style.height = height + "px";
+  track.classList.toggle("leer", remaining <= 0);
   const fill = document.getElementById(`${prefix}-fill`);
-  fill.style.bottom = (totalHeight - markerY) + "px";
-  fill.style.height = (remaining * TRACK_UNIT_PX) + "px";
-
-  // Das unterste ("bereits verbrauchte") Feld unterhalb des Markers wurde
-  // entfernt, da es keine zusätzliche Information trägt - der Marker
-  // selbst sitzt jetzt direkt am unteren Rand der Leiste.
+  fill.style.bottom = "0px";
+  fill.style.height = height + "px";
   const usedEl = document.getElementById(`${prefix}-used`);
   if (usedEl) usedEl.classList.remove("sichtbar");
-
-  return used;
 }
 
 // Fluglage als künstlicher Horizont (S.5): der Himmel/Boden-Hintergrund
@@ -167,41 +136,23 @@ function renderTracks(zustand) {
   document.getElementById("distance-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
 
   const laenge = zustand.laenge || 1;
-  // Auch die Entfernung bekommt das gleiche "+1"-Bereitschaftsfeld wie die
-  // Höhe (siehe ALTITUDE_MAX_UNITS), damit "angekommen" (Entfernung 0)
-  // ebenfalls als 1 blaues Feld erscheint - beide Leisten zeigen "1 blaues
-  // Feld" also exakt im selben Moment: wenn Höhe UND Entfernung beide ihr
-  // letztes reales Feld erreicht haben (S.9 "Perfektes Timing").
-  const distanzEinheiten = laenge + 1;
-  const maxGlobal = Math.max(ALTITUDE_MAX_UNITS, distanzEinheiten);
-  const totalHeight = maxGlobal * TRACK_UNIT_PX; // kein zusätzliches Feld mehr für die verbrauchte Spur
-  const markerY = totalHeight;
+  const hoehenEinheiten = zustand.hoehe / 1000 + 1; // inklusive des beschrifteten 0-ft-Felds
+  const distanzEinheiten = Math.max(0, zustand.entfernung);
 
-  // Gemeinsamer Flugzeug-Marker zwischen den beiden Leisten.
-  document.getElementById("tracks-marker").style.top = markerY + "px";
-
-  // Höhe: 7 Einheiten (6 reale 1000-ft-Schritte + 1 Bereitschaftsfeld bei 0 ft).
-  setzeGauge("altitude", ALTITUDE_MAX_UNITS, zustand.hoehe / 1000 + 1, totalHeight, markerY);
+  setzeGauge("altitude", hoehenEinheiten);
   document.getElementById("s-hoehe-label").textContent = zustand.hoehe + " ft";
-  renderAltitudeLabels(markerY, zustand.hoehe);
+  renderAltitudeLabels(hoehenEinheiten * TRACK_UNIT_PX, zustand.hoehe, zustand.neuwurf_hoehen || []);
 
-  // Entfernung: `laenge` Einheiten (variiert je Flughafen) + 1 Bereitschaftsfeld.
-  const distUsed = setzeGauge("distance", distanzEinheiten, zustand.entfernung + 1, totalHeight, markerY);
+  setzeGauge("distance", distanzEinheiten);
   document.getElementById("s-entfernung-label").textContent = "Entf. " + zustand.entfernung;
 
-  // Hindernis-Flugzeuge: Index i (0 = am weitesten weg/Start) sitzt an
-  // einer FESTEN Position auf der Leiste. y = (maxGlobal - i + verbraucht)
-  // * UNIT_PX, gemessen vom oberen Rand der Leiste. Alles, was mehr als
-  // ein Feld hinter dem Marker liegt, wird nicht mehr gezeichnet (nicht
-  // mehr relevant für die Entscheidungsfindung).
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
+  const aktuellerIndex = laenge - zustand.entfernung;
   (zustand.flugzeuge || []).forEach((count, i) => {
-    if (count <= 0) return;
-    // -0.5 Einheiten, damit das Flugzeug-Symbol in der Mitte seines
-    // Feldes sitzt statt auf der Trennlinie zum nächsten Feld.
-    const y = (maxGlobal - i + distUsed - 0.5) * TRACK_UNIT_PX;
-    if (y > markerY) return;
+    if (count <= 0 || i < aktuellerIndex) return;
+    const y = (zustand.entfernung - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
+    if (y < 0 || y > distanzEinheiten * TRACK_UNIT_PX) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
     el.style.top = (y + 8) + "px";  // unterer Bereich des Feldes, Platz fürs Badge oben
@@ -214,7 +165,7 @@ function renderTracks(zustand) {
     obstaclesEl.appendChild(el);
   });
 
-  renderKurven(zustand.kurven_min, zustand.kurven_max, maxGlobal, distUsed, markerY);
+  renderKurven(zustand.kurven_min, zustand.kurven_max, laenge, zustand.entfernung);
 }
 
 // Erlaubte Ruderstellung je Entfernungsfeld (kurven_min/kurven_max), wie
@@ -235,7 +186,7 @@ function kurvenBadgeEl(min, max) {
   return el;
 }
 
-function renderKurven(kmin, kmax, maxGlobal, distUsed, markerY) {
+function renderKurven(kmin, kmax, laenge, entfernung) {
   const track = document.getElementById("distance-track");
   let cont = document.getElementById("distance-kurven");
   if (!cont) {
@@ -247,8 +198,9 @@ function renderKurven(kmin, kmax, maxGlobal, distUsed, markerY) {
   (kmin || []).forEach((min, i) => {
     const max = (kmax || [])[i];
     if (max === undefined || (min <= -2 && max >= 2)) return;   // keine Einschränkung
-    const center = (maxGlobal - i + distUsed - 0.5) * TRACK_UNIT_PX;
-    if (center > markerY) return;                               // schon überflogen
+    const aktuellerIndex = laenge - entfernung;
+    if (i < aktuellerIndex) return;                              // schon überflogen
+    const center = (entfernung - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
     const badge = kurvenBadgeEl(min, max);
     badge.style.top = (center - TRACK_UNIT_PX / 2 + 2) + "px";  // knapp innerhalb der oberen Feldgrenze
     cont.appendChild(badge);
@@ -262,18 +214,14 @@ function renderKurven(kmin, kmax, maxGlobal, distUsed, markerY) {
 // schon weiter fortgeschritten ist als dieses Feld "vorschauen" kann),
 // bleibt es leer ("nichts") statt einer Zahl - so rutscht nach jeder Runde
 // ein Feld oben "aus dem Bild" und ein neues (niedrigeres) rückt nach unten
-// an den Marker heran. Bei 2000 ft sitzt zusätzlich ein Neuwurf-Plättchen-
-// Symbol - die Engine vergibt dort automatisch ein Plättchen (siehe
-// backend/spielplan.py: NEUWURF_HOEHEN); sobald diese Höhe tatsächlich
-// erreicht/unterschritten ist, verschwindet das Symbol wieder (bereits
-// eingesammelt).
-const NEUWURF_HOEHEN_FT = 2000;
+// an den Marker heran. Neuwurf-Symbole stammen aus der Flughafen-Konfiguration
+// im Zustands-Snapshot; neue Szenarien brauchen keine JS-Änderung.
 
-function renderAltitudeLabels(markerY, aktuelleHoehe) {
+function renderAltitudeLabels(markerY, aktuelleHoehe, neuwurfHoehen) {
   const el = document.getElementById("altitude-labels");
   if (!el) return;
   el.innerHTML = "";
-  for (let v = 0; v < ALTITUDE_MAX_UNITS; v++) {
+  for (let v = 0; v <= aktuelleHoehe / 1000; v++) {
     const hoeheFt = aktuelleHoehe - v * 1000;
     if (hoeheFt < 0) continue; // "nichts" - Feld bleibt leer/unbeschriftet
 
@@ -283,7 +231,7 @@ function renderAltitudeLabels(markerY, aktuelleHoehe) {
     label.style.top = y + "px";
     label.textContent = String(hoeheFt);
 
-    if (hoeheFt === NEUWURF_HOEHEN_FT && aktuelleHoehe > NEUWURF_HOEHEN_FT) {
+    if (neuwurfHoehen.includes(hoeheFt) && aktuelleHoehe > hoeheFt) {
       // Eigenes, absolut positioniertes Element statt Teil des Zahlentexts -
       // so bleibt die "2000" exakt so zentriert wie alle anderen Zahlen,
       // unabhängig davon, ob das Plättchen-Symbol daneben sichtbar ist.
@@ -308,7 +256,17 @@ function kaffeeBoxenHTML(anzahl) {
 
 function neuwurfBoxenHTML(anzahl) {
   if (anzahl <= 0) return '<span class="ressourcen-box"></span>';
-  return Array.from({ length: anzahl }, () => '<span class="ressourcen-box gefuellt">🔄</span>').join("");
+  return Array.from({ length: anzahl }, () =>
+    '<button type="button" class="ressourcen-box gefuellt reroll-token" title="Neuwurf starten">🔄</button>'
+  ).join("");
+}
+
+function bindeNeuwurfTokens(zustand) {
+  document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
+    token.disabled = zustand.status !== "laeuft";
+    token.title = neuwurfPhase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
+    token.addEventListener("click", toggleNeuwurfPanel);
+  });
 }
 
 function render(zustand) {
@@ -322,6 +280,7 @@ function render(zustand) {
   document.getElementById("s-brems").innerHTML = bremsSkalaHTML(zustand.bremsstaerke);
   document.getElementById("s-kaffee-status").innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
   document.getElementById("s-neuwurf").innerHTML = neuwurfBoxenHTML(zustand.neuwurf_plaettchen);
+  bindeNeuwurfTokens(zustand);
 
   renderAttitude(zustand.fluglage);
   renderTracks(zustand);
@@ -332,7 +291,6 @@ function render(zustand) {
 
   const amZugEl = document.getElementById("am-zug-anzeige");
   const rundenendeBtn = document.getElementById("rundenende-btn");
-  const neuwurfBtn = document.getElementById("neuwurf-btn");
 
   if (zustand.status !== "laeuft") {
     amZugEl.innerHTML = `<div class="spiel-ende ${zustand.status}">` +
@@ -341,19 +299,15 @@ function render(zustand) {
         : `💥 Verloren – ${grundText(zustand.verlust_grund)}`) +
       "</div>";
     rundenendeBtn.disabled = true;
-    neuwurfBtn.disabled = true;
   } else {
     amZugEl.textContent = `Am Zug: ${zustand.am_zug === "pilot" ? "Pilotin" : "Co-Pilot"}`;
     rundenendeBtn.disabled = false;
-    neuwurfBtn.disabled = zustand.neuwurf_plaettchen <= 0;
   }
 }
 
 // --- Cockpit-Board (zeigt jedes gelegte Feld; Bremsen/Klappen: nur nächstes frei) ---
 const ZIEL_BESCHRIFTUNG = {
-  ruder: "Ruder", triebwerk: "Trieb.", funk: "Funk",
-  fahrwerk: "Fahrw.", landeklappe: "Klappen",
-  bremse: "Bremse", konzentration: "Konz.",
+  ...Object.fromEntries(COCKPIT_SCHEMA.feld_layout.map(e => [e.ziel, e.label])),
 };
 
 function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, gesperrt) {
@@ -458,7 +412,7 @@ function renderCockpitBoard(zustand) {
   ["col-pilot-felder", "col-kopilot-felder", "schub-reihe", "bremse-reihe", "konzentration-reihe"]
     .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
 
-  const layout = pyToJs(bridge.feld_layout());
+  const layout = COCKPIT_SCHEMA.feld_layout;
   const felder = zustand.felder;
 
   layout.forEach(eintrag => {
@@ -482,6 +436,10 @@ function renderCockpitBoard(zustand) {
       const werte = felder.triebwerk;
       const reihe = document.getElementById("schub-reihe");
       reihe.appendChild(feldZelle("pilot", werte.pilot, null, eintrag, zustand, false));
+      const label = document.createElement("span");
+      label.className = "inline-label";
+      label.textContent = "Schub";
+      reihe.appendChild(label);
       reihe.appendChild(feldZelle("kopilot", werte.kopilot, null, eintrag, zustand, false));
       return;
     }
@@ -887,7 +845,6 @@ async function init() {
   document.getElementById("neues-spiel-btn").disabled = false;
   document.getElementById("neues-spiel-btn").addEventListener("click", neuesSpiel);
   document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
-  document.getElementById("neuwurf-btn").addEventListener("click", toggleNeuwurfPanel);
   const menuBtn = document.getElementById("menue-btn");
   if (menuBtn) menuBtn.addEventListener("click", zurueckZumMenue);
   await neuesSpiel();

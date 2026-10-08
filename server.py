@@ -98,6 +98,10 @@ async def sende(ws, daten: dict):
 async def verarbeite(ws, rolle: str, msg: dict):
     global spielplan
 
+    if not isinstance(msg, dict):
+        await sende(ws, {"typ": "fehler", "meldung": "Nachricht muss ein JSON-Objekt sein."})
+        return
+
     typ = msg.get("typ")
 
     if typ == "neues_spiel":
@@ -114,9 +118,10 @@ async def verarbeite(ws, rolle: str, msg: dict):
         kwargs = {}
         if msg.get("index") is not None:
             kwargs["index"] = msg["index"]
-        if msg["ziel"] == "funk":
+        ziel = msg.get("ziel")
+        if ziel == "funk":
             kwargs["funk_feld"] = msg.get("funk_feld", 0)
-        erg = spielplan.platziere(rolle, msg["wuerfel_index"], msg["ziel"], **kwargs)
+        erg = spielplan.platziere(rolle, msg.get("wuerfel_index"), ziel, **kwargs)
         await sende(ws, {
             "typ": "ergebnis",
             "erfolg": erg.erfolg,
@@ -125,7 +130,7 @@ async def verarbeite(ws, rolle: str, msg: dict):
         })
 
     elif typ == "trinke_kaffee":
-        erg = spielplan.trinke_kaffee(rolle, msg["wuerfel_index"], msg["delta"])
+        erg = spielplan.trinke_kaffee(rolle, msg.get("wuerfel_index"), msg.get("delta"))
         await sende(ws, {
             "typ": "ergebnis",
             "erfolg": erg.erfolg,

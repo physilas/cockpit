@@ -66,6 +66,7 @@ backend/
   landung.py         Flughafen-/Entfernungs-/Höhen-Daten (pro Flughafen-YAML)
   spielplan.py        Orchestriert eine Partie (Würfelpools, Züge, Runden)
   bridge.py           JSON-Schnittstelle fürs Web-Frontend (Pyodide)
+  ui_schema.json      Gemeinsame Texte/Feldlayout für beide Web-UIs
   landungen/MUC.yaml  Flughafendaten
 frontend/
   terminal/          Text-UI (funktional, kein Pixel-Nachbau des Boards)
@@ -73,6 +74,13 @@ frontend/
 tests/
   test_engine.py     Simulations-"Fuzzer" + ein deterministischer,
                       durchgeskripteter Gewinn-Durchlauf
+```
+
+Einmalig Abhängigkeiten installieren:
+```
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 Spielen im Terminal:
@@ -84,7 +92,8 @@ python3 main.py MUC
 Tests laufen lassen:
 ```
 cd skyteam
-python3 -m tests.test_engine
+make test
+# alternativ: python3 -m unittest discover -s tests -v
 ```
 
 Web-Version lokal testen (Fetch von `.py`-Dateien braucht `http(s)://`,
@@ -94,19 +103,20 @@ cd skyteam
 python3 -m http.server 8000
 # dann im Browser: http://localhost:8000/frontend/web/
 ```
-Auf GitHub Pages funktioniert das genauso, sobald das Repo dort gehostet
+Nach Änderungen an `backend/` oder `backend/ui_schema.json` zuerst
+`python3 build.py` (oder `make build`) ausführen. Auf GitHub Pages funktioniert das genauso, sobald das Repo dort gehostet
 wird (Pages-Quelle = Repo-Root reicht; `index.html` im Root leitet
 automatisch zu `frontend/web/index.html` weiter).
 
 ## Annahmen, die ich treffen musste (bitte am echten Spiel prüfen!)
 
-Ich hatte nur die Fotos aus der PDF, kein physisches Exemplar. Alle
-folgenden Werte sind in `backend/regeln.py` bzw. `backend/spielplan.py`
-mit Kommentar versehen, falls sie angepasst werden müssen:
+Ich hatte nur die Fotos aus der PDF, kein physisches Exemplar. Flughafen-
+spezifische Werte liegen jeweils im passenden `backend/landungen/*.yaml`:
 
-1. **`NEUWURF_HOEHEN = [6000, 2000]`** - S.4 nennt nur 6000 als Beispiel
+1. **`neuwurf_hoehen: [6000, 2000]`** - S.4 nennt nur 6000 als Beispiel
    für eine der beiden Neuwurf-Positionen auf der Höhenleiste; die
-   zweite Höhe ist geraten.
+   zweite Höhe ist geraten. Die Einstellung ist jetzt pro Flughafen
+   konfigurierbar und wird auch direkt im Frontend angezeigt.
 2. **Startspieler-Wechsel**: Ich lasse Pilot/Co-Pilot pro Runde
    alternieren. Das Regelheft sagt nur, dass ein Pfeil auf der
    Höhenleiste dies anzeigt (S.4) - ob es wirklich eine einfache
@@ -119,9 +129,9 @@ mit Kommentar versehen, falls sie angepasst werden müssen:
 4. Die YAML-Felder `flugzeugwuerfel`, `kurven_min`, `kurven_max` aus der
    ursprünglichen Datei kommen im Basis-Regelheft gar nicht vor - ich
    vermute, sie gehören zu den fortgeschrittenen Szenarien unter dem
-   Schachteleinsatz (S.3-Hinweis). Sie werden geladen, aber von der
-   Engine nicht verwendet. Wenn du weißt, was sie bedeuten sollen, sag
-   Bescheid, dann baue ich sie ein.
+   Schachteleinsatz (S.3-Hinweis). Die Kurven-Korridore werden bereits
+   beim Bewegen geprüft; `flugzeugwuerfel` ist für die zukünftige Dynamik-
+   Mechanik reserviert und wird noch nicht ausgewertet.
 5. `RUDER_STALL_SCHWELLE` ist jetzt auf **3** gesetzt (Trudeln bei
    `|Fluglage| > 2`, wie von dir bestätigt).
 6. Deine `Arrivals.pdf` scheint ein separates Erweiterungsmodul mit
@@ -184,36 +194,31 @@ Sag mir außerdem, ob ich Bild-Generierung (Visualizer) für erste
 Mockups des Boards/Icons nutzen soll, oder ob du lieber mit echten
 Fotos/Scans der Cockpit-Teile arbeitest.
 
-## Lokaler Multiplayer (zwei Geräte, gleiches WLAN)
+## Multiplayer (zwei Geräte)
 
-```
-pip install websockets   # einmalig
-python3 server.py        # aus dem Repo-Root starten
-```
+Die produktive Browser-Variante ist serverlos: `multiplayer.html` nutzt
+PeerJS/WebRTC für die Verbindung und Pyodide auf dem Host-Gerät für die
+Regeln. Beide Geräte brauchen Internetzugang; sie müssen nicht im selben
+WLAN sein.
 
-Der Server gibt dann zwei URLs aus, z.B.:
-
-```
-Pilotin  → http://192.168.1.5:8080/frontend/web/multiplayer.html?rolle=pilot
-Co-Pilot → http://192.168.1.5:8080/frontend/web/multiplayer.html?rolle=kopilot
-```
-
-**Ablauf in der App:**
+**Ablauf:**
 1. Spieler 1 (Host) öffnet die URL im Browser → klickt **"Spiel hosten"**
    → QR-Code erscheint auf dem Bildschirm.
 2. Spieler 2 öffnet `multiplayer.html` (oder scannt direkt mit der Kamera-App)
-   → klickt **"Beitreten (QR)"** → Kamera öffnet sich → QR-Code scannen.
+   → gibt den Code ein oder öffnet den QR-Link.
 3. Verbindung steht. Jeder Spieler sieht nur seine eigenen Würfel,
    aber alle gelegten Felder sind für beide sichtbar.
 
-Alternativ: Spieler 2 kann auch **"IP manuell eingeben"** klicken und die
-IP-Adresse von Spieler 1 eintippen.
+`server.py` bleibt als experimenteller lokaler WebSocket-Server im Repo,
+hat aber bewusst keine aktive Browser-UI. Bevor daraus eine dritte Variante
+wird, sollte er entweder einen eigenen Client bekommen oder durch einen
+späteren Cloud-Session-Service ersetzt werden.
 
-**Warum kein WebRTC / Bluetooth?**
-- *Web Bluetooth* erlaubt nur Verbindungen zu BLE-Peripheriegeräten
-  (Arduino, Sensoren), nicht Browser-zu-Browser — das ist eine
-  Plattformbeschränkung, kein Bug.
-- *WebRTC* bräuchte einen Signaling-Server für den initialen Handshake;
-  das lokale WebSocket ist für Same-Room-Spiele einfacher und genauso schnell.
-- Für Spiele über verschiedene Netzwerke (z.B. online) wäre Firebase
-  Realtime Database die nächste Option (kostenlos, kein eigener Server).
+## Erweiterungspunkte
+
+Die Regeln bleiben in `Spielplan`/`Cockpit`, ohne Browser- oder Transport-
+Abhängigkeiten. Das ist die Grenze für einen künftigen KI-Partner und einen
+Cloud-Session-Service: Beide sollen dieselben validierten Aktionen an einer
+eigenen `Spielplan`-Instanz ausführen. Neue Flughäfen sind reine YAML-
+Szenarien; die Konfiguration wird beim Laden geprüft und erscheint
+automatisch in der Browser-Auswahl.

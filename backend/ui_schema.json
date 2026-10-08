@@ -1,0 +1,43 @@
+{
+  "grund_texte": {
+    "trudeln": "Trudeln",
+    "kollision": "Kollision",
+    "ruder_verbotene_stellung": "Ruderstellung nicht erlaubt",
+    "uebers_ziel_hinaus": "Übers Ziel hinaus",
+    "zu_schnell_gelandet": "Zu schnell gelandet",
+    "notlandung": "Notlandung",
+    "pflichtfelder_nicht_erfuellt": "Pflichtfelder nicht erfüllt",
+    "flugzeuge_uebrig": "Flugzeuge übrig",
+    "fahrwerk_unvollstaendig": "Fahrwerk unvollständig",
+    "landeklappen_unvollstaendig": "Landeklappen unvollständig",
+    "nicht_waagerecht": "Nicht waagerecht",
+    "feld_ungueltig": "Feld ungültig",
+    "ungueltiger_index": "Ungültiger Index",
+    "ungueltiger_funk_index": "Ungültiges Funk-Feld",
+    "ungueltiger_besitzer": "Ungültiger Spieler",
+    "ungueltiger_delta": "Ungültige Würfeländerung",
+    "ungueltige_neuwurf_auswahl": "Ungültige Neuwurf-Auswahl",
+    "falsche_reihenfolge": "Falsche Reihenfolge",
+    "triebwerke_nicht_platziert": "Triebwerke noch nicht platziert",
+    "wuerfel_bereits_platziert": "Würfel bereits platziert",
+    "nicht_genug_kaffee": "Nicht genug Kaffee",
+    "kein_neuwurf_plaettchen": "Kein Neuwurf-Plättchen verfügbar",
+    "spiel_beendet": "Spiel beendet",
+    "nicht_am_zug": "Nicht am Zug",
+    "ungueltiger_wuerfel_index": "Ungültiger Würfel-Index",
+    "wuerfel_nicht_verfuegbar": "Würfel nicht verfügbar",
+    "unbekanntes_ziel": "Unbekanntes Ziel",
+    "noch_nicht_alle_wuerfel_platziert": "Noch nicht alle Würfel platziert",
+    "kein_spiel_aktiv": "Kein Spiel aktiv"
+  },
+  "feld_layout": [
+    {"ziel": "ruder", "snapshot_key": "ruder", "zugriff": ["pilot", "kopilot"], "pflicht": true, "art": "farbpaar", "label": "Ruder"},
+    {"ziel": "triebwerk", "snapshot_key": "triebwerk", "zugriff": ["pilot", "kopilot"], "pflicht": true, "art": "farbpaar", "label": "Trieb."},
+    {"ziel": "funk", "snapshot_key": "funk_pilot", "zugriff": ["pilot"], "slots": 1, "funk_feld_basis": 0, "label": "Funk"},
+    {"ziel": "funk", "snapshot_key": "funk_kopilot", "zugriff": ["kopilot"], "slots": 2, "funk_feld_basis": 0, "label": "Funk"},
+    {"ziel": "fahrwerk", "snapshot_key": "fahrwerk", "zugriff": ["pilot"], "slots": 3, "zahlen": [[1, 2], [3, 4], [5, 6]], "label": "Fahrw."},
+    {"ziel": "landeklappe", "snapshot_key": "landeklappe", "zugriff": ["kopilot"], "slots": 4, "zahlen": [[1, 2], [2, 3], [4, 5], [5, 6]], "label": "Klappen"},
+    {"ziel": "bremse", "snapshot_key": "bremse", "zugriff": ["pilot"], "slots": 3, "zahlen": [[2], [4], [6]], "label": "Bremse"},
+    {"ziel": "konzentration", "snapshot_key": "konzentration", "zugriff": ["pilot", "kopilot"], "slots": 3, "label": "Konz."}
+  ]
+}

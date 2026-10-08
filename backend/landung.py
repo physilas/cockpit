@@ -1,15 +1,61 @@
 from pathlib import Path
+import re
 
 import yaml
 
 _LANDUNGEN_DIR = Path(__file__).resolve().parent / "landungen"
+_CODE_RE = re.compile(r"^[A-Z0-9_-]+$")
+
+
+class FlughafenKonfigurationsfehler(ValueError):
+    """A scenario file is missing or structurally invalid."""
 
 
 def load_yaml(flughafen):
-    yaml_file = _LANDUNGEN_DIR / f"{flughafen}.yaml"
-    with open(yaml_file, "r", encoding="utf-8") as file:
-        data = yaml.safe_load(file)
+    if not isinstance(flughafen, str) or not _CODE_RE.fullmatch(flughafen.upper()):
+        raise FlughafenKonfigurationsfehler("Ungültiger Flughafen-Code.")
+    yaml_file = _LANDUNGEN_DIR / f"{flughafen.upper()}.yaml"
+    try:
+        with open(yaml_file, "r", encoding="utf-8") as file:
+            data = yaml.safe_load(file)
+    except FileNotFoundError as exc:
+        raise FlughafenKonfigurationsfehler(f"Unbekannter Flughafen: {flughafen!r}") from exc
+    except yaml.YAMLError as exc:
+        raise FlughafenKonfigurationsfehler(f"Ungültiges YAML in {yaml_file.name}.") from exc
+    if not isinstance(data, dict):
+        raise FlughafenKonfigurationsfehler(f"{yaml_file.name}: erwartet ein YAML-Objekt.")
+    _pruefe_konfiguration(data, yaml_file.name)
     return data
+
+
+def _pruefe_konfiguration(data, dateiname):
+    """Fail early with a useful error before a malformed airport starts a game."""
+    for key in ("code", "bezeichnung", "laenge", "flugzeuge_wuerfel_kurven_min_max"):
+        if key not in data:
+            raise FlughafenKonfigurationsfehler(f"{dateiname}: Pflichtfeld {key!r} fehlt.")
+    laenge = data["laenge"]
+    if isinstance(laenge, bool) or not isinstance(laenge, int) or laenge < 1:
+        raise FlughafenKonfigurationsfehler(f"{dateiname}: 'laenge' muss eine positive ganze Zahl sein.")
+    zeilen = data["flugzeuge_wuerfel_kurven_min_max"]
+    if not isinstance(zeilen, list) or len(zeilen) != laenge:
+        raise FlughafenKonfigurationsfehler(
+            f"{dateiname}: erwartet genau {laenge} Distanzzeilen, erhalten: "
+            f"{len(zeilen) if isinstance(zeilen, list) else 'kein Array'}."
+        )
+    for nummer, zeile in enumerate(zeilen, start=1):
+        try:
+            werte = [int(x) for x in zeile.split()]
+        except (AttributeError, ValueError) as exc:
+            raise FlughafenKonfigurationsfehler(f"{dateiname}: ungültige Distanzzeile {nummer}.") from exc
+        if len(werte) != 4 or werte[0] < 0 or werte[1] < 0 or werte[2] > werte[3]:
+            raise FlughafenKonfigurationsfehler(f"{dateiname}: ungültige Distanzzeile {nummer}.")
+    hoehen = data.get("neuwurf_hoehen", [])
+    if not isinstance(hoehen, list) or any(
+        isinstance(h, bool) or not isinstance(h, int) or h < 0 or h % 1000 for h in hoehen
+    ):
+        raise FlughafenKonfigurationsfehler(
+            f"{dateiname}: 'neuwurf_hoehen' muss eine Liste nichtnegativer 1000-ft-Werte sein."
+        )
 
 
 def flughafen_liste():
@@ -26,9 +72,8 @@ def flughafen_liste():
     ergebnisse = []
     for pfad in sorted(_LANDUNGEN_DIR.glob("*.yaml")):
         try:
-            with open(pfad, "r", encoding="utf-8") as file:
-                data = yaml.safe_load(file) or {}
-        except Exception:
+            data = load_yaml(pfad.stem)
+        except FlughafenKonfigurationsfehler:
             continue
         if data.get("sichtbar", True) is False:
             continue
@@ -48,8 +93,8 @@ class Landung:
     "kurven_min"/"kurven_max" (bestätigt): je Entfernungsfeld die erlaubte
         Ruderstellung (Fluglage) beim Überfliegen dieses Feldes, wie auf
         den Distanz-Modulen (z.B. aus dem skyteam.fly.dev-Generator)
-        aufgedruckt: -2/+2 = keine Einschränkung. Aktuell nur ANZEIGE im
-        Frontend (siehe zustand()); die Engine erzwingt es noch nicht.
+        aufgedruckt: -2/+2 = keine Einschränkung. Die Engine erzwingt diese
+        Korridore beim Bewegen (Cockpit.loese_triebwerke_auf()).
 
     OFFENE FRAGE: "flugzeugwuerfel" (Würfel-Symbol auf dem Modul) wird
         geladen, aber weder angezeigt noch ausgewertet.
@@ -59,7 +104,7 @@ class Landung:
         data = load_yaml(flughafen)
 
         # PRIVATE (FIXED) VARIABLES
-        self._flughafen_code = flughafen
+        self._flughafen_code = flughafen.upper()
         self._code = data.get("code")
         self._bezeichnung = data.get("bezeichnung")
 
@@ -70,7 +115,7 @@ class Landung:
         self._laenge = data.get("laenge")
 
         rohdaten = [
-            [int(x) for x in item.split(" ")]
+            [int(x) for x in item.split()]
             for item in data.get("flugzeuge_wuerfel_kurven_min_max")
         ]
         # Index 0 = am weitesten vom Flughafen entfernt (Entfernung == laenge),
@@ -79,6 +124,7 @@ class Landung:
         self._flugzeugwuerfel = [row[1] for row in rohdaten]  # siehe Hinweis oben
         self._kurven_min = [row[2] for row in rohdaten]  # siehe Hinweis oben
         self._kurven_max = [row[3] for row in rohdaten]  # siehe Hinweis oben
+        self._neuwurf_hoehen = list(data.get("neuwurf_hoehen", []))
 
         # DYNAMIC VARIABLES
         self.hoehe = 6000  # S.3 Schritt 5
@@ -116,6 +162,9 @@ class Landung:
 
     def get_kurven_max(self):
         return self._kurven_max
+
+    def get_neuwurf_hoehen(self):
+        return self._neuwurf_hoehen.copy()
 
     def get_hoehe(self):
         return self.hoehe
@@ -168,7 +217,9 @@ class Landung:
         self.flugzeuge[index] += 1
 
     def remove_flugzeug(self, index):
-        if index is None or index >= len(self.flugzeuge) or self.flugzeuge[index] == 0:
+        if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(self.flugzeuge):
+            return False
+        if self.flugzeuge[index] == 0:
             return False
         self.flugzeuge[index] -= 1
         return True

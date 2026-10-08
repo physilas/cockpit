@@ -9,6 +9,7 @@ faehigkeitskarten: 0
 # SCHWIERIGKEIT UND LAENGE
 schwierigkeit: 0
 laenge: 7
+neuwurf_hoehen: [6000, 2000]
 
 # FLUGZEUGE UND KURVEN
 #

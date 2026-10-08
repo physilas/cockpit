@@ -258,7 +258,14 @@ class Cockpit:
     ### FUNK (S.7) ###
 
     def platziere_funk(self, wuerfel, feld_index=0):
-        feld = self.funk_pilot if wuerfel.get_besitzer() == "pilot" else self.funk_kopilot[feld_index]
+        if wuerfel.get_besitzer() == "pilot":
+            if feld_index != 0:
+                return Ergebnis(False, "ungueltiger_funk_index")
+            feld = self.funk_pilot
+        else:
+            if not isinstance(feld_index, int) or isinstance(feld_index, bool) or feld_index not in (0, 1):
+                return Ergebnis(False, "ungueltiger_funk_index")
+            feld = self.funk_kopilot[feld_index]
         if not feld.platziere(wuerfel):
             return Ergebnis(False, "feld_ungueltig")
 
@@ -280,7 +287,7 @@ class Cockpit:
     ### FAHRWERK (S.7, beliebige Reihenfolge) ###
 
     def platziere_fahrwerk(self, wuerfel, index):
-        if index < 0 or index >= len(self.fahrwerk):
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(self.fahrwerk):
             return Ergebnis(False, "ungueltiger_index")
         feld = self.fahrwerk[index]
         if self.fahrwerk_ausgefahren[index]:
@@ -300,7 +307,7 @@ class Cockpit:
     ### LANDEKLAPPEN (S.8, strikte Reihenfolge) ###
 
     def platziere_landeklappe(self, wuerfel, index):
-        if index < 0 or index >= len(self.landeklappen):
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(self.landeklappen):
             return Ergebnis(False, "ungueltiger_index")
         naechste_faellige = _erster_freier_index(self.landeklappen_ausgefahren)
         feld = self.landeklappen[index]
@@ -324,7 +331,7 @@ class Cockpit:
     ### BREMSEN (S.9, strikte Reihenfolge) ###
 
     def platziere_bremse(self, wuerfel, index):
-        if index < 0 or index >= len(self.bremsen):
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(self.bremsen):
             return Ergebnis(False, "ungueltiger_index")
         naechste_faellige = _erster_freier_index(self.bremsen_aktiviert)
         feld = self.bremsen[index]
@@ -347,7 +354,7 @@ class Cockpit:
     ### KONZENTRATION / KAFFEE (S.8) ###
 
     def platziere_konzentration(self, wuerfel, index):
-        if index < 0 or index >= len(self.konzentration):
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(self.konzentration):
             return Ergebnis(False, "ungueltiger_index")
         feld = self.konzentration[index]
         if not feld.platziere(wuerfel):
@@ -410,6 +417,8 @@ class Cockpit:
         `delta` (positiv oder negativ), sofern genug Tassen im Vorrat
         sind. Verbraucht abs(delta) Tassen. (S.8)
         """
+        if not isinstance(delta, int) or isinstance(delta, bool) or delta == 0:
+            return Ergebnis(False, "ungueltiger_delta")
         kosten = abs(delta)
         if kosten == 0:
             return Ergebnis(True)

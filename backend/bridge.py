@@ -7,8 +7,10 @@ bool/None) zurück, nie Wuerfel-/Ergebnis-Objekte direkt - das macht die
 und hält die Spielregeln komplett in Python (kein Regel-Code in JS).
 """
 from .spielplan import Spielplan
+from .cockpit import Ergebnis
 from .regeln import grund_text as _grund_text
 from .landung import flughafen_liste as _flughafen_liste
+from .ui_schema import feld_layout as _feld_layout
 
 _spiel = None
 
@@ -41,6 +43,10 @@ def _ergebnis_zu_dict(ergebnis):
     }
 
 
+def _kein_spiel():
+    return {"ergebnis": _ergebnis_zu_dict(Ergebnis(False, "kein_spiel_aktiv")), "zustand": None}
+
+
 def zustand():
     if _spiel is None:
         return None
@@ -48,6 +54,8 @@ def zustand():
 
 
 def platziere(besitzer, wuerfel_index, ziel, index=None, funk_feld=0):
+    if _spiel is None:
+        return _kein_spiel()
     kwargs = {}
     if index is not None:
         kwargs["index"] = index
@@ -58,25 +66,41 @@ def platziere(besitzer, wuerfel_index, ziel, index=None, funk_feld=0):
 
 
 def trinke_kaffee(besitzer, wuerfel_index, delta):
+    if _spiel is None:
+        return _kein_spiel()
     ergebnis = _spiel.trinke_kaffee(besitzer, wuerfel_index, delta)
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
 def moegliche_kaffee_deltas(besitzer, wuerfel_index):
+    if _spiel is None:
+        return []
     return _spiel.moegliche_kaffee_deltas(besitzer, wuerfel_index)
 
 
 def benutze_neuwurf(pilot_indizes, kopilot_indizes):
-    ergebnis = _spiel.benutze_neuwurf(list(pilot_indizes), list(kopilot_indizes))
+    if _spiel is None:
+        return _kein_spiel()
+    try:
+        pilot_indizes = list(pilot_indizes)
+        kopilot_indizes = list(kopilot_indizes)
+    except TypeError:
+        ergebnis = Ergebnis(False, "ungueltige_neuwurf_auswahl")
+        return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
+    ergebnis = _spiel.benutze_neuwurf(pilot_indizes, kopilot_indizes)
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
 def rundenende():
+    if _spiel is None:
+        return _kein_spiel()
     ergebnis = _spiel.rundenende()
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
 def wuerfeln_fuer_runde():
+    if _spiel is None:
+        return None
     _spiel.wuerfeln_fuer_runde()
     return zustand()
 
@@ -86,14 +110,4 @@ def wuerfeln_fuer_runde():
 # JS keine Regeln kennen, nur diese Liste rendern und `platziere(...)` je
 # nach Auswahl aufrufen.
 def feld_layout():
-    return [
-        {"ziel": "ruder", "snapshot_key": "ruder", "zugriff": ["pilot", "kopilot"], "pflicht": True, "art": "farbpaar"},
-        {"ziel": "triebwerk", "snapshot_key": "triebwerk", "zugriff": ["pilot", "kopilot"], "pflicht": True, "art": "farbpaar"},
-        {"ziel": "funk", "snapshot_key": "funk_pilot", "zugriff": ["pilot"], "slots": 1, "funk_feld_basis": 0},
-        {"ziel": "funk", "snapshot_key": "funk_kopilot", "zugriff": ["kopilot"], "slots": 2, "funk_feld_basis": 0},
-        {"ziel": "fahrwerk", "snapshot_key": "fahrwerk", "zugriff": ["pilot"], "slots": 3, "zahlen": [[1, 2], [3, 4], [5, 6]]},
-        {"ziel": "landeklappe", "snapshot_key": "landeklappe", "zugriff": ["kopilot"], "slots": 4,
-         "zahlen": [[1, 2], [2, 3], [4, 5], [5, 6]]},
-        {"ziel": "bremse", "snapshot_key": "bremse", "zugriff": ["pilot"], "slots": 3, "zahlen": [[2], [4], [6]]},
-        {"ziel": "konzentration", "snapshot_key": "konzentration", "zugriff": ["pilot", "kopilot"], "slots": 3},
-    ]
+    return _feld_layout()

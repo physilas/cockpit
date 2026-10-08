@@ -26,11 +26,6 @@ AERODYNAMIK_SCHRITT = 1
 # Geschwindigkeit 4 erfüllt die Siegbedingung).
 BREMSSTAERKE_PRO_AKTIVIERUNG = 2
 
-# S.4: 2 Neuwurf-Plättchen, platziert auf den Neuwurf-Symbolen der
-# Höhenleiste (die Positionen hängen vom Flughafen/Szenario ab und
-# stehen daher in der jeweiligen landungen/<code>.yaml).
-ANZAHL_NEUWURF_PLAETTCHEN = 2
-
 # S.8 Konzentration: nie mehr als 3 Kaffeetassen gleichzeitig im Vorrat.
 MAX_KAFFEETASSEN = 3
 
@@ -39,38 +34,10 @@ MAX_KAFFEETASSEN = 3
 WUERFEL_MIN = 1
 WUERFEL_MAX = 6
 
-# Menschlich lesbare (großgeschriebene) Anzeige-Texte für die internen
-# grund-Codes von Ergebnis - sowohl Verlust-Gründe als auch abgelehnte
-# Aktionen (Bug #6: "kollision" -> "Kollision" usw.). Zentral hier
-# gepflegt, damit Terminal- und Web-Frontend denselben Text zeigen.
-GRUND_TEXT = {
-    # Verlust-/Siegauswertung
-    "trudeln": "Trudeln",
-    "kollision": "Kollision",
-    "ruder_verbotene_stellung": "Ruderstellung nicht erlaubt",
-    "uebers_ziel_hinaus": "Übers Ziel hinaus",
-    "zu_schnell_gelandet": "Zu schnell gelandet",
-    "notlandung": "Notlandung",
-    "pflichtfelder_nicht_erfuellt": "Pflichtfelder nicht erfüllt",
-    "flugzeuge_uebrig": "Flugzeuge übrig",
-    "fahrwerk_unvollstaendig": "Fahrwerk unvollständig",
-    "landeklappen_unvollstaendig": "Landeklappen unvollständig",
-    "nicht_waagerecht": "Nicht waagerecht",
-    # Abgelehnte Aktionen (Ergebnis.erfolg == False)
-    "feld_ungueltig": "Feld ungültig",
-    "ungueltiger_index": "Ungültiger Index",
-    "falsche_reihenfolge": "Falsche Reihenfolge",
-    "triebwerke_nicht_platziert": "Triebwerke noch nicht platziert",
-    "wuerfel_bereits_platziert": "Würfel bereits platziert",
-    "nicht_genug_kaffee": "Nicht genug Kaffee",
-    "kein_neuwurf_plaettchen": "Kein Neuwurf-Plättchen verfügbar",
-    "spiel_beendet": "Spiel beendet",
-    "nicht_am_zug": "Nicht am Zug",
-    "ungueltiger_wuerfel_index": "Ungültiger Würfel-Index",
-    "wuerfel_nicht_verfuegbar": "Würfel nicht verfügbar",
-    "unbekanntes_ziel": "Unbekanntes Ziel",
-    "noch_nicht_alle_wuerfel_platziert": "Noch nicht alle Würfel platziert",
-}
+from .ui_schema import frontend_schema
+
+# Also exported by build.py for both browser clients.
+GRUND_TEXT = frontend_schema()["grund_texte"]
 
 
 def grund_text(code):

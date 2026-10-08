@@ -9,11 +9,12 @@ faehigkeitskarten: 0
 # SCHWIERIGKEIT UND LAENGE
 schwierigkeit: 0
 laenge: 5
+neuwurf_hoehen: [6000, 2000]
 
 # FLUGZEUGE UND KURVEN
 #
 # Ein Eintrag pro Feld der Entfernungsleiste, von "am weitesten weg"
-# (Entfernung 7) bis "kurz vor dem Flughafen" (Entfernung 1).
+# (Entfernung 5) bis "kurz vor dem Flughafen" (Entfernung 1).
 # Format je Zeile: "<initiale Flugzeuge> <flugzeugwuerfel> <kurven_min> <kurven_max>"
 #
 # ANNAHME: Die Anzahl der Flugzeuge pro Feld ist NICHT im Regelheft als
@@ -23,7 +24,7 @@ laenge: 5
 # allgemeine Materialübersicht für alle Flughäfen. Die folgende
 # Verteilung (Summe = 9) ist daher ein PLATZHALTER, den ich anhand der
 # Gesamtzahl geraten habe. Bitte anhand des echten MUC-Leiste-Bauteils
-# korrigieren!
+# korrigieren! (Der Text erwähnte früher versehentlich MUC.)
 #
 # "flugzeugwuerfel", "kurven_min" und "kurven_max" kommen im Basis-
 # Regelheft nicht vor (siehe Hinweis in landung.py) und werden aktuell

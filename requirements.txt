@@ -1,0 +1,3 @@
+# Runtime dependencies for the terminal client, tests and optional local server.
+PyYAML>=6.0,<7
+websockets>=12,<16
