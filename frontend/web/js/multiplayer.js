@@ -28,6 +28,7 @@ let partnerConnected = false;
 let aktuellerZustand = null;
 let ausgewaehlterWuerfel = null;
 let kaffeeMenuFuer = null;
+let eigeneWuerfelVersteckt = false;
 
 // Neuwurf (Reroll) über zwei Geräte hinweg: die Engine selbst (spielplan.py)
 // weiß nichts von "Phasen" - benutze_neuwurf() bekommt einfach beide
@@ -763,12 +764,26 @@ function renderWuerfel(besitzer,z) {
   const istNeuwurfAktiv = imNeuwurf && besitzer === aktiverBesitzer;
   const neuwurfAuswahl = istNeuwurfAktiv ? neuwurfAuswahlFuer(besitzer) : null;
 
+  if (istMeins && werte.some(wert => wert !== null)) {
+    const hideBtn = document.createElement("button");
+    hideBtn.className = eigeneWuerfelVersteckt ? "view-btn" : "hide-btn";
+    hideBtn.textContent = eigeneWuerfelVersteckt ? "👁" : "🙈";
+    hideBtn.title = eigeneWuerfelVersteckt ? "Würfel anzeigen" : "Würfel verbergen";
+    hideBtn.addEventListener("click", () => {
+      eigeneWuerfelVersteckt = !eigeneWuerfelVersteckt;
+      ausgewaehlterWuerfel = null;
+      kaffeeMenuFuer = null;
+      render(z);
+    });
+    container.appendChild(hideBtn);
+  }
+
   werte.forEach((wert,i)=>{
     const wrap=document.createElement("div");
     wrap.className="wuerfel-slot";
 
     const div=document.createElement("div");
-    const verborgen=wert===null;
+    const verborgen=wert===null || (istMeins && eigeneWuerfelVersteckt && frei[i]);
     div.className="wuerfel"+((!frei[i]||verborgen)?" platziert":"");
     if(verborgen)div.classList.add("partner-wuerfel");
     div.textContent=verborgen?"?":String(wert);

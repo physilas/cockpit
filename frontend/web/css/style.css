@@ -1150,3 +1150,67 @@ main { max-width: 480px; }
   #s-aero { width: 158px; margin-top: -0.95rem; }
   #s-brems { width: 132px; }
 }
+
+/* Detailverfeinerungen aus der mobilen Board-Ansicht. */
+html, body { overflow-x: clip; }
+main, #tracks-leiste, .board-grid { min-width: 0; max-width: 100%; }
+
+/* Die Würfeltrays schweben klar über der Tafel statt deren Kante zu
+   berühren. Der jeweilige Button wechselt zwischen Auge und Verbergen. */
+#tracks-leiste .dice-tray { margin-bottom: 2.35rem; }
+.hide-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #596e71, #33494c);
+  border: 2px solid #d8b44a;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.hide-btn:hover { background: #6f8688; }
+
+/* Die Leisten tauchen mit ihrem aktuellen unteren Feld in zwei
+   metallische Aussparungen der Cockpitkante ein. */
+#tracks-leiste { margin-bottom: -3.25rem; }
+#tracks-leiste > .vtrack-col { position: relative; z-index: 4; }
+#tracks-leiste > .vtrack-col .vtrack-wrap::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  bottom: -30px;
+  height: 56px;
+  border: 2px solid #607477;
+  border-bottom: 0;
+  border-radius: 13px 13px 0 0;
+  background: linear-gradient(135deg, #b9c8c7, #829699);
+  box-shadow: inset 0 1px rgba(255,255,255,0.5);
+  z-index: -1;
+}
+#tracks-leiste > .vtrack-col .vtrack { position: relative; z-index: 1; }
+.board-grid { padding-top: 3.65rem; }
+
+/* Die Aerodynamik wird als breite, nach unten gerundete Instrumentenskala
+   unter dem Horizont gelesen – analog zum schwarzen Bogen auf dem Board. */
+#s-aero {
+  width: min(100%, 212px);
+  min-height: 48px;
+  padding: 0.72rem 0.25rem 0.48rem;
+  border-radius: 0 0 110px 110px / 0 0 52px 52px;
+  border-top: 2px solid #617477;
+  border-bottom: 3px solid #132427;
+  box-shadow: inset 0 1px rgba(255,255,255,0.12), 0 2px 1px rgba(40,53,51,0.28);
+}
+#s-aero .skala-leiste { transform: translateY(0.08rem); }
+
+@media (max-width: 380px) {
+  #tracks-leiste .dice-tray { margin-bottom: 1.85rem; }
+  #tracks-leiste { margin-bottom: -2.65rem; }
+  .board-grid { padding-top: 3rem; }
+  #s-aero { width: 178px; min-height: 42px; padding-top: 0.58rem; padding-bottom: 0.38rem; }
+}

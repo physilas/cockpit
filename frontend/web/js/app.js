@@ -559,6 +559,23 @@ function renderWuerfel(besitzer, zustand) {
     container.appendChild(viewBtn);
   }
 
+  // Aktive Spielerin bzw. aktiver Spieler kann die offenen Würfel vor dem
+  // Weitergeben des Geräts jederzeit wieder verdecken.
+  const darfVerbergen = sichtbar && (imNeuwurf ? istNeuwurfAktiv : istAmZug);
+  if (darfVerbergen) {
+    const hideBtn = document.createElement("button");
+    hideBtn.className = "hide-btn";
+    hideBtn.textContent = "🙈";
+    hideBtn.title = "Würfel verbergen";
+    hideBtn.addEventListener("click", () => {
+      diceVisible = null;
+      ausgewaehlterWuerfel = null;
+      kaffeeMenuOffenFuer = null;
+      render(aktuellerZustand);
+    });
+    container.appendChild(hideBtn);
+  }
+
   werte.forEach((wert, i) => {
     const wrapper = document.createElement("div");
     wrapper.className = "wuerfel-slot";
