@@ -1,11 +1,11 @@
 :root {
   --blau: #2563eb;
   --orange: #ea580c;
-  --bg: #0f172a;
-  --panel: #1e293b;
-  --panel-hell: #334155;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
+  --bg: #ba895c;
+  --panel: #99a9ab;
+  --panel-hell: #51676b;
+  --text: #17282d;
+  --muted: #dfe9e7;
   --gruen: #22c55e;
   --rot: #ef4444;
   --radius: 8px;
@@ -20,7 +20,11 @@ html, body {
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(88deg, rgba(83,51,25,0.08) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(2deg, rgba(255,235,187,0.11) 0 2px, transparent 2px 9px),
+    linear-gradient(90deg, #cda272, #b78355 47%, #d4aa79);
   color: var(--text);
   font-size: 15px;
 }
@@ -32,8 +36,9 @@ header {
   flex-wrap: wrap;
   gap: 0.4rem;
   padding: calc(0.4rem + env(safe-area-inset-top)) 0.6rem 0.4rem;
-  background: var(--panel);
-  border-bottom: 1px solid var(--panel-hell);
+  background: linear-gradient(180deg, #61767a, #455a5d);
+  border-bottom: 2px solid #33464a;
+  color: #f2f6f0;
 }
 
 h1 { margin: 0; font-size: 1rem; }
@@ -42,9 +47,9 @@ h1 { margin: 0; font-size: 1rem; }
 #spiel-auswahl { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
 
 select, button {
-  background: var(--panel-hell);
-  color: var(--text);
-  border: 1px solid #475569;
+  background: linear-gradient(180deg, #4b6064, #34484b);
+  color: #f4f6ef;
+  border: 1px solid #26393c;
   border-radius: var(--radius);
   padding: 0.3rem 0.5rem;
   font-size: 0.78rem;
@@ -59,7 +64,7 @@ select, button {
   display: inline-block;
 }
 
-button:hover { background: #475569; }
+button:hover { background: #607579; }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 #lade-hinweis {
@@ -908,3 +913,144 @@ main {
 .kurve-erlaubt  { color: #15803d; }
 .kurve-null     { color: #000; }
 .kurve-verboten { color: #dc2626; font-weight: 900; }
+
+/* ── Gedrucktes Cockpit-Board ────────────────────────────────────────────
+   Die Web-Oberfläche lehnt sich hier an die physische, genietete
+   Instrumententafel an: Holz darunter, Aluminium im Cockpit, dunkle
+   Anzeigen und die gelben seitlichen Führungsschienen. */
+#tracks-leiste {
+  background: transparent;
+  padding: 0.15rem 0.5rem 0;
+}
+
+.vtrack-wrap { padding-top: 0; }
+.vtrack {
+  width: 62px;
+  background: linear-gradient(145deg, #102a3f, #142431 60%, #0b1720);
+  border: 3px solid #718184;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 #38484b, inset 0 0 0 1px #d2bc76;
+}
+.vtrack-fill-remaining {
+  background: linear-gradient(180deg, rgba(18,91,164,0.92), rgba(9,47,88,0.95));
+  border-radius: 2px;
+}
+.vtrack-grid {
+  background-image: repeating-linear-gradient(to bottom, rgba(255,214,113,0.58) 0 1px, transparent 1px, transparent var(--track-unit-px, 26px));
+}
+.vtrack-caption {
+  color: #26383b;
+  font-weight: 800;
+  text-shadow: 0 1px rgba(255,255,255,0.35);
+}
+.vtrack-heightlabel {
+  color: #f3f2df;
+  letter-spacing: 0.06em;
+  font-size: 0.62rem;
+}
+.tracks-marker-line { background: #eff0db; box-shadow: 0 1px 1px #304144; }
+.tracks-marker-plane { color: #f4f5e9; }
+
+.dice-tray {
+  background: linear-gradient(135deg, #b8c4c2, #71868a 52%, #aab8b8);
+  border-color: #52666a;
+  box-shadow: 0 3px 0 #526064, inset 0 1px 0 rgba(255,255,255,0.55);
+}
+.dice-tray.pilot { border-top-color: #2d70ee; }
+.dice-tray.kopilot { border-top-color: #f27637; }
+.dice-tray-label { color: #23363a; font-weight: 800; text-shadow: 0 1px rgba(255,255,255,0.45); }
+.dice-tray .wuerfel {
+  box-shadow: 0 2px 0 rgba(17,28,31,0.5), inset 0 1px 2px rgba(255,255,255,0.35);
+  color: #fff;
+}
+
+.board-grid {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 18% 9%, rgba(255,255,255,0.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 9%, rgba(255,255,255,0.45) 0 1px, transparent 2px),
+    linear-gradient(135deg, #b9c8c7, #83979a 48%, #aebfbd);
+  border: 3px solid #607477;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 #695c47, inset 0 0 0 1px rgba(239,244,233,0.65);
+  padding: 0.6rem 0.7rem;
+  color: #16272b;
+}
+.board-grid::before,
+.board-grid::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 18%;
+  bottom: 8%;
+  width: 5px;
+  border-radius: 4px;
+  background: linear-gradient(#f4d942, #b7981c 55%, #f4d942);
+  box-shadow: 0 0 0 1px rgba(71,82,55,0.5);
+  pointer-events: none;
+}
+.board-grid::before { left: 0.5rem; }
+.board-grid::after { right: 0.5rem; }
+.board-grid .side-col,
+.board-grid .center-col { position: relative; z-index: 1; }
+
+.side-block {
+  background: linear-gradient(145deg, #63777a, #334a4e);
+  border: 1px solid #53676a;
+  box-shadow: inset 0 1px rgba(255,255,255,0.25), 0 1px 1px rgba(32,48,48,0.45);
+}
+.side-block-label,
+.side-col .feld-zeile .feld-label,
+.inline-label,
+.ruder-slot-group > span { color: #21363a; font-weight: 800; text-shadow: 0 1px rgba(255,255,255,0.38); }
+
+.feld-zelle {
+  background: linear-gradient(145deg, #273a3d, #15282c);
+  border-color: #243337;
+  border-style: solid;
+  color: #e7ece2;
+  box-shadow: inset 0 0 0 1px rgba(225,230,207,0.16), 0 1px 1px rgba(53,65,61,0.5);
+}
+.feld-zelle.klickbar { border-color: #d9c854; color: #f5e981; }
+.feld-zelle.belegt.pilot { background: linear-gradient(145deg, #4c8aff, #174bba); }
+.feld-zelle.belegt.kopilot { background: linear-gradient(145deg, #ff9861, #c94817); }
+
+.attitude-gauge {
+  padding: 6px;
+  border: 6px solid #2b3b3d;
+  border-radius: 50%;
+  background: radial-gradient(circle, #d7e0d7 0 61%, #1d3033 62% 100%);
+  box-shadow: 0 0 0 3px #bfc8bd, 0 3px 3px rgba(35,49,47,0.5), inset 0 0 0 2px #141f21;
+}
+.attitude-gauge svg { display: block; width: 118px; height: 118px; }
+.attitude-gauge-row { gap: 0.7rem; }
+
+.skala-wrap {
+  margin: 0.08rem auto;
+  padding: 0.15rem 0.3rem;
+  width: fit-content;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #24393d, #14272a);
+  border: 1px solid #607376;
+  box-shadow: inset 0 1px rgba(255,255,255,0.14);
+}
+.skala-zahl { color: #e8ece0; text-shadow: 0 1px #000; }
+.skala-sep { box-shadow: 0 0 4px currentColor; }
+
+#aktionen-leiste {
+  background: linear-gradient(145deg, #b6c3c1, #829699);
+  border: 2px solid #607477;
+  box-shadow: 0 2px 0 #695c47, inset 0 1px rgba(255,255,255,0.55);
+  color: #1e3033;
+}
+#am-zug-anzeige, #s-runde { text-shadow: 0 1px rgba(255,255,255,0.35); }
+#meldung-leiste { color: #3d4d38; font-weight: 650; text-shadow: 0 1px rgba(255,255,255,0.35); }
+.menu-btn { color: #f4f6ef; border-color: #9aaead; }
+
+@media (max-width: 380px) {
+  .vtrack { width: 54px; }
+  .attitude-gauge { padding: 4px; border-width: 4px; }
+  .attitude-gauge svg { width: 96px; height: 96px; }
+  .attitude-gauge-row { gap: 0.38rem; }
+}
