@@ -1054,3 +1054,99 @@ main {
   .attitude-gauge svg { width: 96px; height: 96px; }
   .attitude-gauge-row { gap: 0.38rem; }
 }
+
+/* Die zweite Ausbaustufe richtet die einzelnen Baugruppen enger nach der
+   hohen Originaltafel aus: oben eingesteckte Leisten, seitliche Module und
+   das zentrale Horizontinstrument als klarer Mittelpunkt. */
+main { max-width: 480px; }
+
+#tracks-leiste {
+  grid-template-columns: 50px 70px minmax(38px, 1fr) 70px 50px;
+  margin-bottom: -1.65rem;
+  padding-inline: 0.7rem;
+  position: relative;
+  z-index: 2;
+}
+.vtrack-col { align-self: end; }
+/* Entfernung (links) ist auf dem physischen Board niedriger eingesetzt;
+   beide Leisten treffen unten wieder gemeinsam auf die Cockpitkante. */
+#tracks-leiste > .vtrack-col:nth-child(2) {
+  margin-top: 2.55rem;
+  transform: translateX(0.18rem);
+}
+#tracks-leiste > .vtrack-col:nth-child(4) { transform: translateX(-0.18rem); }
+.tracks-marker-col { margin-inline: -0.18rem; }
+.dice-tray { margin-bottom: 1.1rem; min-width: 46px; }
+
+.board-grid {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  align-items: stretch;
+  gap: 0.28rem;
+  min-height: 405px;
+  padding: 2.35rem 0.55rem 0.7rem;
+}
+.side-col {
+  align-self: stretch;
+  justify-content: space-between;
+  gap: 0.25rem;
+  padding-top: 0;
+}
+.side-col .feld-zeile { gap: 0.08rem; }
+.side-col .feld-slots { gap: 0.16rem; }
+.side-col .feld-zeile .feld-label { width: 48px; }
+.center-col {
+  justify-content: space-between;
+  gap: 0.28rem;
+  padding: 0.15rem 0.1rem 0;
+}
+
+/* Kein dekorativer Doppelring: die gedruckte Skala übernimmt die Rolle des
+   äußeren Rings, das SVG selbst bleibt das einzelne Fluglage-Instrument. */
+.attitude-gauge {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: 0 2px 3px rgba(35,49,47,0.5);
+}
+.attitude-gauge svg { width: 126px; height: 126px; }
+.attitude-gauge-row { gap: 0.44rem; }
+
+#s-aero {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 184px);
+  min-height: 34px;
+  margin: -1.15rem auto 0;
+  padding: 0.4rem 0.16rem 0.14rem;
+  border-radius: 0 0 96px 96px;
+}
+#s-aero .skala-leiste { justify-content: center; }
+#s-brems {
+  width: min(100%, 150px);
+  margin: 0.15rem auto 0;
+  border-radius: 0 0 70px 70px;
+}
+.schub-reihe { margin-top: -0.08rem; }
+.konzentration-zeile { margin-bottom: 0.1rem; }
+
+@media (max-width: 380px) {
+  main { max-width: 100%; }
+  #tracks-leiste {
+    grid-template-columns: 44px 56px minmax(24px, 1fr) 56px 44px;
+    padding-inline: 0.35rem;
+    margin-bottom: -1.2rem;
+  }
+  #tracks-leiste > .vtrack-col:nth-child(2) { margin-top: 1.85rem; }
+  .board-grid {
+    grid-template-columns: 52px minmax(0, 1fr) 52px;
+    min-height: 376px;
+    padding-inline: 0.35rem;
+    padding-top: 1.85rem;
+  }
+  .side-col .feld-zeile .feld-label { width: 42px; }
+  .attitude-gauge svg { width: 104px; height: 104px; }
+  #s-aero { width: 158px; margin-top: -0.95rem; }
+  #s-brems { width: 132px; }
+}
