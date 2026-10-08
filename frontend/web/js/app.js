@@ -75,7 +75,9 @@ function aeroSkalaHTML(blau, orange) {
     // Die Mitte liegt am tiefsten, die beiden Enden steigen nach außen: so
     // folgt die Beschriftung dem unteren Halbkreis des Originalboards.
     const x = 6 + index * 8.8;
-    const y = 3 + 19 * Math.pow((index - 5) / 5, 2);
+    // A deep circular shell: numbers sit on the inside of the lower arc,
+    // with the centre at its lowest point and the ends rising toward the rim.
+    const y = 5 + 48 * Math.pow((index - 5) / 5, 2);
     return ` style="--bogen-x:${x}%;--bogen-y:${y}px"`;
   };
   let html = '<div class="skala-leiste">';
@@ -163,11 +165,29 @@ function renderTracks(zustand) {
     if (y < 0 || y > distanzEinheiten * TRACK_UNIT_PX) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
-    el.style.top = (y + 8) + "px";  // unterer Bereich des Feldes, Platz fürs Badge oben
-    // Einzelne Flugzeug-Symbole statt "✈×n" - eines je Flugzeug auf diesem Feld.
+    el.style.top = (y - TRACK_UNIT_PX / 2) + "px";
+    el.style.height = TRACK_UNIT_PX + "px";
+    const platzierteFlugzeuge = [];
+    // Individual aircraft are scattered within their tile. The seeded layout
+    // remains stable across rerenders, while collision checks keep glyphs apart.
     for (let k = 0; k < count; k++) {
+      const zufall = salt => {
+        const wert = Math.sin((i + 1) * 89.17 + (k + 1) * 41.73 + salt * 17.31) * 43758.5453;
+        return wert - Math.floor(wert);
+      };
+      let x = 17 + zufall(1) * 66;
+      let yTile = 24 + zufall(2) * 52;
+      for (let versuch = 0; versuch < 18; versuch++) {
+        x = 17 + zufall(versuch * 2 + 1) * 66;
+        yTile = 24 + zufall(versuch * 2 + 2) * 52;
+        if (platzierteFlugzeuge.every(p => Math.hypot((x - p.x) * 1.35, yTile - p.y) >= 27)) break;
+      }
+      platzierteFlugzeuge.push({ x, y: yTile });
       const plane = document.createElement("span");
       plane.textContent = "✈";
+      plane.style.setProperty("--plane-x", `${x}%`);
+      plane.style.setProperty("--plane-y", `${yTile}%`);
+      plane.style.setProperty("--plane-rotation", `${Math.round(zufall(47) * 46 - 23)}deg`);
       el.appendChild(plane);
     }
     obstaclesEl.appendChild(el);

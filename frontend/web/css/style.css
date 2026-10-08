@@ -55,11 +55,11 @@ main{width:min(100%,620px);margin:auto;padding:.85rem .5rem calc(1.15rem + env(s
 /* A real lower semicircle for the aerodynamic band; labels inherit the curve
    coordinates emitted by aeroSkalaHTML(). */
 #s-aero {
-  width: min(100%, 232px);
-  height: 92px;
-  min-height: 92px;
+  width: min(100%, 236px);
+  height: 108px;
+  min-height: 108px;
   margin-top: -1.25rem;
-  overflow: visible;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -69,26 +69,19 @@ main{width:min(100%,620px);margin:auto;padding:.85rem .5rem calc(1.15rem + env(s
 #s-aero::before {
   content: "";
   position: absolute;
-  inset: 0 -3px 0;
-  border: 3px solid #5c7478;
-  border-top: 0;
-  border-radius: 0 0 130px 130px / 0 0 78px 78px;
-  background:
-    radial-gradient(ellipse at 50% -20%, rgba(111, 135, 137, .46), transparent 58%),
-    linear-gradient(180deg, #263c42, #122127);
-  box-shadow: inset 0 -2px rgba(0, 0, 0, .24), 0 2px 3px rgba(16, 41, 45, .28);
+  top: -140px;
+  left: 50%;
+  width: 240px;
+  height: 240px;
+  transform: translateX(-50%);
+  border: 16px solid #20363b;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 2px 0 #678185, inset 0 0 0 2px rgba(236, 247, 237, .16);
 }
 
 #s-aero::after {
-  content: "";
-  position: absolute;
-  left: 7%;
-  right: 7%;
-  bottom: 10px;
-  height: 54px;
-  border-bottom: 1px solid rgba(225, 243, 230, .22);
-  border-radius: 0 0 50% 50%;
-  pointer-events: none;
+  display: none;
 }
 
 #s-aero .skala-leiste {
@@ -96,14 +89,36 @@ main{width:min(100%,620px);margin:auto;padding:.85rem .5rem calc(1.15rem + env(s
 }
 
 #s-aero .aero-zahl {
-  bottom: calc(14px + var(--bogen-y));
+  bottom: calc(2px + var(--bogen-y));
   color: #f4f7e8;
   font-size: .82rem;
 }
 
 #s-aero .aero-marker {
-  bottom: calc(10px + var(--bogen-y));
+  bottom: calc(var(--bogen-y));
   height: 21px;
+}
+
+.vtrack-obstacle {
+  left: 0;
+  right: 0;
+  display: block;
+  padding: 0;
+  transform: none;
+  font-size: 0;
+}
+
+.vtrack-obstacle > span {
+  position: absolute;
+  left: var(--plane-x);
+  top: var(--plane-y);
+  display: block;
+  color: #edf6ed;
+  font-size: clamp(.7rem, 3.3vw, 1.08rem);
+  line-height: 1;
+  text-shadow: 0 0 5px #70e9ff, 1px 1px #001733;
+  transform: translate(-50%, -50%) rotate(var(--plane-rotation));
+  transform-origin: center;
 }
 
 /* Pilot-owned operations read blue; co-pilot operations read amber. */
@@ -156,7 +171,7 @@ main{width:min(100%,620px);margin:auto;padding:.85rem .5rem calc(1.15rem + env(s
 
 @media (max-width: 460px) {
   .attitude-gauge svg { width: 120px; height: 120px; }
-  #s-aero { width: 198px; height: 78px; min-height: 78px; }
+  #s-aero { width: 198px; height: 94px; min-height: 94px; }
   #s-aero .aero-zahl { font-size: .68rem; }
   #konzentration-reihe { gap: .35rem; }
   #konzentration-reihe .feld-zelle { width: 32px; height: 32px; }
