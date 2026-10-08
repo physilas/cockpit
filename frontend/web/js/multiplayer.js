@@ -373,13 +373,19 @@ function starte_Beitreten(code) {
 // in der jeweiligen Spielerfarbe.
 function aeroSkalaHTML(b,o) {
   const bg=Math.floor(b),og=Math.floor(o);
+  const bogenPosition = index => {
+    const x = 6 + index * 8.8;
+    const y = 3 + 19 * Math.pow((index - 5) / 5, 2);
+    return ` style="--bogen-x:${x}%;--bogen-y:${y}px"`;
+  };
   let html = '<div class="skala-leiste">';
   for (let n=2;n<=12;n++) {
-    html += `<span class="skala-zahl">${n}</span>`;
+    const index=n-2;
+    html += `<span class="skala-zahl aero-zahl"${bogenPosition(index)}>${n}</span>`;
     if (n < 12) {
-      if (n === bg) html += '<span class="skala-sep skala-sep-blau"></span>';
-      if (n === og) html += '<span class="skala-sep skala-sep-orange"></span>';
-      if (n !== bg && n !== og) html += '<span class="skala-luecke"></span>';
+      const marker=bogenPosition(index+.5);
+      if (n === bg) html += `<span class="skala-sep skala-sep-blau aero-marker"${marker}></span>`;
+      if (n === og) html += `<span class="skala-sep skala-sep-orange aero-marker"${marker}></span>`;
     }
   }
   html += '</div>';
@@ -726,6 +732,7 @@ function renderBoard(z) {
 function zelle(fixBesitzer,wertObj,slotIdx,e,z,gesperrt=false) {
   const div=document.createElement("div");
   div.className="feld-zelle";
+  if(e?.ziel)div.classList.add(`ziel-${e.ziel}`);
   if(wertObj){div.classList.add("belegt",wertObj.besitzer);div.textContent=wertObj.wert;return div;}
   if(e.zahlen&&slotIdx!==null)div.innerHTML=`<small>${e.zahlen[slotIdx].join("/")}</small>`;
   if(gesperrt){div.title="Reihenfolge beachten.";return div;}
@@ -767,7 +774,7 @@ function renderWuerfel(besitzer,z) {
   if (istMeins && werte.some(wert => wert !== null)) {
     const hideBtn = document.createElement("button");
     hideBtn.className = eigeneWuerfelVersteckt ? "view-btn" : "hide-btn";
-    hideBtn.textContent = eigeneWuerfelVersteckt ? "👁" : "🙈";
+    hideBtn.textContent = "◉";
     hideBtn.title = eigeneWuerfelVersteckt ? "Würfel anzeigen" : "Würfel verbergen";
     hideBtn.addEventListener("click", () => {
       eigeneWuerfelVersteckt = !eigeneWuerfelVersteckt;

@@ -71,13 +71,21 @@ function setzeMeldung(text, art) {
 function aeroSkalaHTML(blau, orange) {
   const bGrenze = Math.floor(blau);
   const oGrenze = Math.floor(orange);
+  const bogenPosition = index => {
+    // Die Mitte liegt am tiefsten, die beiden Enden steigen nach außen: so
+    // folgt die Beschriftung dem unteren Halbkreis des Originalboards.
+    const x = 6 + index * 8.8;
+    const y = 3 + 19 * Math.pow((index - 5) / 5, 2);
+    return ` style="--bogen-x:${x}%;--bogen-y:${y}px"`;
+  };
   let html = '<div class="skala-leiste">';
   for (let n = 2; n <= 12; n++) {
-    html += `<span class="skala-zahl">${n}</span>`;
+    const index = n - 2;
+    html += `<span class="skala-zahl aero-zahl"${bogenPosition(index)}>${n}</span>`;
     if (n < 12) {
-      if (n === bGrenze) html += '<span class="skala-sep skala-sep-blau"></span>';
-      if (n === oGrenze) html += '<span class="skala-sep skala-sep-orange"></span>';
-      if (n !== bGrenze && n !== oGrenze) html += '<span class="skala-luecke"></span>';
+      const marker = bogenPosition(index + 0.5);
+      if (n === bGrenze) html += `<span class="skala-sep skala-sep-blau aero-marker"${marker}></span>`;
+      if (n === oGrenze) html += `<span class="skala-sep skala-sep-orange aero-marker"${marker}></span>`;
     }
   }
   html += '</div>';
@@ -313,6 +321,7 @@ const ZIEL_BESCHRIFTUNG = {
 function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, gesperrt) {
   const div = document.createElement("div");
   div.className = "feld-zelle";
+  if (eintrag?.ziel) div.classList.add(`ziel-${eintrag.ziel}`);
 
   if (wertObjekt) {
     div.classList.add("belegt", wertObjekt.besitzer);
@@ -550,7 +559,7 @@ function renderWuerfel(besitzer, zustand) {
   if (zeigeViewBtn) {
     const viewBtn = document.createElement("button");
     viewBtn.className = "view-btn";
-    viewBtn.textContent = "👁";
+    viewBtn.textContent = "◉";
     viewBtn.title = "Würfel anzeigen";
     viewBtn.addEventListener("click", () => {
       diceVisible = besitzer;
@@ -565,7 +574,7 @@ function renderWuerfel(besitzer, zustand) {
   if (darfVerbergen) {
     const hideBtn = document.createElement("button");
     hideBtn.className = "hide-btn";
-    hideBtn.textContent = "🙈";
+    hideBtn.textContent = "◉";
     hideBtn.title = "Würfel verbergen";
     hideBtn.addEventListener("click", () => {
       diceVisible = null;
@@ -700,7 +709,7 @@ function renderNeuwurfPanel(zustand) {
     if (diceVisible !== neuwurfInitiatorRolle) {
       const viewBtn = document.createElement("button");
       viewBtn.className = "view-btn";
-      viewBtn.textContent = "👁";
+      viewBtn.textContent = "◉";
       viewBtn.title = "Würfel anzeigen";
       viewBtn.addEventListener("click", () => { diceVisible = neuwurfInitiatorRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);
@@ -740,7 +749,7 @@ function renderNeuwurfPanel(zustand) {
     if (diceVisible !== partnerRolle) {
       const viewBtn = document.createElement("button");
       viewBtn.className = "view-btn";
-      viewBtn.textContent = "👁";
+      viewBtn.textContent = "◉";
       viewBtn.title = "Würfel anzeigen";
       viewBtn.addEventListener("click", () => { diceVisible = partnerRolle; render(aktuellerZustand); });
       panel.appendChild(viewBtn);

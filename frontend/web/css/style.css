@@ -1214,3 +1214,119 @@ main, #tracks-leiste, .board-grid { min-width: 0; max-width: 100%; }
   .board-grid { padding-top: 3rem; }
   #s-aero { width: 178px; min-height: 42px; padding-top: 0.58rem; padding-bottom: 0.38rem; }
 }
+
+/* Letzte Anpassung an das physische Board: die Seitenelemente bleiben frei
+   von den gelben Führungsschienen, Felder und Anzeigepunkte sitzen senkrecht. */
+.side-col .feld-slot-mit-licht { flex-direction: column; gap: 3px; }
+.board-grid::before { left: calc(64px + 0.72rem); }
+.board-grid::after { right: calc(64px + 0.72rem); }
+
+/* Die Trays erhalten über der Cockpitkante eine echte Luftfuge.  Die
+   negative Spur-Überlappung bleibt ausschließlich für die beiden Leisten. */
+#tracks-leiste .dice-tray { margin-bottom: 4.1rem; }
+
+/* Ein einheitliches, platzstabiles Augen-Symbol. Beim Verbergen kommt nur
+   der diagonale Strich hinzu; dadurch ändert sich weder Größe noch Layout. */
+.dice-tray .view-btn,
+.dice-tray .hide-btn {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 0.2rem;
+  position: relative;
+  color: #e8eee4;
+  background: linear-gradient(180deg, #596e71, #33494c);
+  border: 2px solid #d8b44a;
+  border-radius: 7px;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.dice-tray .view-btn:hover,
+.dice-tray .hide-btn:hover { background: #6f8688; }
+.dice-tray .hide-btn::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  top: 11px;
+  left: 1px;
+  background: #f1d46b;
+  border-radius: 1px;
+  transform: rotate(-42deg);
+  box-shadow: 0 1px #26383a;
+}
+
+/* Die oberen Einschnitte sind feine, gedruckte Rahmen und keine massiven
+   Metallblöcke. So laufen die Leisten sichtbar in die Tafel hinein. */
+#tracks-leiste > .vtrack-col .vtrack-wrap::after {
+  left: -7px;
+  right: -7px;
+  bottom: -20px;
+  height: 39px;
+  border: 1px solid rgba(238,245,236,0.78);
+  border-bottom: 0;
+  border-radius: 11px 11px 0 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Die farbigen Zielbereiche greifen die blauen/orangen Felder des Boards
+   auf, ohne bereits gelegte Würfel zu überdecken. */
+.feld-zelle.ziel-fahrwerk:not(.belegt) {
+  background: linear-gradient(145deg, #3e59c9, #25266f);
+  border-color: #526ce3;
+}
+.feld-zelle.ziel-landeklappe:not(.belegt) {
+  background: linear-gradient(145deg, #cc7135, #79300e);
+  border-color: #ef9d53;
+}
+.feld-zelle.ziel-funk:not(.belegt) {
+  background: linear-gradient(145deg, #244953, #112d32);
+  border-color: #47737a;
+}
+.feld-zelle.ziel-konzentration:not(.belegt) {
+  background: linear-gradient(145deg, #4051a7, #242a68);
+  border-color: #6578dc;
+}
+
+/* Zahlen und Marker folgen nun wirklich der Halbkreisbahn der Skala. */
+#s-aero {
+  height: 72px;
+  min-height: 72px;
+  padding: 0;
+  overflow: visible;
+  border-radius: 0 0 112px 112px / 0 0 62px 62px;
+}
+#s-aero .skala-leiste {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+#s-aero .aero-zahl {
+  position: absolute;
+  left: var(--bogen-x);
+  bottom: var(--bogen-y);
+  min-width: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+}
+#s-aero .aero-marker {
+  position: absolute;
+  left: var(--bogen-x);
+  bottom: calc(var(--bogen-y) - 2px);
+  width: 7px;
+  height: 21px;
+  margin: 0;
+  transform: translateX(-50%);
+}
+#s-aero .skala-luecke { display: none; }
+
+@media (max-width: 380px) {
+  .board-grid::before { left: calc(52px + 0.5rem); }
+  .board-grid::after { right: calc(52px + 0.5rem); }
+  #tracks-leiste .dice-tray { margin-bottom: 3.45rem; }
+  #s-aero { height: 62px; min-height: 62px; }
+  #s-aero .aero-zahl { font-size: 0.78rem; }
+}
