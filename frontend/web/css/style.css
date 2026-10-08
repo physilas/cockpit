@@ -29,3 +29,135 @@ main{width:min(100%,620px);margin:auto;padding:.85rem .5rem calc(1.15rem + env(s
 /* multiplayer lobby */
 .mp-screen{color:#17343b}.mp-screen p{color:#607a7e!important}.code-display{border:2px solid #6c9394!important;color:#dff8ef!important;background:#133b45!important}.status-pill{color:#e5f3ee!important;background:#315961!important}.status-pill.ok{background:#2b765f!important}.status-pill.err{background:#a43b43!important}.code-input{border-color:#769c9d!important;color:#ecfbf3!important;background:#244b54!important}
 @media(max-width:460px){main{padding-inline:.25rem}#tracks-leiste{grid-template-columns:56px minmax(86px,1fr) 20px minmax(86px,1fr) 56px;gap:.22rem;min-height:285px;padding-inline:.1rem}.dice-tray{min-width:53px}.wuerfel{width:26px;height:26px}.vtrack-wrap{padding-inline:5px}.vtrack{border-width:3px}.board-grid{grid-template-columns:63px minmax(0,1fr) 63px;gap:.2rem;min-height:445px;padding-inline:.35rem}.feld-zelle{width:30px;height:30px}.ruder-slot-group{width:34px}.ruder-slot-group .feld-zelle{width:28px;height:28px}.attitude-gauge{padding:5px;border-width:6px}.attitude-gauge svg{width:114px;height:114px}.attitude-gauge-row{gap:.22rem}#s-aero{width:184px;height:58px}.aero-zahl{font-size:.6rem}#s-brems{width:136px}.skala-zahl{font-size:.61rem}.schub-reihe .feld-zelle{width:33px;height:33px}}
+
+/* Board refinements: ownership is immediately legible and the centre stays clean. */
+.attitude-gauge,
+.attitude-gauge:before {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.attitude-gauge {
+  padding: 0;
+}
+
+.attitude-gauge:before {
+  display: none;
+}
+
+.attitude-gauge svg {
+  width: 142px;
+  height: 142px;
+  box-shadow: 0 2px 3px rgba(13, 42, 48, .28);
+}
+
+/* A real lower semicircle for the aerodynamic band; labels inherit the curve
+   coordinates emitted by aeroSkalaHTML(). */
+#s-aero {
+  width: min(100%, 232px);
+  height: 92px;
+  min-height: 92px;
+  margin-top: -1.25rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#s-aero::before {
+  content: "";
+  position: absolute;
+  inset: 0 -3px 0;
+  border: 3px solid #5c7478;
+  border-top: 0;
+  border-radius: 0 0 130px 130px / 0 0 78px 78px;
+  background:
+    radial-gradient(ellipse at 50% -20%, rgba(111, 135, 137, .46), transparent 58%),
+    linear-gradient(180deg, #263c42, #122127);
+  box-shadow: inset 0 -2px rgba(0, 0, 0, .24), 0 2px 3px rgba(16, 41, 45, .28);
+}
+
+#s-aero::after {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 10px;
+  height: 54px;
+  border-bottom: 1px solid rgba(225, 243, 230, .22);
+  border-radius: 0 0 50% 50%;
+  pointer-events: none;
+}
+
+#s-aero .skala-leiste {
+  z-index: 1;
+}
+
+#s-aero .aero-zahl {
+  bottom: calc(14px + var(--bogen-y));
+  color: #f4f7e8;
+  font-size: .82rem;
+}
+
+#s-aero .aero-marker {
+  bottom: calc(10px + var(--bogen-y));
+  height: 21px;
+}
+
+/* Pilot-owned operations read blue; co-pilot operations read amber. */
+#col-pilot .ziel-funk:not(.belegt),
+#ruder-slot-pilot .feld-zelle:not(.belegt),
+.schub-reihe .feld-zelle:first-child:not(.belegt) {
+  border-color: #79d7ff;
+  background: linear-gradient(145deg, #258ce7, #173f9d);
+}
+
+#col-kopilot .ziel-funk:not(.belegt),
+#ruder-slot-kopilot .feld-zelle:not(.belegt),
+.schub-reihe .feld-zelle:last-child:not(.belegt) {
+  border-color: #ffd16b;
+  background: linear-gradient(145deg, #f18a31, #ad4017);
+}
+
+#ruder-slot-pilot .feld-zelle.belegt,
+.schub-reihe .feld-zelle:first-child.belegt {
+  background: radial-gradient(circle at 32% 22%, #50d7ff, #2152c5);
+}
+
+#ruder-slot-kopilot .feld-zelle.belegt,
+.schub-reihe .feld-zelle:last-child.belegt {
+  background: radial-gradient(circle at 32% 22%, #ffe071, #d85218);
+}
+
+/* Brakes are pilot controls, while concentration is a shared two-colour row. */
+#bremse-reihe .feld-zelle,
+#bremse-reihe .feld-zelle.belegt {
+  border-color: #74d3ff;
+  background: linear-gradient(145deg, #258ce7, #173f9d);
+}
+
+#konzentration-reihe {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+}
+
+#konzentration-reihe .feld-zelle,
+#konzentration-reihe .feld-zelle.belegt {
+  width: 38px;
+  height: 38px;
+  border-color: #f5f0c6;
+  background: linear-gradient(90deg, #2152c5 0 49%, #f08b29 51% 100%);
+}
+
+@media (max-width: 460px) {
+  .attitude-gauge svg { width: 120px; height: 120px; }
+  #s-aero { width: 198px; height: 78px; min-height: 78px; }
+  #s-aero .aero-zahl { font-size: .68rem; }
+  #konzentration-reihe { gap: .35rem; }
+  #konzentration-reihe .feld-zelle { width: 32px; height: 32px; }
+}
