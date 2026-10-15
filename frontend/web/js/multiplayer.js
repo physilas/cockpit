@@ -161,6 +161,7 @@ async function ladeEngine() {
 
 // ── Spielstart (Host) ────────────────────────────────────────────────────────
 function startGame() {
+  resetVerkehrUi();
   const auswahl = document.getElementById("flughafen-auswahl-host");
   if (auswahl && auswahl.value) gewaehlterFlughafen = auswahl.value;
   const rawZ = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
@@ -185,7 +186,7 @@ function sendState(rawZ) {
 
 // ── Host: Aktionen verarbeiten ───────────────────────────────────────────────
 function hostAktion(msg, absender) {
-  if (!bridge || !pyodideReady) return;
+  if (!bridge || !pyodideReady) return false;
   if (absender !== "pilot" && absender !== "kopilot") return;
   // The host assigns the role from the connection. A client-provided role is
   // never authoritative, which keeps this transport usable for future cloud
@@ -193,6 +194,7 @@ function hostAktion(msg, absender) {
   msg = {...msg, besitzer: absender};
   let raw;
   const zeigeErgebnis = r => {
+    if (!r.erfolg && msg.typ === "wirf_verkehrswuerfel") verkehrWurfFehlgeschlagen();
     const meldung = r.erfolg ? r.meldung : grundText(r.grund);
     if (absender === "pilot") setMeldung(r.erfolg ? meldung : "Nicht möglich: " + meldung, r.erfolg ? "erfolg" : "fehler");
     else if (conn?.open) conn.send(JSON.stringify({typ:"ergebnis", erfolg:r.erfolg, meldung}));
@@ -223,6 +225,7 @@ function hostAktion(msg, absender) {
         raw = r.zustand;
       }
     } else if (msg.typ === "neues_spiel") {
+      resetVerkehrUi();
       raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
       neuwurfUiReset();
 
@@ -258,7 +261,7 @@ function hostAktion(msg, absender) {
       neuwurfUiReset();
       raw = pyToJs(bridge.zustand());
     }
-  } catch(e) { console.error(e); return; }
+  } catch(e) { console.error(e); return false; }
   if (raw) sendState(raw);
 }
 
@@ -266,9 +269,10 @@ function hostAktion(msg, absender) {
 function meineAktion(msg) {
   msg.besitzer = myRole;
   if (myRole === "pilot") {
-    hostAktion(msg, "pilot");
+    return hostAktion(msg, "pilot");
   } else {
-    if (conn?.open) conn.send(JSON.stringify(msg));
+    if (!conn?.open) return false;
+    conn.send(JSON.stringify(msg));
   }
 }
 
@@ -358,6 +362,7 @@ function starte_Beitreten(code) {
         render(msg.zustand);
       }
       if (msg.typ === "ergebnis") {
+        if (!msg.erfolg) verkehrWurfFehlgeschlagen();
         setMeldung(
           msg.erfolg ? msg.meldung : "Nicht möglich: " + msg.meldung,
           msg.erfolg ? "erfolg" : "fehler"
@@ -454,7 +459,7 @@ function bindeNeuwurfTokens(z) {
 
 // Jede Leiste zeigt nur noch ihre aktuell sichtbaren Felder. So bleiben
 // keine leeren Kacheln oberhalb der Entfernung bzw. Höhe zurück.
-const TRACK_UNIT_PX = 30;
+const TRACK_UNIT_PX = 36;
 function setzeGauge(prefix, remaining) {
   const track = document.getElementById(`${prefix}-track`);
   const height = Math.max(0, remaining) * TRACK_UNIT_PX;
@@ -494,39 +499,7 @@ function renderTracks(z) {
   document.getElementById("distance-track").setAttribute("aria-label", `Entfernungsleiste: ${z.entfernung} Schritte bis zum Flughafen`);
   renderDistanceLabels(z.entfernung, z.entfernungswerte);
 
-  const obstaclesEl = document.getElementById("distance-obstacles");
-  obstaclesEl.innerHTML = "";
-  const aktuellerIndex = laenge - 1 - z.entfernung;
-  (z.flugzeuge || []).forEach((count, i) => {
-    if (count <= 0 || i < aktuellerIndex) return;
-    const y = (distanzEinheiten - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
-    if (y < 0 || y > distanzEinheiten * TRACK_UNIT_PX) return;
-    const el = document.createElement("span");
-    el.className = "vtrack-obstacle";
-    el.style.top = (y - TRACK_UNIT_PX / 2) + "px";
-    el.style.height = TRACK_UNIT_PX + "px";
-    // Größere Symbole in stabilen, leicht versetzten Spalten.
-    for (let k = 0; k < count; k++) {
-      const zufall = salt => {
-        const wert = Math.sin((i + 1) * 89.17 + (k + 1) * 41.73 + salt * 17.31) * 43758.5453;
-        return wert - Math.floor(wert);
-      };
-      const spalten = Math.min(count, 3);
-      const x = count === 1 ? 54 + zufall(1) * 14
-        : 36 + (k % spalten) * 44 / (spalten - 1) + zufall(1) * 2;
-      const yTile = count === 1 ? 40 + zufall(2) * 20
-        : 36 + (k % 2) * 22 + zufall(2) * 6;
-      const plane = document.createElement("span");
-      plane.textContent = "✈";
-      plane.style.setProperty("--plane-x", `${x}%`);
-      if (z.flugzeugwuerfel?.[i]) plane.style.setProperty("--plane-x", `${x * 0.65}%`);
-      plane.style.setProperty("--plane-y", `${yTile}%`);
-      plane.style.setProperty("--plane-rotation", `${Math.round(zufall(47) * 46 - 23)}deg`);
-      el.appendChild(plane);
-    }
-    obstaclesEl.appendChild(el);
-  });
-
+  renderEntfernungsFlugzeuge(z, TRACK_UNIT_PX);
   renderKurven(z.kurven_min, z.kurven_max, laenge, z.entfernung);
 }
 
@@ -564,7 +537,7 @@ function renderKurven(kmin, kmax, laenge, entfernung) {
     if (i < aktuellerIndex) return;                              // schon überflogen
     const center = (entfernung + 1 - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
     const badge = kurvenBadgeEl(min, max);
-    badge.style.top = (center - TRACK_UNIT_PX / 2 + 2) + "px";  // knapp innerhalb der oberen Feldgrenze
+    badge.style.top = (center - TRACK_UNIT_PX / 2) + "px";  // direkt an der Feldgrenze
     cont.appendChild(badge);
   });
 }
@@ -628,7 +601,7 @@ function render(z) {
   renderAttitude(z.fluglage);
   renderTracks(z);
   renderVerkehr(z, TRACK_UNIT_PX, myRole === z.am_zug, () => {
-    meineAktion({ typ: "wirf_verkehrswuerfel" });
+    return meineAktion({ typ: "wirf_verkehrswuerfel" });
   });
 
   if(myRole) {

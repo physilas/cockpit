@@ -233,11 +233,20 @@ voraus. Auch auf einem bereits belegten Feld kommt ein weiteres Flugzeug
 hinzu. Liegt das Ziel hinter dem Flughafen, entfällt das neue Flugzeug.
 Überflogene Felder lösen keinen zusätzlichen Wurf aus.
 
-In beiden Web-Spielmodi zeigt der Bereich „Schwarze Verkehrswürfel“
-die offenen Würfe und ihre Ergebnisse. Erst nach dem letzten Wurf werden
-die acht Spielerwürfel geworfen und die normalen Aktionen freigegeben.
+In beiden Web-Spielmodi öffnet sich bei fälligen Würfen automatisch ein
+Dialog mit einem animierten schwarzen Zahlenwürfel. Weißer Nebel sperrt
+das Cockpit; die Entfernungsleiste bleibt sichtbar. „Strecke ansehen“
+schließt nur den Dialog, nicht die Wurfphase. Mehrere Würfe werden einzeln
+abgearbeitet, anschließend gibt „Runde beginnen“ das Cockpit frei.
+Erst nach dem letzten Wurf werden die acht Spielerwürfel geworfen.
+Kurven stehen klein am oberen Feldrand, Verkehrswürfel rechts und
+Flugzeuge dazwischen; eine Zahl am Flugzeug zeigt Mehrfachbelegungen.
 Im Multiplayer würfelt die Person, die die Runde beginnt; beide Geräte
 sehen denselben Verkehr und dieselben Ergebnisse.
+
+Die Browser-Regressionsprüfung für Dialog, Sperre, Mehrfachwürfe und
+Rollenwechsel läuft ohne zusätzliche Pakete: lokalen Webserver starten,
+`tests/traffic-ui.html` öffnen und „UI-Tests starten“ anklicken.
 
 Engine-Snapshots enthalten dazu `phase`, `flugzeugwuerfel`,
 `verkehrswuerfel_offen` und `verkehrswuerfe`. Die gemeinsame Aktion heißt

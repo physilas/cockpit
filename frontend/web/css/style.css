@@ -340,3 +340,129 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
 #verkehr-panel button:disabled { opacity: .45; cursor: default; }
 .traffic-results { display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
 .traffic-result { display: inline-flex; align-items: center; gap: .35rem; }
+
+/* Drei getrennte Bereiche pro Distanzfeld: Zahlen links, Kurven oben
+   rechts, Flugzeuge darunter; Würfel bleiben in ihrer rechten Spur. */
+.vtrack-kurve {
+  left: auto;
+  right: 3px;
+  transform: none;
+  gap: 0;
+  padding: 0 2px;
+  border-radius: 0 0 3px 3px;
+  font-size: 6.5px;
+  line-height: 8px;
+  box-shadow: 0 1px 2px #00152d55;
+}
+.vtrack-kurve > span { width: 6px; }
+.vtrack-aircraft {
+  position: absolute;
+  left: 18px;
+  right: 4px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vtrack-aircraft.with-traffic { right: 32px; }
+.aircraft-group { position: relative; display: block; width: 24px; height: 20px; }
+.aircraft-icon { display: block; color: #fff; font-size: 21px; line-height: 20px; text-shadow: 0 0 4px #84eaff; }
+.aircraft-count {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 12px;
+  padding: 0 2px;
+  border: 1px solid #b8e9f0;
+  border-radius: 3px;
+  color: #fff;
+  background: #08283f;
+  font: 900 9px/11px ui-monospace, Menlo, monospace;
+  text-align: center;
+}
+
+/* Weißer Nebel deckt nur das Cockpit ab; die Strecke bleibt einsehbar. */
+.traffic-fog {
+  position: fixed;
+  z-index: 30;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(#ffffffb8, #fffffff0 75%);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+}
+.verkehr-aktiv .board-grid { filter: grayscale(.6); }
+.verkehr-aktiv .wuerfel-reihe { visibility: hidden; }
+.verkehr-aktiv #verkehr-panel {
+  position: fixed;
+  z-index: 35;
+  right: auto;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(calc(100% - 24px), 360px);
+  max-height: 45dvh;
+  overflow: auto;
+  transform: translateX(-50%);
+  box-shadow: 0 12px 36px #18343a33;
+}
+.verkehr-dialog-offen { overflow: hidden; }
+.verkehr-dialog-offen #verkehr-panel { visibility: hidden; }
+#verkehr-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100vw - 24px), 340px);
+  max-height: calc(100dvh - 24px);
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  border: 2px solid #6b9298;
+  border-radius: 16px;
+  color: #183c45;
+  background: linear-gradient(145deg, #fff, #edf5f3);
+  box-shadow: 0 16px 50px #0d344244;
+  text-align: center;
+}
+#verkehr-dialog[open] { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+#verkehr-dialog::backdrop { background: transparent; }
+#verkehr-dialog h2 { margin: 0; font-size: 1.05rem; }
+#verkehr-dialog p { margin: 0; font-size: .8rem; line-height: 1.4; }
+#verkehr-dialog small { color: #577078; font-size: .65rem; line-height: 1.4; }
+.traffic-roll-stage { display: grid; place-items: center; height: 96px; perspective: 450px; }
+.traffic-roll-die {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 3px solid #4b5055;
+  border-radius: 15px;
+  color: #fff;
+  background: radial-gradient(circle at 28% 20%, #34383d, #080a0d 75%);
+  box-shadow: inset 0 2px 3px #ffffff30, 0 7px 12px #08233144;
+  font: 900 40px/1 ui-monospace, Menlo, monospace;
+}
+.traffic-roll-die.rolling { animation: traffic-tumble .55s ease-in-out infinite; }
+.traffic-roll-result { min-height: 2.3em; font-weight: 850; }
+.traffic-roll-remaining { color: #52717a; }
+#verkehr-dialog button {
+  width: 100%;
+  min-height: 44px;
+  padding: .5rem;
+  border: 1px solid #efb445;
+  border-radius: 7px;
+  color: #fff;
+  background: linear-gradient(#e48525, #b94117);
+  font-size: .82rem;
+  font-weight: 850;
+  touch-action: manipulation;
+}
+#verkehr-dialog button:disabled { opacity: .55; cursor: default; }
+#verkehr-dialog .traffic-peek-button { color: #264d58; border-color: #a2bdc1; background: transparent; }
+@keyframes traffic-tumble {
+  0%, 100% { transform: translateY(0) rotateX(0) rotateZ(-8deg); }
+  35% { transform: translateY(-10px) rotateX(30deg) rotateZ(18deg); }
+  70% { transform: translateY(-3px) rotateX(-22deg) rotateZ(-16deg); }
+}
+@media (prefers-reduced-motion: reduce) { .traffic-roll-die.rolling { animation: none; } }

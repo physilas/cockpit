@@ -128,7 +128,7 @@ function renderBremsSkala(bs) {
 
 // Jede Leiste ist nur so hoch wie ihre aktuell sichtbaren Felder. Dadurch
 // entstehen weder beim Start noch nach einer Bewegung leere Felder oben.
-const TRACK_UNIT_PX = 30;
+const TRACK_UNIT_PX = 36;
 function setzeGauge(prefix, remaining) {
   const track = document.getElementById(`${prefix}-track`);
   const height = Math.max(0, remaining) * TRACK_UNIT_PX;
@@ -174,40 +174,7 @@ function renderTracks(zustand) {
   document.getElementById("distance-track").setAttribute("aria-label", `Entfernungsleiste: ${zustand.entfernung} Schritte bis zum Flughafen`);
   renderDistanceLabels(zustand.entfernung, zustand.entfernungswerte);
 
-  const obstaclesEl = document.getElementById("distance-obstacles");
-  obstaclesEl.innerHTML = "";
-  const aktuellerIndex = laenge - 1 - zustand.entfernung;
-  (zustand.flugzeuge || []).forEach((count, i) => {
-    if (count <= 0 || i < aktuellerIndex) return;
-    const y = (distanzEinheiten - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
-    if (y < 0 || y > distanzEinheiten * TRACK_UNIT_PX) return;
-    const el = document.createElement("span");
-    el.className = "vtrack-obstacle";
-    el.style.top = (y - TRACK_UNIT_PX / 2) + "px";
-    el.style.height = TRACK_UNIT_PX + "px";
-    // Stabile, leicht versetzte Spalten halten die größeren Symbole auch
-    // auf schmalen Displays auseinander und lassen links Platz für Zahlen.
-    for (let k = 0; k < count; k++) {
-      const zufall = salt => {
-        const wert = Math.sin((i + 1) * 89.17 + (k + 1) * 41.73 + salt * 17.31) * 43758.5453;
-        return wert - Math.floor(wert);
-      };
-      const spalten = Math.min(count, 3);
-      const x = count === 1 ? 54 + zufall(1) * 14
-        : 36 + (k % spalten) * 44 / (spalten - 1) + zufall(1) * 2;
-      const yTile = count === 1 ? 40 + zufall(2) * 20
-        : 36 + (k % 2) * 22 + zufall(2) * 6;
-      const plane = document.createElement("span");
-      plane.textContent = "✈";
-      plane.style.setProperty("--plane-x", `${x}%`);
-      if (zustand.flugzeugwuerfel?.[i]) plane.style.setProperty("--plane-x", `${x * 0.65}%`);
-      plane.style.setProperty("--plane-y", `${yTile}%`);
-      plane.style.setProperty("--plane-rotation", `${Math.round(zufall(47) * 46 - 23)}deg`);
-      el.appendChild(plane);
-    }
-    obstaclesEl.appendChild(el);
-  });
-
+  renderEntfernungsFlugzeuge(zustand, TRACK_UNIT_PX);
   renderKurven(zustand.kurven_min, zustand.kurven_max, laenge, zustand.entfernung);
 }
 
@@ -245,7 +212,7 @@ function renderKurven(kmin, kmax, laenge, entfernung) {
     if (i < aktuellerIndex) return;                              // schon überflogen
     const center = (entfernung + 1 - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
     const badge = kurvenBadgeEl(min, max);
-    badge.style.top = (center - TRACK_UNIT_PX / 2 + 2) + "px";  // knapp innerhalb der oberen Feldgrenze
+    badge.style.top = (center - TRACK_UNIT_PX / 2) + "px";  // direkt an der Feldgrenze
     cont.appendChild(badge);
   });
 }
@@ -344,7 +311,9 @@ function render(zustand) {
   renderAttitude(zustand.fluglage);
   renderTracks(zustand);
   renderVerkehr(zustand, TRACK_UNIT_PX, true, () => {
-    nachAktion(pyToJs(bridge.wirf_verkehrswuerfel()));
+    const antwort = pyToJs(bridge.wirf_verkehrswuerfel());
+    nachAktion(antwort);
+    return antwort.ergebnis.erfolg;
   });
   renderCockpitBoard(zustand);
   renderWuerfel("pilot", zustand);
@@ -888,6 +857,7 @@ function spielfeldUntenAusrichten() {
 }
 
 async function neuesSpiel() {
+  resetVerkehrUi();
   const flughafen = document.getElementById("flughafen-auswahl").value;
   ausgewaehlterWuerfel = null;
   kaffeeMenuOffenFuer = null;
@@ -905,6 +875,7 @@ async function neuesSpiel() {
 
 // Zurück zum Startmenü (Pass & Play <-> Multiplayer Auswahl)
 function zurueckZumMenue() {
+  resetVerkehrUi();
   document.getElementById("game-header").classList.add("versteckt");
   document.getElementById("spiel-ui").classList.add("versteckt");
   document.getElementById("lade-hinweis").classList.add("versteckt");
