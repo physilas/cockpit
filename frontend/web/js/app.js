@@ -331,6 +331,7 @@ function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, g
   const div = document.createElement("div");
   div.className = "feld-zelle";
   if (eintrag?.ziel) div.classList.add(`ziel-${eintrag.ziel}`);
+  FlightModules.identifyField(div, eintrag, slotIndex, fixierterBesitzer);
 
   if (wertObjekt) {
     if (wertObjekt.quelle) div.classList.add(`source-${wertObjekt.quelle}`);

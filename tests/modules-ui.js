@@ -21,6 +21,18 @@ document.getElementById('run-tests').addEventListener('click', async event => {
   const render = patch => {
     state = {...structuredClone(base),...patch}; options.selected = selected;
     document.getElementById('schub-reihe').innerHTML = '<div class="feld-zelle"></div><span class="inline-label">Schub</span><div class="feld-zelle"></div>';
+    const identify = (selector, entry, owner = null) => document.querySelectorAll(selector).forEach((el,i) => FlightModules.identifyField(el,entry,i,owner));
+    for (const role of ['pilot','kopilot']) {
+      document.getElementById(`ruder-slot-${role}`).innerHTML = '<div class="feld-zelle"></div>';
+      identify(`#ruder-slot-${role} .feld-zelle`,{ziel:'ruder',zugriff:['pilot','kopilot']},role);
+    }
+    identify('#schub-reihe .feld-zelle:first-child',{ziel:'triebwerk',zugriff:['pilot','kopilot']},'pilot');
+    identify('#schub-reihe .feld-zelle:last-child',{ziel:'triebwerk',zugriff:['pilot','kopilot']},'kopilot');
+    identify('#col-pilot-felder .feld-zelle',{ziel:'fahrwerk',zugriff:['pilot']});
+    identify('#col-kopilot-felder .feld-zelle',{ziel:'landeklappe',zugriff:['kopilot']});
+    for (const role of ['pilot','kopilot']) identify(`#fixture-funk-${role} .feld-zelle`,{ziel:'funk',zugriff:[role],funk_feld_basis:0});
+    document.getElementById('konzentration-reihe').innerHTML = '<div class="feld-zelle"></div>'.repeat(3);
+    identify('#konzentration-reihe .feld-zelle',{ziel:'konzentration',zugriff:['pilot','kopilot']});
     FlightModules.renderBrakes(state.bremsstaerke); FlightModules.render(state,options);
   };
   const rect = el => el.getBoundingClientRect();
@@ -34,6 +46,7 @@ document.getElementById('run-tests').addEventListener('click', async event => {
       document.getElementById('spiel-ui').classList.remove('versteckt');
       document.getElementById('col-pilot-felder').innerHTML = '<div class="feld-zeile"><span class="feld-label">Fahrw.</span><div class="feld-zelle">1/2</div><div class="feld-zelle">3/4</div><div class="feld-zelle">5/6</div></div>';
       document.getElementById('col-kopilot-felder').innerHTML = '<div class="feld-zeile"><span class="feld-label">Klappen</span><div class="feld-zelle">1/2</div><div class="feld-zelle">2/3</div><div class="feld-zelle">4/5</div><div class="feld-zelle">5/6</div></div>';
+      for (const role of ['pilot','kopilot']) document.getElementById(`col-${role}`).insertAdjacentHTML('beforeend', `<div id="fixture-funk-${role}"><div class="feld-zelle"></div>${role === 'kopilot' ? '<div class="feld-zelle"></div>' : ''}</div>`);
       render({});
       Landings.updateFlight({...state,szenario_id:'KEF-black'});
       test(`${page}: compact header includes accessible flight context`, () => {
@@ -103,6 +116,49 @@ document.getElementById('run-tests').addEventListener('click', async event => {
         assert(!document.querySelector('.board-grid').classList.contains('has-fuel'),'Fuel padding retained');
         assert(!document.getElementById('bremse-reihe').classList.contains('versteckt'),'Normal brakes absent');
       });
+      const target = (ziel, index, ziel_besitzer, funk_feld = 0) => ({ziel,index,ziel_besitzer,funk_feld,label:`${ziel} ${index ?? funk_feld} · ${ziel_besitzer}`});
+      const pending = (ziele, quelle = 'intern', rolle = 'kopilot') => ({rolle,quelle,wert:3,ziele,kaffee_deltas:[]});
+      test(`${page}: intern taps the physical field with the correct colour and radio index`, () => {
+        const radio = target('funk',null,'kopilot',1), rudder = target('ruder',null,'kopilot');
+        options.role='kopilot'; actions=[];
+        render({zusatzaktion:pending([radio,rudder])});
+        assert(document.querySelectorAll('.bonus-target').length===2,'Incorrect legal destinations highlighted');
+        assert(!document.querySelector('#ruder-slot-pilot .bonus-target'),'Wrong-colour rudder enabled');
+        assert(!document.querySelector('#konzentration-reihe .bonus-target'),'Intern can make coffee');
+        assert(document.getElementById('flight-modules').classList.contains('versteckt'),'Word-list panel remains');
+        const button=document.querySelector('#fixture-funk-kopilot .feld-zelle:nth-child(2)');
+        assert(button.getAttribute('role')==='button' && button.tabIndex===0,'Field not keyboard-accessible');
+        button.click();
+        assert(JSON.stringify(actions)===JSON.stringify([['kopilot','zusatz_platzieren',radio]]),'Radio field dispatch lost index or colour');
+      });
+      test(`${page}: native bonus fields and keyboard dispatch exactly one bonus action`, () => {
+        const fuel=target('kerosin',null,'kopilot'), ice=target('eisbremse',1,'kopilot');
+        actions=[]; render({zusatzaktion:pending([fuel,ice])});
+        document.querySelector('#fuel-action .bonus-target').click();
+        assert(JSON.stringify(actions)===JSON.stringify([['kopilot','zusatz_platzieren',fuel]]),'Fuel also dispatches a normal placement');
+        render({zusatzaktion:pending([fuel,ice])});
+        actions=[];
+        document.querySelector('#ice-brakes .bonus-target').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+        assert(JSON.stringify(actions)===JSON.stringify([['kopilot','zusatz_platzieren',ice]]),'Keyboard dispatches wrong or repeated action');
+        const pilotRudder=target('ruder',null,'pilot');
+        render({zusatzaktion:pending([pilotRudder],'synchronisation')}); actions=[];
+        document.querySelector('#ruder-slot-pilot .bonus-target').click();
+        assert(JSON.stringify(actions)===JSON.stringify([['kopilot','zusatz_platzieren',pilotRudder]]),'Co-pilot cannot place synchronisation on pilot field');
+      });
+      test(`${page}: waiting roles and completed actions cannot place a stale bonus`, () => {
+        const fuel=target('kerosin',null,'kopilot'), p=pending([fuel]);
+        options.role='pilot'; actions=[]; render({zusatzaktion:p});
+        assert(!document.querySelector('.bonus-target'),'Waiting role can place partner token');
+        document.querySelector('#fuel-action .feld-zelle').click();
+        assert(actions.length===0,'Waiting role dispatched an action');
+        assert(document.querySelector('.intern-placement-hint').textContent.includes('Co-Pilot platziert'),'Waiting status absent');
+        options.role='kopilot'; render({zusatzaktion:p});
+        const oldField=document.querySelector('#fuel-action .bonus-target');
+        render({}); oldField.click();
+        assert(actions.length===0 && !document.querySelector('.bonus-target'),'Stale highlight still places a token');
+        assert(!document.querySelector('.intern-placement-hint'),'Pending hint remains after placement');
+        options.role=null;
+      });
       FlightModules.reset();
     }
     fixture.style.width=''; render({});
@@ -128,6 +184,39 @@ document.getElementById('run-tests').addEventListener('click', async event => {
       assert(document.getElementById('flight-modules').textContent.includes('Warte auf Pilotin'),'Missing partner waiting message');
       assert(!document.getElementById('flight-modules').querySelector('button'),'Other role can reveal dice');
     });
+    const bonusTarget = {ziel:'ruder',index:null,ziel_besitzer:'pilot',funk_feld:0,label:'Ruder · Pilotin'};
+    const unrolled = {rolle:'kopilot',quelle:'synchronisation',wert:null,geworfen:false,ziele:[],kaffee_deltas:[]};
+    options.role='pilot'; render({zusatzaktion:unrolled});
+    test('Synchronisation opens a black die popup and waits for the designated other player', () => {
+      assert(document.querySelector('#sync-dialog[open]'),'Roll popup absent');
+      assert(document.querySelector('#sync-dialog .traffic-roll-die').textContent==='?','Die rolled automatically');
+      assert(document.querySelector('.sync-roll-button').disabled,'Wrong role can roll');
+      assert(!document.querySelector('.bonus-target'),'Can place before rolling');
+    });
+    options.role='kopilot'; actions=[];
+    const onAction=options.onAction;
+    options.onAction=(...args) => {
+      actions.push(args);
+      if (args[1]==='synchronisation_wuerfeln') render({zusatzaktion:{...unrolled,wert:4,geworfen:true,ziele:[bonusTarget]}});
+    };
+    render({zusatzaktion:unrolled});
+    document.querySelector('.sync-roll-button').click();
+    document.querySelector('.sync-roll-button').click();
+    await new Promise(resolve => setTimeout(resolve,500));
+    test('One manual roll animates, dispatches once and shows the host result', () => {
+      assert(actions.length===1 && actions[0][0]==='kopilot' && actions[0][1]==='synchronisation_wuerfeln','Roll duplicated or wrong owner');
+      assert(document.querySelector('#sync-dialog .traffic-roll-die').textContent==='4','Rolled value absent');
+      assert(document.querySelector('.sync-roll-button').textContent==='Im Cockpit platzieren','Placement transition absent');
+    });
+    test('The result closes into direct board placement with the same pending die', () => {
+      document.querySelector('.sync-roll-button').click();
+      assert(!document.querySelector('#sync-dialog[open]'),'Roll popup still blocks board');
+      document.querySelector('#ruder-slot-pilot .bonus-target').click();
+      assert(actions.length===2 && actions[1][1]==='zusatz_platzieren' && actions[1][2]===bonusTarget,'Board placement lost the bonus target');
+      render({});
+      assert(!document.querySelector('#sync-dialog[open]'),'Popup reappears after completion');
+    });
+    options.onAction=onAction; options.role=null;
     lines.push(`\n${count} Prüfungen bestanden.`); output.textContent=lines.join('\n');
   } catch(e) {lines.push(`✗ ${e.message}`); output.textContent=lines.join('\n'); console.error(e);}
   finally {FlightModules.reset(); event.target.disabled=false;}

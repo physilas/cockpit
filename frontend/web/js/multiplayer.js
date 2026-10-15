@@ -789,6 +789,7 @@ function zelle(fixBesitzer,wertObj,slotIdx,e,z,gesperrt=false) {
   const div=document.createElement("div");
   div.className="feld-zelle";
   if(e?.ziel)div.classList.add(`ziel-${e.ziel}`);
+  FlightModules.identifyField(div,e,slotIdx,fixBesitzer);
   if(wertObj){if(wertObj.quelle)div.classList.add(`source-${wertObj.quelle}`);div.classList.add("belegt",wertObj.besitzer);div.textContent=wertObj.wert;return div;}
   if(e.zahlen&&slotIdx!==null)div.innerHTML=`<small>${e.zahlen[slotIdx].join("/")}</small>`;
   if(gesperrt){div.title="Reihenfolge beachten.";return div;}

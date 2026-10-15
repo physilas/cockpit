@@ -210,32 +210,66 @@ class ModuleTest(unittest.TestCase):
         self.assertEqual(g.am_zug, "kopilot")
         self.assertFalse(g.zusatz.aktion("pilot", "kooperation_start", {}))
 
-    def test_synchronisation_copilot_places_bonus_on_pilot_axis_once(self):
+    def test_synchronisation_other_player_rolls_then_places_on_either_colour_once(self):
         g = self.game(cards=("synchronisation", "control"))
-        with patch("backend.zusatzregeln.wirf_verkehrswuerfel", return_value=2):
+        with patch("backend.zusatzregeln.wirf_verkehrswuerfel", return_value=2) as roll:
             self.place(g, "pilot", 0, 1, "fahrwerk", 0)
             self.place(g, "kopilot", 0, 2, "landeklappe", 0)
+            p = g.zustand()["zusatzaktion"]
+            self.assertEqual((p["rolle"], p["quelle"], p["wert"]), ("pilot", "synchronisation", None))
+            self.assertFalse(p["geworfen"])
+            self.assertEqual(p["ziele"], [])
+            self.assertEqual(p["kaffee_deltas"], [])
+            roll.assert_not_called()
+            self.assertFalse(g.zusatz.aktion("kopilot", "synchronisation_wuerfeln", {}))
+            self.assertFalse(g.zusatz.aktion("pilot", "bonus_kaffee", {"delta":1}))
+            self.assertTrue(g.zusatz.aktion("pilot", "synchronisation_wuerfeln", {}))
+            self.assertFalse(g.zusatz.aktion("pilot", "synchronisation_wuerfeln", {}))
+            roll.assert_called_once()
         p = g.zustand()["zusatzaktion"]
-        self.assertEqual((p["rolle"], p["quelle"], p["wert"]), ("kopilot", "synchronisation", 2))
-        target = next(t for t in p["ziele"] if t["ziel"] == "ruder" and t["ziel_besitzer"] == "pilot")
-        self.assertFalse(g.zusatz.aktion("pilot", "zusatz_platzieren", target))
-        self.assertTrue(g.zusatz.aktion("kopilot", "zusatz_platzieren", target))
+        target = next(t for t in p["ziele"] if t["ziel"] == "ruder" and t["ziel_besitzer"] == "kopilot")
+        self.assertFalse(g.zusatz.aktion("kopilot", "zusatz_platzieren", target))
+        self.assertTrue(g.zusatz.aktion("pilot", "zusatz_platzieren", target))
         self.assertEqual(g.am_zug, "pilot")
-        self.assertEqual(g.zustand()["felder"]["ruder"]["pilot"]["quelle"], "synchronisation")
+        self.assertEqual(g.zustand()["felder"]["ruder"]["kopilot"]["quelle"], "synchronisation")
         self.assertEqual(sum(w.platziert for w in g.pilot_wuerfel + g.kopilot_wuerfel), 2)
         g.zusatz.nach_platzierung("fahrwerk")
+        self.assertIsNone(g.zustand()["zusatzaktion"])
+
+    def test_synchronisation_pilot_trigger_hands_roll_to_copilot(self):
+        g = self.game(cards=("synchronisation", "control"))
+        self.assertTrue(self.place(g, "pilot", 0, 3, "ruder"))
+        self.assertTrue(self.place(g, "kopilot", 0, 2, "landeklappe", 0))
+        self.assertTrue(self.place(g, "pilot", 1, 1, "fahrwerk", 0))
+        self.assertEqual(g.zustand()["zusatzaktion"]["rolle"], "kopilot")
+        self.assertIsNone(g.zustand()["zusatzaktion"]["wert"])
+        self.assertFalse(g.zusatz.aktion("kopilot", "zusatz_platzieren", {}))
+        self.assertFalse(g.rundenende())
+
+    def test_synchronisation_roll_cannot_outlive_realtime_deadline(self):
+        now = [100.0]
+        g = self.game("LOG_PBH_RED", ("synchronisation", "control"), clock=lambda:now[0])
+        self.place(g, "pilot", 0, 1, "fahrwerk", 0)
+        self.place(g, "kopilot", 0, 2, "landeklappe", 0)
+        now[0] = 160
+        with patch("backend.zusatzregeln.wirf_verkehrswuerfel") as roll:
+            result = g.zusatz.aktion("pilot", "synchronisation_wuerfeln", {})
+            self.assertFalse(result)
+            self.assertEqual(result.grund, "zeit_abgelaufen")
+            roll.assert_not_called()
         self.assertIsNone(g.zustand()["zusatzaktion"])
 
     def test_synchronisation_accepts_coffee_but_intern_token_does_not(self):
         g = self.game(cards=("synchronisation", "control"))
         g.cockpit.kaffeetassen = 1
+        self.place(g, "pilot", 0, 1, "fahrwerk", 0)
+        self.place(g, "kopilot", 0, 2, "landeklappe", 0)
         with patch("backend.zusatzregeln.wirf_verkehrswuerfel", return_value=4):
-            self.place(g, "pilot", 0, 1, "fahrwerk", 0)
-            self.place(g, "kopilot", 0, 2, "landeklappe", 0)
-        self.assertTrue(g.zusatz.aktion("kopilot", "bonus_kaffee", {"delta":-1}))
+            self.assertTrue(g.zusatz.aktion("pilot", "synchronisation_wuerfeln", {}))
+        self.assertTrue(g.zusatz.aktion("pilot", "bonus_kaffee", {"delta":-1}))
         self.assertEqual(g.zustand()["zusatzaktion"]["wert"], 3)
         self.assertEqual(g.cockpit.kaffeetassen, 0)
-        self.assertFalse(g.zusatz.aktion("pilot", "bonus_kaffee", {"delta":1}))
+        self.assertFalse(g.zusatz.aktion("kopilot", "bonus_kaffee", {"delta":1}))
         intern = self.game("LOG_ATL_GREEN", ())
         self.place(intern, "pilot", 0, 2, "training")
         self.assertFalse(intern.zusatz.aktion("pilot", "bonus_kaffee", {"delta":1}))

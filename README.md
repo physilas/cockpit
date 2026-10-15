@@ -315,3 +315,5 @@ stehen auf den Karten sowie mit Links in den Details. „Bildnachweise und Lizen
 CC0, CC BY und CC BY-SA; die jeweilige Bildfassung behält die angegebene Lizenz.
 
 Die Zusatzinstrumente sind in das Cockpit integriert: Treibstoff rechts mit Würfelfeld unter den Klappen, Eisbremsen im Bremsbereich und ein vergrößerbares Windrad neben dem Schub. Praktikant und ausgewählte Fähigkeitskarten nutzen schmale Leisten darunter. Flughafeninfos stehen platzsparend im 42 px hohen Kopfbereich. Ein einzelner Neuwurfknopf zeigt die verfügbare Anzahl. Die UI-Prüfung dafür läuft unter `tests/modules-ui.html` über „Instrumente prüfen“.
+
+Praktikantenplättchen und Synchronisationswürfel werden direkt auf hervorgehobene Cockpitfelder gelegt. Bei Synchronisation würfelt die Person gegenüber dem auslösenden Zug zuerst im schwarzen Würfeldialog; danach werden die erlaubten Ziele freigegeben. Die regulären Spielerwürfel werden dabei nicht verbraucht.

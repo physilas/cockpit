@@ -5,6 +5,111 @@ window.FlightModules = (() => {
   const name = role => role === 'pilot' ? 'Pilotin' : 'Co-Pilot';
   const signed = n => `${n > 0 ? '+' : ''}${n}`;
   const cardIcons = {'control':'◎', 'adaptation':'⇄', 'anticipation':'↻', 'mastery':'✦', 'working-together':'⇆', 'synchronisation':'⬡'};
+  const bonusBoards = new WeakSet();
+  let bonusTargets = new Map();
+  const syncUi = {dialog:null,key:null,peek:false,busy:false,timer:null};
+
+  function resetSync() {
+    clearTimeout(syncUi.timer);
+    syncUi.timer = null; syncUi.key = null; syncUi.peek = syncUi.busy = false;
+    if (syncUi.dialog?.open) syncUi.dialog.close();
+  }
+  function showSync() {
+    syncUi.peek = false;
+    renderSync(current.z,current.options);
+  }
+  function renderSync(z, options) {
+    const p = z.zusatzaktion;
+    if (p?.quelle !== 'synchronisation' || z.status !== 'laeuft') {resetSync(); return;}
+    const key = `${z.szenario_id}:${z.runde}`;
+    if (syncUi.key !== key) {resetSync(); syncUi.key = key; closeDetail();}
+    if (!syncUi.dialog) {
+      const d = document.createElement('dialog'); d.id = 'sync-dialog';
+      d.setAttribute('aria-labelledby','sync-dialog-title');
+      d.innerHTML = '<h2 id="sync-dialog-title">Synchronisation</h2><div class="traffic-roll-stage"><span class="traffic-roll-die">?</span></div><p class="sync-role" role="status"></p><button type="button" class="sync-roll-button">Werfen</button><button type="button" class="sync-peek-button">Cockpit ansehen</button>';
+      document.body.appendChild(d); syncUi.dialog = d;
+      const peek = () => {syncUi.peek = true; d.close();};
+      d.querySelector('.sync-peek-button').addEventListener('click',peek);
+      d.addEventListener('cancel', e => {e.preventDefault(); peek();});
+      d.querySelector('.sync-roll-button').addEventListener('click', () => {
+        const pending = current?.z.zusatzaktion;
+        if (pending?.quelle !== 'synchronisation') return;
+        if (pending.wert != null) {peek(); document.querySelector('.bonus-target')?.focus(); return;}
+        if (!allowed(pending.rolle) || syncUi.busy) return;
+        syncUi.busy = true; renderSync(current.z,current.options);
+        const rollKey = syncUi.key;
+        syncUi.timer = setTimeout(() => {
+          if (syncUi.key !== rollKey || current?.z.zusatzaktion?.quelle !== 'synchronisation') return;
+          syncUi.timer = null; syncUi.busy = false;
+          act(pending.rolle,'synchronisation_wuerfeln');
+        },400);
+      });
+    }
+    const d = syncUi.dialog, rolled = p.wert != null;
+    if (rolled) {clearTimeout(syncUi.timer); syncUi.timer = null; syncUi.busy = false;}
+    const die = d.querySelector('.traffic-roll-die');
+    die.textContent = rolled ? p.wert : '?'; die.classList.toggle('rolling',syncUi.busy);
+    die.setAttribute('aria-label',rolled ? `Zusatzwürfel: ${p.wert}` : 'Schwarzer Zusatzwürfel, noch nicht geworfen');
+    d.querySelector('.sync-role').textContent = `${name(p.rolle)} ${rolled ? 'platziert den Zusatzwürfel.' : 'würfelt den Zusatzwürfel.'}`;
+    const b = d.querySelector('.sync-roll-button');
+    b.textContent = rolled ? 'Im Cockpit platzieren' : syncUi.busy ? 'Würfelt …' : allowed(p.rolle) ? 'Werfen' : `Warte auf ${name(p.rolle)} …`;
+    b.disabled = !allowed(p.rolle) || syncUi.busy || options.reroll;
+    if (!syncUi.peek && !d.open) d.showModal();
+  }
+
+  // Give both cockpit renderers the same physical field identity. Legal
+  // destinations, values and target colours still come exclusively from Python.
+  function identifyField(el, entry, index = null, owner = null) {
+    el.dataset.ziel = entry.ziel;
+    el.dataset.index = ['fahrwerk','landeklappe','bremse','konzentration','eisbremse'].includes(entry.ziel) ? String(index) : '';
+    el.dataset.funkFeld = String(entry.ziel === 'funk' ? (entry.funk_feld_basis || 0) + index : 0);
+    el.dataset.besitzer = owner || (entry.zugriff.length === 1 ? entry.zugriff[0] : '');
+    return el;
+  }
+  function clearBonusTargets() {
+    for (const [el, previous] of bonusTargets) {
+      el.classList.remove('bonus-target');
+      delete el.dataset.bonusSource;
+      for (const attr of ['role','tabindex','aria-label','title']) {
+        if (previous[attr] === null) el.removeAttribute(attr);
+        else el.setAttribute(attr,previous[attr]);
+      }
+      if (el.tagName === 'BUTTON') el.disabled = previous.disabled;
+    }
+    bonusTargets.clear();
+  }
+  function renderBonusTargets(z, options) {
+    clearBonusTargets();
+    const board = document.querySelector('.board-grid');
+    if (!bonusBoards.has(board)) {
+      board.addEventListener('click', event => {
+        const el = event.target.closest('.bonus-target'), p = current?.z.zusatzaktion;
+        if (!p || !bonusTargets.has(el) || !allowed(p.rolle) || current.options.reroll || current.z.status !== 'laeuft' || current.z.phase !== 'platzieren') return;
+        act(p.rolle,'zusatz_platzieren',bonusTargets.get(el).target);
+      });
+      board.addEventListener('keydown', event => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target.classList.contains('bonus-target')) {
+          event.preventDefault(); event.target.click();
+        }
+      });
+      bonusBoards.add(board);
+    }
+    const p = z.zusatzaktion;
+    if (!p || z.status !== 'laeuft' || z.phase !== 'platzieren' || options.reroll || !allowed(p.rolle)) return;
+    board.querySelectorAll('.feld-zelle[data-ziel]:not(.belegt)').forEach(el => {
+      const target = p.ziele.find(t => t.ziel === el.dataset.ziel && String(t.index ?? '') === el.dataset.index &&
+        String(t.funk_feld) === el.dataset.funkFeld && (!el.dataset.besitzer || t.ziel_besitzer === el.dataset.besitzer));
+      if (!target) return;
+      const previous = {target,disabled:el.disabled};
+      for (const attr of ['role','tabindex','aria-label','title']) previous[attr] = el.getAttribute(attr);
+      bonusTargets.set(el,previous);
+      el.classList.add('bonus-target'); el.dataset.bonusSource = p.quelle;
+      el.setAttribute('role','button'); el.tabIndex = 0;
+      const label = `${p.quelle === 'intern' ? 'Praktikant' : 'Synchronisation'} ${p.wert} auf ${target.label} platzieren`;
+      el.setAttribute('aria-label',label); el.title = label;
+      if (el.tagName === 'BUTTON') el.disabled = false;
+    });
+  }
 
   function button(parent, label, callback, disabled = false, cls = '') {
     const b = document.createElement('button');
@@ -29,7 +134,7 @@ window.FlightModules = (() => {
       Boolean(s && s.besitzer === z.am_zug && allowed(s.besitzer));
   }
   function slot(parent, field, label, callback, enabled, cls, ariaLabel) {
-    const b = button(parent, field ? String(field.wert) : label, callback, !enabled || Boolean(field), `feld-zelle ${cls}${field ? ` belegt ${field.besitzer}` : ''}${enabled && !field ? ' klickbar' : ''}`);
+    const b = button(parent, field ? String(field.wert) : label, () => {if (canPlace()) callback();}, !enabled || Boolean(field), `feld-zelle ${cls}${field ? ` belegt ${field.besitzer}` : ''}${enabled && !field ? ' klickbar' : ''}`);
     if (field?.quelle) b.classList.add(`source-${field.quelle}`);
     b.setAttribute('aria-label', `${ariaLabel}${field ? `, Würfel ${field.wert}` : ''}`); return b;
   }
@@ -65,7 +170,7 @@ window.FlightModules = (() => {
     if (leak) {
       button(action, 'Δ + 1', () => openDetail('fuel'), false, 'leak-indicator').setAttribute('aria-label', 'Kerosinleck: Verbrauch und Details');
     } else {
-      slot(action, z.felder.kerosin[0], '⛽', () => place('kerosin'), canPlace(), 'shared-slot', 'Kerosin regeln');
+      identifyField(slot(action, z.felder.kerosin[0], '⛽', () => place('kerosin'), canPlace(), 'shared-slot', 'Kerosin regeln'), {ziel:'kerosin',zugriff:['pilot','kopilot']});
     }
   }
   function renderWind(z) {
@@ -93,7 +198,7 @@ window.FlightModules = (() => {
       if (col === z.eis_fortschritt) pair.classList.add('current-pair');
       for (const row of [0,1]) {
         const index = col * 2 + row, field = z.felder.eisbremse[index];
-        slot(pair, field, String(col + 2), () => place('eisbremse', index), canPlace() && col === z.eis_fortschritt && (row === 1 || current.options.selected?.besitzer === 'pilot'), row ? 'shared-slot' : 'pilot-slot', `Eisbremse ${col + 2} ${row ? 'unten, beide' : 'oben, Pilotin'}`);
+        identifyField(slot(pair, field, String(col + 2), () => place('eisbremse', index), canPlace() && col === z.eis_fortschritt && (row === 1 || current.options.selected?.besitzer === 'pilot'), row ? 'shared-slot' : 'pilot-slot', `Eisbremse ${col + 2} ${row ? 'unten, beide' : 'oben, Pilotin'}`), {ziel:'eisbremse',zugriff:row ? ['pilot','kopilot'] : ['pilot']},index);
       }
       pair.insertAdjacentHTML('beforeend', `<span class="feld-licht${col < z.eis_fortschritt ? ' an' : ''}" aria-label="Paar ${col + 2} ${col < z.eis_fortschritt ? 'aktiviert' : 'offen'}"></span>`);
       grid.appendChild(pair);
@@ -109,6 +214,10 @@ window.FlightModules = (() => {
       slot(end, z.felder.training[role], role === 'pilot' ? '→' : '←', () => place('training'), canPlace() && current.options.selected?.besitzer === role && z.praktikant.length > 0, `${role}-slot`, `Praktikant trainieren · ${name(role)}`);
     }
     el.querySelector('.intern-tokens').innerHTML = z.praktikant.map((n,i) => `<span class="intern-token${i === 0 ? ' next-pilot' : ''}${i === z.praktikant.length - 1 ? ' next-kopilot' : ''}">${n}</span>`).join('') || '<span class="intern-complete">✓ Ausgebildet</span>';
+    if (z.zusatzaktion?.quelle === 'intern') {
+      const p = z.zusatzaktion;
+      el.insertAdjacentHTML('beforeend', `<div class="intern-placement-hint" role="status"><span class="intern-token">${p.wert}</span><span>${allowed(p.rolle) ? `${name(p.rolle)}: hervorgehobenes Feld antippen.` : `${name(p.rolle)} platziert das Plättchen …`}</span></div>`);
+    }
   }
   function cardState(id, z) {
     const role = current.options.role || z.am_zug;
@@ -206,12 +315,12 @@ window.FlightModules = (() => {
       const el = document.createElement('section'); el.className = 'module-pending';
       el.innerHTML = `<h2>${esc(title)}</h2><p>${esc(text)}</p>`; root.appendChild(el); return el;
     };
-    if (z.zusatzaktion) {
+    if (z.zusatzaktion && z.zusatzaktion.quelle !== 'intern') {
       const p = z.zusatzaktion;
-      const el = section(`${p.quelle === 'intern' ? 'Praktikant' : 'Synchronisation'} · ${p.wert}`, `${name(p.rolle)} platziert jetzt die Zusatzaktion. ${p.quelle === 'intern' ? 'Kein Kaffee und keine Konzentration.' : 'Die Feldfarbe darf frei gewählt werden.'}`);
+      const el = section(`Synchronisation${p.wert != null ? ` · ${p.wert}` : ''}`, p.wert == null ? `${name(p.rolle)} würfelt zuerst den schwarzen Zusatzwürfel.` : allowed(p.rolle) ? `${name(p.rolle)}: hervorgehobenes Feld im Cockpit antippen.` : `${name(p.rolle)} platziert den Zusatzwürfel …`);
+      button(el,p.wert == null ? 'Würfeldialog öffnen' : 'Zusatzwürfel ansehen',showSync);
       (p.kaffee_deltas || []).forEach(delta => button(el, `☕ ${signed(delta)}`, () => act(p.rolle, 'bonus_kaffee', {delta}), !active || !allowed(p.rolle)));
-      p.ziele.forEach(t => button(el, t.label, () => act(p.rolle, 'zusatz_platzieren', t), !active || !allowed(p.rolle)));
-      if (!p.ziele.length) el.insertAdjacentHTML('beforeend','<p>Kein erlaubtes Ziel mehr verfügbar.</p>');
+      if (p.wert != null && !p.ziele.length) el.insertAdjacentHTML('beforeend','<p>Kein erlaubtes Ziel mehr verfügbar.</p>');
     }
     const picker = z.kooperation ? {role:z.kooperation.wartet_auf, type:'kooperation_wahl'} : choice;
     if (picker && active) {
@@ -236,7 +345,8 @@ window.FlightModules = (() => {
     const key = `${z.szenario_id}:${z.runde}:${z.kooperation?.wartet_auf || ''}`;
     if (context !== key) {choice = revealed = null; context = key;}
     renderFuel(z); renderWind(z); renderIce(z); renderIntern(z); renderCards(z); renderRealtime(z);
-    renderPending(z,options); renderDetail(); updateTimer();
+    renderBonusTargets(z,options);
+    renderPending(z,options); renderDetail(); renderSync(z,options); updateTimer();
   }
   function updateTimer() {
     if (!current) return;
@@ -249,5 +359,5 @@ window.FlightModules = (() => {
     el.classList.toggle('urgent', Boolean(z.timer_deadline_ms) && seconds <= 10);
   }
   setInterval(() => {updateTimer(); if (current?.z.timer_deadline_ms && current.z.status === 'laeuft') current.options.onTick?.();}, 200);
-  return {render, renderBrakes, rerollHTML, reset() {closeDetail(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
+  return {render, renderBrakes, rerollHTML, identifyField, reset() {resetSync(); clearBonusTargets(); closeDetail(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
 })();

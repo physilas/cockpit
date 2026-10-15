@@ -70,7 +70,7 @@
       "id": "synchronisation",
       "name": "Synchronisation",
       "original_name": "Synchronisation",
-      "description": "Sind in einer Runde Fahrwerk und Landeklappen mit mindestens je einem Würfel belegt, würfelt und platziert der Co-Pilot einen zusätzlichen Verkehrswürfel. Dessen Feldfarbe spielt keine Rolle.",
+      "description": "Sind in einer Runde Fahrwerk und Landeklappen mit mindestens je einem Würfel belegt, würfelt die Person, die den auslösenden Würfel nicht gelegt hat, per Tipp einen zusätzlichen Verkehrswürfel und platziert ihn. Dessen Feldfarbe spielt keine Rolle.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/3uymNf7pTVGe7NxLUaaFfw/synchronisation-special-ability",
       "implemented": true
     },

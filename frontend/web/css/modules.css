@@ -49,6 +49,10 @@
 .intern-token.next-pilot { border-bottom: 3px solid var(--pilot); }
 .intern-token.next-kopilot { border-top: 3px solid var(--copilot); }
 .intern-complete { color: #3b653f; font-size: .7rem; font-weight: 800; }
+.intern-placement-hint { display: flex; align-items: center; gap: .5rem; margin-top: 5px; padding-top: 5px; border-top: 1px solid #8eaa8655; color: #315832; font-size: .7rem; font-weight: 750; }
+.intern-placement-hint .intern-token { width: 26px; flex-shrink: 0; }
+.feld-zelle.bonus-target { cursor: pointer; outline: 3px solid #c8f37b; outline-offset: 1px; box-shadow: 0 0 0 5px #315f4040, 0 0 10px #d2f98399; }
+.feld-zelle.bonus-target:focus-visible { outline-color: #fffad0; outline-width: 4px; }
 
 /* Selected abilities stay within reach. Their explanation opens on demand. */
 #ability-strip { display: flex; flex-wrap: wrap; gap: .3rem; padding: 3px 1px; }
@@ -88,8 +92,8 @@
 .wind-pointer { position: absolute; inset: 42px; color: #fff7d4; font: 700 78px/1 ui-monospace,monospace; text-align: center; transform-origin: center; }
 
 /* Bonus dice retain their source colours on these native board controls. */
-.feld-zelle.source-synchronisation { background: #202b34; border-color: #eef3e7; color: white; }
-.feld-zelle.source-intern { background: #ddedc0; border-color: #73984a; color: #29472a; }
+#spiel-ui .feld-zelle.source-synchronisation { background: #202b34; border-color: #eef3e7; color: white; }
+#spiel-ui .feld-zelle.source-intern { background: #ddedc0; border-color: #73984a; color: #29472a; }
 @media (max-width: 460px) {
   .has-wind #schub-reihe .feld-zelle { width: 40px; height: 40px; }
   .has-wind #schub-reihe .inline-label { font-size: .57rem; }
@@ -135,3 +139,12 @@
 .reroll-count strong { font: 900 15px/1 ui-monospace, monospace; }
 .reroll-count:disabled { color: #8ca5a5; cursor: default; }
 .reroll-count:focus-visible { outline: 2px solid #e4bd3d; outline-offset: 2px; }
+
+#sync-dialog { width: min(88vw,340px); padding: 1rem; border: 2px solid #7c9da1; border-radius: 14px; background: linear-gradient(145deg,#f7faf5,#dce9e3); color: #21474f; box-shadow: 0 12px 40px #082c4266; }
+#sync-dialog[open] { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+#sync-dialog::backdrop { background: #19394766; backdrop-filter: blur(2px); }
+#sync-dialog h2 { margin: 0; font-size: 1.05rem; }
+#sync-dialog .sync-role { margin: 0; font-size: .75rem; text-align: center; }
+#sync-dialog button { width: 100%; min-height: 42px; padding: .45rem; border: 1px solid #e7b141; border-radius: 6px; color: #fff; background: linear-gradient(#e48525,#b94117); font-size: .82rem; font-weight: 800; }
+#sync-dialog button:disabled { opacity: .5; cursor: default; }
+#sync-dialog .sync-peek-button { color: #315b65; border-color: #95b3b5; background: transparent; }

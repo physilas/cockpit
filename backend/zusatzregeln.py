@@ -71,7 +71,7 @@ class Zusatzregeln:
         self.offen.append(pending)
         return Ergebnis(True, meldung=f"Praktikant {wert}: jetzt auf ein Cockpit-Feld legen.")
 
-    def nach_platzierung(self, ziel):
+    def nach_platzierung(self, ziel, rolle=None):
         c, s = self.c, self.spiel
         self.platzierungen += 1
         if ziel == "ruder" and not c.ruder_pilot.ist_frei() and not c.ruder_kopilot.ist_frei() and "ruder" not in self.ausgeloest:
@@ -93,10 +93,10 @@ class Zusatzregeln:
                     return result
         if "synchronisation" in self.karten and "synchronisation" not in self.ausgeloest and any(not f.ist_frei() for f in c.fahrwerk) and any(not f.ist_frei() for f in c.landeklappen):
             self.ausgeloest.add("synchronisation")
-            w = Wuerfel("kopilot")
-            w.augenzahl = wirf_verkehrswuerfel()
+            partner = "kopilot" if (rolle or s.am_zug) == "pilot" else "pilot"
+            w = Wuerfel(partner)
             w.quelle = "synchronisation"
-            self.offen.append({"rolle": "kopilot", "wuerfel": w})
+            self.offen.append({"rolle": partner, "wuerfel": w})
         return None
 
     def rundenverbrauch(self):
@@ -110,6 +110,8 @@ class Zusatzregeln:
             return []
         p = pending if pending is not None else self.offen[0]
         w = p["wuerfel"]
+        if w.augenzahl is None:
+            return []
         bonus = w.quelle == "synchronisation"
         roles = BESITZER if bonus else [p["rolle"]]
         c = self.c
@@ -159,8 +161,14 @@ class Zusatzregeln:
             return Ergebnis(True, meldung="Würfel geworfen; die Runde beginnt.")
         if s.phase != "platzieren":
             return Ergebnis(False, "runde_nicht_bereit")
+        if aktion == "synchronisation_wuerfeln":
+            if not self.offen or self.offen[0]["rolle"] != rolle or self.offen[0]["wuerfel"].quelle != "synchronisation" or self.offen[0]["wuerfel"].augenzahl is not None:
+                return Ergebnis(False, "karte_nicht_verfuegbar")
+            w = self.offen[0]["wuerfel"]
+            w.augenzahl = wirf_verkehrswuerfel()
+            return Ergebnis(True, meldung=f"Synchronisation: {w.augenzahl} gewürfelt. Jetzt im Cockpit platzieren.")
         if aktion == "bonus_kaffee":
-            if not self.offen or self.offen[0]["rolle"] != rolle or self.offen[0]["wuerfel"].quelle != "synchronisation":
+            if not self.offen or self.offen[0]["rolle"] != rolle or self.offen[0]["wuerfel"].quelle != "synchronisation" or self.offen[0]["wuerfel"].augenzahl is None:
                 return Ergebnis(False, "karte_nicht_verfuegbar")
             return self.c.trinke_kaffee(self.offen[0]["wuerfel"], params.get("delta"))
         if aktion == "zusatz_platzieren":
@@ -177,7 +185,7 @@ class Zusatzregeln:
             if not result.erfolg:
                 self.offen.insert(0, p)
                 return result
-            return s._nach_platzierung(result, target["ziel"], wechsel=False)
+            return s._nach_platzierung(result, target["ziel"], wechsel=False, rolle=rolle)
         if self.offen:
             return Ergebnis(False, "zusatzaktion_offen")
         if aktion == "kooperation_start":
@@ -228,7 +236,7 @@ class Zusatzregeln:
             "kerosin": c.kerosin, "kerosin_faellig": (0 if not c.kerosin_feld.ist_frei() else 6) if "kerosene" in c.module and "leak" not in c.module else None,
             "wind_position": c.wind_position, "wind_ring": list(c.WIND_RING), "wind_wert": c.wind_wert(),
             "eis_fortschritt": c.eis_fortschritt, "praktikant": self.praktikant.copy(),
-            "zusatzaktion": {"rolle": self.offen[0]["rolle"], "quelle": self.offen[0]["wuerfel"].quelle, "wert": self.offen[0]["wuerfel"].augenzahl, "ziele": self.platzierziele(), "kaffee_deltas": c.moegliche_kaffee_deltas(self.offen[0]["wuerfel"].augenzahl) if self.offen[0]["wuerfel"].quelle == "synchronisation" else []} if self.offen else None,
+            "zusatzaktion": {"rolle": self.offen[0]["rolle"], "quelle": self.offen[0]["wuerfel"].quelle, "wert": self.offen[0]["wuerfel"].augenzahl, "geworfen": self.offen[0]["wuerfel"].augenzahl is not None, "ziele": self.platzierziele(), "kaffee_deltas": c.moegliche_kaffee_deltas(self.offen[0]["wuerfel"].augenzahl) if self.offen[0]["wuerfel"].quelle == "synchronisation" and self.offen[0]["wuerfel"].augenzahl is not None else []} if self.offen else None,
             "kooperation": dict(self.kooperation) if self.kooperation else None,
             "kooperation_verfuegbar": "working-together" in self.karten and not self.kooperation_genutzt and all(s.verfuegbare_wuerfel(r) for r in BESITZER),
             "anpassung_verfuegbar": {r: "adaptation" in self.karten and not self.anpassung[r] for r in BESITZER},

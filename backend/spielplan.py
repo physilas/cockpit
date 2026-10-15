@@ -233,7 +233,7 @@ class Spielplan:
             return Ergebnis(False, "wuerfel_nicht_verfuegbar")
 
         ergebnis = self._lege_wuerfel(wuerfel, ziel, index, funk_feld)
-        return self._nach_platzierung(ergebnis, ziel, wechsel=True)
+        return self._nach_platzierung(ergebnis, ziel, wechsel=True, rolle=besitzer)
 
     def _lege_wuerfel(self, wuerfel, ziel, index=None, funk_feld=0):
         besitzer = wuerfel.besitzer
@@ -275,12 +275,12 @@ class Spielplan:
             return Ergebnis(False, "unbekanntes_ziel")
         return ergebnis
 
-    def _nach_platzierung(self, ergebnis, ziel, wechsel=False):
+    def _nach_platzierung(self, ergebnis, ziel, wechsel=False, rolle=None):
         if not ergebnis.erfolg:
             return ergebnis
 
         if not ergebnis.verloren:
-            zusatz = self.zusatz.nach_platzierung(ziel)
+            zusatz = self.zusatz.nach_platzierung(ziel, rolle)
             if zusatz is not None:
                 ergebnis = zusatz
         self.letzte_meldung = ergebnis.meldung
