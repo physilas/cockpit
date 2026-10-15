@@ -244,8 +244,10 @@ schließt nur den Dialog, nicht die Wurfphase. Mehrere Würfe werden einzeln
 abgearbeitet, anschließend gibt „Runde beginnen“ das Cockpit frei.
 Erst nach dem letzten Wurf werden die acht Spielerwürfel geworfen.
 Kurven stehen klein am oberen Feldrand, Verkehrswürfel rechts und
-Flugzeuge dazwischen. Jedes Flugzeug erscheint als eigenes Symbol in
-einer engen Formation, bei größeren Gruppen in mehreren Reihen, ohne Zähler.
+Flugzeuge dazwischen. Jedes Flugzeug erscheint als eigenes Symbol ohne
+Zähler, leicht zufällig versetzt und gedreht. Die Verteilung bleibt pro
+Feld stabil; reservierte Randbereiche und die gedrehte Hüllfläche verhindern
+Überlappungen mit Kurven, Entfernungszahlen und Verkehrswürfeln.
 Im Multiplayer würfelt die Person, die die Runde beginnt; beide Geräte
 sehen denselben Verkehr und dieselben Ergebnisse.
 

@@ -44,7 +44,40 @@ document.getElementById("run-tests").addEventListener("click", async event => {
       const icon = el.getBoundingClientRect();
       return icon.left >= bereich.left - .5 && icon.right <= bereich.right + .5;
     }), "Enge Formation ragt in Zahlen oder Würfelspur");
-    report("Jedes Flugzeug erscheint einzeln in einer kompakten Formation ohne Zahl");
+    report("Jedes Flugzeug erscheint einzeln ohne Zahl, innerhalb der freien Spur");
+
+    const positionen = () => [...find("#distance-obstacles").querySelectorAll(".aircraft-pose")].map(el => el.getAttribute("style"));
+    const vorher = positionen();
+    renderEntfernungsFlugzeuge({ ...z, runde: 9 }, 36);
+    assert(JSON.stringify(positionen()) === JSON.stringify(vorher), "Flugzeuge springen beim erneuten Rendern");
+    const posen = [...find('.vtrack-aircraft[data-distance="4"]').querySelectorAll(".aircraft-pose")];
+    for (const eigenschaft of ["--plane-x", "--plane-y", "--plane-angle"]) {
+      assert(new Set(posen.map(el => el.style.getPropertyValue(eigenschaft))).size > 1, `Keine Streuung: ${eigenschaft}`);
+    }
+    report("Positionen und Drehungen sind unterschiedlich, aber über Spielzüge hinweg stabil");
+
+    const track = find("#distance-track");
+    const alteBreite = track.style.width;
+    for (const breite of [80, 90, 140, 200]) {
+      track.style.width = `${breite}px`;
+      for (const entfernung of [4, 6]) {
+        for (let anzahl = 1; anzahl <= 9; anzahl++) {
+          const flugzeuge = Array(7).fill(0);
+          flugzeuge[6 - entfernung] = anzahl;
+          renderEntfernungsFlugzeuge({ ...z, flugzeuge }, 36);
+          const feld = find(".vtrack-aircraft").getBoundingClientRect();
+          assert(find(".vtrack-aircraft").querySelectorAll(".aircraft-icon").length === anzahl, "Flugzeuge fehlen bei hoher Belegung");
+          assert([...find(".vtrack-aircraft").querySelectorAll(".aircraft-pose")].every(el => {
+            const icon = el.getBoundingClientRect();
+            return icon.left >= feld.left - .5 && icon.right <= feld.right + .5
+              && icon.top >= feld.top - .5 && icon.bottom <= feld.bottom + .5;
+          }), `Gedrehte Flugzeuge verlassen sichere Fläche (${breite}px, Entfernung ${entfernung}, ${anzahl} Flugzeuge)`);
+        }
+      }
+    }
+    track.style.width = alteBreite;
+    renderEntfernungsFlugzeuge(z, 36);
+    report("Gedrehte Hüllflächen bleiben bei 1–9 Flugzeugen und 80–200px breiten Leisten frei");
 
     render();
     assert(find("dialog").open && isBlocked(), "Dialog/Sperre fehlt");
@@ -111,9 +144,9 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     z = { ...base(), verkehrswuerfel_offen: 0 }; render();
     assert(!find("dialog").open && !find(".board-grid").inert, "Normale Runde wird gesperrt");
     report("Spielwechsel bricht Animation ab; ohne fällige Würfel bleibt alles frei");
-    output.textContent += `\n${passed}/10 Tests bestanden.`;
+    output.textContent += `\n${passed}/12 Tests bestanden.`;
   } catch (error) {
-    output.textContent += `✗ ${error.message}\n${passed}/10 Tests bestanden.`;
+    output.textContent += `✗ ${error.message}\n${passed}/12 Tests bestanden.`;
   } finally {
     resetVerkehrUi();
     event.target.disabled = false;

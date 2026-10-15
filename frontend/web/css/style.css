@@ -363,15 +363,30 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   container-type: inline-size;
 }
 .vtrack-aircraft.with-traffic { right: 32px; }
-.aircraft-group { --fitted-plane-size: min(var(--plane-size), calc(100cqw / var(--formation-factor))); position: relative; display: flex; flex-direction: column; justify-content: center; width: min(100%, var(--formation-width)); height: 20px; }
-.aircraft-row { display: flex; align-items: center; justify-content: center; flex: 1; min-height: 0; }
-.aircraft-icon { display: block; flex-shrink: 0; width: var(--fitted-plane-size); color: #fff; font-size: var(--fitted-plane-size); line-height: 1; text-shadow: 0 0 4px #84eaff; }
-.aircraft-icon + .aircraft-icon { margin-left: calc(var(--fitted-plane-size) * -.3); }
+.aircraft-group {
+  /* cos(16°) + sin(16°) < 1.25: auch die gedrehten Ecken bleiben frei. */
+  --fitted-plane-size: min(21px, calc((100cqw - 4px) / var(--formation-factor) / 1.25), calc((var(--aircraft-height) - 2px) / var(--formation-height-factor) / 1.25));
+  --plane-envelope: calc(var(--fitted-plane-size) * 1.25);
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.aircraft-row { display: contents; }
+.aircraft-pose {
+  position: absolute;
+  left: calc(var(--plane-envelope) / 2 + (100% - var(--plane-envelope)) * var(--plane-x));
+  top: calc(var(--plane-envelope) / 2 + (100% - var(--plane-envelope)) * var(--plane-y));
+  width: var(--fitted-plane-size);
+  height: var(--fitted-plane-size);
+  transform: translate(-50%, -50%) rotate(var(--plane-angle));
+}
+.aircraft-icon { display: block; width: 100%; height: 100%; color: #fff; font-size: var(--fitted-plane-size); line-height: 1; text-shadow: 0 0 4px #84eaff; }
 .aircraft-arriving .aircraft-new { animation: traffic-arrival 1.2s ease-out both; }
 @keyframes traffic-arrival {
-  0% { opacity: 0; transform: translateX(-14px) scale(.4); filter: drop-shadow(0 0 10px #fff); }
-  35% { opacity: 1; transform: translateX(0) scale(1.45); filter: drop-shadow(0 0 9px #ffe774); }
-  65% { transform: scale(1.15); filter: drop-shadow(0 0 6px #ffe774); }
+  0% { opacity: 0; transform: scale(.4); filter: drop-shadow(0 0 10px #fff); }
+  35% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 9px #ffe774); }
+  65% { transform: scale(1); filter: drop-shadow(0 0 6px #ffe774); }
   100% { opacity: 1; transform: none; filter: none; }
 }
 
