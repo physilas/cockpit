@@ -122,17 +122,16 @@
 
 <!-- ============ SCREEN: Spiel ============ -->
 <header id="spiel-header" class="versteckt">
-  <h1>✈ Fly Team
-    <span class="subtitle">Multiplayer</span>
-    <span id="meine-rolle-badge" class="meine-rolle-badge"></span>
-  </h1>
+  <div class="header-flight">
+    <h1>✈ Fly Team <span id="meine-rolle-badge" class="meine-rolle-badge"></span></h1>
+    <div id="flight-summary" class="versteckt"></div>
+  </div>
   <div id="spiel-auswahl">
     <button id="neues-spiel-btn">Landung</button>
-    <span id="verbindungs-status" class="status-pill ok" style="font-size:0.7rem">● Verb.</span>
+    <span id="verbindungs-status" class="status-pill ok" aria-label="Verbunden" title="Verbunden">●</span>
     <button id="menue-btn" class="menu-btn">☰ Menü</button>
   </div>
 </header>
-<div id="flight-summary" class="versteckt"></div>
 
 <main id="spiel-ui" class="versteckt">
   <section id="tracks-leiste">
@@ -214,30 +213,40 @@
 
       <div id="s-aero" class="skala-wrap"></div>
 
-      <div class="mitte-reihe schub-reihe" id="schub-reihe"></div>
+      <div class="thrust-instruments">
+        <div class="mitte-reihe schub-reihe" id="schub-reihe"></div>
+        <div id="wind-instrument" class="versteckt"></div>
+      </div>
 
       <div id="s-brems" class="skala-wrap"></div>
 
       <div class="mitte-reihe" id="bremse-reihe"></div>
+      <div id="ice-brakes" class="versteckt" aria-label="Eisbremsen"></div>
       <div class="mitte-reihe konzentration-zeile"><div id="konzentration-reihe"></div></div>
     </div>
 
     <div class="side-col" id="col-kopilot">
       <div id="col-kopilot-felder"></div>
+      <div id="fuel-action" class="versteckt"></div>
     </div>
 
+    <aside id="fuel-gauge" class="versteckt" aria-label="Treibstoffvorrat"></aside>
   </div>
+
+  <section id="intern-strip" class="versteckt" aria-label="Praktikantenausbildung"></section>
+  <section id="ability-strip" class="versteckt" aria-label="Fähigkeitskarten"></section>
 
   <section id="aktionen-leiste">
     <span id="s-runde">-</span>
     <span id="am-zug-anzeige"></span>
+    <div id="realtime-instrument" class="versteckt"></div>
     <div class="aktionen-buttons">
       <button id="rundenende-btn">Runde beenden</button>
     </div>
   </section>
   <section id="verkehr-panel" class="versteckt" aria-label="Schwarze Verkehrswürfel" aria-live="polite"></section>
   <section id="flight-modules" class="versteckt" aria-label="Zusatzmodule und Fähigkeiten"></section>
-    <section id="neuwurf-panel" class="versteckt"></section>
+  <section id="neuwurf-panel" class="versteckt"></section>
   <section id="meldung-leiste"></section>
 </main>
 

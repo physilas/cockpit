@@ -109,7 +109,11 @@
     const summary = document.getElementById('flight-summary');
     if (summary && !document.getElementById('spiel-ui')?.classList.contains('versteckt')) {
       summary.classList.remove('versteckt');
-      summary.textContent = `${s ? `${s.code} · ${difficulty(s).label}` : (z.flughafen_name || '')} · ${s?.kind === 'logbook' ? (z.uebung ? 'Übungsflug · Zusatzmodule und Karten inaktiv' : (s.modules.length ? `Originalstrecke · ${s.modules.map(id => catalog.modules[id].name).join(' · ')}` : 'Originalstrecke · Grundspiel')) : 'Eigene Strecke'}`;
+      const full = `${s ? `${s.code} · ${s.name} · ${difficulty(s).label}` : (z.flughafen_name || '')} · ${s?.kind === 'logbook' ? (z.uebung ? 'Übungsflug · Zusatzmodule und Karten inaktiv' : (s.modules.length ? `Originalstrecke · ${s.modules.map(id => catalog.modules[id].name).join(' · ')}` : 'Originalstrecke · Grundspiel')) : 'Eigene Strecke'}`;
+      const icons = !z.uebung && s?.modules.map(id => catalog.modules[id].icon).join(' ');
+      summary.textContent = s ? `${s.code} · ${s.kind === 'logbook' ? difficulty(s).label : 'Eigene Strecke'}${z.uebung ? ' · Übung' : (icons ? ` · ${icons}` : '')}` : (z.flughafen_name || 'Eigene Strecke');
+      summary.title = full;
+      summary.setAttribute('aria-label', full);
     }
     if (s && z.status === 'gewonnen') {
       const victories = read('flyteam-landings-v1', {}), key = `${z.mock || z.uebung ? "practice" : "route"}:${s.id}`;

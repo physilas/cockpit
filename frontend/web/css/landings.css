@@ -63,7 +63,16 @@
 .landing-launch { position: sticky; bottom: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem 1rem; margin-top: 1.5rem; padding: 1rem 1.2rem calc(1rem + env(safe-area-inset-bottom)); background: #f8faf5f5; border: 1px solid #d5e2d5; border-radius: 12px; box-shadow: 0 -4px 18px #243e2210; }
 .landing-launch > div { display: flex; flex-direction: column; gap: .3rem; }.landing-launch b { font-size: .9rem; }.landing-launch span { color: #718371; font-size: .75rem; }
 .landing-start { min-height: 48px; padding: .8rem 1.3rem; border: 0; border-radius: 8px; background: #235562; color: #fff; font-weight: 750; }.landing-start:disabled { opacity: .6; cursor: wait; }.landing-launch-status { margin: 0; width: 100%; font-size: .8rem; color: #a03d36; }.landing-launch-status:empty { display: none; }
-#flight-summary { max-width: 640px; margin: auto; padding: .45rem .6rem; background: #e9efdf; color: #4e645a; font-size: .65rem; line-height: 1.5; text-align: center; }
+/* Flight context lives on the second line of the compact cockpit header. */
+header, #spiel-header { min-height: 42px; padding: calc(2px + env(safe-area-inset-top)) .5rem 2px; gap: .35rem; }
+header .header-flight { display: flex; flex-direction: column; justify-content: center; gap: 1px; min-width: 0; }
+header h1 { font-size: .82rem; line-height: 1.15; }
+header button { min-height: 32px; padding: .2rem .4rem; font-size: .69rem; }
+#flight-summary { margin: 0; padding: 0; overflow: hidden; color: #c8ded6; background: transparent; font-size: .53rem; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; letter-spacing: .015em; }
+header #spiel-auswahl { flex: 0 0 auto; }
+header .meine-rolle-badge { padding: 1px 4px; margin-left: 2px; font-size: .48rem; vertical-align: middle; }
+#verbindungs-status { padding: 0; font-size: .55rem; background: transparent !important; color: #c3e976 !important; }
+@media (max-width: 360px) { header h1 { font-size: .76rem; } header button { padding-inline: .3rem; } #flight-summary { font-size: .5rem; } }
 #landing-selection button:focus-visible, #landing-selection input:focus-visible { outline: 3px solid #ceaa35; outline-offset: 3px; }
 @media (max-width: 850px) { .landing-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.landing-abilities { grid-template-columns: repeat(2,minmax(0,1fr)); }.landing-detail-top { gap: 1.3rem; }.landing-detail-image { height: 280px; } }
 @media (max-width: 540px) { #landing-selection { padding-inline: 1rem; }.landing-nav { min-height: 70px; letter-spacing: .04em; }.landing-mode { display: block; margin: .2rem 0 0; text-align: right; font-size: .65rem; }.landing-hero { padding: 1.8rem 1.4rem; border-radius: 12px; }.landing-hero p { font-size: .83rem; line-height: 1.6; }.landing-stats { gap: .4rem .8rem; font-size: .65rem; }.landing-stats span + span::before { margin-right: .8rem; }.landing-grid { grid-template-columns: 1fr; gap: 1rem; }.landing-card-image { height: 210px; }.landing-filters { gap: .35rem; }.landing-filters button { font-size: .72rem; min-height: 40px; padding-inline: .7rem; }.landing-detail-top { grid-template-columns: 1fr; gap: 1.2rem; }.landing-detail-image { height: 240px; }.landing-detail-intro h1 { font-size: 2rem; }.landing-detail-intro h1 span { font-size: 1.4rem; }.landing-route, .landing-loadout { padding: 1.1rem; }.landing-abilities { grid-template-columns: 1fr; }.landing-launch { margin-inline: -.35rem; padding: .8rem; }.landing-start { width: 100%; }.landing-route-strip li { min-width: 42px; } }

@@ -22,9 +22,9 @@ document.getElementById("run-tests").addEventListener("click", async event => {
   };
   function mockRoll() {
     calls++;
-    const result = calls === 1 ? { wert: 3, ziel_entfernung: 4 } : { wert: 5, ziel_entfernung: null };
+    const result = calls === 1 ? { wert: 3, ziel_entfernung: 4 } : { wert: 5, ziel_entfernung: undefined };
     const flugzeuge = [...z.flugzeuge];
-    if (result.ziel_entfernung !== null) flugzeuge[z.laenge - 1 - result.ziel_entfernung]++;
+    if (result.ziel_entfernung != null) flugzeuge[z.laenge - 1 - result.ziel_entfernung]++;
     z = { ...z, flugzeuge, verkehrswuerfel_offen: z.verkehrswuerfel_offen - 1,
       verkehrswuerfe: [...z.verkehrswuerfe, result] };
     render();
@@ -121,7 +121,8 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     clickRoll();
     await waitForRoll();
     assert(calls === 2 && z.verkehrswuerfel_offen === 0 && isBlocked(), "Letztes Ergebnis gibt Cockpit zu früh frei");
-    assert(find(".traffic-roll-result").textContent.includes("Glück gehabt"), "Zu kurze Strecke falsch angezeigt");
+    assert(find(".traffic-roll-result").textContent.includes("Glück gehabt"), "Zu kurze Strecke (Pyodide undefined) falsch angezeigt");
+    assert(verkehrErgebnisText({wert:5,ziel_entfernung:null}).includes("Glück gehabt"), "Remote null falsch angezeigt");
     assert(!find(".aircraft-arriving"), "Fehlendes Flugzeug wird trotzdem animiert");
     clickRoll(); render();
     assert(!find("dialog").open && !find(".board-grid").inert && find(".traffic-fog").hidden, "Bestätigung gibt Cockpit nicht frei");

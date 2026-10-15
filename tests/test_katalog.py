@@ -70,10 +70,13 @@ class KatalogTest(unittest.TestCase):
         self.assertEqual(Landung("LOG_PBH_BLACK").get_kurven_min()[4], 2)
         self.assertEqual(Landung("LOG_PBH_BLACK").get_kurven_max()[4], 2)
 
-    def test_original_verkehr_begrenzt_auf_flughafen_und_zwolf_flugzeuge(self):
+    def test_original_verkehr_verwirft_zu_grosse_wuerfe_und_begrenzt_vorrat(self):
         landung = Landung("LOG_LHR_GREEN")
         landung.entfernung = 1
-        self.assertEqual(landung.add_flugzeug_fuer_verkehrswurf(5), 0)
+        vorher = landung.flugzeuge.copy()
+        self.assertIsNone(landung.add_flugzeug_fuer_verkehrswurf(5))
+        self.assertEqual(landung.flugzeuge, vorher)
+        self.assertEqual(landung.add_flugzeug_fuer_verkehrswurf(2), 0)
         self.assertEqual(landung.flugzeuge[-1], 3)
         voll = Landung("LOG_PRG_YELLOW")
         vorher = voll.flugzeuge.copy()

@@ -284,9 +284,9 @@ und Synchronisation. Vor dem Start muss die vorgesehene Zahl unterschiedlicher
 Karten ausgewählt werden. Alte Übungserfolge bleiben getrennt von vollständigen
 Landungen. Die erfundenen Mock-Strecken bleiben für Modultests über
 `MOCK_<CODE>_<FARBE>` verfügbar, stehen aber nicht im Katalog.
-Bei den Originalstrecken setzt ein zu großer Verkehrswurf ein Flugzeug auf den
-Flughafen; der Vorrat umfasst 12 Flugzeuge. Die bisherigen eigenen Strecken
-behalten ihr bisheriges Verkehrsprofil. HND rot benötigt nach Foto und Dized
+Zu große Verkehrswürfe verfallen auf allen Strecken; sie setzen kein Flugzeug
+auf das letzte sichtbare Feld. Bei Originalstrecken umfasst der Vorrat
+12 Flugzeuge. HND rot benötigt nach Foto und Dized
 Kerosin plus Praktikant; das englische PDF zeigt nur den Praktikanten.
 
 Datenquelle: `backend/landekatalog.json`; native Streckenkonfigurationen:
@@ -313,3 +313,5 @@ stehen auf den Karten sowie mit Links in den Details. „Bildnachweise und Lizen
 öffnet die vollständigen Nachweise. Quelle ist `backend/bildnachweise.json`;
 `make build` erzeugt daraus `frontend/web/bildnachweise.html`. Verwendete Lizenzen:
 CC0, CC BY und CC BY-SA; die jeweilige Bildfassung behält die angegebene Lizenz.
+
+Die Zusatzinstrumente sind in das Cockpit integriert: Treibstoff rechts mit Würfelfeld unter den Klappen, Eisbremsen im Bremsbereich und ein vergrößerbares Windrad neben dem Schub. Praktikant und ausgewählte Fähigkeitskarten nutzen schmale Leisten darunter. Flughafeninfos stehen platzsparend im 42 px hohen Kopfbereich. Ein einzelner Neuwurfknopf zeigt die verfügbare Anzahl. Die UI-Prüfung dafür läuft unter `tests/modules-ui.html` über „Instrumente prüfen“.

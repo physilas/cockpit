@@ -99,6 +99,27 @@ class VerkehrTest(unittest.TestCase):
                     vorher[spiel.landung._index_fuer_entfernung(ziel)] += 1
                     self.assertEqual(spiel.landung.flugzeuge, vorher)
 
+    def test_original_zwei_sichtbare_felder_verwerfen_beide_zu_grossen_wuerfe(self):
+        spiel = Spielplan("LOG_LHR_GREEN")
+        spiel.landung.entfernung = 1  # Nur Entfernung 1 und Flughafen 0 sichtbar.
+        index = spiel.landung._index_fuer_entfernung(1)
+        spiel.landung._flugzeugwuerfel[index] = 2
+        spiel.starte_spiel()
+        vorher = spiel.landung.flugzeuge.copy()
+        with patch("backend.spielplan.wirf_verkehrswuerfel", side_effect=[5, 3]):
+            for offen in [1, 0]:
+                ergebnis = spiel.wirf_verkehrswuerfel()
+                self.assertTrue(ergebnis.erfolg)
+                self.assertIn("kein neues Flugzeug", ergebnis.meldung)
+                self.assertEqual(spiel.verkehrswuerfel_offen, offen)
+                self.assertEqual(spiel.landung.flugzeuge, vorher)
+        self.assertEqual(spiel.verkehrswuerfe, [
+            {"wert": 5, "ziel_entfernung": None},
+            {"wert": 3, "ziel_entfernung": None},
+        ])
+        self.assertEqual(spiel.phase, "platzieren")
+        self.assertTrue(all(spiel.zustand()["pilot_wuerfel_frei"]))
+
     def test_stehenbleiben_loest_vor_naechster_runde_erneut_aus(self):
         spiel = Spielplan("FRA")
         spiel.starte_spiel()

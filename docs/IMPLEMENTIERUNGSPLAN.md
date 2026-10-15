@@ -21,7 +21,7 @@ Stand: 16. Oktober 2026. Grundlage: das bereitgestellte **Sky Team Flight Log**,
 
 ### Bedienung und Anzeigen
 
-`frontend/web/js/modules.js` zeigt gemeinsame Instrumente und Fähigkeiten. Zusätzliche Plättchen/Würfel bieten ausschließlich von Python gelieferte erlaubte Ziele an. Praktikantenplättchen erscheinen grün, Synchronisationswürfel dunkel. Der Windring zeigt alle Modifikatoren; Kerosin, Eisbremsen und Ausbildung haben eigene Fortschrittsanzeigen.
+`frontend/web/js/modules.js` zeigt gemeinsame Instrumente und Fähigkeiten. Zusätzliche Plättchen/Würfel bieten ausschließlich von Python gelieferte erlaubte Ziele an. Praktikantenplättchen erscheinen grün, Synchronisationswürfel dunkel. Die Treibstoffanzeige sitzt als schmale Leiste am rechten Cockpitrand, das gemeinsame Kerosinfeld unter den Klappen. Bei einem Leck erscheint dort nur die Verbrauchsanzeige. Eisbremsen ersetzen die normale Bremsreihe; der rote Marker sitzt auch bei halben Bremswerten zwischen den Zahlen. Das kleine Windrad neben dem Schub öffnet den vollständigen Ring, der aktuelle Modifikator steht unter „Schub“. Der Praktikant nutzt eine horizontale Trainingsleiste unter dem Cockpit. Ausgewählte Fähigkeiten erscheinen als kompakte Kartenknöpfe mit Details und Aktionen per Tipp. Flughafen, Schwierigkeit und Modulsymbole stehen im verkleinerten Kopfbereich.
 
 Die Verkehrsflugzeuge verwenden über alle sichtbaren Felder dieselbe Größe und feste Zellenabstände. Ihre kleinen Drehungen sind stabil; die Hüllflächen überlagern sich nicht. Der Mittelmarker zwischen Höhen- und Entfernungsleiste entfällt. Beide Leisten stehen enger zusammen; Kaffeeplätze sind quadratisch und die Symbole darin zentriert.
 
@@ -35,7 +35,7 @@ Neuwurfmaterial: zwei Grundspiel-Plättchen plus ein zusätzliches Plättchen au
 
 ### Prüfung
 
-52 native Tests einschließlich aller 21 Varianten mit sämtlichen zulässigen Kartensets, Verbrauchsgrenzen, Ringumlauf, Eis-Paaren, Zusatzaktionen, verdeckten Tauschzuständen, Ressourcenlimits, kombinierten Landebedingungen und verspäteten Aktionen. Zusätzlich 12 DOM-Regressionen für Verkehr, Größen, Abstände und Hüllflächen bei 80–200 px Leistenbreite.
+53 native Tests einschließlich aller 21 Varianten mit sämtlichen zulässigen Kartensets, Verbrauchsgrenzen, Ringumlauf, Eis-Paaren, Zusatzaktionen, verdeckten Tauschzuständen, Ressourcenlimits, kombinierten Landebedingungen und verspäteten Aktionen. Zusätzlich 12 DOM-Regressionen für Verkehr, Größen, Abstände und Hüllflächen bei 80–200 px Leistenbreite sowie 21 Instrumentenprüfungen für beide Web-UIs: Rollenrechte, Platzierungsargumente, Privatheit, Markerpositionen, Dialoge, Kopfbereich und 320–600 px breite Spielpläne.
 
 Manuell mit echtem Pyodide geprüft: Kerosinaktion und Praktikantenplatzierung in Pass & Play, automatischer Echtzeitabschluss sowie Zusammenarbeit und Synchronisation zwischen zwei über PeerJS verbundenen Browser-Clients. Das ersetzt keine Erprobung auf zwei unterschiedlichen physischen Geräten.
 

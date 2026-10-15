@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cockpit-Instrumente · UI-Prüfung</title>
+<link rel="stylesheet" href="../frontend/web/css/style.css">
+<link rel="stylesheet" href="../frontend/web/css/modules.css">
+<link rel="stylesheet" href="../frontend/web/css/landings.css">
+<style>
+  #test-tools { padding: 12px; }
+  #test-results { white-space: pre-wrap; font-size: 12px; }
+  #fixture { margin: auto; max-width: 100%; }
+  #fixture #spiel-ui { width: 100%; min-height: 0; }
+</style>
+<div id="test-tools">
+  <button id="run-tests" type="button">Instrumente prüfen</button>
+  <pre id="test-results" role="status">Noch nicht gestartet.</pre>
+</div>
+<div id="fixture"></div>
+<script src="../frontend/web/js/landing-catalog.js"></script>
+<script src="../frontend/web/js/landings.js"></script>
+<script src="../frontend/web/js/modules.js"></script>
+<script src="modules-ui.js"></script>
+</html>

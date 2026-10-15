@@ -79,7 +79,7 @@ function renderEntfernungsFlugzeuge(z, trackUnit) {
 
 function animiereVerkehrsFlugzeuge(wuerfe) {
   wuerfe.forEach(wurf => {
-    if (wurf.ziel_entfernung === null) return;
+    if (wurf.ziel_entfernung == null) return;
     const feld = document.querySelector(`.vtrack-aircraft[data-distance="${wurf.ziel_entfernung}"]`);
     if (!feld) return;
     feld.classList.add("aircraft-arriving");
@@ -268,7 +268,7 @@ function aktualisiereVerkehrDialog() {
 }
 
 function verkehrErgebnisText(wurf) {
-  return wurf.ziel_entfernung === null
+  return wurf.ziel_entfernung == null
     ? "Glück gehabt – kein neues Flugzeug!"
     : `+1 ✈ auf Entfernung ${wurf.ziel_entfernung}`;
 }

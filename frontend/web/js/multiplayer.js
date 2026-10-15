@@ -444,40 +444,16 @@ function renderAeroSkala(blau, orange) {
   skala.querySelector(".aero-tick-pilot").style.transform = `rotate(${aeroMarkerWinkel(blau)}deg)`;
   skala.querySelector(".aero-tick-copilot").style.transform = `rotate(${aeroMarkerWinkel(orange)}deg)`;
 }
-// Bremsen-Marker-Skala, gleiches Prinzip, mit einem roten Balken an der
-// aktuellen Bremsstärke.
-function bremsSkalaHTML(bs) {
-  let html = '<div class="brems-scale">';
-  for (let n = 2; n <= 6; n++) {
-    html += `<span class="skala-zahl brems-number">${n}</span>`;
-  }
-  html += `<span class="brems-marker" aria-hidden="true" style="left:${bremsMarkerPosition(bs)}%"></span></div>`;
-  return html;
-}
-
-function bremsMarkerPosition(bs) {
-  return bs < 2 ? 12 : Math.min(88, 12 + (bs - 1) * 15.2);
-}
-
-function renderBremsSkala(bs) {
-  const skala = document.getElementById("s-brems");
-  if (!skala.querySelector(".brems-marker")) skala.innerHTML = bremsSkalaHTML(bs);
-  skala.querySelector(".brems-marker").style.left = bremsMarkerPosition(bs) + "%";
-  skala.setAttribute("aria-label", `Bremsstärke ${bs}`);
-}
 function kaffeeHTML(n) {
   return Array.from({length:3},(_,i)=>`<span class="ressourcen-box${i<n?" gefuellt":""}">${i<n?"☕":""}</span>`).join("");
-}
-function neuwurfHTML(n) {
-  return n>0?Array.from({length:n},()=>'<button type="button" class="ressourcen-box gefuellt reroll-token" title="Neuwurf starten">🔄</button>').join("")
-           :'<span class="ressourcen-box"></span>';
 }
 
 function bindeNeuwurfTokens(z) {
   document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
     const darfStarten = myRole && z.am_zug === myRole;
-    token.disabled = z.status !== "laeuft" || z.phase !== "platzieren" || Boolean(z.zusatzaktion || z.kooperation) || (neuwurfUi.phase === 0 && !darfStarten);
+    token.disabled = z.neuwurf_plaettchen <= 0 || z.status !== "laeuft" || z.phase !== "platzieren" || Boolean(z.zusatzaktion || z.kooperation) || (neuwurfUi.phase === 0 && !darfStarten);
     token.title = neuwurfUi.phase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
+    token.setAttribute("aria-label", `${token.title} · ${z.neuwurf_plaettchen} Plättchen`);
     token.addEventListener("click", () => {
       if (neuwurfUi.phase !== 0) {
         meineAktion({ typ: "neuwurf_cancel" });
@@ -627,9 +603,9 @@ function render(z) {
     ? "🛬 Landung"
     : "Runde " + z.runde + (z.warteschleife ? " ⟳" : "");
   renderAeroSkala(z.aerodynamik_blau,z.aerodynamik_orange);
-  renderBremsSkala(z.bremsstaerke);
+  FlightModules.renderBrakes(z.bremsstaerke);
   document.getElementById("s-kaffee-status").innerHTML = kaffeeHTML(z.kaffeetassen);
-  document.getElementById("s-neuwurf").innerHTML = neuwurfHTML(z.neuwurf_plaettchen);
+  document.getElementById("s-neuwurf").innerHTML = FlightModules.rerollHTML(z.neuwurf_plaettchen);
   bindeNeuwurfTokens(z);
   renderAttitude(z.fluglage);
   renderTracks(z);

@@ -102,30 +102,6 @@ function renderAeroSkala(blau, orange) {
   skala.querySelector(".aero-tick-copilot").style.transform = `rotate(${aeroMarkerWinkel(orange)}deg)`;
 }
 
-// Bremsen-Marker-Skala, gleiches Prinzip wie oben, aber mit einem roten
-// Balken an der aktuellen Bremsstärke (S.9-S.11).
-function bremsSkalaHTML(bs) {
-  let html = '<div class="brems-scale">';
-  for (let n = 2; n <= 6; n++) {
-    html += `<span class="skala-zahl brems-number">${n}</span>`;
-  }
-  html += `<span class="brems-marker" aria-hidden="true" style="left:${bremsMarkerPosition(bs)}%"></span></div>`;
-  return html;
-}
-
-function bremsMarkerPosition(bs) {
-  return bs < 2 ? 12 : Math.min(88, 12 + (bs - 1) * 15.2);
-}
-
-function renderBremsSkala(bs) {
-  const skala = document.getElementById("s-brems");
-  // Die Zahlenelemente bleiben stehen; nur die absolute Markerposition ändert
-  // sich. Der bestehende Marker bleibt für die CSS-Bewegung erhalten.
-  if (!skala.querySelector(".brems-marker")) skala.innerHTML = bremsSkalaHTML(bs);
-  skala.querySelector(".brems-marker").style.left = bremsMarkerPosition(bs) + "%";
-  skala.setAttribute("aria-label", `Bremsstärke ${bs}`);
-}
-
 // Jede Leiste ist nur so hoch wie ihre aktuell sichtbaren Felder. Dadurch
 // entstehen weder beim Start noch nach einer Bewegung leere Felder oben.
 const TRACK_UNIT_PX = 36;
@@ -280,17 +256,12 @@ function kaffeeBoxenHTML(anzahl) {
   return html;
 }
 
-function neuwurfBoxenHTML(anzahl) {
-  if (anzahl <= 0) return '<span class="ressourcen-box"></span>';
-  return Array.from({ length: anzahl }, () =>
-    '<button type="button" class="ressourcen-box gefuellt reroll-token" title="Neuwurf starten">🔄</button>'
-  ).join("");
-}
 
 function bindeNeuwurfTokens(zustand) {
   document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
-    token.disabled = zustand.status !== "laeuft" || zustand.phase !== "platzieren" || Boolean(zustand.zusatzaktion || zustand.kooperation);
+    token.disabled = zustand.neuwurf_plaettchen <= 0 || zustand.status !== "laeuft" || zustand.phase !== "platzieren" || Boolean(zustand.zusatzaktion || zustand.kooperation);
     token.title = neuwurfPhase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
+    token.setAttribute("aria-label", `${token.title} · ${zustand.neuwurf_plaettchen} Plättchen`);
     token.addEventListener("click", toggleNeuwurfPanel);
   });
 }
@@ -304,9 +275,9 @@ function render(zustand) {
     ? "🛬 Landung"
     : "Runde " + zustand.runde + (zustand.warteschleife ? " ⟳" : "");
   renderAeroSkala(zustand.aerodynamik_blau, zustand.aerodynamik_orange);
-  renderBremsSkala(zustand.bremsstaerke);
+  FlightModules.renderBrakes(zustand.bremsstaerke);
   document.getElementById("s-kaffee-status").innerHTML = kaffeeBoxenHTML(zustand.kaffeetassen);
-  document.getElementById("s-neuwurf").innerHTML = neuwurfBoxenHTML(zustand.neuwurf_plaettchen);
+  document.getElementById("s-neuwurf").innerHTML = FlightModules.rerollHTML(zustand.neuwurf_plaettchen);
   bindeNeuwurfTokens(zustand);
 
   renderAttitude(zustand.fluglage);

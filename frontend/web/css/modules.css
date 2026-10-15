@@ -1,31 +1,138 @@
-#flight-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .6rem; margin-top: .7rem; padding-bottom: .5rem; }
-.module-instrument { padding: .8rem; border: 1px solid #739598; border-radius: 12px; background: linear-gradient(130deg,#e9f2ed,#c3d7d4); color: #193e45; box-shadow: 0 2px 4px #173e4420; min-width: 0; }
-.module-instrument h2 { margin: 0 0 .4rem; font-size: .88rem; }
-.module-instrument p, .module-instrument small { display: block; margin: .35rem 0; font-size: .74rem; line-height: 1.5; color: #375b60; }
-.module-button { min-height: 38px; margin: .22rem; padding: .4rem .6rem; border: 1px solid #527b82; border-radius: 7px; background: #214e59; color: #f4f7ed; font-size: .76rem; cursor: pointer; }
+/* Optional instruments share the cockpit's metal, labels and ownership colours. */
+.thrust-instruments { display: flex; align-items: center; justify-content: center; gap: .22rem; width: 100%; margin-top: .1rem; }
+#schub-reihe { min-width: 0; }
+.has-wind #schub-reihe { gap: .2rem; }
+.has-wind #schub-reihe .inline-label { display: flex; flex-direction: column; align-items: center; line-height: 1.05; gap: 3px; }
+.wind-modifier { font: 900 .85rem/1 ui-monospace, monospace; color: #176086; }
+#wind-instrument { flex: 0 0 36px; }
+.wind-mini { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 3px solid #64848a; border-radius: 50%; color: #fff0b7; background: repeating-conic-gradient(#dbe8df 0deg 2deg, transparent 2deg 20deg), radial-gradient(circle, #174c60 0 62%, #b2ccc9 64%); box-shadow: inset 0 0 0 1px #123a49, 0 2px 2px #143c4938; }
+.wind-mini-arrow { display: block; font: 900 25px/1 ui-monospace, monospace; transition: transform .3s ease; }
+
+/* The right-hand rail doubles as the fuel gauge. No extra panel below the game. */
+.board-grid.has-fuel { padding-right: 24px; }
+.board-grid.has-fuel::after { display: none; }
+#fuel-gauge { position: absolute; z-index: 2; top: 22px; right: 3px; bottom: 10px; width: 17px; }
+.fuel-info { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; color: #254b51; }
+.fuel-value { font: 900 10px/1 ui-monospace, monospace; }
+.fuel-rail { position: relative; display: block; width: 9px; flex: 1; min-height: 80px; overflow: hidden; border: 1px solid #526c6e; border-radius: 4px; background: #253e45; box-shadow: inset 1px 0 2px #001c28; }
+.fuel-fill { position: absolute; inset: auto 0 0; background: linear-gradient(90deg,#d4a52d,#ffdd57); transition: height .4s ease; }
+.fuel-graduations { position: absolute; inset: 0; background: repeating-linear-gradient(to top, transparent 0 calc(5% - 1px),#e8f2dc80 calc(5% - 1px) 5%); }
+.fuel-icon { font-size: 11px; line-height: 1; }
+.low-fuel .fuel-value { color: #b72f2a; }
+.low-fuel .fuel-fill { background: linear-gradient(90deg,#cc4b24,#f9a440); }
+#col-kopilot #fuel-action { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-top: .1rem; }
+.shared-slot { border-color: #f5f0c6; color: #f2f6ea; background: linear-gradient(90deg,#2152c5 49%,#f08b29 51%); }
+.pilot-slot { border-color: #79d7ff; background: linear-gradient(145deg,#258ce7,#173f9d); }
+.kopilot-slot { border-color: #ffd16b; background: linear-gradient(145deg,#f18a31,#ad4017); }
+#fuel-action .feld-zelle { font-size: 1rem; }
+.leak-indicator { min-height: 32px; padding: 3px 5px; border: 1px solid #9c6a3a; border-radius: 5px; color: #804123; background: #efdfba; font: 800 .75rem ui-monospace, monospace; }
+
+#ice-brakes { width: min(100%, 196px); margin-top: 2px; }
+.ice-heading { display: flex; align-items: center; justify-content: space-between; gap: 3px; margin-bottom: 2px; color: #29484d; font-size: .55rem; font-weight: 900; text-transform: uppercase; }
+.instrument-help { min-width: 26px; min-height: 26px; padding: 0 3px; border: 0; border-radius: 4px; color: #315d68; background: transparent; font-size: .65rem; font-weight: 800; }
+.ice-brake-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .24rem; }
+.ice-pair { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.ice-pair .feld-zelle { width: 100%; height: auto; aspect-ratio: 1; padding: 0; font-size: .85rem; }
+.ice-pair:not(.current-pair):not(.module-complete) .feld-zelle { opacity: .55; }
+.ice-pair.module-complete .feld-zelle { box-shadow: inset 0 0 0 2px #d7ee8e; }
+.ice-pair .feld-licht { width: 6px; height: 6px; }
+.feld-zelle:disabled { cursor: default; }
+.feld-zelle:focus-visible, .wind-mini:focus-visible, .instrument-help:focus-visible, .fuel-info:focus-visible, .ability-chip:focus-visible, .module-button:focus-visible { outline: 2px solid #cf9c22; outline-offset: 2px; }
+
+/* A narrow training rail, with the public token queue between both roles. */
+#intern-strip { padding: 3px 8px 6px; border: 2px solid #759192; border-radius: 8px; background: linear-gradient(110deg,#dce8e1,#b8d0ca); box-shadow: inset 0 1px #fff9; }
+.intern-heading { display: flex; align-items: center; justify-content: space-between; color: #29484d; font-size: .63rem; font-weight: 900; }
+.intern-heading strong { padding-left: 4px; font-family: ui-monospace, monospace; }
+.intern-training { display: grid; grid-template-columns: 40px minmax(0,1fr) 40px; align-items: center; gap: .35rem; }
+.intern-end .feld-zelle { width: 40px; height: 40px; padding: 0; }
+.intern-tokens { display: flex; justify-content: center; gap: clamp(2px,1vw,6px); min-width: 0; }
+.intern-token { display: grid; place-items: center; width: clamp(20px,6vw,30px); aspect-ratio: 1; flex-shrink: 1; border: 1px solid #819f5b; border-radius: 5px; background: #edf3d8; color: #354e30; font: 900 .9rem/1 ui-monospace, monospace; box-shadow: 0 2px 0 #6a845e66; }
+.intern-token.next-pilot { border-bottom: 3px solid var(--pilot); }
+.intern-token.next-kopilot { border-top: 3px solid var(--copilot); }
+.intern-complete { color: #3b653f; font-size: .7rem; font-weight: 800; }
+
+/* Selected abilities stay within reach. Their explanation opens on demand. */
+#ability-strip { display: flex; flex-wrap: wrap; gap: .3rem; padding: 3px 1px; }
+.ability-chip { display: flex; align-items: center; gap: .45rem; flex: 1 1 120px; min-height: 39px; padding: .25rem .55rem; border: 1px solid #769395; border-radius: 6px; color: #23464f; background: linear-gradient(120deg,#f5f5e8,#dce6d7); box-shadow: 0 1px 1px #1b414322; text-align: left; font-size: .7rem; font-weight: 800; }
+.ability-icon { color: #356b73; font-size: 1.25rem; }
+.ability-chip small { display: block; margin-top: 1px; color: #5b7474; font-size: .55rem; font-weight: 600; }
+.ability-chip.spent { opacity: .6; }
+#aktionen-leiste { flex-wrap: wrap; }
+#realtime-instrument { display: flex; align-items: center; gap: .15rem; margin-left: auto; }
+#module-timer { color: #fff3b4; font: 900 .95rem/1 ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+#module-timer.urgent { color: #ffb39f; }
+.timer-start, .timer-help { min-height: 30px; padding: .2rem .35rem; border: 1px solid #b6cdca70; border-radius: 4px; color: #fff1c3; background: #183b43; font-size: .65rem; }
+.timer-start:disabled { opacity: .5; }
+
+#flight-modules { display: grid; gap: .4rem; }
+.module-pending { padding: .65rem; border: 2px solid #c99820; border-radius: 8px; color: #193e45; background: #fff5d8; }
+.module-pending h2 { margin: 0 0 .3rem; font-size: .85rem; }
+.module-pending p { margin: .3rem 0; font-size: .74rem; line-height: 1.5; }
+.module-button { min-height: 40px; margin: .2rem; padding: .4rem .6rem; border: 1px solid #527b82; border-radius: 7px; background: #214e59; color: #f4f7ed; font-size: .76rem; cursor: pointer; }
 .module-button:disabled { opacity: .4; cursor: default; }
-.module-button:focus-visible { outline: 3px solid #dca928; outline-offset: 2px; }
 .module-button.pilot { background: #165aab; }
 .module-button.kopilot { background: #ba5b0c; }
-.module-button.shared { background: linear-gradient(90deg,#165aab 50%,#ba5b0c 50%); }
-.module-instrument meter { width: 65%; height: 24px; margin-right: .5rem; vertical-align: middle; accent-color: #29816b; }
-.module-instrument output { display: inline-block; font: 900 2rem ui-monospace,monospace; font-variant-numeric: tabular-nums; }
-.module-instrument output.urgent { color: #b22e29; }
-.module-instrument details { border-top: 1px solid #83a5a540; padding: .45rem 0; }
-.module-instrument summary { cursor: pointer; font-size: .8rem; font-weight: 700; }
-.wind-gauge { display: grid; grid-template-columns: 45px 1fr; align-items: center; gap: .15rem .5rem; }
-.wind-gauge > span { grid-row: span 2; font-size: 1.8rem; text-align: center; color: #17618a; }
-.wind-gauge strong { font-size: 1.5rem; }
-.wind-gauge small { margin: 0; }
-.ice-brake-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .3rem; }
-.ice-brake-grid button { aspect-ratio: 1; min-height: 38px; margin: 0; font-size: 1.1rem; }
-.ice-brake-grid .module-complete { opacity: 1; box-shadow: inset 0 0 0 3px #93bb47; }
-.intern-tokens { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
-.intern-tokens > span { display: grid; place-items: center; width: 30px; height: 34px; border: 2px solid #72933d; border-radius: 7px; background: #f5f4dc; font-weight: 900; }
-.module-pending { border: 2px solid #c99820; background: #fff5d8; grid-column: 1 / -1; }
 
-.wind-gauge { grid-template-columns: 148px 1fr; }
-.wind-dial { position: relative; width: 144px; height: 144px; border-radius: 50%; border: 2px solid #577d84; background: radial-gradient(circle,#17495e 0 49%,#e5efeb 50%); }
-.wind-tick { position: absolute; top: 50%; left: 50%; width: 21px; margin: -7px 0 0 -10.5px; text-align: center; font: 700 10px/14px ui-monospace,monospace; transform: rotate(var(--wind-angle)) translateY(-61px) rotate(calc(-1 * var(--wind-angle))); }
+/* One accessible, dismissible detail window for instruments and cards. */
+#module-detail { width: min(92vw,400px); max-height: 85dvh; padding: 0; overflow: auto; border: 2px solid #6a8b8f; border-radius: 13px; color: #21474f; background: #eef3eb; box-shadow: 0 14px 45px #082c4266; }
+#module-detail::backdrop { background: #092a3a88; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.module-detail-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .55rem .8rem; border-bottom: 1px solid #90afaa; background: #d5e4de; }
+.module-detail-head h2 { margin: 0; font-size: 1rem; }
+.module-close { min-width: 36px; min-height: 36px; padding: 0; border: 1px solid #7b999a; border-radius: 7px; color: #21474f; background: #f5f6e9; font-size: 1.4rem; }
+.module-detail-body { padding: .75rem .85rem; }
+.module-detail-body p { font-size: .85rem; line-height: 1.6; }
+.wind-gauge { display: flex; align-items: center; justify-content: center; gap: 1rem; margin: .5rem auto 1rem; }
+.wind-gauge strong { font: 900 1.7rem ui-monospace, monospace; }
+.wind-dial { position: relative; width: 176px; height: 176px; flex-shrink: 0; border-radius: 50%; border: 2px solid #577d84; background: radial-gradient(circle,#17495e 0 49%,#e5efeb 50%); }
+.wind-tick { position: absolute; top: 50%; left: 50%; width: 24px; margin: -8px 0 0 -12px; text-align: center; font: 700 11px/16px ui-monospace,monospace; transform: rotate(var(--wind-angle)) translateY(-75px) rotate(calc(-1 * var(--wind-angle))); }
 .wind-tick.active { border-radius: 4px; background: #ffe16b; color: #193f48; box-shadow: 0 0 0 1px #b8851a; }
-.wind-pointer { position: absolute; inset: 34px; color: #fff7d4; font: 700 66px/1 ui-monospace,monospace; text-align: center; transform-origin: center; }
+.wind-pointer { position: absolute; inset: 42px; color: #fff7d4; font: 700 78px/1 ui-monospace,monospace; text-align: center; transform-origin: center; }
+
+/* Bonus dice retain their source colours on these native board controls. */
+.feld-zelle.source-synchronisation { background: #202b34; border-color: #eef3e7; color: white; }
+.feld-zelle.source-intern { background: #ddedc0; border-color: #73984a; color: #29472a; }
+@media (max-width: 460px) {
+  .has-wind #schub-reihe .feld-zelle { width: 40px; height: 40px; }
+  .has-wind #schub-reihe .inline-label { font-size: .57rem; }
+  #wind-instrument { flex-basis: 34px; }
+  .wind-mini { width: 34px; height: 34px; }
+  .ice-brake-grid { gap: .2rem; }
+}
+@media (max-width: 360px) {
+  .board-grid.has-fuel { grid-template-columns: 56px minmax(0,1fr) 56px; }
+  .has-wind #schub-reihe { gap: .12rem; }
+  .has-wind #schub-reihe .inline-label { font-size: .54rem; }
+  #wind-instrument { flex-basis: 32px; }
+  .wind-mini { width: 32px; height: 32px; }
+  .ability-chip { font-size: .65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wind-mini-arrow, .fuel-fill { transition: none; }
+}
+
+/* Also respond to a narrow app panel inside a wider browser window. */
+#spiel-ui { container-type: inline-size; container-name: cockpit; }
+@container cockpit (max-width: 460px) {
+  .board-grid { grid-template-columns: 60px minmax(0,1fr) 60px; padding-left: .4rem; }
+  .has-wind #schub-reihe .feld-zelle { width: 40px; height: 40px; }
+  .has-wind #schub-reihe .inline-label { font-size: .57rem; }
+  #wind-instrument { flex-basis: 34px; }
+  .wind-mini { width: 34px; height: 34px; }
+}
+@container cockpit (max-width: 360px) {
+  .board-grid.has-fuel { grid-template-columns: 56px minmax(0,1fr) 56px; }
+  .has-wind #schub-reihe { gap: .12rem; }
+  .has-wind #schub-reihe .inline-label { font-size: .54rem; }
+  #wind-instrument { flex-basis: 32px; }
+  .wind-mini { width: 32px; height: 32px; }
+}
+
+/* One compact reroll control, regardless of the number of tokens in reserve. */
+#reroll-slot-pilot { padding: 2px 3px; }
+#reroll-slot-pilot .side-block-label { display: none; }
+#s-neuwurf { display: block; width: 100%; }
+.reroll-count { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 32px; height: auto; padding: 2px 4px; border: 1px solid #9ab7b4; border-radius: 4px; background: #183b45; color: #f7ebbc; box-shadow: inset 0 1px #ffffff18; }
+.reroll-count span { font: 800 22px/1 system-ui, sans-serif; }
+.reroll-count strong { font: 900 15px/1 ui-monospace, monospace; }
+.reroll-count:disabled { color: #8ca5a5; cursor: default; }
+.reroll-count:focus-visible { outline: 2px solid #e4bd3d; outline-offset: 2px; }

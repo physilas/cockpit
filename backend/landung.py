@@ -185,14 +185,12 @@ class Landung:
         return self._flugzeugwuerfel[index] if index is not None else 0
 
     def add_flugzeug_fuer_verkehrswurf(self, wert):
-        """Aktuelles Feld zählt als 1; offizielle Strecken begrenzen Ziel und Vorrat."""
+        """Aktuelles Feld zählt als 1; Ziele hinter der Leiste verfallen."""
         self.letzter_verkehr_grund = None
         if self.verkehr_regel == "offiziell" and sum(self.flugzeuge) >= 12:
             self.letzter_verkehr_grund = "vorrat_leer"
             return None
         ziel_entfernung = self.entfernung - (wert - 1)
-        if self.verkehr_regel == "offiziell":
-            ziel_entfernung = max(0, ziel_entfernung)
         index = self._index_fuer_entfernung(ziel_entfernung)
         if index is None:
             return None
