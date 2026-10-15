@@ -289,7 +289,7 @@ function neuwurfBoxenHTML(anzahl) {
 
 function bindeNeuwurfTokens(zustand) {
   document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
-    token.disabled = zustand.status !== "laeuft" || zustand.phase !== "platzieren";
+    token.disabled = zustand.status !== "laeuft" || zustand.phase !== "platzieren" || Boolean(zustand.zusatzaktion || zustand.kooperation);
     token.title = neuwurfPhase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
     token.addEventListener("click", toggleNeuwurfPanel);
   });
@@ -320,6 +320,13 @@ function render(zustand) {
   renderWuerfel("pilot", zustand);
   renderWuerfel("kopilot", zustand);
   renderNeuwurfPanel(zustand);
+  FlightModules.render(zustand, {
+    role:null, selected:diceVisible ? ausgewaehlterWuerfel : null, reroll:neuwurfPhase !== 0,
+    conceal() {diceVisible = null; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
+    onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.platziere(role, die, target, index)));},
+    onAction(role, action, params) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.modul_aktion(role, action, JSON.stringify(params))));},
+    onTick() {const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {ausgewaehlterWuerfel = null; neuwurfReset(); nachAktion(r);}},
+  });
 
   const amZugEl = document.getElementById("am-zug-anzeige");
   const rundenendeBtn = document.getElementById("rundenende-btn");
@@ -332,7 +339,11 @@ function render(zustand) {
       "</div>";
     rundenendeBtn.disabled = true;
   } else if (zustand.phase !== "platzieren") {
-    amZugEl.textContent = "Zuerst schwarze Würfel werfen";
+    amZugEl.textContent = zustand.phase === "vorbereitung" ? "Bereit zum Würfeln" : "Zuerst schwarze Würfel werfen";
+    rundenendeBtn.disabled = true;
+  } else if (zustand.zusatzaktion || zustand.kooperation) {
+    const role = zustand.zusatzaktion?.rolle || zustand.kooperation.wartet_auf;
+    amZugEl.textContent = `Zusatzaktion: ${role === 'pilot' ? 'Pilotin' : 'Co-Pilot'}`;
     rundenendeBtn.disabled = true;
   } else {
     amZugEl.textContent = `Am Zug: ${zustand.am_zug === "pilot" ? "Pilotin" : "Co-Pilot"}`;
@@ -351,6 +362,7 @@ function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, g
   if (eintrag?.ziel) div.classList.add(`ziel-${eintrag.ziel}`);
 
   if (wertObjekt) {
+    if (wertObjekt.quelle) div.classList.add(`source-${wertObjekt.quelle}`);
     div.classList.add("belegt", wertObjekt.besitzer);
     div.textContent = wertObjekt.wert;
     return div;
@@ -367,7 +379,7 @@ function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, g
     ? ausgewaehlterWuerfel?.besitzer === fixierterBesitzer
     : ausgewaehlterWuerfel && eintrag.zugriff.includes(ausgewaehlterWuerfel.besitzer);
 
-  const istKlickbar = zustand.status === "laeuft" && zustand.phase === "platzieren" && ausgewaehlterWuerfel &&
+  const istKlickbar = zustand.status === "laeuft" && zustand.phase === "platzieren" && !zustand.zusatzaktion && !zustand.kooperation && ausgewaehlterWuerfel &&
     zustand.am_zug === ausgewaehlterWuerfel.besitzer && kannHierPlatzieren;
 
   if (istKlickbar) {
@@ -448,6 +460,7 @@ function renderCockpitBoard(zustand) {
   ["col-pilot-felder", "col-kopilot-felder", "schub-reihe", "bremse-reihe", "konzentration-reihe"]
     .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
 
+  document.getElementById("bremse-reihe").classList.toggle("versteckt", zustand.module.includes("ice"));
   const layout = COCKPIT_SCHEMA.feld_layout;
   const felder = zustand.felder;
 
@@ -560,7 +573,7 @@ function renderWuerfel(besitzer, zustand) {
 
   const werte = zustand[`${besitzer}_wuerfel`];
   const frei  = zustand[`${besitzer}_wuerfel_frei`];
-  const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft" && zustand.phase === "platzieren";
+  const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft" && zustand.phase === "platzieren" && !zustand.zusatzaktion && !zustand.kooperation;
   const sichtbar  = diceVisible === besitzer;
 
   const imNeuwurf = neuwurfPhase !== 0;
@@ -700,7 +713,7 @@ function neuwurfAbbrechen() {
 }
 
 function toggleNeuwurfPanel() {
-  if (!aktuellerZustand || aktuellerZustand.neuwurf_plaettchen <= 0) return;
+  if (!aktuellerZustand || aktuellerZustand.zusatzaktion || aktuellerZustand.kooperation || aktuellerZustand.neuwurf_plaettchen <= 0) return;
   if (neuwurfPhase !== 0) {
     neuwurfAbbrechen();
     return;
@@ -836,7 +849,7 @@ async function rundenendeKlick() {
   setzeMeldung(antwort.ergebnis.meldung, "erfolg");
   diceVisible = null;
   render(antwort.zustand);
-  if (antwort.zustand.status === "laeuft") {
+  if (antwort.zustand.status === "laeuft" && !antwort.zustand.module.includes("realtime")) {
     render(pyToJs(bridge.wuerfeln_fuer_runde()));
   }
 }
@@ -853,7 +866,7 @@ function spielfeldUntenAusrichten() {
       richteVerkehrStreckeAus();
       return;
     }
-    spielUi.scrollIntoView({ block: "end", inline: "nearest", behavior: "auto" });
+    document.getElementById("aktionen-leiste").scrollIntoView({ block: "end", inline: "nearest", behavior: "auto" });
   };
   requestAnimationFrame(() => requestAnimationFrame(ausrichten));
   // Die Track-Höhen werden direkt nach dem Rendern gesetzt. Der zweite,
@@ -885,7 +898,7 @@ async function neuesSpiel(scenario) {
   neuwurfPhase1Indizes = new Set();
   neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
   diceVisible = null;
-  const zustand = pyToJs(bridge.neues_spiel(scenario.engine_code));
+  const zustand = pyToJs(bridge.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || [])));
   landingPicker.hide();
   document.getElementById("game-header").classList.remove("versteckt");
   document.getElementById("spiel-ui").classList.remove("versteckt");
@@ -896,6 +909,7 @@ async function neuesSpiel(scenario) {
 
 function zurueckZumMenue() {
   navigationVersion++;
+  FlightModules.reset();
   resetVerkehrUi();
   landingPicker.hide();
   for (const id of ["game-header", "flight-summary", "spiel-ui", "lade-hinweis"]) document.getElementById(id).classList.add("versteckt");
@@ -904,6 +918,7 @@ function zurueckZumMenue() {
 
 window.startPassAndPlay = function() {
   navigationVersion++;
+  FlightModules.reset();
   resetVerkehrUi();
   for (const id of ["start-menu", "game-header", "flight-summary", "spiel-ui", "lade-hinweis"]) document.getElementById(id).classList.add("versteckt");
   landingPicker.show();

@@ -29,6 +29,9 @@ BREMSSTAERKE_PRO_AKTIVIERUNG = 2
 # S.8 Konzentration: nie mehr als 3 Kaffeetassen gleichzeitig im Vorrat.
 MAX_KAFFEETASSEN = 3
 
+# Dized material list: 2 basic + 1 additional reroll token (for Mastery).
+MAX_NEUWURF_PLAETTCHEN = 3
+
 # Würfelwerte sind immer 1-6, Kaffee darf nur innerhalb dieses Bereichs
 # verschieben (aus einer 1 wird durch Verringern keine 6, S.8).
 WUERFEL_MIN = 1

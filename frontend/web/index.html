@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#1e293b">
 <link rel="stylesheet" href="css/style.css?v=compact-distance-v2">
 <link rel="stylesheet" href="css/landings.css">
+<link rel="stylesheet" href="css/modules.css">
 <style>
   /* ── Startmenü ── */
   #start-menu {
@@ -95,13 +96,6 @@
             <div id="distance-labels"></div>
             <div id="distance-obstacles"></div>
           </div>
-        </div>
-      </div>
-      <div class="tracks-marker-col">
-        <div class="tracks-marker-row" id="tracks-marker">
-          <span class="tracks-marker-line"></span>
-          <span class="tracks-marker-plane">✈</span>
-          <span class="tracks-marker-line"></span>
         </div>
       </div>
       <div class="vtrack-col">
@@ -196,6 +190,7 @@
     </section>
 
     <section id="verkehr-panel" class="versteckt" aria-label="Schwarze Verkehrswürfel" aria-live="polite"></section>
+    <section id="flight-modules" class="versteckt" aria-label="Zusatzmodule und Fähigkeiten"></section>
     <section id="neuwurf-panel" class="versteckt"></section>
     <section id="meldung-leiste"></section>
 
@@ -207,6 +202,7 @@
   <script src="js/traffic.js"></script>
   <script src="js/landing-catalog.js"></script>
   <script src="js/landings.js"></script>
+<script src="js/modules.js"></script>
   <script src="js/app.js?v=compact-distance-v2"></script>
   <script>
     if ("serviceWorker" in navigator) {

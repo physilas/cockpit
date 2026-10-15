@@ -113,6 +113,7 @@ function setJoinStatus(t, cls) {
 // ── Pyodide / Engine (nur Host) ──────────────────────────────────────────────
 let gewaehlterFlughafen = "LOG_YUL_GREEN";
 let choosingLanding = false;
+let gewaehlteKarten = [];
 const landingPicker = Landings.mount(document.getElementById("landing-selection"), {
   mode: "Multiplayer · Host",
   startLabel: "Mit dieser Landung hosten →",
@@ -127,6 +128,7 @@ const landingPicker = Landings.mount(document.getElementById("landing-selection"
   },
   onStart(scenario) {
     gewaehlterFlughafen = scenario.engine_code;
+    gewaehlteKarten = scenario.ability_ids || [];
     choosingLanding = false;
     document.getElementById("host-landing").textContent = `${scenario.code} · ${scenario.name}${scenario.kind === "logbook" ? (scenario.practice ? " · Originalstrecke, Übungsregeln" : " · Originalstrecke") : " · Eigene Strecke"}`;
     if (partnerConnected && pyodideReady) startGame();
@@ -174,7 +176,7 @@ async function ladeEngine() {
 // ── Spielstart (Host) ────────────────────────────────────────────────────────
 function startGame() {
   resetVerkehrUi();
-  const rawZ = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
+  const rawZ = pyToJs(bridge.neues_spiel(gewaehlterFlughafen, JSON.stringify(gewaehlteKarten)));
   showScreen(null);
   choosingLanding = false;
   neuwurfUiReset();
@@ -207,6 +209,8 @@ function hostAktion(msg, absender) {
   // The host assigns the role from the connection. A client-provided role is
   // never authoritative, which keeps this transport usable for future cloud
   // sessions as well.
+  if (pyToJs(bridge.tick()).ergebnis.erfolg) { neuwurfUiReset(); sendState(); return false; }
+  if (neuwurfUi.phase !== 0 && !msg.typ?.startsWith('neuwurf_')) return false;
   msg = {...msg, besitzer: absender};
   let raw;
   const zeigeErgebnis = r => {
@@ -223,6 +227,10 @@ function hostAktion(msg, absender) {
       ));
       zeigeErgebnis(r.ergebnis);
       raw = r.zustand;
+    } else if (msg.typ === "modul_aktion") {
+      const r = pyToJs(bridge.modul_aktion(msg.besitzer, msg.aktion, JSON.stringify(msg.parameter || {})));
+      zeigeErgebnis(r.ergebnis);
+      raw = r.zustand;
     } else if (msg.typ === "trinke_kaffee") {
       const r = pyToJs(bridge.trinke_kaffee(msg.besitzer, msg.wuerfel_index, msg.delta));
       zeigeErgebnis(r.ergebnis);
@@ -234,7 +242,7 @@ function hostAktion(msg, absender) {
     } else if (msg.typ === "rundenende") {
       const r = pyToJs(bridge.rundenende());
       zeigeErgebnis(r.ergebnis);
-      if (r.ergebnis.erfolg && r.zustand.status === "laeuft") {
+      if (r.ergebnis.erfolg && r.zustand.status === "laeuft" && !r.zustand.module.includes("realtime")) {
         bridge.wuerfeln_fuer_runde();
         raw = pyToJs(bridge.zustand());
       } else {
@@ -243,13 +251,13 @@ function hostAktion(msg, absender) {
     } else if (msg.typ === "neues_spiel") {
       if (absender !== "pilot") return false;
       resetVerkehrUi();
-      raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
+      raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen, JSON.stringify(gewaehlteKarten)));
       neuwurfUiReset();
 
     // ── Neuwurf: zwei-Schritt-Choreografie, siehe Kommentar bei neuwurfUi ──
     } else if (msg.typ === "neuwurf_start") {
       const z = pyToJs(bridge.zustand());
-      if (neuwurfUi.phase === 0 && z.neuwurf_plaettchen > 0 && z.status === "laeuft" && z.phase === "platzieren") {
+      if (neuwurfUi.phase === 0 && z.neuwurf_plaettchen > 0 && z.status === "laeuft" && z.phase === "platzieren" && !z.zusatzaktion && !z.kooperation) {
         neuwurfUi = { phase: 1, initiator: msg.besitzer, initiatorAuswahl: [], partnerAuswahl: [] };
       }
       raw = pyToJs(bridge.zustand());
@@ -468,7 +476,7 @@ function neuwurfHTML(n) {
 function bindeNeuwurfTokens(z) {
   document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
     const darfStarten = myRole && z.am_zug === myRole;
-    token.disabled = z.status !== "laeuft" || z.phase !== "platzieren" || (neuwurfUi.phase === 0 && !darfStarten);
+    token.disabled = z.status !== "laeuft" || z.phase !== "platzieren" || Boolean(z.zusatzaktion || z.kooperation) || (neuwurfUi.phase === 0 && !darfStarten);
     token.title = neuwurfUi.phase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
     token.addEventListener("click", () => {
       if (neuwurfUi.phase !== 0) {
@@ -639,6 +647,13 @@ function render(z) {
   renderWuerfel("pilot",z);
   renderWuerfel("kopilot",z);
   renderNeuwurf(z);
+  FlightModules.render(z, {
+    role:myRole, selected:eigeneWuerfelVersteckt ? null : ausgewaehlterWuerfel, reroll:neuwurfUi.phase !== 0,
+    conceal() {eigeneWuerfelVersteckt = true; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
+    onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; meineAktion({typ:'platziere', wuerfel_index:die, ziel:target, index});},
+    onAction(role, action, params) {ausgewaehlterWuerfel = null; meineAktion({typ:'modul_aktion', aktion:action, parameter:params});},
+    onTick:myRole === 'pilot' ? () => {if (!choosingLanding) {const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {neuwurfUiReset(); sendState(r.zustand);}}} : null,
+  });
 
   const amZug=document.getElementById("am-zug-anzeige");
   const rBtn=document.getElementById("rundenende-btn");
@@ -650,11 +665,15 @@ function render(z) {
       "</div>";
     if(rBtn)rBtn.disabled=true;
   } else if (z.phase !== "platzieren") {
-    amZug.textContent = myRole === z.am_zug
+    amZug.textContent = z.phase === "vorbereitung" ? "Bereit zum Würfeln" : myRole === z.am_zug
       ? "Zuerst schwarze Würfel werfen"
       : `${z.am_zug === "pilot" ? "Pilotin" : "Co-Pilot"} wirft die schwarzen Würfel …`;
     amZug.style.color = "var(--muted)";
     if(rBtn)rBtn.disabled=true;
+  } else if (z.zusatzaktion || z.kooperation) {
+    const role = z.zusatzaktion?.rolle || z.kooperation.wartet_auf;
+    amZug.textContent = `Zusatzaktion: ${role === 'pilot' ? 'Pilotin' : 'Co-Pilot'}`;
+    if (rBtn) rBtn.disabled = true;
   } else if (imNeuwurf) {
     // Während des Neuwurfs ruht die Platzier-Reihenfolge - der eigentliche
     // Zug (z.am_zug) bleibt dabei unverändert und läuft danach genau dort
@@ -697,6 +716,7 @@ function containerFuerEintrag(e) {
 function renderBoard(z) {
   ["col-pilot-felder", "col-kopilot-felder", "schub-reihe", "bremse-reihe", "konzentration-reihe"]
     .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
+  document.getElementById("bremse-reihe").classList.toggle("versteckt", z.module.includes("ice"));
   const felder=z.felder||{};
 
   FELD_LAYOUT.forEach(e=>{
@@ -793,10 +813,10 @@ function zelle(fixBesitzer,wertObj,slotIdx,e,z,gesperrt=false) {
   const div=document.createElement("div");
   div.className="feld-zelle";
   if(e?.ziel)div.classList.add(`ziel-${e.ziel}`);
-  if(wertObj){div.classList.add("belegt",wertObj.besitzer);div.textContent=wertObj.wert;return div;}
+  if(wertObj){if(wertObj.quelle)div.classList.add(`source-${wertObj.quelle}`);div.classList.add("belegt",wertObj.besitzer);div.textContent=wertObj.wert;return div;}
   if(e.zahlen&&slotIdx!==null)div.innerHTML=`<small>${e.zahlen[slotIdx].join("/")}</small>`;
   if(gesperrt){div.title="Reihenfolge beachten.";return div;}
-  const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft"&&z.phase==="platzieren";
+  const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft"&&z.phase==="platzieren"&&!z.zusatzaktion&&!z.kooperation;
   const kannHier=fixBesitzer?ausgewaehlterWuerfel?.besitzer===fixBesitzer
                             :ausgewaehlterWuerfel&&e.zugriff.includes(ausgewaehlterWuerfel.besitzer);
   if(ichDran&&ausgewaehlterWuerfel&&kannHier){
@@ -861,7 +881,7 @@ function renderWuerfel(besitzer,z) {
     const istNeuwurfMarkiert = istNeuwurfAktiv && istMeins && neuwurfAuswahl?.includes(i);
     if(istPlatzierAus || istNeuwurfMarkiert) div.classList.add("ausgewaehlt");
 
-    const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft"&&z.phase==="platzieren";
+    const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft"&&z.phase==="platzieren"&&!z.zusatzaktion&&!z.kooperation;
     if(!imNeuwurf && istMeins&&frei[i]&&!verborgen&&ichDran){
       div.addEventListener("click",()=>{
         ausgewaehlterWuerfel=istPlatzierAus?null:{besitzer,index:i};

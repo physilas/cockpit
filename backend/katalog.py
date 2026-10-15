@@ -13,13 +13,13 @@ def szenario_konfiguration(code):
     for s in katalog["scenarios"]:
         mock = code == f'MOCK_{s["code"]}_{s["difficulty"].upper()}'
         if s["engine_code"] == code or mock:
-            uebung = mock or s["practice"]
+            uebung = mock
             track = s["mock_track"] if mock else s["track"]
             return {
                 "code": code, "bezeichnung": f'{s["code"]} {s["name"]}' + (" (Übungsregeln)" if uebung else ""),
                 "sichtbar": False, "szenario_id": s["id"], "mock": mock, "uebung": uebung,
                 "verkehr_regel": "eigene" if mock else "offiziell",
-                "geplante_module": s["modules"], "faehigkeitskarten": 0, "module": None,
+                "geplante_module": s["modules"], "faehigkeitskarten": s["ability_count"], "module": s["modules"],
                 "schwierigkeit": [d["id"] for d in katalog["difficulties"]].index(s["difficulty"]),
                 "laenge": len(track), "neuwurf_hoehen": s["neuwurf_hoehen"],
                 "flugzeuge_wuerfel_kurven_min_max": track,

@@ -25,6 +25,7 @@ PYTHON_DATEIEN = [
     "backend/cockpit.py",
     "backend/landung.py",
     "backend/katalog.py",
+    "backend/zusatzregeln.py",
     "backend/spielplan.py",
     "backend/bridge.py",
 ]
@@ -128,6 +129,8 @@ def build():
                 "frontend/web/manifest.json",
                 "frontend/web/css/style.css",
                 "frontend/web/css/landings.css",
+                "frontend/web/css/modules.css",
+                "frontend/web/js/modules.js",
                 "frontend/web/js/landings.js",
                 "frontend/web/js/app.js",
                 "frontend/web/js/traffic.js",

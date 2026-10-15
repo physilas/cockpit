@@ -1,6 +1,7 @@
 from .cockpit import Cockpit, Ergebnis
 from .landung import Landung
 from .wuerfel import Wuerfel, BESITZER, wirf_verkehrswuerfel
+from .zusatzregeln import Zusatzregeln, KARTEN
 
 
 class Spielplan:
@@ -14,8 +15,15 @@ class Spielplan:
     funktionieren.
     """
 
-    def __init__(self, flughafen="MUC", startspieler="pilot"):
+    def __init__(self, flughafen="MUC", startspieler="pilot", faehigkeitskarten=None, clock=None):
         self.landung = Landung(flughafen)
+        karten = [] if faehigkeitskarten is None else faehigkeitskarten
+        if not isinstance(karten, (list, tuple)) or any(not isinstance(k, str) or k not in KARTEN for k in karten) or len(set(karten)) != len(karten):
+            raise ValueError("Ungültiges Fähigkeitskarten-Set.")
+        if len(karten) != (self.landung.get_faehigkeitskarten() or 0):
+            raise ValueError(f"Für diese Landung sind genau {self.landung.get_faehigkeitskarten() or 0} Fähigkeitskarten erforderlich.")
+        if startspieler not in BESITZER:
+            raise ValueError("Ungültiger Startspieler.")
         self.cockpit = Cockpit(self.landung)
 
         self.pilot_wuerfel = [Wuerfel("pilot") for _ in range(4)]
@@ -42,6 +50,7 @@ class Spielplan:
         self.verkehrswuerfel_offen = 0
         self.verkehrswuerfe = []
         self._vorbereitete_runde = None
+        self.zusatz = Zusatzregeln(self, karten, clock)
 
     ### SETUP / RUNDENABLAUF ###
 
@@ -55,6 +64,7 @@ class Spielplan:
         if self._vorbereitete_runde == self.aktuelle_runde:
             return
         self._vorbereitete_runde = self.aktuelle_runde
+        self.zusatz.neue_runde()
         self.verkehrswuerfel_offen = self.landung.verkehrswuerfel_an_aktueller_position()
         self.verkehrswuerfe = []
         self.phase = "verkehr" if self.verkehrswuerfel_offen else "vorbereitung"
@@ -69,6 +79,7 @@ class Spielplan:
         for w in self.pilot_wuerfel + self.kopilot_wuerfel:
             w.werfen()
         self.phase = "platzieren"
+        self.zusatz.wuerfel_geworfen()
         return True
 
     def wirf_verkehrswuerfel(self, besitzer=None):
@@ -113,6 +124,9 @@ class Spielplan:
         `pilot_indizes`/`kopilot_indizes`: Indizes (0-3) der Würfel, die
         neu geworfen werden sollen.
         """
+        pruefung = self.zusatz.pruefe()
+        if pruefung is not None:
+            return pruefung
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
         if self.phase != "platzieren":
@@ -165,6 +179,9 @@ class Spielplan:
 
     def trinke_kaffee(self, besitzer, wuerfel_index, delta):
         """Kaffee auf einen eigenen, noch nicht platzierten Würfel anwenden (S.8)."""
+        pruefung = self.zusatz.pruefe()
+        if pruefung is not None:
+            return pruefung
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
         if self.phase != "platzieren":
@@ -197,6 +214,9 @@ class Spielplan:
 
         Gibt ein Ergebnis zurück und wechselt bei Erfolg den Zug (S.4 A).
         """
+        pruefung = self.zusatz.pruefe()
+        if pruefung is not None:
+            return pruefung
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
         if self.phase != "platzieren":
@@ -212,9 +232,14 @@ class Spielplan:
         if not wuerfel.ist_verfuegbar():
             return Ergebnis(False, "wuerfel_nicht_verfuegbar")
 
+        ergebnis = self._lege_wuerfel(wuerfel, ziel, index, funk_feld)
+        return self._nach_platzierung(ergebnis, ziel, wechsel=True)
+
+    def _lege_wuerfel(self, wuerfel, ziel, index=None, funk_feld=0):
+        besitzer = wuerfel.besitzer
         if not isinstance(ziel, str):
             return Ergebnis(False, "unbekanntes_ziel")
-        felder_mit_index = {"fahrwerk", "landeklappe", "bremse", "konzentration"}
+        felder_mit_index = {"fahrwerk", "landeklappe", "bremse", "konzentration", "eisbremse"}
         if ziel in felder_mit_index and (not isinstance(index, int) or isinstance(index, bool)):
             return Ergebnis(False, "ungueltiger_index")
         if ziel == "funk":
@@ -240,19 +265,33 @@ class Spielplan:
             ergebnis = self.cockpit.platziere_bremse(wuerfel, index)
         elif ziel == "konzentration":
             ergebnis = self.cockpit.platziere_konzentration(wuerfel, index)
+        elif ziel == "kerosin":
+            ergebnis = self.cockpit.platziere_kerosin(wuerfel)
+        elif ziel == "eisbremse":
+            ergebnis = self.cockpit.platziere_eisbremse(wuerfel, index)
+        elif ziel == "training":
+            ergebnis = self.zusatz.trainiere(wuerfel)
         else:
             return Ergebnis(False, "unbekanntes_ziel")
+        return ergebnis
 
+    def _nach_platzierung(self, ergebnis, ziel, wechsel=False):
         if not ergebnis.erfolg:
             return ergebnis
 
+        if not ergebnis.verloren:
+            zusatz = self.zusatz.nach_platzierung(ziel)
+            if zusatz is not None:
+                ergebnis = zusatz
         self.letzte_meldung = ergebnis.meldung
         if ergebnis.verloren:
             self.status = "verloren"
+            self.zusatz.deadline = None
             self.verlust_grund = ergebnis.grund
             return ergebnis
 
-        self.am_zug = "kopilot" if besitzer == "pilot" else "pilot"
+        if wechsel:
+            self.am_zug = "kopilot" if self.am_zug == "pilot" else "pilot"
         return ergebnis
 
     @staticmethod
@@ -261,13 +300,23 @@ class Spielplan:
 
     ### RUNDENENDE (S.9-S.11) ###
 
-    def rundenende(self):
+    def rundenende(self, zeit_abgelaufen=False):
+        if not zeit_abgelaufen:
+            pruefung = self.zusatz.pruefe()
+            if pruefung is not None:
+                return pruefung
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
         if self.phase != "platzieren":
             return Ergebnis(False, "runde_nicht_bereit")
-        if not self.alle_wuerfel_platziert():
+        if not zeit_abgelaufen and not self.alle_wuerfel_platziert():
             return Ergebnis(False, "noch_nicht_alle_wuerfel_platziert")
+
+        self.zusatz.deadline = None
+        verbrauch = self.zusatz.rundenverbrauch()
+        if verbrauch is not None and verbrauch.verloren:
+            self.status, self.verlust_grund = "verloren", verbrauch.grund
+            return verbrauch
 
         # Verlierbedingung S.5: Pflichtfelder müssen VOR dem Leeren geprüft werden.
         if not self.cockpit.pflichtfelder_erfuellt():
@@ -331,6 +380,10 @@ class Spielplan:
 
     def _werte_spielende_aus(self):
         gruende = []
+        if "intern" in self.cockpit.module and self.zusatz.praktikant:
+            gruende.append("praktikant_unvollstaendig")
+        if "ice" in self.cockpit.module and self.cockpit.eis_fortschritt != 4:
+            gruende.append("eisbremsen_unvollstaendig")
         if not self.landung.ist_frei_von_flugzeugen():
             gruende.append("flugzeuge_uebrig")
         if not self.cockpit.fahrwerk_komplett():
@@ -354,6 +407,7 @@ class Spielplan:
     def zustand(self):
         """Kompakter Snapshot für UI/Displayer - keine Spiellogik."""
         return {
+            **self.zusatz.snapshot(),
             "status": self.status,
             "flughafen_code": self.landung.get_code(),
             "flughafen_name": self.landung.get_bezeichnung(),

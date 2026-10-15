@@ -15,7 +15,7 @@ function verkehrswuerfelSymbol(wert = null) {
   return el;
 }
 
-// Deterministisch gestreute Positionen bleiben beim erneuten Rendern stabil.
+// Kleine, deterministische Drehungen bleiben beim erneuten Rendern stabil.
 function flugzeugZufall(feld, flugzeug, salt) {
   const wert = Math.sin((feld + 1) * 89.17 + (flugzeug + 1) * 41.73 + salt * 17.31) * 43758.5453;
   return wert - Math.floor(wert);
@@ -25,6 +25,12 @@ function flugzeugZufall(feld, flugzeug, salt) {
 function renderEntfernungsFlugzeuge(z, trackUnit) {
   const container = document.getElementById("distance-obstacles");
   container.replaceChildren();
+  const counts = (z.flugzeuge || []).filter((n, i) => n > 0 && z.laenge - 1 - i <= z.entfernung);
+  const maxCount = Math.max(1, ...counts);
+  const track = document.getElementById("distance-track");
+  track.style.setProperty("--traffic-cols", Math.min(3, maxCount));
+  track.style.setProperty("--traffic-rows", Math.ceil(maxCount / 3));
+  track.style.setProperty("--traffic-height", `${trackUnit - 16}px`);
   (z.flugzeuge || []).forEach((anzahl, i) => {
     const entfernung = z.laenge - 1 - i;
     if (anzahl <= 0 || entfernung > z.entfernung) return;
@@ -44,20 +50,19 @@ function renderEntfernungsFlugzeuge(z, trackUnit) {
     gruppe.className = "aircraft-group";
     const zeilen = Math.ceil(anzahl / 3);
     const spalten = Math.ceil(anzahl / zeilen);
-    gruppe.style.setProperty("--formation-factor", 1 + (spalten - 1) * .7);
-    gruppe.style.setProperty("--formation-height-factor", 1 + (zeilen - 1) * .7);
+
+
     for (let k = 0; k < anzahl; k += spalten) {
       const zeile = document.createElement("span");
       zeile.className = "aircraft-row";
       for (let n = k; n < Math.min(k + spalten, anzahl); n++) {
-        // Erst eine sichere Position, dann die Drehung. Die Hüllfläche in
-        // CSS berücksichtigt ±16° und passt sich der tatsächlichen Breite an.
+        // Feste Zellenabstände verhindern Überlappung; CSS reserviert die Hüllfläche der ±6° Drehung.
         const pose = document.createElement("span");
         pose.className = "aircraft-pose";
         const inZeile = Math.min(spalten, anzahl - k);
-        pose.style.setProperty("--plane-x", (n - k + .18 + .64 * flugzeugZufall(i, n, 1)) / inZeile);
-        pose.style.setProperty("--plane-y", (k / spalten + .15 + .7 * flugzeugZufall(i, n, 2)) / zeilen);
-        pose.style.setProperty("--plane-angle", `${Math.round(flugzeugZufall(i, n, 3) * 32 - 16)}deg`);
+        pose.style.setProperty("--plane-x", (n - k + .5) / inZeile);
+        pose.style.setProperty("--plane-y", (k / spalten + .5) / zeilen);
+        pose.style.setProperty("--plane-angle", `${Math.round(flugzeugZufall(i, n, 3) * 12 - 6)}deg`);
         const flugzeug = document.createElement("span");
         flugzeug.className = "aircraft-icon";
         flugzeug.textContent = "✈";

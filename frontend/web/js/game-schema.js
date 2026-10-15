@@ -31,7 +31,17 @@ window.COCKPIT_SCHEMA = {
     "noch_nicht_alle_wuerfel_platziert": "Noch nicht alle Würfel platziert",
     "kein_spiel_aktiv": "Kein Spiel aktiv",
     "runde_nicht_bereit": "Zuerst die schwarzen Verkehrswürfel werfen",
-    "kein_verkehrswuerfel_offen": "Kein schwarzer Verkehrswürfel mehr offen"
+    "kein_verkehrswuerfel_offen": "Kein schwarzer Verkehrswürfel mehr offen",
+    "kerosin_leer": "Kerosin aufgebraucht",
+    "praktikant_unvollstaendig": "Praktikant nicht vollständig ausgebildet",
+    "eisbremsen_unvollstaendig": "Eisbremsen nicht vollständig aktiviert",
+    "praktikant_fertig": "Praktikant bereits vollständig ausgebildet",
+    "praktikant_gleiche_zahl": "Trainingswürfel und Plättchen müssen verschiedene Zahlen zeigen",
+    "zusatzaktion_offen": "Zuerst die offene Zusatzaktion abschließen",
+    "karte_nicht_verfuegbar": "Karte in diesem Moment nicht verfügbar",
+    "zeit_abgelaufen": "Die Zeit ist abgelaufen; die Runde wurde ausgewertet",
+    "ungueltige_aktion": "Ungültige Aktion",
+    "praktikant_kein_ziel": "Für das Praktikantenplättchen ist kein erlaubtes Feld mehr frei"
   },
   "feld_layout": [
     {

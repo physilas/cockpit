@@ -272,17 +272,18 @@ automatisch in der Browser-Auswahl.
 
 Zwischen Menü und Spiel liegt jetzt eine gemeinsame Auswahlseite für Pass & Play
 und Multiplayer: 21 Logbuch-Varianten an 11 Flughäfen mit frei lizenzierten Stadtpanoramen,
-Schwierigkeitsfiltern, Suche, Streckenvorschau und optionalem Fähigkeitskarten-Entwurf.
+Schwierigkeitsfiltern, Suche, Streckenvorschau und verbindlicher Fähigkeitskarten-Auswahl.
 Der Multiplayer-Host wählt vor dem Einladungscode; später kann er über „Landung“
 eine neue Strecke auswählen. Die bisherigen Strecken stehen unter „Eigene Strecken“.
 
 Alle 21 Originalstrecken sind aus den nachgereichten Flughafenfotos übernommen,
-einschließlich beider Höhenleisten. YUL, LHR und HND grün sind als Grundspiel-
-Landungen spielbar. Die übrigen 18 Varianten verwenden **Übungsregeln**:
-Kerosin, Leck, Wind, Eisbremsen, Praktikant, Echtzeit und Karteneffekte sind noch
-nicht aktiv. Vorgemerkte Kartensets werden nur lokal gespeichert. Übungserfolge
-zählen getrennt von vollständigen Landungen. Die erfundenen Mock-Strecken bleiben
-für Modultests über `MOCK_<CODE>_<FARBE>` verfügbar, stehen aber nicht im Katalog.
+einschließlich beider Höhenleisten. Sämtliche Zusatzmodule und alle sechs
+Fähigkeitskarten sind aktiv: Kerosin, Kerosinleck, Wind, Eisbremsen, Praktikant,
+Echtzeit sowie Kontrolle, Anpassung, Voraussicht, Meisterschaft, Zusammenarbeit
+und Synchronisation. Vor dem Start muss die vorgesehene Zahl unterschiedlicher
+Karten ausgewählt werden. Alte Übungserfolge bleiben getrennt von vollständigen
+Landungen. Die erfundenen Mock-Strecken bleiben für Modultests über
+`MOCK_<CODE>_<FARBE>` verfügbar, stehen aber nicht im Katalog.
 Bei den Originalstrecken setzt ein zu großer Verkehrswurf ein Flugzeug auf den
 Flughafen; der Vorrat umfasst 12 Flugzeuge. Die bisherigen eigenen Strecken
 behalten ihr bisheriges Verkehrsprofil. HND rot benötigt nach Foto und Dized
@@ -292,7 +293,11 @@ Datenquelle: `backend/landekatalog.json`; native Streckenkonfigurationen:
 `backend/katalog.py`; gemeinsame Browserauswahl: `frontend/web/js/landings.js`.
 Nach Änderungen `make build` ausführen. Der ausführliche, nach Aufwand sortierte
 [Implementierungsplan](docs/IMPLEMENTIERUNGSPLAN.md) enthält Reihenfolge,
-Abnahmekriterien, alle Szenariovorgaben und Dized-Regelreferenzen.
+Umsetzungsstand, alle Szenariovorgaben und Dized-Regelreferenzen.
+Die gemeinsame Moduloberfläche liegt in `frontend/web/js/modules.js`, die Regeln
+in `backend/zusatzregeln.py`. `make test` prüft die Engine einschließlich der
+Modulkombinationen und exakter Kartensets. Echtzeit verwendet eine Host-Deadline;
+nach automatischem Rundenende kann vor dem nächsten Wurf besprochen werden.
 
 Browser-Regressionen: Mit lokalem HTTP-Server und installiertem Playwright
 `node tests/landings-ui.cjs` ausführen. Optional geben `COCKPIT_TEST_URL`,

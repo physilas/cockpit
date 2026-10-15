@@ -6,6 +6,7 @@ bool/None) zurück, nie Wuerfel-/Ergebnis-Objekte direkt - das macht die
 Übergabe an JavaScript (`result.to_py()` / `pyodide.toJs`) unkompliziert
 und hält die Spielregeln komplett in Python (kein Regel-Code in JS).
 """
+import json
 from .spielplan import Spielplan
 from .cockpit import Ergebnis
 from .regeln import grund_text as _grund_text
@@ -26,9 +27,9 @@ def flughaefen_liste():
     return _flughafen_liste()
 
 
-def neues_spiel(flughafen="MUC"):
+def neues_spiel(flughafen="MUC", karten_json="[]"):
     global _spiel
-    _spiel = Spielplan(flughafen)
+    _spiel = Spielplan(flughafen, faehigkeitskarten=json.loads(karten_json))
     _spiel.starte_spiel()
     return zustand()
 
@@ -118,3 +119,24 @@ def wuerfeln_fuer_runde():
 # nach Auswahl aufrufen.
 def feld_layout():
     return _feld_layout()
+
+
+def modul_aktion(besitzer, aktion, parameter_json="{}"):
+    if _spiel is None:
+        return _kein_spiel()
+    try:
+        params = json.loads(parameter_json)
+        if not isinstance(params, dict):
+            raise ValueError("Parameter müssen ein Objekt sein.")
+    except (ValueError, TypeError):
+        result = Ergebnis(False, "ungueltige_aktion")
+    else:
+        result = _spiel.zusatz.aktion(besitzer, aktion, params)
+    return {"ergebnis": _ergebnis_zu_dict(result), "zustand": zustand()}
+
+
+def tick():
+    if _spiel is None:
+        return _kein_spiel()
+    result = _spiel.zusatz.tick()
+    return {"ergebnis": _ergebnis_zu_dict(result), "zustand": zustand()}

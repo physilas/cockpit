@@ -19,6 +19,8 @@ const STATIC_ASSETS = [
   "./index.html",
   "./css/style.css",
   "./css/landings.css",
+  "./css/modules.css",
+  "./js/modules.js",
   "./js/landing-catalog.js",
   "./js/landings.js",
   "./js/engine-src.js",

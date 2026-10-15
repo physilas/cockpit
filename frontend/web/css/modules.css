@@ -1,0 +1,31 @@
+#flight-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .6rem; margin-top: .7rem; padding-bottom: .5rem; }
+.module-instrument { padding: .8rem; border: 1px solid #739598; border-radius: 12px; background: linear-gradient(130deg,#e9f2ed,#c3d7d4); color: #193e45; box-shadow: 0 2px 4px #173e4420; min-width: 0; }
+.module-instrument h2 { margin: 0 0 .4rem; font-size: .88rem; }
+.module-instrument p, .module-instrument small { display: block; margin: .35rem 0; font-size: .74rem; line-height: 1.5; color: #375b60; }
+.module-button { min-height: 38px; margin: .22rem; padding: .4rem .6rem; border: 1px solid #527b82; border-radius: 7px; background: #214e59; color: #f4f7ed; font-size: .76rem; cursor: pointer; }
+.module-button:disabled { opacity: .4; cursor: default; }
+.module-button:focus-visible { outline: 3px solid #dca928; outline-offset: 2px; }
+.module-button.pilot { background: #165aab; }
+.module-button.kopilot { background: #ba5b0c; }
+.module-button.shared { background: linear-gradient(90deg,#165aab 50%,#ba5b0c 50%); }
+.module-instrument meter { width: 65%; height: 24px; margin-right: .5rem; vertical-align: middle; accent-color: #29816b; }
+.module-instrument output { display: inline-block; font: 900 2rem ui-monospace,monospace; font-variant-numeric: tabular-nums; }
+.module-instrument output.urgent { color: #b22e29; }
+.module-instrument details { border-top: 1px solid #83a5a540; padding: .45rem 0; }
+.module-instrument summary { cursor: pointer; font-size: .8rem; font-weight: 700; }
+.wind-gauge { display: grid; grid-template-columns: 45px 1fr; align-items: center; gap: .15rem .5rem; }
+.wind-gauge > span { grid-row: span 2; font-size: 1.8rem; text-align: center; color: #17618a; }
+.wind-gauge strong { font-size: 1.5rem; }
+.wind-gauge small { margin: 0; }
+.ice-brake-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .3rem; }
+.ice-brake-grid button { aspect-ratio: 1; min-height: 38px; margin: 0; font-size: 1.1rem; }
+.ice-brake-grid .module-complete { opacity: 1; box-shadow: inset 0 0 0 3px #93bb47; }
+.intern-tokens { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
+.intern-tokens > span { display: grid; place-items: center; width: 30px; height: 34px; border: 2px solid #72933d; border-radius: 7px; background: #f5f4dc; font-weight: 900; }
+.module-pending { border: 2px solid #c99820; background: #fff5d8; grid-column: 1 / -1; }
+
+.wind-gauge { grid-template-columns: 148px 1fr; }
+.wind-dial { position: relative; width: 144px; height: 144px; border-radius: 50%; border: 2px solid #577d84; background: radial-gradient(circle,#17495e 0 49%,#e5efeb 50%); }
+.wind-tick { position: absolute; top: 50%; left: 50%; width: 21px; margin: -7px 0 0 -10.5px; text-align: center; font: 700 10px/14px ui-monospace,monospace; transform: rotate(var(--wind-angle)) translateY(-61px) rotate(calc(-1 * var(--wind-angle))); }
+.wind-tick.active { border-radius: 4px; background: #ffe16b; color: #193f48; box-shadow: 0 0 0 1px #b8851a; }
+.wind-pointer { position: absolute; inset: 34px; color: #fff7d4; font: 700 66px/1 ui-monospace,monospace; text-align: center; transform-origin: center; }

@@ -47,6 +47,14 @@ class Cockpit:
 
     def __init__(self, landung):
         self.landung = landung
+        self.module = set(landung.get_module() or [])
+        self.kerosin = 20 if self.module & {"kerosene", "leak"} else None
+        self.kerosin_feld = Wuerfelfeld(("pilot", "kopilot"))
+        self.training = {r: Wuerfelfeld(r) for r in ("pilot", "kopilot")}
+        self.eisbremsen = [Wuerfelfeld("pilot" if row == 0 else ("pilot", "kopilot"), {value})
+                          for value in (2, 3, 4, 5) for row in (0, 1)]
+        self.eis_fortschritt = 0
+        self.wind_position = 0
 
         # PFLICHTFELDER (S.5/S.6) - je 1 pro Farbe, jede Runde neu zu besetzen
         self.ruder_pilot = Wuerfelfeld("pilot")
@@ -113,7 +121,7 @@ class Cockpit:
             *self.konzentration,
         ]
         felder += self.fahrwerk + self.landeklappen + self.bremsen
-        return felder
+        return felder + [self.kerosin_feld, *self.training.values(), *self.eisbremsen]
 
     def leere_alle_felder(self):
         """Rundenende (S.9): alle Würfel zurücknehmen. Schalter/Marker bleiben stehen."""
@@ -153,7 +161,36 @@ class Cockpit:
         2 * Anzahl aktivierter Bremsen und prüfe Geschwindigkeit <=
         Stärke (siehe cockpit.py Kommentar bei `pruefe_bremsen`).
         """
+        if "ice" in self.module:
+            return 1.5 + self.eis_fortschritt
         return BREMSSTAERKE_PRO_AKTIVIERUNG * sum(self.bremsen_aktiviert)
+
+    WIND_RING = (3, 3, 2, 2, 1, 0, -1, -2, -3, -3, -3, -2, -1, 0, 1, 2, 2, 3)
+
+    def wind_wert(self):
+        return self.WIND_RING[self.wind_position] if "wind" in self.module else 0
+
+    def verbrauche_kerosin(self, menge):
+        self.kerosin = max(0, self.kerosin - menge)
+        return Ergebnis(True, verloren=self.kerosin == 0, grund="kerosin_leer" if self.kerosin == 0 else "",
+                        meldung=f"{menge} Kerosin verbraucht; {self.kerosin} verbleiben.")
+
+    def platziere_kerosin(self, wuerfel):
+        if "kerosene" not in self.module or "leak" in self.module or not self.kerosin_feld.platziere(wuerfel):
+            return Ergebnis(False, "feld_ungueltig")
+        return self.verbrauche_kerosin(wuerfel.get_augenzahl())
+
+    def platziere_eisbremse(self, wuerfel, index):
+        if "ice" not in self.module or not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < 8:
+            return Ergebnis(False, "feld_ungueltig")
+        if index // 2 != self.eis_fortschritt:
+            return Ergebnis(False, "falsche_reihenfolge")
+        if not self.eisbremsen[index].platziere(wuerfel):
+            return Ergebnis(False, "feld_ungueltig")
+        col = index // 2
+        if all(not f.ist_frei() for f in self.eisbremsen[col * 2:col * 2 + 2]):
+            self.eis_fortschritt += 1
+        return Ergebnis(True, meldung=f"Eisbremsen: {self.eis_fortschritt}/4 Paare aktiviert.")
 
     ### RUDER (S.5) ###
 
@@ -203,7 +240,7 @@ class Cockpit:
         """Summe beider Triebwerk-Würfel, oder None falls noch nicht beide liegen."""
         if self.schub_pilot.ist_frei() or self.schub_kopilot.ist_frei():
             return None
-        return self.schub_pilot.wuerfel.get_augenzahl() + self.schub_kopilot.wuerfel.get_augenzahl()
+        return self.schub_pilot.wuerfel.get_augenzahl() + self.schub_kopilot.wuerfel.get_augenzahl() + self.wind_wert()
 
     def loese_triebwerke_auf(self, letzte_runde=False, warteschleife=False):
         """
@@ -217,7 +254,7 @@ class Cockpit:
 
         if letzte_runde:
             # S.10: WICHTIG - Bremsen statt Aerodynamik in der letzten Runde.
-            if geschwindigkeit > self.bremsstaerke():
+            if ("ice" in self.module and geschwindigkeit >= self.bremsstaerke()) or geschwindigkeit > self.bremsstaerke():
                 return Ergebnis(True, verloren=True, grund="zu_schnell_gelandet",
                                  meldung=f"Geschwindigkeit {geschwindigkeit} überschreitet die Bremsstärke "
                                          f"({self.bremsstaerke()}) - über die Landebahn hinausgeschossen.")
@@ -331,6 +368,8 @@ class Cockpit:
     ### BREMSEN (S.9, strikte Reihenfolge) ###
 
     def platziere_bremse(self, wuerfel, index):
+        if "ice" in self.module:
+            return Ergebnis(False, "feld_ungueltig")
         if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(self.bremsen):
             return Ergebnis(False, "ungueltiger_index")
         naechste_faellige = _erster_freier_index(self.bremsen_aktiviert)
@@ -386,7 +425,10 @@ class Cockpit:
     def _feld_wert(feld):
         if feld is None or feld.ist_frei():
             return None
-        return {"wert": feld.wuerfel.get_augenzahl(), "besitzer": feld.wuerfel.get_besitzer()}
+        wert = {"wert": feld.wuerfel.get_augenzahl(), "besitzer": feld.wuerfel.get_besitzer()}
+        if hasattr(feld.wuerfel, "quelle"):
+            wert["quelle"] = feld.wuerfel.quelle
+        return wert
 
     def felder_snapshot(self):
         """
@@ -407,6 +449,9 @@ class Cockpit:
             "landeklappe": [fw(f) for f in self.landeklappen],
             "bremse": [fw(f) for f in self.bremsen],
             "konzentration": [fw(f) for f in self.konzentration],
+            "kerosin": [fw(self.kerosin_feld)],
+            "training": {r: fw(f) for r, f in self.training.items()},
+            "eisbremse": [fw(f) for f in self.eisbremsen],
         }
 
     ### KAFFEE (S.8) ###

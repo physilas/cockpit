@@ -25,15 +25,15 @@ class KatalogTest(unittest.TestCase):
     def test_jede_originalstrecke_startet_mit_grenzen_und_ehrlichen_metadaten(self):
         for s in logbuch_katalog()["scenarios"]:
             with self.subTest(scenario=s["id"]):
-                spiel = Spielplan(s["engine_code"])
+                spiel = Spielplan(s["engine_code"], faehigkeitskarten=["control", "adaptation"][:s["ability_count"]])
                 spiel.starte_spiel()
                 z = spiel.zustand()
                 self.assertEqual(z["szenario_id"], s["id"])
                 self.assertFalse(z["mock"])
-                self.assertEqual(z["uebung"], bool(s["modules"] or s["ability_count"]))
+                self.assertFalse(z["uebung"])
                 self.assertEqual(z["geplante_module"], s["modules"])
-                self.assertIsNone(spiel.landung.get_module())
-                self.assertEqual(spiel.landung.get_faehigkeitskarten(), 0)
+                self.assertEqual(spiel.landung.get_module(), s["modules"])
+                self.assertEqual(spiel.landung.get_faehigkeitskarten(), s["ability_count"])
                 self.assertEqual(z["entfernung"], len(s["track"]) - 1)
                 self.assertEqual(z["flugzeuge"][0], int(s["track"][0].split()[0]))
                 self.assertLessEqual(sum(z["flugzeuge"]), 12)
@@ -83,14 +83,14 @@ class KatalogTest(unittest.TestCase):
         self.assertTrue(voll.remove_flugzeug(2))
         self.assertEqual(voll.add_flugzeug_fuer_verkehrswurf(2), 6)
         self.assertEqual(sum(voll.flugzeuge), 12)
-        spiel = Spielplan("LOG_PRG_YELLOW")
+        spiel = Spielplan("LOG_PRG_YELLOW", faehigkeitskarten=["control", "adaptation"])
         spiel.landung.entfernung = 4
         spiel.starte_spiel()
         self.assertIn("vorrat", spiel.wirf_verkehrswuerfel().meldung.lower())
 
     def test_mock_strecken_bleiben_isoliert_fuer_modultests_verfuegbar(self):
         for s in logbuch_katalog()["scenarios"]:
-            mock = Spielplan(f'MOCK_{s["code"]}_{s["difficulty"].upper()}')
+            mock = Spielplan(f'MOCK_{s["code"]}_{s["difficulty"].upper()}', faehigkeitskarten=["control", "adaptation"][:s["ability_count"]])
             self.assertTrue(mock.zustand()["mock"])
             self.assertTrue(mock.zustand()["uebung"])
             self.assertEqual(mock.landung.get_laenge(), len(s["mock_track"]))

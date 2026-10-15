@@ -47,14 +47,16 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     report("Jedes Flugzeug erscheint einzeln ohne Zahl, innerhalb der freien Spur");
 
     const positionen = () => [...find("#distance-obstacles").querySelectorAll(".aircraft-pose")].map(el => el.getAttribute("style"));
+    const fontSizes = [...find("#distance-obstacles").querySelectorAll(".aircraft-icon")].map(el => getComputedStyle(el).fontSize);
+    assert(new Set(fontSizes).size === 1, "Flugzeuge auf verschiedenen Tiles haben unterschiedliche Größen");
     const vorher = positionen();
     renderEntfernungsFlugzeuge({ ...z, runde: 9 }, 36);
     assert(JSON.stringify(positionen()) === JSON.stringify(vorher), "Flugzeuge springen beim erneuten Rendern");
     const posen = [...find('.vtrack-aircraft[data-distance="4"]').querySelectorAll(".aircraft-pose")];
-    for (const eigenschaft of ["--plane-x", "--plane-y", "--plane-angle"]) {
-      assert(new Set(posen.map(el => el.style.getPropertyValue(eigenschaft))).size > 1, `Keine Streuung: ${eigenschaft}`);
+    for (const eigenschaft of ["--plane-x", "--plane-angle"]) {
+      assert(new Set(posen.map(el => el.style.getPropertyValue(eigenschaft))).size > 1, `Gleiche Position/Drehung: ${eigenschaft}`);
     }
-    report("Positionen und Drehungen sind unterschiedlich, aber über Spielzüge hinweg stabil");
+    report("Feste Abstände und kleine Drehungen bleiben über Spielzüge hinweg stabil");
 
     const track = find("#distance-track");
     const alteBreite = track.style.width;
@@ -67,6 +69,10 @@ document.getElementById("run-tests").addEventListener("click", async event => {
           renderEntfernungsFlugzeuge({ ...z, flugzeuge }, 36);
           const feld = find(".vtrack-aircraft").getBoundingClientRect();
           assert(find(".vtrack-aircraft").querySelectorAll(".aircraft-icon").length === anzahl, "Flugzeuge fehlen bei hoher Belegung");
+          const boxes = [...find(".vtrack-aircraft").querySelectorAll(".aircraft-pose")].map(el => el.getBoundingClientRect());
+          for (let a = 0; a < boxes.length; a++) for (let b = a + 1; b < boxes.length; b++) {
+            assert(!(boxes[a].left < boxes[b].right && boxes[b].left < boxes[a].right && boxes[a].top < boxes[b].bottom && boxes[b].top < boxes[a].bottom), `Flugzeuge überlappen (${breite}px, ${anzahl})`);
+          }
           assert([...find(".vtrack-aircraft").querySelectorAll(".aircraft-pose")].every(el => {
             const icon = el.getBoundingClientRect();
             return icon.left >= feld.left - .5 && icon.right <= feld.right + .5

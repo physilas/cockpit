@@ -65,7 +65,7 @@ window.LANDING_CATALOG = {
       "original_name": "Working Together",
       "description": "Einmal pro Runde könnt ihr je einen freien Würfel abgeben, ihre Werte tauschen und die Würfel zurücknehmen.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/oCSa8_gAT761jRZKCsxvEg/working-together-special-ability",
-      "implemented": false
+      "implemented": true
     },
     {
       "id": "synchronisation",
@@ -73,7 +73,7 @@ window.LANDING_CATALOG = {
       "original_name": "Synchronisation",
       "description": "Sind in einer Runde Fahrwerk und Landeklappen mit mindestens je einem Würfel belegt, würfelt und platziert der Co-Pilot einen zusätzlichen Verkehrswürfel. Dessen Feldfarbe spielt keine Rolle.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/3uymNf7pTVGe7NxLUaaFfw/synchronisation-special-ability",
-      "implemented": false
+      "implemented": true
     },
     {
       "id": "mastery",
@@ -81,7 +81,7 @@ window.LANDING_CATALOG = {
       "original_name": "Mastery",
       "description": "Zwei gleiche Triebwerkswürfel bringen sofort ein Neuwurf-Plättchen, sofern eines außerhalb von Höhenleiste und Cockpit-Vorrat verfügbar ist.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/rfj57n1yQP-jSbISfRmOoA/mastery-special-ability",
-      "implemented": false
+      "implemented": true
     },
     {
       "id": "control",
@@ -89,7 +89,7 @@ window.LANDING_CATALOG = {
       "original_name": "Control",
       "description": "Zwei gleiche Ruderwürfel bringen sofort eine Kaffeetasse.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/Zzi0Z46LSDSbmdU7txo2NA/control-special-ability",
-      "implemented": false
+      "implemented": true
     },
     {
       "id": "anticipation",
@@ -97,7 +97,7 @@ window.LANDING_CATALOG = {
       "original_name": "Anticipation",
       "description": "Die Person, die die Runde beginnt, darf vor ihrem ersten Platzieren einen ihrer Würfel einmal neu werfen.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/-ROoYoI1QBe7KMclsZs-sA/anticipation-special-ability",
-      "implemented": false
+      "implemented": true
     },
     {
       "id": "adaptation",
@@ -105,7 +105,7 @@ window.LANDING_CATALOG = {
       "original_name": "Adaptation",
       "description": "Einmal pro Partie darf jede Person einen eigenen freien Würfel auf die gegenüberliegende Seite drehen.",
       "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/NGq-uKeATOaeW7glEEHg1Q/adaptation-special-ability",
-      "implemented": false
+      "implemented": true
     }
   ],
   "scenarios": [
@@ -285,7 +285,7 @@ window.LANDING_CATALOG = {
         "sha256": "b7a8a3fdf4120d6612f923bb677e37ff2e7736c207bd4e19f14cbf63cbbb68e2",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -334,7 +334,7 @@ window.LANDING_CATALOG = {
         "sha256": "b7a8a3fdf4120d6612f923bb677e37ff2e7736c207bd4e19f14cbf63cbbb68e2",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -382,7 +382,7 @@ window.LANDING_CATALOG = {
         "sha256": "f5545c7a20474e2aa67300705be8f869175ecb17004d703da311b7099a0ff118",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -428,7 +428,7 @@ window.LANDING_CATALOG = {
         "sha256": "2fc18e98144b4ad4851e913e312affe615bd5ed1745ae2c3ed5ce13e615f49f4",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -471,7 +471,7 @@ window.LANDING_CATALOG = {
         "sha256": "f5545c7a20474e2aa67300705be8f869175ecb17004d703da311b7099a0ff118",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -519,7 +519,7 @@ window.LANDING_CATALOG = {
         "sha256": "127a8013b426cdf91eaa4d28c5370e7d283c25e112fcb485c8f134e0f916a44f",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -565,7 +565,7 @@ window.LANDING_CATALOG = {
         "sha256": "127a8013b426cdf91eaa4d28c5370e7d283c25e112fcb485c8f134e0f916a44f",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -613,7 +613,7 @@ window.LANDING_CATALOG = {
         "sha256": "872ba7377a1d0a96bad9c5ceca691dc9e69ad7d1ea21852ce9033d2824a984c1",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -662,7 +662,7 @@ window.LANDING_CATALOG = {
         "sha256": "f70efd75bf69babef8f3e24748d3969a5ff29512ef3a5b38cd8ecea04c68e0cc",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -711,7 +711,7 @@ window.LANDING_CATALOG = {
         "sha256": "2fc18e98144b4ad4851e913e312affe615bd5ed1745ae2c3ed5ce13e615f49f4",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000,
         2000
@@ -759,7 +759,7 @@ window.LANDING_CATALOG = {
         "sha256": "127a8013b426cdf91eaa4d28c5370e7d283c25e112fcb485c8f134e0f916a44f",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -808,7 +808,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "source_note": "Auf der fotografierten Leiste und bei Dized zusätzlich Kerosin; im englischen PDF fehlt dieses Symbol.",
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -856,7 +856,7 @@ window.LANDING_CATALOG = {
         "sha256": "dce592b3284a96abe9016d9b16dda7d6f78b17a87e55f424e585c96686bbdbb5",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -904,7 +904,7 @@ window.LANDING_CATALOG = {
         "sha256": "f70efd75bf69babef8f3e24748d3969a5ff29512ef3a5b38cd8ecea04c68e0cc",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -947,7 +947,7 @@ window.LANDING_CATALOG = {
         "sha256": "872ba7377a1d0a96bad9c5ceca691dc9e69ad7d1ea21852ce9033d2824a984c1",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -993,7 +993,7 @@ window.LANDING_CATALOG = {
         "sha256": "dce592b3284a96abe9016d9b16dda7d6f78b17a87e55f424e585c96686bbdbb5",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -1042,7 +1042,7 @@ window.LANDING_CATALOG = {
         "sha256": "2fc18e98144b4ad4851e913e312affe615bd5ed1745ae2c3ed5ce13e615f49f4",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
@@ -1089,7 +1089,7 @@ window.LANDING_CATALOG = {
         "sha256": "872ba7377a1d0a96bad9c5ceca691dc9e69ad7d1ea21852ce9033d2824a984c1",
         "orientation": "bottom-to-top"
       },
-      "practice": true,
+      "practice": false,
       "neuwurf_hoehen": [
         6000
       ],
