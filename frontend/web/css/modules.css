@@ -9,17 +9,16 @@
 .wind-mini-arrow { display: block; font: 900 25px/1 ui-monospace, monospace; transition: transform .3s ease; }
 
 /* The right-hand rail doubles as the fuel gauge. No extra panel below the game. */
-.board-grid.has-fuel { padding-right: 24px; }
+.board-grid.has-fuel { padding-right: 33px; }
 .board-grid.has-fuel::after { display: none; }
-#fuel-gauge { position: absolute; z-index: 2; top: 22px; right: 3px; bottom: 10px; width: 17px; }
+#fuel-gauge { position: absolute; z-index: 2; top: 22px; right: 3px; bottom: 10px; width: 26px; }
 .fuel-info { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; color: #254b51; }
 .fuel-value { font: 900 10px/1 ui-monospace, monospace; }
-.fuel-rail { position: relative; display: block; width: 9px; flex: 1; min-height: 80px; overflow: hidden; border: 1px solid #526c6e; border-radius: 4px; background: #253e45; box-shadow: inset 1px 0 2px #001c28; }
-.fuel-fill { position: absolute; inset: auto 0 0; background: linear-gradient(90deg,#d4a52d,#ffdd57); transition: height .4s ease; }
+.fuel-rail { position: relative; display: block; width: 18px; flex: 1; min-height: 80px; overflow: hidden; border: 2px solid #526c6e; border-radius: 5px; background: #253e45; box-shadow: inset 1px 0 2px #001c28, 0 0 0 1px #eff6df80; }
+.fuel-fill { position: absolute; inset: 0; background: linear-gradient(to bottom,#65c768 0%,#e8db55 50%,#e95543 100%); clip-path: inset(calc(100% - var(--fuel-percent)) 0 0); transition: clip-path .4s ease; }
 .fuel-graduations { position: absolute; inset: 0; background: repeating-linear-gradient(to top, transparent 0 calc(5% - 1px),#e8f2dc80 calc(5% - 1px) 5%); }
 .fuel-icon { font-size: 11px; line-height: 1; }
 .low-fuel .fuel-value { color: #b72f2a; }
-.low-fuel .fuel-fill { background: linear-gradient(90deg,#cc4b24,#f9a440); }
 #col-kopilot #fuel-action { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-top: .1rem; }
 .shared-slot { border-color: #f5f0c6; color: #f2f6ea; background: linear-gradient(90deg,#2152c5 49%,#f08b29 51%); }
 .pilot-slot { border-color: #79d7ff; background: linear-gradient(145deg,#258ce7,#173f9d); }
@@ -99,7 +98,7 @@
   .ice-brake-grid { gap: .2rem; }
 }
 @media (max-width: 360px) {
-  .board-grid.has-fuel { grid-template-columns: 56px minmax(0,1fr) 56px; }
+  .board-grid.has-fuel { grid-template-columns: 52px minmax(0,1fr) 52px; }
   .has-wind #schub-reihe { gap: .12rem; }
   .has-wind #schub-reihe .inline-label { font-size: .54rem; }
   #wind-instrument { flex-basis: 32px; }
@@ -120,7 +119,7 @@
   .wind-mini { width: 34px; height: 34px; }
 }
 @container cockpit (max-width: 360px) {
-  .board-grid.has-fuel { grid-template-columns: 56px minmax(0,1fr) 56px; }
+  .board-grid.has-fuel { grid-template-columns: 52px minmax(0,1fr) 52px; }
   .has-wind #schub-reihe { gap: .12rem; }
   .has-wind #schub-reihe .inline-label { font-size: .54rem; }
   #wind-instrument { flex-basis: 32px; }

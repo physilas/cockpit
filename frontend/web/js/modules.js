@@ -59,7 +59,7 @@ window.FlightModules = (() => {
     const gauge = mount('fuel-gauge', present), action = mount('fuel-action', present);
     if (!present) return;
     gauge.classList.toggle('low-fuel', z.kerosin <= 6);
-    gauge.innerHTML = `<button type="button" class="fuel-info" aria-label="${leak ? 'Kerosinleck' : 'Kerosin'}: ${z.kerosin} von 20. Details anzeigen"><span class="fuel-value">${z.kerosin}</span><span class="fuel-rail" role="meter" aria-label="Kerosin" aria-valuemin="0" aria-valuemax="20" aria-valuenow="${z.kerosin}"><span class="fuel-fill" style="height:${Math.max(0, Math.min(100,z.kerosin * 5))}%"></span><span class="fuel-graduations"></span></span><span class="fuel-icon" aria-hidden="true">⛽</span></button>`;
+    gauge.innerHTML = `<button type="button" class="fuel-info" aria-label="${leak ? 'Kerosinleck' : 'Kerosin'}: ${z.kerosin} von 20. Details anzeigen"><span class="fuel-value">${z.kerosin}</span><span class="fuel-rail" role="meter" aria-label="Kerosin" aria-valuemin="0" aria-valuemax="20" aria-valuenow="${z.kerosin}"><span class="fuel-fill" style="--fuel-percent:${Math.max(0, Math.min(100,z.kerosin * 5))}%"></span><span class="fuel-graduations"></span></span><span class="fuel-icon" aria-hidden="true">⛽</span></button>`;
     gauge.querySelector('button').addEventListener('click', () => openDetail('fuel'));
     action.innerHTML = `<span class="feld-label">${leak ? '◉ Leck' : 'Kerosin'}</span>`;
     if (leak) {
