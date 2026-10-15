@@ -18,17 +18,23 @@ const CACHE_NAME = `cockpit-${COCKPIT_BUILD_VERSION}`;
 const STATIC_ASSETS = [
   "./index.html",
   "./css/style.css",
+  "./css/landings.css",
+  "./js/landing-catalog.js",
+  "./js/landings.js",
   "./js/engine-src.js",
   "./js/game-schema.js",
   "./js/traffic.js",
   "./js/build-info.js",
   "./js/app.js",
   "./multiplayer.html",
+  "./bildnachweise.html",
   "./js/multiplayer.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-180.png",
+  ...["YUL", "LHR", "HND", "OSL", "ATL", "PRG", "GIG", "TGU", "KEF", "KUL", "PBH", "MUC", "FRA"]
+    .map(code => `./assets/landings/${code}-city.webp`),
 ];
 
 self.addEventListener("install", event => {

@@ -92,7 +92,7 @@ function filteredState(rawZ, rolle) {
   return z;
 }
 function showScreen(id) {
-  ["screen-menu","screen-host","screen-join"].forEach(s => {
+  ["screen-menu","screen-host","screen-join","screen-wait","landing-selection"].forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.toggle("versteckt", s !== id);
   });
@@ -111,24 +111,37 @@ function setJoinStatus(t, cls) {
 }
 
 // ── Pyodide / Engine (nur Host) ──────────────────────────────────────────────
-let gewaehlterFlughafen = "MUC";
+let gewaehlterFlughafen = "LOG_YUL_GREEN";
+let choosingLanding = false;
+const landingPicker = Landings.mount(document.getElementById("landing-selection"), {
+  mode: "Multiplayer · Host",
+  startLabel: "Mit dieser Landung hosten →",
+  onBack() {
+    if (partnerConnected && aktuellerZustand) {
+      choosingLanding = false;
+      landingPicker.hide();
+      document.getElementById("spiel-header").classList.remove("versteckt");
+      document.getElementById("spiel-ui").classList.remove("versteckt");
+      sendState();
+    } else { showScreen("screen-menu"); }
+  },
+  onStart(scenario) {
+    gewaehlterFlughafen = scenario.engine_code;
+    choosingLanding = false;
+    document.getElementById("host-landing").textContent = `${scenario.code} · ${scenario.name}${scenario.kind === "logbook" ? (scenario.practice ? " · Originalstrecke, Übungsregeln" : " · Originalstrecke") : " · Eigene Strecke"}`;
+    if (partnerConnected && pyodideReady) startGame();
+    else starteHosting();
+  },
+});
 
-// Füllt die Flughafen-Auswahl auf dem Host-Bildschirm aus
-// backend/landungen/*.yaml, sobald die Engine geladen ist - genau wie im
-// Pass & Play, nur eben einmalig vor dem Hosten statt bei jedem "Neues Spiel".
-function populiereFlughafenAuswahlHost() {
-  const auswahl = document.getElementById("flughafen-auswahl-host");
-  if (!auswahl || !bridge) return;
-  const liste = pyToJs(bridge.flughaefen_liste());
-  auswahl.innerHTML = "";
-  liste.forEach(f => {
-    const opt = document.createElement("option");
-    opt.value = f.code;
-    opt.textContent = `${f.code} – ${f.bezeichnung}`;
-    auswahl.appendChild(opt);
-  });
-  auswahl.disabled = false;
-  if (liste.length) gewaehlterFlughafen = liste[0].code;
+function waehleLandung() {
+  if (myRole === "kopilot") return;
+  choosingLanding = true;
+  resetVerkehrUi();
+  for (const id of ["spiel-header", "flight-summary", "spiel-ui"]) document.getElementById(id).classList.add("versteckt");
+  showScreen("landing-selection");
+  landingPicker.show();
+  if (conn?.open) conn.send(JSON.stringify({typ:"landung_waehlen"}));
 }
 
 async function ladeEngine() {
@@ -151,7 +164,6 @@ async function ladeEngine() {
     bridge = pyodide.pyimport("backend.bridge");
     setP(100); txt && (txt.textContent = "Bereit ✓");
     pyodideReady = true;
-    populiereFlughafenAuswahlHost();
     if (partnerConnected) startGame();
   } catch(e) {
     console.error(e);
@@ -162,10 +174,14 @@ async function ladeEngine() {
 // ── Spielstart (Host) ────────────────────────────────────────────────────────
 function startGame() {
   resetVerkehrUi();
-  const auswahl = document.getElementById("flughafen-auswahl-host");
-  if (auswahl && auswahl.value) gewaehlterFlughafen = auswahl.value;
   const rawZ = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
-  document.getElementById("screen-host").classList.add("versteckt");
+  showScreen(null);
+  choosingLanding = false;
+  neuwurfUiReset();
+  ausgewaehlterWuerfel = null;
+  kaffeeMenuFuer = null;
+  eigeneWuerfelVersteckt = false;
+  setMeldung("");
   document.getElementById("spiel-header").classList.remove("versteckt");
   document.getElementById("spiel-ui").classList.remove("versteckt");
   sendState(rawZ);
@@ -186,7 +202,7 @@ function sendState(rawZ) {
 
 // ── Host: Aktionen verarbeiten ───────────────────────────────────────────────
 function hostAktion(msg, absender) {
-  if (!bridge || !pyodideReady) return false;
+  if (!bridge || !pyodideReady || choosingLanding) return false;
   if (absender !== "pilot" && absender !== "kopilot") return;
   // The host assigns the role from the connection. A client-provided role is
   // never authoritative, which keeps this transport usable for future cloud
@@ -225,6 +241,7 @@ function hostAktion(msg, absender) {
         raw = r.zustand;
       }
     } else if (msg.typ === "neues_spiel") {
+      if (absender !== "pilot") return false;
       resetVerkehrUi();
       raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen));
       neuwurfUiReset();
@@ -348,15 +365,22 @@ function starte_Beitreten(code) {
     conn = peer.connect(code, {reliable: true});
     conn.on("open", () => {
       setJoinStatus("Verbunden ✓ – warte auf Spielstart …", "ok");
-      document.getElementById("screen-join").classList.add("versteckt");
-      document.getElementById("spiel-header").classList.remove("versteckt");
-      document.getElementById("spiel-ui").classList.remove("versteckt");
+      showScreen("screen-wait");
+      document.getElementById("neues-spiel-btn").classList.add("versteckt");
       document.getElementById("meine-rolle-badge").textContent = "Co-Pilot";
       document.getElementById("meine-rolle-badge").className = "meine-rolle-badge kopilot";
     });
     conn.on("data", raw => {
       const msg = JSON.parse(raw);
+      if (msg.typ === "landung_waehlen") {
+        resetVerkehrUi();
+        for (const id of ["spiel-header", "flight-summary", "spiel-ui"]) document.getElementById(id).classList.add("versteckt");
+        showScreen("screen-wait");
+      }
       if (msg.typ === "zustand" && msg.zustand) {
+        showScreen(null);
+        document.getElementById("spiel-header").classList.remove("versteckt");
+        document.getElementById("spiel-ui").classList.remove("versteckt");
         aktuellerZustand = msg.zustand;
         neuwurfUi = msg.neuwurf || { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
         render(msg.zustand);
@@ -590,6 +614,7 @@ function renderAltitudeLabels(markerY, aktuelleHoehe, neuwurfHoehen) {
 
 function render(z) {
   if(!z)return;
+  Landings.updateFlight(z);
   document.getElementById("s-runde").textContent = z.letzte_runde
     ? "🛬 Landung"
     : "Runde " + z.runde + (z.warteschleife ? " ⟳" : "");
@@ -952,7 +977,7 @@ window.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  document.getElementById("btn-host").addEventListener("click", starteHosting);
+  document.getElementById("btn-host").addEventListener("click", waehleLandung);
   document.getElementById("btn-join").addEventListener("click", () => showScreen("screen-join"));
   document.getElementById("btn-do-join").addEventListener("click", () => {
     starte_Beitreten(document.getElementById("join-code-input").value);
@@ -961,7 +986,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") starte_Beitreten(document.getElementById("join-code-input").value);
   });
 
-  document.getElementById("neues-spiel-btn")?.addEventListener("click", () => meineAktion({typ:"neues_spiel"}));
+  document.getElementById("neues-spiel-btn")?.addEventListener("click", waehleLandung);
   document.getElementById("rundenende-btn")?.addEventListener("click", () => meineAktion({typ:"rundenende"}));
   document.getElementById("menue-btn")?.addEventListener("click", () => {
     window.location = "index.html";

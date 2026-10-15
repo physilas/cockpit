@@ -267,3 +267,44 @@ Cloud-Session-Service: Beide sollen dieselben validierten Aktionen an einer
 eigenen `Spielplan`-Instanz ausführen. Neue Flughäfen sind reine YAML-
 Szenarien; die Konfiguration wird beim Laden geprüft und erscheint
 automatisch in der Browser-Auswahl.
+
+## Landungsauswahl und Logbuch (15.10.2026)
+
+Zwischen Menü und Spiel liegt jetzt eine gemeinsame Auswahlseite für Pass & Play
+und Multiplayer: 21 Logbuch-Varianten an 11 Flughäfen mit frei lizenzierten Stadtpanoramen,
+Schwierigkeitsfiltern, Suche, Streckenvorschau und optionalem Fähigkeitskarten-Entwurf.
+Der Multiplayer-Host wählt vor dem Einladungscode; später kann er über „Landung“
+eine neue Strecke auswählen. Die bisherigen Strecken stehen unter „Eigene Strecken“.
+
+Alle 21 Originalstrecken sind aus den nachgereichten Flughafenfotos übernommen,
+einschließlich beider Höhenleisten. YUL, LHR und HND grün sind als Grundspiel-
+Landungen spielbar. Die übrigen 18 Varianten verwenden **Übungsregeln**:
+Kerosin, Leck, Wind, Eisbremsen, Praktikant, Echtzeit und Karteneffekte sind noch
+nicht aktiv. Vorgemerkte Kartensets werden nur lokal gespeichert. Übungserfolge
+zählen getrennt von vollständigen Landungen. Die erfundenen Mock-Strecken bleiben
+für Modultests über `MOCK_<CODE>_<FARBE>` verfügbar, stehen aber nicht im Katalog.
+Bei den Originalstrecken setzt ein zu großer Verkehrswurf ein Flugzeug auf den
+Flughafen; der Vorrat umfasst 12 Flugzeuge. Die bisherigen eigenen Strecken
+behalten ihr bisheriges Verkehrsprofil. HND rot benötigt nach Foto und Dized
+Kerosin plus Praktikant; das englische PDF zeigt nur den Praktikanten.
+
+Datenquelle: `backend/landekatalog.json`; native Streckenkonfigurationen:
+`backend/katalog.py`; gemeinsame Browserauswahl: `frontend/web/js/landings.js`.
+Nach Änderungen `make build` ausführen. Der ausführliche, nach Aufwand sortierte
+[Implementierungsplan](docs/IMPLEMENTIERUNGSPLAN.md) enthält Reihenfolge,
+Abnahmekriterien, alle Szenariovorgaben und Dized-Regelreferenzen.
+
+Browser-Regressionen: Mit lokalem HTTP-Server und installiertem Playwright
+`node tests/landings-ui.cjs` ausführen. Optional geben `COCKPIT_TEST_URL`,
+`COCKPIT_CHROME` und `COCKPIT_SCREENSHOTS` Server, Browserpfad und Screenshotordner
+vor. Die Prüfung nutzt echtes Pyodide und einen simulierten PeerJS-Transport;
+eine Verbindung über zwei reale Geräte wird damit nicht geprüft.
+
+### Frei lizenzierte Stadtpanoramen
+
+Die aus dem Logbuch extrahierten Illustrationen wurden durch 13 recherchierte
+Stadt- und Landschaftspanoramen der Reiseziele ersetzt, einschließlich München und Frankfurt. Autor und Lizenz
+stehen auf den Karten sowie mit Links in den Details. „Bildnachweise und Lizenzen“
+öffnet die vollständigen Nachweise. Quelle ist `backend/bildnachweise.json`;
+`make build` erzeugt daraus `frontend/web/bildnachweise.html`. Verwendete Lizenzen:
+CC0, CC BY und CC BY-SA; die jeweilige Bildfassung behält die angegebene Lizenz.

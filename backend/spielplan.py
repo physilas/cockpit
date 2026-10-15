@@ -87,7 +87,9 @@ class Spielplan:
         self.verkehrswuerfe.append({"wert": wert, "ziel_entfernung": ziel})
         self.verkehrswuerfel_offen -= 1
         meldung = f"Schwarzer Würfel: {wert}. "
-        if ziel is None:
+        if self.landung.letzter_verkehr_grund == "vorrat_leer":
+            meldung += "Der Flugzeugvorrat ist leer – kein neues Flugzeug."
+        elif ziel is None:
             meldung += "Die Entfernung reicht nicht aus – kein neues Flugzeug. Glück gehabt!"
         else:
             meldung += f"Ein weiteres Flugzeug auf Entfernung {ziel}."
@@ -353,6 +355,14 @@ class Spielplan:
         """Kompakter Snapshot für UI/Displayer - keine Spiellogik."""
         return {
             "status": self.status,
+            "flughafen_code": self.landung.get_code(),
+            "flughafen_name": self.landung.get_bezeichnung(),
+            "szenario_id": self.landung.szenario_id,
+            "mock": self.landung.mock,
+            "uebung": self.landung.uebung,
+            "verkehr_regel": self.landung.verkehr_regel,
+            "flugzeug_vorrat": max(0, 12 - sum(self.landung.flugzeuge)) if self.landung.verkehr_regel == "offiziell" else None,
+            "geplante_module": self.landung.geplante_module.copy(),
             "verlust_grund": self.verlust_grund,
             "letzte_meldung": self.letzte_meldung,
             "runde": self.aktuelle_runde,

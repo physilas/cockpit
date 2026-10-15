@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#1e293b">
 <link rel="stylesheet" href="css/style.css?v=compact-distance-v2">
+<link rel="stylesheet" href="css/landings.css">
 <style>
 .mp-screen {
   max-width: 420px; margin: 0 auto;
@@ -85,16 +86,13 @@
   <a href="index.html" class="menu-btn" style="padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem">☰ Menü</a>
 </div>
 
+<div id="landing-selection" class="versteckt" aria-label="Landung auswählen"></div>
+
 <!-- ============ SCREEN: Hosten – QR + Warten ============ -->
 <div id="screen-host" class="mp-screen versteckt" style="margin-top:1.5rem">
   <h2>Spiel hosten</h2>
 
-  <div class="flughafen-feld">
-    <label for="flughafen-auswahl-host">Flughafen</label>
-    <select id="flughafen-auswahl-host" disabled>
-      <option>Wird geladen …</option>
-    </select>
-  </div>
+  <p id="host-landing"></p>
 
   <p>Zeige Co-Pilot diesen Code oder QR:</p>
   <div class="code-display" id="host-code">······</div>
@@ -103,6 +101,11 @@
   <div id="lade-balken"><div id="lade-balken-fill"></div></div>
   <p id="lade-text" style="font-size:0.75rem">Engine wird geladen …</p>
   <button class="big-btn grau" onclick="location.reload()">Abbrechen</button>
+</div>
+
+<div id="screen-wait" class="mp-screen versteckt">
+  <h2>Flugvorbereitung</h2>
+  <p>Die Pilotin wählt die nächste Landung. Euer neues Spiel beginnt anschließend automatisch.</p>
 </div>
 
 <!-- ============ SCREEN: Beitreten ============ -->
@@ -123,11 +126,12 @@
     <span id="meine-rolle-badge" class="meine-rolle-badge"></span>
   </h1>
   <div id="spiel-auswahl">
-    <button id="neues-spiel-btn">Neu</button>
+    <button id="neues-spiel-btn">Landung</button>
     <span id="verbindungs-status" class="status-pill ok" style="font-size:0.7rem">● Verb.</span>
     <button id="menue-btn" class="menu-btn">☰ Menü</button>
   </div>
 </header>
+<div id="flight-summary" class="versteckt"></div>
 
 <main id="spiel-ui" class="versteckt">
   <section id="tracks-leiste">
@@ -248,6 +252,8 @@
 <script src="js/game-schema.js"></script>
 <script src="js/engine-src.js?v=compact-distance-v2"></script>
 <script src="js/traffic.js"></script>
+<script src="js/landing-catalog.js"></script>
+<script src="js/landings.js"></script>
 <script src="js/multiplayer.js?v=compact-distance-v2"></script>
 <script>
   if ("serviceWorker" in navigator) {

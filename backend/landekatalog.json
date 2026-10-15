@@ -1,0 +1,1098 @@
+{
+  "version": 1,
+  "source": {
+    "title": "Sky Team Flight Log",
+    "pages": [
+      6,
+      7,
+      8
+    ],
+    "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/sky-team"
+  },
+  "difficulties": [
+    {
+      "id": "green",
+      "label": "Routine",
+      "color": "#8bbd40"
+    },
+    {
+      "id": "yellow",
+      "label": "Außergewöhnlich",
+      "color": "#efb924"
+    },
+    {
+      "id": "red",
+      "label": "Elite",
+      "color": "#d52b39"
+    },
+    {
+      "id": "black",
+      "label": "Heroisch",
+      "color": "#343c45"
+    }
+  ],
+  "modules": {
+    "kerosene": {
+      "name": "Kerosin",
+      "icon": "⛽"
+    },
+    "leak": {
+      "name": "Kerosinleck",
+      "icon": "◉"
+    },
+    "wind": {
+      "name": "Wind",
+      "icon": "⚑"
+    },
+    "ice": {
+      "name": "Eisbremsen",
+      "icon": "❄"
+    },
+    "intern": {
+      "name": "Praktikant",
+      "icon": "♟"
+    },
+    "realtime": {
+      "name": "Echtzeit",
+      "icon": "◷"
+    }
+  },
+  "abilities": [
+    {
+      "id": "working-together",
+      "name": "Zusammenarbeit",
+      "original_name": "Working Together",
+      "description": "Einmal pro Runde könnt ihr je einen freien Würfel abgeben, ihre Werte tauschen und die Würfel zurücknehmen.",
+      "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/oCSa8_gAT761jRZKCsxvEg/working-together-special-ability",
+      "implemented": false
+    },
+    {
+      "id": "synchronisation",
+      "name": "Synchronisation",
+      "original_name": "Synchronisation",
+      "description": "Sind in einer Runde Fahrwerk und Landeklappen mit mindestens je einem Würfel belegt, würfelt und platziert der Co-Pilot einen zusätzlichen Verkehrswürfel. Dessen Feldfarbe spielt keine Rolle.",
+      "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/3uymNf7pTVGe7NxLUaaFfw/synchronisation-special-ability",
+      "implemented": false
+    },
+    {
+      "id": "mastery",
+      "name": "Meisterschaft",
+      "original_name": "Mastery",
+      "description": "Zwei gleiche Triebwerkswürfel bringen sofort ein Neuwurf-Plättchen, sofern eines außerhalb von Höhenleiste und Cockpit-Vorrat verfügbar ist.",
+      "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/rfj57n1yQP-jSbISfRmOoA/mastery-special-ability",
+      "implemented": false
+    },
+    {
+      "id": "control",
+      "name": "Kontrolle",
+      "original_name": "Control",
+      "description": "Zwei gleiche Ruderwürfel bringen sofort eine Kaffeetasse.",
+      "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/Zzi0Z46LSDSbmdU7txo2NA/control-special-ability",
+      "implemented": false
+    },
+    {
+      "id": "anticipation",
+      "name": "Voraussicht",
+      "original_name": "Anticipation",
+      "description": "Die Person, die die Runde beginnt, darf vor ihrem ersten Platzieren einen ihrer Würfel einmal neu werfen.",
+      "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/-ROoYoI1QBe7KMclsZs-sA/anticipation-special-ability",
+      "implemented": false
+    },
+    {
+      "id": "adaptation",
+      "name": "Anpassung",
+      "original_name": "Adaptation",
+      "description": "Einmal pro Partie darf jede Person einen eigenen freien Würfel auf die gegenüberliegende Seite drehen.",
+      "rules_url": "https://rules.dized.com/game/HPLDQm89RB-4e9yi2MQQGw/NGq-uKeATOaeW7glEEHg1Q/adaptation-special-ability",
+      "implemented": false
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "YUL-green",
+      "code": "YUL",
+      "name": "Montréal-Trudeau",
+      "city": "Montréal",
+      "country": "Kanada",
+      "difficulty": "green",
+      "modules": [],
+      "ability_count": 0,
+      "description": "Sonnenaufgang über dem Sankt-Lorenz-Strom. Eine ruhige erste Landung in der verschneiten Landschaft.",
+      "image": "assets/landings/YUL-city.webp",
+      "page": 6,
+      "engine_code": "LOG_YUL_GREEN",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "2 0 -2 2",
+        "1 0 -2 2",
+        "3 0 -2 2",
+        "2 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2092.HEIC",
+        "sha256": "fa52fca81a8b6a3ab0dcc60558436222ee67e2d532197befd5579ff9d7453d2e",
+        "orientation": "bottom-to-top"
+      },
+      "practice": false,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "LHR-green",
+      "code": "LHR",
+      "name": "Heathrow",
+      "city": "London",
+      "country": "Vereinigtes Königreich",
+      "difficulty": "green",
+      "modules": [],
+      "ability_count": 0,
+      "description": "Die Themse und die Lichter Londons liegen unter euch. Am Ende des Anflugs wartet dichterer Flugverkehr.",
+      "image": "assets/landings/LHR-city.webp",
+      "page": 6,
+      "engine_code": "LOG_LHR_GREEN",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 1 -2 2",
+        "2 0 -2 2",
+        "2 1 -2 2",
+        "2 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2093.HEIC",
+        "sha256": "b7a8a3fdf4120d6612f923bb677e37ff2e7736c207bd4e19f14cbf63cbbb68e2",
+        "orientation": "bottom-to-top"
+      },
+      "practice": false,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "HND-green",
+      "code": "HND",
+      "name": "Haneda",
+      "city": "Tokio",
+      "country": "Japan",
+      "difficulty": "green",
+      "modules": [],
+      "ability_count": 0,
+      "description": "Mit dem Fuji im Hintergrund führt eine weite Linkskurve über die Bucht von Tokio zur Landebahn im Wasser.",
+      "image": "assets/landings/HND-city.webp",
+      "page": 6,
+      "engine_code": "LOG_HND_GREEN",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 0 -2 2",
+        "1 0 -2 0",
+        "1 0 -2 -1",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 2 -2 2",
+        "1 0 -2 2",
+        "1 0 -1 0",
+        "2 0 -2 2",
+        "1 0 -2 -1",
+        "0 0 -2 0",
+        "2 0 -2 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2092.HEIC",
+        "sha256": "fa52fca81a8b6a3ab0dcc60558436222ee67e2d532197befd5579ff9d7453d2e",
+        "orientation": "bottom-to-top"
+      },
+      "practice": false,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "OSL-green",
+      "code": "OSL",
+      "name": "Gardermoen",
+      "city": "Oslo",
+      "country": "Norwegen",
+      "difficulty": "green",
+      "modules": [
+        "kerosene"
+      ],
+      "ability_count": 0,
+      "description": "Oslo links, der glitzernde Øyeren-See rechts. Behaltet beim Sinkflug euren Treibstoff im Blick.",
+      "image": "assets/landings/OSL-city.webp",
+      "page": 6,
+      "engine_code": "LOG_OSL_GREEN",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 2 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2093.HEIC",
+        "sha256": "b7a8a3fdf4120d6612f923bb677e37ff2e7736c207bd4e19f14cbf63cbbb68e2",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "ATL-green",
+      "code": "ATL",
+      "name": "Hartsfield-Jackson",
+      "city": "Atlanta",
+      "country": "USA",
+      "difficulty": "green",
+      "modules": [
+        "intern"
+      ],
+      "ability_count": 0,
+      "description": "Über den Ausläufern der Appalachen taucht Atlanta auf. Viel Verkehr und ein nervöser Praktikant erwarten euch.",
+      "image": "assets/landings/ATL-city.webp",
+      "page": 6,
+      "engine_code": "LOG_ATL_GREEN",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 4 -2 2",
+        "0 0 -2 2",
+        "0 1 -2 2",
+        "0 0 -2 2",
+        "1 1 -2 2",
+        "2 1 -2 2",
+        "1 0 -2 2",
+        "2 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2093.HEIC",
+        "sha256": "b7a8a3fdf4120d6612f923bb677e37ff2e7736c207bd4e19f14cbf63cbbb68e2",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "PRG-green",
+      "code": "PRG",
+      "name": "Václav Havel",
+      "city": "Prag",
+      "country": "Tschechien",
+      "difficulty": "green",
+      "modules": [
+        "kerosene"
+      ],
+      "ability_count": 2,
+      "description": "Ein klarer Anflug auf Prag. Nutzt eure neuen Fähigkeiten und teilt euch den Treibstoff gut ein.",
+      "image": "assets/landings/PRG-city.webp",
+      "page": 6,
+      "engine_code": "LOG_PRG_GREEN",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 1 -2 2",
+        "0 0 -1 0",
+        "1 1 -2 2",
+        "1 0 1 2",
+        "0 0 -2 2",
+        "1 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2094.HEIC",
+        "sha256": "f5545c7a20474e2aa67300705be8f869175ecb17004d703da311b7099a0ff118",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "LHR-yellow",
+      "code": "LHR",
+      "name": "Heathrow",
+      "city": "London",
+      "country": "Vereinigtes Königreich",
+      "difficulty": "yellow",
+      "modules": [
+        "intern"
+      ],
+      "ability_count": 0,
+      "description": "Nebel über London, Warteschleifen am Himmel. Schon zu Beginn des Anflugs ist volle Aufmerksamkeit gefragt.",
+      "image": "assets/landings/LHR-city.webp",
+      "page": 7,
+      "engine_code": "LOG_LHR_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "1 2 -2 2",
+        "1 0 -2 2",
+        "1 1 -2 2",
+        "2 1 -2 2",
+        "1 1 -2 2",
+        "2 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2097.HEIC",
+        "sha256": "2fc18e98144b4ad4851e913e312affe615bd5ed1745ae2c3ed5ce13e615f49f4",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "TGU-yellow",
+      "code": "TGU",
+      "name": "Toncontín",
+      "city": "Tegucigalpa",
+      "country": "Honduras",
+      "difficulty": "yellow",
+      "modules": [
+        "kerosene"
+      ],
+      "ability_count": 2,
+      "description": "Ein Flughafen in einem Bergkessel. Ein kurzer Anflug und eine enge letzte Kurve führen nach Toncontín.",
+      "image": "assets/landings/TGU-city.webp",
+      "page": 7,
+      "engine_code": "LOG_TGU_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 0",
+        "0 1 -2 -1",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 3 -2 2",
+        "1 0 -2 -1",
+        "1 0 -1 0",
+        "1 0 -2 -1",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2094.HEIC",
+        "sha256": "f5545c7a20474e2aa67300705be8f869175ecb17004d703da311b7099a0ff118",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "GIG-yellow",
+      "code": "GIG",
+      "name": "Galeão",
+      "city": "Rio de Janeiro",
+      "country": "Brasilien",
+      "difficulty": "yellow",
+      "modules": [
+        "wind"
+      ],
+      "ability_count": 1,
+      "description": "Die Flugsicherung antwortet nicht. Rückenwind über der Copacabana verlangt eine weite Kurve und kontrolliertes Tempo.",
+      "image": "assets/landings/GIG-city.webp",
+      "page": 7,
+      "engine_code": "LOG_GIG_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 0 2",
+        "0 1 1 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 2 -2 2",
+        "0 0 -2 2",
+        "2 0 -2 2",
+        "1 1 -2 2",
+        "2 1 -2 2",
+        "3 0 -2 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2095.HEIC",
+        "sha256": "127a8013b426cdf91eaa4d28c5370e7d283c25e112fcb485c8f134e0f916a44f",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "KEF-yellow",
+      "code": "KEF",
+      "name": "Keflavík",
+      "city": "Reykjavík",
+      "country": "Island",
+      "difficulty": "yellow",
+      "modules": [
+        "ice"
+      ],
+      "ability_count": 1,
+      "description": "Frischer Schnee über Island. Auf der vereisten Landebahn braucht ihr ein gutes Gespür für die Bremsen.",
+      "image": "assets/landings/KEF-city.webp",
+      "page": 7,
+      "engine_code": "LOG_KEF_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 2 -2 2",
+        "0 0 -2 2",
+        "1 1 -2 2",
+        "1 0 -2 2",
+        "1 1 -2 2",
+        "0 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2095.HEIC",
+        "sha256": "127a8013b426cdf91eaa4d28c5370e7d283c25e112fcb485c8f134e0f916a44f",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "PRG-yellow",
+      "code": "PRG",
+      "name": "Václav Havel",
+      "city": "Prag",
+      "country": "Tschechien",
+      "difficulty": "yellow",
+      "modules": [
+        "leak"
+      ],
+      "ability_count": 2,
+      "description": "Eine herrliche Aussicht, dann ein Alarm: Treibstoffverlust. Mit einer passenden Triebwerksabstimmung bleibt ihr in der Luft.",
+      "image": "assets/landings/PRG-city.webp",
+      "page": 7,
+      "engine_code": "LOG_PRG_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "3 1 -2 2",
+        "0 0 -2 2",
+        "3 1 -2 2",
+        "2 0 -2 2",
+        "3 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2099.HEIC",
+        "sha256": "872ba7377a1d0a96bad9c5ceca691dc9e69ad7d1ea21852ce9033d2824a984c1",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "KUL-yellow",
+      "code": "KUL",
+      "name": "Kuala Lumpur",
+      "city": "Kuala Lumpur",
+      "country": "Malaysia",
+      "difficulty": "yellow",
+      "modules": [
+        "kerosene"
+      ],
+      "ability_count": 1,
+      "description": "Gewitter über Malaysia. Haltet das Flugzeug zwischen den Sturmfronten auf Kurs.",
+      "image": "assets/landings/KUL-city.webp",
+      "page": 7,
+      "engine_code": "LOG_KUL_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 0",
+        "0 1 -2 -1",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 2 -2 2",
+        "0 0 1 2",
+        "1 0 -2 2",
+        "1 1 0 1",
+        "0 0 1 2",
+        "1 0 -2 2",
+        "1 0 1 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2096.HEIC",
+        "sha256": "f70efd75bf69babef8f3e24748d3969a5ff29512ef3a5b38cd8ecea04c68e0cc",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "ATL-yellow",
+      "code": "ATL",
+      "name": "Hartsfield-Jackson",
+      "city": "Atlanta",
+      "country": "USA",
+      "difficulty": "yellow",
+      "modules": [
+        "leak"
+      ],
+      "ability_count": 1,
+      "description": "Thanksgiving in Atlanta und extremer Flugverkehr. Ein Treibstoffleck zwingt euch trotzdem zur zügigen Landung.",
+      "image": "assets/landings/ATL-city.webp",
+      "page": 7,
+      "engine_code": "LOG_ATL_YELLOW",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 1 -2 2",
+        "1 1 -2 2",
+        "0 0 -1 1",
+        "2 2 -2 2",
+        "2 1 -2 2",
+        "1 0 -2 2",
+        "3 0 1 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2097.HEIC",
+        "sha256": "2fc18e98144b4ad4851e913e312affe615bd5ed1745ae2c3ed5ce13e615f49f4",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000,
+        2000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "PBH-red",
+      "code": "PBH",
+      "name": "Paro",
+      "city": "Paro",
+      "country": "Bhutan",
+      "difficulty": "red",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "ability_count": 2,
+      "description": "Ein enges Tal am Himalaya und hohe, schroffe Berge. Für den Anflug auf Paro zählt jede Sekunde.",
+      "image": "assets/landings/PBH-city.webp",
+      "page": 8,
+      "engine_code": "LOG_PBH_RED",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "0 0 -2 0",
+        "1 2 -2 -1",
+        "1 0 -1 0",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 3 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 -1",
+        "1 1 -2 0",
+        "1 0 1 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2095.HEIC",
+        "sha256": "127a8013b426cdf91eaa4d28c5370e7d283c25e112fcb485c8f134e0f916a44f",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "HND-red",
+      "code": "HND",
+      "name": "Haneda",
+      "city": "Tokio",
+      "country": "Japan",
+      "difficulty": "red",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "ability_count": 1,
+      "description": "Zur Kirschblüte ist der Himmel über Tokio voller Flugzeuge. Der Anflugkorridor ist schmal geworden.",
+      "image": "assets/landings/HND-city.webp",
+      "page": 8,
+      "engine_code": "LOG_HND_RED",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "0 0 -2 0",
+        "1 2 -2 -1",
+        "1 0 -1 0",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "1 3 -2 2",
+        "0 0 -1 0",
+        "1 0 -2 2",
+        "1 1 -2 -1",
+        "1 1 -1 0",
+        "2 1 -2 2",
+        "1 0 -2 -1",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2096.HEIC",
+        "sha256": "f70efd75bf69babef8f3e24748d3969a5ff29512ef3a5b38cd8ecea04c68e0cc",
+        "orientation": "bottom-to-top"
+      },
+      "source_note": "Auf der fotografierten Leiste und bei Dized zusätzlich Kerosin; im englischen PDF fehlt dieses Symbol.",
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "GIG-red",
+      "code": "GIG",
+      "name": "Galeão",
+      "city": "Rio de Janeiro",
+      "country": "Brasilien",
+      "difficulty": "red",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "ability_count": 2,
+      "description": "Ein tropischer Wirbelsturm hinterlässt starken Wind. Dazu kommen ein enger Luftkorridor und ein Treibstoffleck.",
+      "image": "assets/landings/GIG-city.webp",
+      "page": 8,
+      "engine_code": "LOG_GIG_RED",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "0 0 0 2",
+        "1 2 1 2",
+        "1 0 -1 0",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 3 -2 2",
+        "1 0 -2 2",
+        "2 1 -2 2",
+        "2 0 -2 2",
+        "1 1 -2 2",
+        "1 0 -2 2",
+        "2 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2100.HEIC",
+        "sha256": "dce592b3284a96abe9016d9b16dda7d6f78b17a87e55f424e585c96686bbdbb5",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "OSL-red",
+      "code": "OSL",
+      "name": "Gardermoen",
+      "city": "Oslo",
+      "country": "Norwegen",
+      "difficulty": "red",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "ability_count": 2,
+      "description": "Die Landebahn ist gefroren, der Treibstoff wird knapp. Bringt eure Passagiere sicher nach Oslo.",
+      "image": "assets/landings/OSL-city.webp",
+      "page": 8,
+      "engine_code": "LOG_OSL_RED",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "0 0 -2 2",
+        "1 2 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "1 3 -2 2",
+        "0 0 -2 2",
+        "1 1 -2 2",
+        "0 0 -2 2",
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "0 1 -2 2",
+        "0 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2096.HEIC",
+        "sha256": "f70efd75bf69babef8f3e24748d3969a5ff29512ef3a5b38cd8ecea04c68e0cc",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "TGU-red",
+      "code": "TGU",
+      "name": "Toncontín",
+      "city": "Tegucigalpa",
+      "country": "Honduras",
+      "difficulty": "red",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "ability_count": 2,
+      "description": "Zwischen den Bergen geht es nach links hinunter. Wind und Treibstoff machen den schwierigen Anflug noch anspruchsvoller.",
+      "image": "assets/landings/TGU-city.webp",
+      "page": 8,
+      "engine_code": "LOG_TGU_RED",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "0 0 -2 0",
+        "1 2 -2 -1",
+        "1 0 -1 0",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 3 -2 2",
+        "1 0 -2 -1",
+        "1 2 -1 0",
+        "1 0 -2 -1",
+        "2 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2099.HEIC",
+        "sha256": "872ba7377a1d0a96bad9c5ceca691dc9e69ad7d1ea21852ce9033d2824a984c1",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "KEF-black",
+      "code": "KEF",
+      "name": "Keflavík",
+      "city": "Reykjavík",
+      "country": "Island",
+      "difficulty": "black",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "ability_count": 2,
+      "description": "Ein Schneesturm über Island. Durch den Schnee sind die Lichter der Landebahn nur schwach zu erkennen.",
+      "image": "assets/landings/KEF-city.webp",
+      "page": 8,
+      "engine_code": "LOG_KEF_BLACK",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 2",
+        "1 2 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 2 -2 2",
+        "0 0 -2 0",
+        "2 1 -2 2",
+        "1 0 0 2",
+        "1 0 -1 1",
+        "0 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2100.HEIC",
+        "sha256": "dce592b3284a96abe9016d9b16dda7d6f78b17a87e55f424e585c96686bbdbb5",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "KUL-black",
+      "code": "KUL",
+      "name": "Kuala Lumpur",
+      "city": "Kuala Lumpur",
+      "country": "Malaysia",
+      "difficulty": "black",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "ability_count": 2,
+      "description": "Blitze rings um das Flugzeug. Der Anflug auf Kuala Lumpur verlangt volle Konzentration unter Zeitdruck.",
+      "image": "assets/landings/KUL-city.webp",
+      "page": 8,
+      "engine_code": "LOG_KUL_BLACK",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 0",
+        "1 2 -2 -1",
+        "0 0 -1 0",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "0 3 -2 2",
+        "0 0 0 1",
+        "1 1 -2 2",
+        "0 0 -2 -2",
+        "1 0 -1 0",
+        "1 1 0 1",
+        "1 0 1 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2097.HEIC",
+        "sha256": "2fc18e98144b4ad4851e913e312affe615bd5ed1745ae2c3ed5ce13e615f49f4",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    },
+    {
+      "id": "PBH-black",
+      "code": "PBH",
+      "name": "Paro",
+      "city": "Paro",
+      "country": "Bhutan",
+      "difficulty": "black",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "ability_count": 2,
+      "description": "Zurück im engen Tal von Paro. Bei klarem Wetter stellt ihr euch der schwierigsten Variante dieses Anflugs.",
+      "image": "assets/landings/PBH-city.webp",
+      "page": 8,
+      "engine_code": "LOG_PBH_BLACK",
+      "kind": "logbook",
+      "mock": false,
+      "mock_track": [
+        "0 1 -2 2",
+        "1 0 -2 0",
+        "1 2 -2 -1",
+        "0 0 -1 0",
+        "1 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "track": [
+        "1 3 -2 2",
+        "0 0 -2 2",
+        "1 1 -2 -1",
+        "1 1 -2 -1",
+        "1 1 2 2",
+        "1 0 -2 2"
+      ],
+      "track_source": {
+        "file": "IMG_2099.HEIC",
+        "sha256": "872ba7377a1d0a96bad9c5ceca691dc9e69ad7d1ea21852ce9033d2824a984c1",
+        "orientation": "bottom-to-top"
+      },
+      "practice": true,
+      "neuwurf_hoehen": [
+        6000
+      ],
+      "route_verified": true
+    }
+  ]
+}

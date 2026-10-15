@@ -14,6 +14,14 @@ class FlughafenKonfigurationsfehler(ValueError):
 def load_yaml(flughafen):
     if not isinstance(flughafen, str) or not _CODE_RE.fullmatch(flughafen.upper()):
         raise FlughafenKonfigurationsfehler("Ungültiger Flughafen-Code.")
+    if flughafen.upper().startswith(("MOCK_", "LOG_")):
+        from .katalog import szenario_konfiguration
+        try:
+            data = szenario_konfiguration(flughafen.upper())
+        except ValueError as exc:
+            raise FlughafenKonfigurationsfehler(str(exc)) from exc
+        _pruefe_konfiguration(data, flughafen)
+        return data
     yaml_file = _LANDUNGEN_DIR / f"{flughafen.upper()}.yaml"
     try:
         with open(yaml_file, "r", encoding="utf-8") as file:
@@ -107,6 +115,12 @@ class Landung:
         self._flughafen_code = flughafen.upper()
         self._code = data.get("code")
         self._bezeichnung = data.get("bezeichnung")
+        self.szenario_id = data.get("szenario_id", f"custom-{self._code}")
+        self.mock = data.get("mock", False)
+        self.uebung = data.get("uebung", False)
+        self.verkehr_regel = data.get("verkehr_regel", "eigene")
+        self.letzter_verkehr_grund = None
+        self.geplante_module = list(data.get("geplante_module", []))
 
         self._module = data.get("module")
         self._faehigkeitskarten = data.get("faehigkeitskarten")
@@ -171,8 +185,14 @@ class Landung:
         return self._flugzeugwuerfel[index] if index is not None else 0
 
     def add_flugzeug_fuer_verkehrswurf(self, wert):
-        """Wie beim Funk zählt das aktuelle Feld als 1. Außerhalb: kein Flugzeug."""
+        """Aktuelles Feld zählt als 1; offizielle Strecken begrenzen Ziel und Vorrat."""
+        self.letzter_verkehr_grund = None
+        if self.verkehr_regel == "offiziell" and sum(self.flugzeuge) >= 12:
+            self.letzter_verkehr_grund = "vorrat_leer"
+            return None
         ziel_entfernung = self.entfernung - (wert - 1)
+        if self.verkehr_regel == "offiziell":
+            ziel_entfernung = max(0, ziel_entfernung)
         index = self._index_fuer_entfernung(ziel_entfernung)
         if index is None:
             return None

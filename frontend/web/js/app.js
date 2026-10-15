@@ -298,6 +298,7 @@ function bindeNeuwurfTokens(zustand) {
 function render(zustand) {
   if (!zustand) return;
   aktuellerZustand = zustand;
+  Landings.updateFlight(zustand);
 
   document.getElementById("s-runde").textContent = zustand.letzte_runde
     ? "🛬 Landung"
@@ -860,9 +861,22 @@ function spielfeldUntenAusrichten() {
   window.setTimeout(ausrichten, 120);
 }
 
-async function neuesSpiel() {
+let enginePromise = null;
+let navigationVersion = 0;
+const landingPicker = Landings.mount(document.getElementById("landing-selection"), {
+  mode: "Pass & Play",
+  onBack: zurueckZumMenue,
+  onStart: neuesSpiel,
+});
+
+async function neuesSpiel(scenario) {
+  const version = ++navigationVersion;
+  if (!bridge) {
+    if (!enginePromise) enginePromise = ladeEngine().catch(error => { enginePromise = null; throw error; });
+    await enginePromise;
+  }
+  if (version !== navigationVersion) return;
   resetVerkehrUi();
-  const flughafen = document.getElementById("flughafen-auswahl").value;
   ausgewaehlterWuerfel = null;
   kaffeeMenuOffenFuer = null;
   neuwurfOffen = false;
@@ -871,71 +885,34 @@ async function neuesSpiel() {
   neuwurfPhase1Indizes = new Set();
   neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
   diceVisible = null;
-  const zustand = pyToJs(bridge.neues_spiel(flughafen));
-  setzeMeldung("Neue Partie gestartet.", "erfolg");
+  const zustand = pyToJs(bridge.neues_spiel(scenario.engine_code));
+  landingPicker.hide();
+  document.getElementById("game-header").classList.remove("versteckt");
+  document.getElementById("spiel-ui").classList.remove("versteckt");
+  setzeMeldung(scenario.practice ? "Übungsflug gestartet. Zusatzmodule und Karteneffekte sind noch inaktiv." : "Neue Partie gestartet.", "erfolg");
   render(zustand);
   spielfeldUntenAusrichten();
 }
 
-// Zurück zum Startmenü (Pass & Play <-> Multiplayer Auswahl)
 function zurueckZumMenue() {
+  navigationVersion++;
   resetVerkehrUi();
-  document.getElementById("game-header").classList.add("versteckt");
-  document.getElementById("spiel-ui").classList.add("versteckt");
-  document.getElementById("lade-hinweis").classList.add("versteckt");
+  landingPicker.hide();
+  for (const id of ["game-header", "flight-summary", "spiel-ui", "lade-hinweis"]) document.getElementById(id).classList.add("versteckt");
   document.getElementById("start-menu").classList.remove("versteckt");
 }
 
-// Füllt die Flughafen-Auswahl dynamisch aus backend/landungen/*.yaml -
-// jede neu hinzugefügte YAML-Datei taucht so automatisch hier auf, ohne
-// dass index.html angepasst werden müsste (siehe backend/landung.py:
-// flughafen_liste()).
-function populiereFlughafenAuswahl() {
-  const auswahl = document.getElementById("flughafen-auswahl");
-  const bisheriger = auswahl.value;
-  const liste = pyToJs(bridge.flughaefen_liste());
-  auswahl.innerHTML = "";
-  liste.forEach(f => {
-    const opt = document.createElement("option");
-    opt.value = f.code;
-    opt.textContent = `${f.code} – ${f.bezeichnung}`;
-    auswahl.appendChild(opt);
-  });
-  if (liste.some(f => f.code === bisheriger)) auswahl.value = bisheriger;
-}
-
-async function init() {
-  document.getElementById("neues-spiel-btn").disabled = true;
-  try {
-    await ladeEngine();
-  } catch (err) {
-    console.error(err);
-    document.getElementById("lade-hinweis").textContent = "Fehler beim Laden der Engine: " + err.message;
-    return;
-  }
-  populiereFlughafenAuswahl();
-  document.getElementById("lade-hinweis").classList.add("versteckt");
-  document.getElementById("game-header").classList.remove("versteckt");
-  document.getElementById("spiel-ui").classList.remove("versteckt");
-  document.getElementById("neues-spiel-btn").disabled = false;
-  document.getElementById("neues-spiel-btn").addEventListener("click", neuesSpiel);
-  document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
-  const menuBtn = document.getElementById("menue-btn");
-  if (menuBtn) menuBtn.addEventListener("click", zurueckZumMenue);
-  await neuesSpiel();
-}
-
-// Called by the start-menu button
 window.startPassAndPlay = function() {
-  document.getElementById("start-menu").classList.add("versteckt");
-  document.getElementById("lade-hinweis").classList.remove("versteckt");
-  if (bridge) {
-    // Engine schon geladen (z.B. nach Rückkehr vom Menü) - direkt weiter.
-    document.getElementById("lade-hinweis").classList.add("versteckt");
-    document.getElementById("game-header").classList.remove("versteckt");
-    document.getElementById("spiel-ui").classList.remove("versteckt");
-    neuesSpiel();
-  } else {
-    init();
-  }
+  navigationVersion++;
+  resetVerkehrUi();
+  for (const id of ["start-menu", "game-header", "flight-summary", "spiel-ui", "lade-hinweis"]) document.getElementById(id).classList.add("versteckt");
+  landingPicker.show();
 };
+
+document.getElementById("neues-spiel-btn").addEventListener("click", window.startPassAndPlay);
+document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
+document.getElementById("menue-btn").addEventListener("click", zurueckZumMenue);
+
+if (new URLSearchParams(window.location.search).get("view") === "landings") {
+  window.startPassAndPlay();
+}
