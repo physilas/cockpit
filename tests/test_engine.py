@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from backend.spielplan import Spielplan  # noqa: E402
+from backend.cockpit import Ergebnis  # noqa: E402
 
 MAX_RUNDEN_SICHERHEITSNETZ = 40
 
@@ -317,6 +318,59 @@ def test_gewinn_pfad_deterministisch():
     assert spiel.status == "gewonnen", f"Erwarteter Sieg, aber Status ist {spiel.status} ({spiel.verlust_grund})"
 
 
+def test_entfernungsfelder_zaehlen_bis_null():
+    """Sieben MUC-Felder sind sechs Flugschritte; Funk nutzt dieselben Werte."""
+    for code, feldanzahl in (("MUC", 7), ("LHR", 5), ("TEST", 3)):
+        spiel = Spielplan(code)
+        landung = spiel.landung
+        assert landung.get_laenge() == feldanzahl
+        assert spiel.zustand()["entfernungswerte"] == list(range(feldanzahl - 1, -1, -1))
+        for index in range(feldanzahl):
+            assert landung.get_entfernung() == feldanzahl - 1 - index
+            assert landung._index_fuer_entfernung(landung.get_entfernung()) == index
+            assert landung.ist_am_flughafen() == (index == feldanzahl - 1)
+            if index < feldanzahl - 1:
+                landung.reduce_entfernung(1)
+        assert spiel.zustand()["entfernung"] == 0
+        assert landung._index_fuer_entfernung(feldanzahl) is None
+
+
+def test_distanz_null_und_hoehe_null_starten_die_landerunde():
+    """Regression: Das Flughafenfeld hat Entfernung 0, nicht 1.
+
+    Erreicht ein Flugzeug in einer normalen Runde gleichzeitig Entfernung
+    0 und 0 ft, darf es nicht zur Notlandung kommen. Stattdessen folgt die
+    Landerunde, in der der Schub gegen die Bremsen geprüft wird.
+    """
+    spiel = Spielplan("TEST")
+    spiel.starte_spiel()
+    assert spiel.landung.get_entfernung() == spiel.landung.get_laenge() - 1
+    assert spiel.landung._index_fuer_entfernung(0) == spiel.landung.get_laenge() - 1
+
+    # Einen Schritt vor dem Flughafen und einen Sinkflug vor 0 ft.
+    spiel.landung.entfernung = 1
+    spiel.landung.hoehe = 1000
+    spiel.alle_wuerfel_platziert = lambda: True
+    spiel.cockpit.pflichtfelder_erfuellt = lambda: True
+    spiel.cockpit.leere_alle_felder = lambda: None
+
+    def bewege_zum_flughafen(letzte_runde=False, warteschleife=False):
+        assert not letzte_runde
+        assert not warteschleife
+        spiel.landung.reduce_entfernung(1)
+        return Ergebnis(True, meldung="Testbewegung zum Flughafen.")
+
+    spiel.cockpit.loese_triebwerke_auf = bewege_zum_flughafen
+    ergebnis = spiel.rundenende()
+
+    assert ergebnis.erfolg
+    assert not ergebnis.verloren
+    assert spiel.status == "laeuft"
+    assert spiel.landung.get_entfernung() == 0
+    assert spiel.landung.get_hoehe() == 0
+    assert spiel.letzte_runde
+
+
 def test_ruder_vorzeichen():
     """Bug #1: Pilot 5 / Kopilot 4 -> -1. Pilot 3 / Kopilot 5 -> +2."""
     from backend.spielplan import Spielplan
@@ -419,7 +473,7 @@ def test_funk_zielt_richtig_unabhaengig_von_reihenfolge():
 def test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen():
     """
     Regressionstest für den konkret gemeldeten Bug: in Runde 1 (Entfernung
-    == laenge, also der denkbar ungünstigste Fall) muss ein Würfel > 1
+    == laenge - 1, also der denkbar ungünstigste Fall) muss ein Würfel > 1
     trotzdem ein Flugzeug entfernen können, wenn eines im Zielbereich
     liegt - vorher (falsche Zählrichtung) ging dort NUR die 1.
     """
@@ -427,7 +481,7 @@ def test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen():
 
     spiel = Spielplan("MUC")
     spiel.starte_spiel()
-    entfernung = spiel.landung.get_entfernung()  # == laenge (7) in Runde 1
+    entfernung = spiel.landung.get_entfernung()  # == laenge - 1 (6) in Runde 1
     ziel_entfernung = entfernung - 2  # mit einer 3 erreichbar
     idx = spiel.landung._index_fuer_entfernung(ziel_entfernung)
     spiel.landung.flugzeuge[idx] = 1
@@ -439,8 +493,8 @@ def test_funk_am_rundenstart_kann_ueber_gesamte_verbleibende_strecke_zielen():
     wuerfel[0].augenzahl = 3
     ergebnis = spiel.platziere(besitzer, 0, "funk", funk_feld=0)
     assert ergebnis.erfolg and "entfernt" in ergebnis.meldung, ergebnis.meldung
-    # entfernung 7, funk(3) -> ziel_entfernung = 7-(3-1) = 5
-    # _index_fuer_entfernung(5) = laenge - 5 = 7 - 5 = 2
+    # entfernung 6, funk(3) -> ziel_entfernung = 6-(3-1) = 4
+    # _index_fuer_entfernung(4) = laenge - 1 - 4 = 7 - 1 - 4 = 2
     idx = spiel.landung._index_fuer_entfernung(ziel_entfernung)
     assert spiel.landung.flugzeuge[idx] == 0
 
@@ -465,6 +519,8 @@ def load_tests(loader, tests, pattern):
     for test in (
         test_viele_zufallspartien,
         test_gewinn_pfad_deterministisch,
+        test_entfernungsfelder_zaehlen_bis_null,
+        test_distanz_null_und_hoehe_null_starten_die_landerunde,
         test_ruder_vorzeichen,
         test_triebwerk_wartet_bis_alle_wuerfel_liegen,
         test_funk_zielt_richtig_unabhaengig_von_reihenfolge,

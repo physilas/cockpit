@@ -1,4 +1,4 @@
-# Cockpit – digitaler Zwilling
+# Fly Team
 
 Digitale Umsetzung eines kooperativen 2-Spieler-Flugzeuglandespiels
 (Würfel platzieren, gemeinsam ein Flugzeug sicher landen). Regelwerk

@@ -1,5 +1,5 @@
 """
-Minimaler, aber spielbarer Terminal-Client für Cockpit.
+Minimaler, aber spielbarer Terminal-Client für Fly Team.
 
 Start (aus dem Ordner `skyteam/` heraus):
     python3 main.py [FLUGHAFEN-CODE]

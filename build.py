@@ -84,6 +84,7 @@ def build():
             for rel in (
                 "frontend/web/index.html",
                 "frontend/web/multiplayer.html",
+                "frontend/web/manifest.json",
                 "frontend/web/css/style.css",
                 "frontend/web/js/app.js",
                 "frontend/web/js/multiplayer.js",

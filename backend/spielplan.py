@@ -304,6 +304,7 @@ class Spielplan:
             "hoehe": self.landung.get_hoehe(),
             "entfernung": self.landung.get_entfernung(),
             "laenge": self.landung.get_laenge(),
+            "entfernungswerte": self.landung.get_entfernungswerte(),
             "flugzeuge": list(self.landung.get_flugzeuge()),
             # Erlaubte Ruderstellung je Entfernungsfeld (gleiche Indizierung
             # wie "flugzeuge": Index 0 = am weitesten vom Flughafen weg).

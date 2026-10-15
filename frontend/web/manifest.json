@@ -1,6 +1,6 @@
 {
-  "name": "Cockpit – digitaler Zwilling",
-  "short_name": "Cockpit",
+  "name": "Fly Team",
+  "short_name": "Fly Team",
   "description": "Kooperatives Würfel-Landesimulation für 2 Spieler",
   "start_url": "./index.html",
   "display": "standalone",

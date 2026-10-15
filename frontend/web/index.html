@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Cockpit</title>
+<title>Fly Team</title>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fly Team">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#1e293b">
-<link rel="stylesheet" href="css/style.css?v=control-colors-and-arcs">
+<link rel="stylesheet" href="css/style.css?v=compact-distance-v2">
 <style>
   /* ── Startmenü ── */
   #start-menu {
@@ -45,8 +45,7 @@
   <div id="start-menu">
     <div style="text-align:center">
       <div style="font-size:3rem">✈</div>
-      <h1>Cockpit</h1>
-      <p>Digitaler Zwilling</p>
+      <h1>Fly Team</h1>
     </div>
     <button class="start-btn" style="background:var(--blau);color:white"
             onclick="startPassAndPlay()">
@@ -62,7 +61,7 @@
 
   <!-- ═══ 2. HEADER (versteckt bis Spiel geladen) ═══ -->
   <header id="game-header" class="versteckt">
-    <h1>✈ Cockpit <span class="subtitle">digitaler Zwilling</span></h1>
+    <h1>✈ Fly Team</h1>
     <div id="spiel-auswahl">
       <label for="flughafen-auswahl">Flughafen:</label>
       <select id="flughafen-auswahl">
@@ -93,6 +92,7 @@
             <div class="vtrack-grid"></div>
             <div class="vtrack-fill-remaining" id="distance-fill"></div>
             <div class="vtrack-fill-used" id="distance-used"></div>
+            <div id="distance-labels"></div>
             <div id="distance-obstacles"></div>
           </div>
         </div>
@@ -204,11 +204,11 @@
 
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
   <script src="js/game-schema.js"></script>
-  <script src="js/engine-src.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/engine-src.js?v=compact-distance-v2"></script>
+  <script src="js/app.js?v=compact-distance-v2"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js")
+      navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
         .then(reg => console.log("SW registered:", reg.scope))
         .catch(err => console.warn("SW registration failed:", err));
     }

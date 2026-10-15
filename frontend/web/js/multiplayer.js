@@ -371,40 +371,58 @@ function starte_Beitreten(code) {
 // beiden Schwellen (blau = Fahrwerk-Marker, orange = Landeklappen-Marker)
 // sitzt statt eines simplen "|" ein kleiner, farbiger vertikaler Balken
 // in der jeweiligen Spielerfarbe.
-function aeroSkalaHTML(b,o) {
-  const bg=Math.floor(b),og=Math.floor(o);
-  const bogenPosition = index => {
-    const x = 6 + index * 8.8;
-    const y = 5 + 48 * Math.pow((index - 5) / 5, 2);
-    return ` style="--bogen-x:${x}%;--bogen-y:${y}px"`;
+function aeroSkalaHTML(blau, orange) {
+  // Identische Kreisgeometrie wie im Pass-&-Play-Cockpit.
+  const punkt = (index, radius) => {
+    const winkel = (146 - index * 11.2) * Math.PI / 180;
+    return { x: 125 + radius * Math.cos(winkel), y: -44 + radius * Math.sin(winkel) };
   };
-  let html = '<div class="skala-leiste">';
-  for (let n=2;n<=12;n++) {
-    const index=n-2;
-    html += `<span class="skala-zahl aero-zahl"${bogenPosition(index)}>${n}</span>`;
-    if (n < 12) {
-      const marker=bogenPosition(index+.5);
-      if (n === bg) html += `<span class="skala-sep skala-sep-blau aero-marker"${marker}></span>`;
-      if (n === og) html += `<span class="skala-sep skala-sep-orange aero-marker"${marker}></span>`;
-    }
+  let html = `<svg class="aero-shell" viewBox="0 0 250 90" role="img" aria-label="Aerodynamik: 2 bis 12, blaue Schwelle ${blau}, orange Schwelle ${orange}">
+    <defs><linearGradient id="aero-shell-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#304a50"/><stop offset="1" stop-color="#15282e"/></linearGradient></defs>
+    <path d="M 0.549 0 A 132 132 0 0 0 249.451 0 L 210.323 0 A 96 96 0 0 1 39.677 0 Z" fill="url(#aero-shell-fill)" stroke="#678185" stroke-width="1"/>`;
+  for (let n = 2; n <= 12; n++) {
+    const p = punkt(n - 2, 114);
+    html += `<text class="aero-number" x="${p.x}" y="${p.y}" text-anchor="middle" dominant-baseline="central">${n}</text>`;
   }
-  html += '</div>';
+  for (const [farbe, schwelle] of [["pilot", blau], ["copilot", orange]]) {
+    html += `<line class="aero-tick aero-tick-${farbe}" x1="125" y1="56" x2="125" y2="84" style="transform:rotate(${aeroMarkerWinkel(schwelle)}deg)"/>`;
+  }
+  html += '</svg>';
   return html;
+}
+
+function aeroMarkerWinkel(schwelle) {
+  const index = Math.max(-0.5, Math.min(10.5, Math.floor(schwelle) - 1.5));
+  return 56 - index * 11.2;
+}
+
+function renderAeroSkala(blau, orange) {
+  const skala = document.getElementById("s-aero");
+  if (!skala.querySelector(".aero-shell")) skala.innerHTML = aeroSkalaHTML(blau, orange);
+  skala.querySelector(".aero-shell").setAttribute("aria-label", `Aerodynamik: 2 bis 12, blaue Schwelle ${blau}, orange Schwelle ${orange}`);
+  skala.querySelector(".aero-tick-pilot").style.transform = `rotate(${aeroMarkerWinkel(blau)}deg)`;
+  skala.querySelector(".aero-tick-copilot").style.transform = `rotate(${aeroMarkerWinkel(orange)}deg)`;
 }
 // Bremsen-Marker-Skala, gleiches Prinzip, mit einem roten Balken an der
 // aktuellen Bremsstärke.
 function bremsSkalaHTML(bs) {
-  let html = '<div class="skala-leiste">';
-  if (bs < 2) html += '<span class="skala-sep skala-sep-rot"></span>';
-  for (let n=2;n<=6;n++) {
-    html += `<span class="skala-zahl">${n}</span>`;
-    if (n < 6) {
-      if (n === bs) html += '<span class="skala-sep skala-sep-rot"></span>';
-      else html += '<span class="skala-luecke"></span>';
-    }
+  let html = '<div class="brems-scale">';
+  for (let n = 2; n <= 6; n++) {
+    html += `<span class="skala-zahl brems-number">${n}</span>`;
   }
-  html += '</div>';
+  html += `<span class="brems-marker" aria-hidden="true" style="left:${bremsMarkerPosition(bs)}%"></span></div>`;
   return html;
+}
+
+function bremsMarkerPosition(bs) {
+  return bs < 2 ? 12 : Math.min(88, 12 + (bs - 1) * 15.2);
+}
+
+function renderBremsSkala(bs) {
+  const skala = document.getElementById("s-brems");
+  if (!skala.querySelector(".brems-marker")) skala.innerHTML = bremsSkalaHTML(bs);
+  skala.querySelector(".brems-marker").style.left = bremsMarkerPosition(bs) + "%";
+  skala.setAttribute("aria-label", `Bremsstärke ${bs}`);
 }
 function kaffeeHTML(n) {
   return Array.from({length:3},(_,i)=>`<span class="ressourcen-box${i<n?" gefuellt":""}">${i<n?"☕":""}</span>`).join("");
@@ -432,7 +450,7 @@ function bindeNeuwurfTokens(z) {
 
 // Jede Leiste zeigt nur noch ihre aktuell sichtbaren Felder. So bleiben
 // keine leeren Kacheln oberhalb der Entfernung bzw. Höhe zurück.
-const TRACK_UNIT_PX = 34;
+const TRACK_UNIT_PX = 30;
 function setzeGauge(prefix, remaining) {
   const track = document.getElementById(`${prefix}-track`);
   const height = Math.max(0, remaining) * TRACK_UNIT_PX;
@@ -461,7 +479,8 @@ function renderTracks(z) {
 
   const laenge = z.laenge || 1;
   const hoehenEinheiten = z.hoehe / 1000 + 1;
-  const distanzEinheiten = Math.max(0, z.entfernung);
+  // Auch bei Entfernung 0 bleibt das Flughafen-Feld sichtbar.
+  const distanzEinheiten = Math.max(0, z.entfernung + 1);
 
   setzeGauge("altitude", hoehenEinheiten);
   document.getElementById("s-hoehe-label").textContent = z.hoehe + " ft";
@@ -469,32 +488,30 @@ function renderTracks(z) {
 
   setzeGauge("distance", distanzEinheiten);
   document.getElementById("s-entfernung-label").textContent = "Entf. " + z.entfernung;
+  renderDistanceLabels(z.entfernung, z.entfernungswerte);
 
   const obstaclesEl = document.getElementById("distance-obstacles");
   obstaclesEl.innerHTML = "";
-  const aktuellerIndex = laenge - z.entfernung;
+  const aktuellerIndex = laenge - 1 - z.entfernung;
   (z.flugzeuge || []).forEach((count, i) => {
     if (count <= 0 || i < aktuellerIndex) return;
-    const y = (z.entfernung - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
+    const y = (distanzEinheiten - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
     if (y < 0 || y > distanzEinheiten * TRACK_UNIT_PX) return;
     const el = document.createElement("span");
     el.className = "vtrack-obstacle";
     el.style.top = (y - TRACK_UNIT_PX / 2) + "px";
     el.style.height = TRACK_UNIT_PX + "px";
-    const platzierteFlugzeuge = [];
+    // Größere Symbole in stabilen, leicht versetzten Spalten.
     for (let k = 0; k < count; k++) {
       const zufall = salt => {
         const wert = Math.sin((i + 1) * 89.17 + (k + 1) * 41.73 + salt * 17.31) * 43758.5453;
         return wert - Math.floor(wert);
       };
-      let x = 17 + zufall(1) * 66;
-      let yTile = 24 + zufall(2) * 52;
-      for (let versuch = 0; versuch < 18; versuch++) {
-        x = 17 + zufall(versuch * 2 + 1) * 66;
-        yTile = 24 + zufall(versuch * 2 + 2) * 52;
-        if (platzierteFlugzeuge.every(p => Math.hypot((x - p.x) * 1.35, yTile - p.y) >= 27)) break;
-      }
-      platzierteFlugzeuge.push({ x, y: yTile });
+      const spalten = Math.min(count, 3);
+      const x = count === 1 ? 54 + zufall(1) * 14
+        : 36 + (k % spalten) * 44 / (spalten - 1) + zufall(1) * 2;
+      const yTile = count === 1 ? 40 + zufall(2) * 20
+        : 36 + (k % 2) * 22 + zufall(2) * 6;
       const plane = document.createElement("span");
       plane.textContent = "✈";
       plane.style.setProperty("--plane-x", `${x}%`);
@@ -538,9 +555,9 @@ function renderKurven(kmin, kmax, laenge, entfernung) {
   (kmin || []).forEach((min, i) => {
     const max = (kmax || [])[i];
     if (max === undefined || (min <= -2 && max >= 2)) return;   // keine Einschränkung
-    const aktuellerIndex = laenge - entfernung;
+    const aktuellerIndex = laenge - 1 - entfernung;
     if (i < aktuellerIndex) return;                              // schon überflogen
-    const center = (entfernung - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
+    const center = (entfernung + 1 - (i - aktuellerIndex) - 0.5) * TRACK_UNIT_PX;
     const badge = kurvenBadgeEl(min, max);
     badge.style.top = (center - TRACK_UNIT_PX / 2 + 2) + "px";  // knapp innerhalb der oberen Feldgrenze
     cont.appendChild(badge);
@@ -554,13 +571,28 @@ function renderKurven(kmin, kmax, laenge, entfernung) {
 // (niedrigere) aktuelle Höhe an den Marker heran. Neuwurf-Symbole sind
 // Flughafen-Daten und werden mit dem Zustands-Snapshot geliefert.
 
+function renderDistanceLabels(entfernung, feldwerte) {
+  const el = document.getElementById("distance-labels");
+  if (!el) return;
+  el.replaceChildren();
+  const werte = feldwerte || Array.from({ length: entfernung + 1 }, (_, i) => entfernung - i);
+  werte.filter(wert => wert >= 0 && wert <= entfernung).forEach(wert => {
+    const label = document.createElement("span");
+    label.className = "vtrack-distancelabel";
+    label.style.top = (wert + 0.5) * TRACK_UNIT_PX + "px";
+    label.textContent = String(wert);
+    if (wert === 0) label.title = "Flughafen · Entfernung 0";
+    el.appendChild(label);
+  });
+}
+
 function renderAltitudeLabels(markerY, aktuelleHoehe, neuwurfHoehen) {
   const el = document.getElementById("altitude-labels");
   if (!el) return;
   el.innerHTML = "";
   for (let v = 0; v <= aktuelleHoehe / 1000; v++) {
     const hoeheFt = aktuelleHoehe - v * 1000;
-    if (hoeheFt < 0) continue; // "nichts" - Feld bleibt leer/unbeschriftet
+    if (hoeheFt <= 0) continue; // Das Landungssymbol ersetzt die 0-ft-Zahl.
 
     const y = markerY - (v + 0.5) * TRACK_UNIT_PX;
     const label = document.createElement("span");
@@ -583,8 +615,8 @@ function render(z) {
   document.getElementById("s-runde").textContent = z.letzte_runde
     ? "🛬 Landung"
     : "Runde " + z.runde + (z.warteschleife ? " ⟳" : "");
-  document.getElementById("s-aero").innerHTML  = aeroSkalaHTML(z.aerodynamik_blau,z.aerodynamik_orange);
-  document.getElementById("s-brems").innerHTML = bremsSkalaHTML(z.bremsstaerke);
+  renderAeroSkala(z.aerodynamik_blau,z.aerodynamik_orange);
+  renderBremsSkala(z.bremsstaerke);
   document.getElementById("s-kaffee-status").innerHTML = kaffeeHTML(z.kaffeetassen);
   document.getElementById("s-neuwurf").innerHTML = neuwurfHTML(z.neuwurf_plaettchen);
   bindeNeuwurfTokens(z);

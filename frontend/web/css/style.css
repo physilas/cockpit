@@ -176,3 +176,107 @@ main{width:min(100%,620px);margin:auto;padding:.85rem .5rem calc(1.15rem + env(s
   #konzentration-reihe { gap: .35rem; }
   #konzentration-reihe .feld-zelle { width: 32px; height: 32px; }
 }
+
+/* Compact controls: save space around instruments rather than in their
+   touch targets. The sticky header stays outside the scrolling board. */
+header, #spiel-header { gap: .35rem; padding-inline: .5rem; }
+header h1 { flex-shrink: 0; white-space: nowrap; }
+#spiel-auswahl { min-width: 0; }
+#spiel-auswahl select { min-width: 0; }
+header button { min-height: 36px; white-space: nowrap; }
+main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3rem; justify-content: flex-end; }
+#tracks-leiste { min-height: 0; padding: 0 .15rem; gap: .28rem; }
+.vtrack-col { gap: .15rem; }
+.vtrack-wrap { padding-top: 7px; }
+.vtrack-caption { padding: .2rem; font-size: .75rem; }
+.dice-tray { min-width: 0; min-height: 0; padding: .3rem .2rem; gap: .2rem; }
+.dice-tray-label { font-size: .59rem; letter-spacing: .025em; }
+.wuerfel-reihe { gap: .2rem; }
+.wuerfel-slot { gap: 2px; }
+.wuerfel { width: 38px; height: 38px; font-size: 1.1rem; touch-action: manipulation; }
+.view-btn, .hide-btn { width: 32px; height: 30px; font-size: .95rem; }
+.kaffee-auswahl button,
+.wuerfel-slot > button:not(.view-btn):not(.hide-btn) { min-height: 28px; padding: 2px 4px; font-size: .75rem; }
+
+.board-grid { grid-template-columns: 78px minmax(0, 1fr) 78px; gap: .3rem; min-height: 0; margin-top: -.65rem; padding: 1.1rem .5rem .4rem; }
+.side-col { gap: .3rem; }
+.side-col > div:not(.side-block) { gap: .3rem; }
+.side-block { padding: .25rem .1rem; }
+.side-block-label { margin-bottom: .15rem; font-size: .56rem; }
+.feld-zeile { gap: .13rem; }
+.feld-label, .inline-label, .ruder-slot-group > span { font-size: .62rem; }
+.feld-slots { gap: .18rem; }
+.feld-slot-mit-licht { gap: 2px; }
+.feld-zelle { flex-shrink: 0; width: 42px; height: 42px; border-radius: 7px; font-size: 1rem; touch-action: manipulation; }
+.feld-zelle small { font-size: .68rem; }
+.feld-licht { width: 8px; height: 8px; }
+.center-col { justify-content: flex-start; gap: .25rem; }
+.attitude-gauge-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) 42px; gap: .3rem; }
+.ruder-slot-group { width: 42px; gap: .12rem; }
+.ruder-slot-group .feld-zelle { width: 42px; height: 42px; }
+.attitude-gauge { min-width: 0; justify-self: center; width: min(100%, 148px); }
+.attitude-gauge svg { width: 100%; height: auto; }
+#s-aero { width: min(100%, 236px); height: auto; min-height: 0; aspect-ratio: 250 / 90; margin-top: -.65rem; overflow: visible; }
+#s-aero::before { display: none; }
+.aero-shell { display: block; width: 100%; height: auto; overflow: visible; }
+.aero-number { fill: #f4f7e8; font: 900 15px ui-monospace, Menlo, monospace; }
+.aero-tick { stroke-width: 4; stroke-linecap: round; transform-origin: 125px -44px; transform-box: view-box; transition: transform .4s ease; }
+.aero-tick-pilot { stroke: var(--pilot); }
+.aero-tick-copilot { stroke: var(--copilot); }
+#s-brems { width: min(100%, 196px); padding: 0; }
+.brems-scale { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; min-height: 32px; padding-inline: 12%; }
+.brems-number { text-align: center; font-size: .85rem; }
+.brems-marker { position: absolute; top: 50%; width: 5px; height: 23px; border-radius: 2px; background: var(--alert); box-shadow: 0 0 5px var(--alert); transform: translate(-50%, -50%); transition: left .4s ease; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .brems-marker, .aero-tick { transition: none; } }
+.skala-zahl { font-size: .78rem; }
+.mitte-reihe { gap: .35rem; }
+.schub-reihe .feld-zelle { width: 44px; height: 44px; }
+#konzentration-reihe { gap: .35rem; }
+#konzentration-reihe .feld-zelle { width: 42px; height: 42px; }
+.ressourcen-box { width: 22px; height: 24px; font-size: .9rem; }
+#s-kaffee-status { display: flex; justify-content: center; gap: 2px; }
+#s-kaffee-status .ressourcen-box { margin: 0; }
+.reroll-token { width: 34px; height: 34px; font-size: 1.1rem; }
+#aktionen-leiste { padding: .3rem .45rem; gap: .3rem; }
+.aktionen-buttons button { min-height: 36px; padding: .35rem .45rem; font-size: .75rem; }
+#meldung-leiste { min-height: 1rem; line-height: 1.25; }
+#meldung-leiste:empty { display: none; }
+.vtrack-obstacle > span { font-size: 1.4rem; }
+.vtrack-zielicon { top: 15px; transform: translate(-50%, -50%); font-size: 1.25rem; line-height: 1; }
+.tracks-marker-plane { font-size: 1.3rem; }
+.reroll-badge { right: 2%; font-size: .8rem; }
+#distance-labels { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.vtrack-distancelabel { position: absolute; left: 6%; transform: translateY(-50%); color: #f4f7db; font: 900 .78rem/1 ui-monospace, Menlo, monospace; text-shadow: 0 0 5px #43d5ff, 1px 1px #001b3b; }
+
+@media (max-width: 460px) {
+  header, #spiel-header { min-height: 47px; padding: calc(.25rem + env(safe-area-inset-top)) .4rem .25rem; }
+  header h1 { font-size: .85rem; }
+  header .subtitle, #spiel-auswahl > label { display: none; }
+  #spiel-auswahl { flex: 1; justify-content: flex-end; gap: .25rem; }
+  #spiel-auswahl select { flex: 1; width: 0; max-width: 155px; min-height: 36px; }
+  header button { padding-inline: .35rem; }
+  main { min-height: calc(100dvh - 47px - env(safe-area-inset-top)); padding-inline: .2rem; }
+  #tracks-leiste { grid-template-columns: 56px minmax(0, 1fr) 20px minmax(0, 1fr) 56px; gap: .2rem; }
+  .dice-tray-label { font-size: .54rem; white-space: nowrap; }
+  .wuerfel { width: 36px; height: 36px; }
+  .board-grid { grid-template-columns: 60px minmax(0, 1fr) 60px; padding-inline: .4rem; }
+  .feld-zelle, .ruder-slot-group .feld-zelle, #konzentration-reihe .feld-zelle { width: 40px; height: 40px; }
+  .ruder-slot-group { width: 40px; }
+  .attitude-gauge-row { grid-template-columns: 40px minmax(0, 1fr) 40px; gap: .2rem; }
+  .attitude-gauge { width: min(100%, 126px); }
+  .schub-reihe .feld-zelle { width: 42px; height: 42px; }
+  #s-brems { width: min(100%, 176px); }
+  #s-aero .aero-zahl { font-size: .76rem; }
+  .skala-zahl { font-size: .73rem; }
+  .ressourcen-box { width: 15px; height: 22px; }
+  .reroll-token { width: 34px; height: 34px; }
+}
+
+@media (max-width: 360px) {
+  #tracks-leiste { grid-template-columns: 48px minmax(0, 1fr) 16px minmax(0, 1fr) 48px; }
+  .vtrack-obstacle > span { font-size: 1.2rem; }
+  .vtrack-heightlabel { font-size: .65rem; letter-spacing: 0; }
+  .reroll-badge { font-size: .65rem; }
+  #s-aero .aero-zahl { font-size: .66rem; }
+  #s-runde, #am-zug-anzeige { font-size: .65rem; }
+}

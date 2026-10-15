@@ -1,1 +1,1 @@
-"""Cockpit - digitaler Zwilling."""
+"""Fly Team."""

@@ -14,7 +14,7 @@ neuwurf_hoehen: [6000, 2000]
 # FLUGZEUGE UND KURVEN
 #
 # Ein Eintrag pro Feld der Entfernungsleiste, von "am weitesten weg"
-# (Entfernung 5) bis "kurz vor dem Flughafen" (Entfernung 1).
+# (Entfernung 4) bis zum Flughafen (Entfernung 0).
 # Format je Zeile: "<initiale Flugzeuge> <flugzeugwuerfel> <kurven_min> <kurven_max>"
 #
 # ANNAHME: Die Anzahl der Flugzeuge pro Feld ist NICHT im Regelheft als

@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Cockpit – Multiplayer</title>
+<title>Fly Team – Multiplayer</title>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Cockpit">
+<meta name="apple-mobile-web-app-title" content="Fly Team">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#1e293b">
-<link rel="stylesheet" href="css/style.css?v=control-colors-and-arcs">
+<link rel="stylesheet" href="css/style.css?v=compact-distance-v2">
 <style>
 .mp-screen {
   max-width: 420px; margin: 0 auto;
@@ -75,7 +75,7 @@
 <div id="screen-menu" class="mp-screen" style="margin-top:3rem">
   <div>
     <div style="font-size:2.2rem">✈</div>
-    <h2>Cockpit <span style="font-weight:400;color:var(--muted)">Multiplayer</span></h2>
+    <h2>Fly Team <span style="font-weight:400;color:var(--muted)">Multiplayer</span></h2>
     <p>Zwei Geräte, gleiches WLAN oder Internet. Kein Server nötig.</p>
   </div>
   <button class="big-btn blau"   id="btn-host">📡 Spiel hosten<br>
@@ -118,7 +118,7 @@
 
 <!-- ============ SCREEN: Spiel ============ -->
 <header id="spiel-header" class="versteckt">
-  <h1>✈ Cockpit
+  <h1>✈ Fly Team
     <span class="subtitle">Multiplayer</span>
     <span id="meine-rolle-badge" class="meine-rolle-badge"></span>
   </h1>
@@ -141,6 +141,7 @@
           <div class="vtrack-grid"></div>
           <div class="vtrack-fill-remaining" id="distance-fill"></div>
           <div class="vtrack-fill-used" id="distance-used"></div>
+          <div id="distance-labels"></div>
           <div id="distance-obstacles"></div>
         </div>
       </div>
@@ -246,7 +247,13 @@
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 <script src="js/game-schema.js"></script>
-<script src="js/engine-src.js"></script>
-<script src="js/multiplayer.js"></script>
+<script src="js/engine-src.js?v=compact-distance-v2"></script>
+<script src="js/multiplayer.js?v=compact-distance-v2"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
+      .catch(err => console.warn("SW registration failed:", err));
+  }
+</script>
 </body>
 </html>

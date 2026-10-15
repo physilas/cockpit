@@ -113,13 +113,16 @@ class Landung:
 
         self._schwierigkeit = data.get("schwierigkeit")
         self._laenge = data.get("laenge")
+        # Die Länge zählt Felder inklusive Zielfeld 0, nicht Flugschritte.
+        self._entfernungswerte = list(range(self._laenge - 1, -1, -1))
 
         rohdaten = [
             [int(x) for x in item.split()]
             for item in data.get("flugzeuge_wuerfel_kurven_min_max")
         ]
-        # Index 0 = am weitesten vom Flughafen entfernt (Entfernung == laenge),
-        # letzter Index = unmittelbar vor dem Flughafen (Entfernung == 1).
+        # Index 0 = am weitesten vom Flughafen entfernt
+        # (Entfernung == laenge - 1), letzter Index = Flughafen
+        # (Entfernung == 0).
         self._initiale_flugzeuge = [row[0] for row in rohdaten]
         self._flugzeugwuerfel = [row[1] for row in rohdaten]  # siehe Hinweis oben
         self._kurven_min = [row[2] for row in rohdaten]  # siehe Hinweis oben
@@ -128,7 +131,9 @@ class Landung:
 
         # DYNAMIC VARIABLES
         self.hoehe = 6000  # S.3 Schritt 5
-        self.entfernung = self._laenge  # S.3 Schritt 6
+        # Die Entfernung zählt die verbleibenden Schritte bis zum Flughafen.
+        # Das letzte Feld auf der Leiste ist daher Entfernung 0 und nicht 1.
+        self.entfernung = self._entfernungswerte[0]  # S.3 Schritt 6
         self.flugzeuge = self._initiale_flugzeuge.copy()
 
     ### GETTERS ###
@@ -150,6 +155,10 @@ class Landung:
 
     def get_laenge(self):
         return self._laenge
+
+    def get_entfernungswerte(self):
+        """Feldwerte in Datenreihenfolge; z.B. 6..0 für sieben Felder."""
+        return self._entfernungswerte.copy()
 
     def get_initial_flugzeuge(self):
         return self._initiale_flugzeuge
@@ -178,10 +187,10 @@ class Landung:
     ### INDEX-HILFEN ###
 
     def _index_fuer_entfernung(self, entfernung):
-        """Wandelt eine Entfernung (1..laenge) in einen Index in `flugzeuge` um."""
-        if entfernung < 1 or entfernung > self._laenge:
+        """Wandelt eine Entfernung (0..laenge - 1) in einen Flugzeug-Index um."""
+        if entfernung < 0 or entfernung >= self._laenge:
             return None
-        return self._laenge - entfernung
+        return self._laenge - 1 - entfernung
 
     def verbotenes_feld_fuer_ruder(self, fluglage, bewegung):
         """
@@ -191,12 +200,12 @@ class Landung:
         des ersten Feldes zurück, dessen Korridor `fluglage` verbietet,
         sonst None.
         """
-        aktuell = self._laenge - self.entfernung
+        aktuell = self._laenge - 1 - self.entfernung
         for idx in range(aktuell, min(aktuell + bewegung, self._laenge)):
             if idx < 0:
                 continue
             if not (self._kurven_min[idx] <= fluglage <= self._kurven_max[idx]):
-                return self._laenge - idx
+                return self._laenge - 1 - idx
         return None
 
     def flugzeuge_an_aktueller_position(self):

@@ -1,7 +1,7 @@
 /*
  * Service Worker für Cockpit PWA
  *
- * Strategie: "Cache first, then network"
+ * App-Dateien: Cache zuerst; Navigation: aktuelle HTML-Version bevorzugen.
  * - Beim ersten Besuch: alle statischen Dateien cachen (inkl. der
  *   Python-Engine-Dateien, die Pyodide später holt).
  * - Bei jedem weiteren Besuch: App-Shell aus dem Cache laden.
@@ -32,7 +32,9 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(
+      STATIC_ASSETS.map(asset => new Request(asset, { cache: "reload" }))
+    ))
   );
   self.skipWaiting();
 });
@@ -40,13 +42,37 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith("cockpit-") && k !== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
+  // CDN-Abhängigkeiten gehören nicht zum App-Shell-Cache.
+  if (new URL(event.request.url).origin !== self.location.origin) return;
+  const cachedResponse = () => caches.open(CACHE_NAME).then(cache =>
+    cache.match(event.request, { ignoreSearch: true })
+  );
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (!response.ok) throw new Error("Navigation nicht verfügbar");
+        return response;
+      }).catch(async () => {
+        const cached = await cachedResponse();
+        if (cached) return cached;
+        // Verzeichnis-URL /frontend/web/ entspricht index.html.
+        if (new URL(event.request.url).pathname === new URL("./", self.location.href).pathname) {
+          const cache = await caches.open(CACHE_NAME);
+          return cache.match("./index.html");
+        }
+        return Response.error();
+      })
+    );
+    return;
+  }
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    cachedResponse().then(cached => cached || fetch(event.request))
   );
 });
