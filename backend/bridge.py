@@ -98,6 +98,13 @@ def rundenende():
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
+def wirf_verkehrswuerfel(besitzer=None):
+    if _spiel is None:
+        return _kein_spiel()
+    ergebnis = _spiel.wirf_verkehrswuerfel(besitzer)
+    return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
+
+
 def wuerfeln_fuer_runde():
     if _spiel is None:
         return None

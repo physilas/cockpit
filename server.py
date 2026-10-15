@@ -150,6 +150,15 @@ async def verarbeite(ws, rolle: str, msg: dict):
             "grund": grund_text(erg.grund),
         })
 
+    elif typ == "wirf_verkehrswuerfel":
+        erg = spielplan.wirf_verkehrswuerfel(rolle)
+        await sende(ws, {
+            "typ": "ergebnis",
+            "erfolg": erg.erfolg,
+            "meldung": erg.meldung,
+            "grund": grund_text(erg.grund),
+        })
+
     elif typ == "rundenende":
         erg = spielplan.rundenende()
         await sende(ws, {

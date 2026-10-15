@@ -1,0 +1,22 @@
+# Eigene Frankfurt-Strecke mit milden Kurven und dynamischem Flugverkehr.
+code: FRA
+bezeichnung: Frankfurt
+module: null
+faehigkeitskarten: 0
+schwierigkeit: 1
+laenge: 7
+neuwurf_hoehen: [6000, 2000]
+
+# Entfernung 6 bis 0 (Flughafen).
+# Format: <initiale Flugzeuge> <schwarze Verkehrswürfel> <kurven_min> <kurven_max>
+# Die schwarzen Würfel werden vor JEDER Runde am aktuellen Feld geworfen,
+# auch wenn man dort stehen bleibt. Seiten: 2, 3, 3, 4, 4, 5.
+# Wie beim Funk zählt das aktuelle Feld als 1; Ziele außerhalb entfallen.
+flugzeuge_wuerfel_kurven_min_max:
+- 0 1 -2 2
+- 1 0 -1 2
+- 1 2 -1 1
+- 0 0 -2 1
+- 1 1 -1 2
+- 1 0 -2 2
+- 0 0 -2 2

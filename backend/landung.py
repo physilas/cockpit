@@ -96,8 +96,8 @@ class Landung:
         aufgedruckt: -2/+2 = keine Einschränkung. Die Engine erzwingt diese
         Korridore beim Bewegen (Cockpit.loese_triebwerke_auf()).
 
-    OFFENE FRAGE: "flugzeugwuerfel" (Würfel-Symbol auf dem Modul) wird
-        geladen, aber weder angezeigt noch ausgewertet.
+    "flugzeugwuerfel": Anzahl schwarzer Verkehrswürfel, die vor jeder
+        Runde auf dem aktuellen Entfernungsfeld geworfen werden müssen.
     """
 
     def __init__(self, flughafen):
@@ -124,7 +124,7 @@ class Landung:
         # (Entfernung == laenge - 1), letzter Index = Flughafen
         # (Entfernung == 0).
         self._initiale_flugzeuge = [row[0] for row in rohdaten]
-        self._flugzeugwuerfel = [row[1] for row in rohdaten]  # siehe Hinweis oben
+        self._flugzeugwuerfel = [row[1] for row in rohdaten]
         self._kurven_min = [row[2] for row in rohdaten]  # siehe Hinweis oben
         self._kurven_max = [row[3] for row in rohdaten]  # siehe Hinweis oben
         self._neuwurf_hoehen = list(data.get("neuwurf_hoehen", []))
@@ -164,7 +164,20 @@ class Landung:
         return self._initiale_flugzeuge
 
     def get_flugzeugwuerfel(self):
-        return self._flugzeugwuerfel
+        return self._flugzeugwuerfel.copy()
+
+    def verkehrswuerfel_an_aktueller_position(self):
+        index = self._index_fuer_entfernung(self.entfernung)
+        return self._flugzeugwuerfel[index] if index is not None else 0
+
+    def add_flugzeug_fuer_verkehrswurf(self, wert):
+        """Wie beim Funk zählt das aktuelle Feld als 1. Außerhalb: kein Flugzeug."""
+        ziel_entfernung = self.entfernung - (wert - 1)
+        index = self._index_fuer_entfernung(ziel_entfernung)
+        if index is None:
+            return None
+        self.add_flugzeug(index)
+        return ziel_entfernung
 
     def get_kurven_min(self):
         return self._kurven_min

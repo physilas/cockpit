@@ -29,7 +29,9 @@ window.COCKPIT_SCHEMA = {
     "wuerfel_nicht_verfuegbar": "Würfel nicht verfügbar",
     "unbekanntes_ziel": "Unbekanntes Ziel",
     "noch_nicht_alle_wuerfel_platziert": "Noch nicht alle Würfel platziert",
-    "kein_spiel_aktiv": "Kein Spiel aktiv"
+    "kein_spiel_aktiv": "Kein Spiel aktiv",
+    "runde_nicht_bereit": "Zuerst die schwarzen Verkehrswürfel werfen",
+    "kein_verkehrswuerfel_offen": "Kein schwarzer Verkehrswürfel mehr offen"
   },
   "feld_layout": [
     {

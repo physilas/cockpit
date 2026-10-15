@@ -1,6 +1,6 @@
 from .cockpit import Cockpit, Ergebnis
 from .landung import Landung
-from .wuerfel import Wuerfel, BESITZER
+from .wuerfel import Wuerfel, BESITZER, wirf_verkehrswuerfel
 
 
 class Spielplan:
@@ -38,18 +38,65 @@ class Spielplan:
 
         self._genutzte_neuwurf_hoehen = set()
         self.neuwurf_plaettchen = 0
+        self.phase = "vorbereitung"  # "vorbereitung" | "verkehr" | "platzieren"
+        self.verkehrswuerfel_offen = 0
+        self.verkehrswuerfe = []
+        self._vorbereitete_runde = None
 
     ### SETUP / RUNDENABLAUF ###
 
     def starte_spiel(self):
-        """Vor Runde 1: evtl. Neuwurf-Plättchen bei Starthöhe einsammeln, würfeln."""
+        """Vor Runde 1: Neuwurf-Plättchen sammeln, zuerst Verkehr, dann Spielerwürfel."""
         self._sammle_neuwurf_plaettchen()
+        self._bereite_runde_vor()
         self.wuerfeln_fuer_runde()
 
+    def _bereite_runde_vor(self):
+        if self._vorbereitete_runde == self.aktuelle_runde:
+            return
+        self._vorbereitete_runde = self.aktuelle_runde
+        self.verkehrswuerfel_offen = self.landung.verkehrswuerfel_an_aktueller_position()
+        self.verkehrswuerfe = []
+        self.phase = "verkehr" if self.verkehrswuerfel_offen else "vorbereitung"
+        for w in self.pilot_wuerfel + self.kopilot_wuerfel:
+            w.augenzahl = None
+            w.platziert = False
+
     def wuerfeln_fuer_runde(self):
-        """Phase 1 (S.4): alle 8 Würfel neu werfen."""
+        """Alle 8 Spielerwürfel einmal pro Runde werfen, sobald der Verkehr geklärt ist."""
+        if self.status != "laeuft" or self.phase != "vorbereitung":
+            return False
         for w in self.pilot_wuerfel + self.kopilot_wuerfel:
             w.werfen()
+        self.phase = "platzieren"
+        return True
+
+    def wirf_verkehrswuerfel(self, besitzer=None):
+        """Ein Symbol auflösen. Nach dem letzten Wurf beginnt die Platzierphase."""
+        if self.status != "laeuft":
+            return Ergebnis(False, "spiel_beendet")
+        if besitzer is not None:
+            if besitzer not in BESITZER:
+                return Ergebnis(False, "ungueltiger_besitzer")
+            if besitzer != self.am_zug:
+                return Ergebnis(False, "nicht_am_zug")
+        if self.phase != "verkehr" or self.verkehrswuerfel_offen <= 0:
+            return Ergebnis(False, "kein_verkehrswuerfel_offen")
+        wert = wirf_verkehrswuerfel()
+        ziel = self.landung.add_flugzeug_fuer_verkehrswurf(wert)
+        self.verkehrswuerfe.append({"wert": wert, "ziel_entfernung": ziel})
+        self.verkehrswuerfel_offen -= 1
+        meldung = f"Schwarzer Würfel: {wert}. "
+        if ziel is None:
+            meldung += "Die Entfernung reicht nicht aus – kein neues Flugzeug. Glück gehabt!"
+        else:
+            meldung += f"Ein weiteres Flugzeug auf Entfernung {ziel}."
+        if self.verkehrswuerfel_offen == 0:
+            self.phase = "vorbereitung"
+            self.wuerfeln_fuer_runde()
+            meldung += f" Runde {self.aktuelle_runde} ist bereit."
+        self.letzte_meldung = meldung
+        return Ergebnis(True, meldung=meldung)
 
     def _sammle_neuwurf_plaettchen(self):
         hoehe = self.landung.get_hoehe()
@@ -66,6 +113,8 @@ class Spielplan:
         """
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
+        if self.phase != "platzieren":
+            return Ergebnis(False, "runde_nicht_bereit")
         if self.neuwurf_plaettchen <= 0:
             return Ergebnis(False, "kein_neuwurf_plaettchen")
         pruefung = self._pruefe_neuwurf_auswahl(pilot_indizes, self.pilot_wuerfel)
@@ -116,6 +165,8 @@ class Spielplan:
         """Kaffee auf einen eigenen, noch nicht platzierten Würfel anwenden (S.8)."""
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
+        if self.phase != "platzieren":
+            return Ergebnis(False, "runde_nicht_bereit")
         if besitzer not in BESITZER:
             return Ergebnis(False, "ungueltiger_besitzer")
         if besitzer != self.am_zug:
@@ -128,7 +179,7 @@ class Spielplan:
         return self.cockpit.trinke_kaffee(wuerfel, delta)
 
     def moegliche_kaffee_deltas(self, besitzer, wuerfel_index):
-        if besitzer not in BESITZER or not self._gueltiger_wuerfel_index(wuerfel_index):
+        if self.phase != "platzieren" or besitzer not in BESITZER or not self._gueltiger_wuerfel_index(wuerfel_index):
             return []
         wuerfel = self._wuerfel_liste(besitzer)[wuerfel_index]
         return self.cockpit.moegliche_kaffee_deltas(wuerfel.get_augenzahl())
@@ -146,6 +197,8 @@ class Spielplan:
         """
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
+        if self.phase != "platzieren":
+            return Ergebnis(False, "runde_nicht_bereit")
         if besitzer not in BESITZER:
             return Ergebnis(False, "ungueltiger_besitzer")
         if besitzer != self.am_zug:
@@ -209,6 +262,8 @@ class Spielplan:
     def rundenende(self):
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
+        if self.phase != "platzieren":
+            return Ergebnis(False, "runde_nicht_bereit")
         if not self.alle_wuerfel_platziert():
             return Ergebnis(False, "noch_nicht_alle_wuerfel_platziert")
 
@@ -249,11 +304,13 @@ class Spielplan:
             self.letzte_runde = True
             self.warteschleife = False
             self.am_zug = self._naechster_startspieler()
+            self._bereite_runde_vor()
             return Ergebnis(True, meldung="Perfektes Timing - die letzte Runde beginnt!")
 
         if am_flughafen and not auf_hoehe_null:
             self.warteschleife = True
             self.am_zug = self._naechster_startspieler()
+            self._bereite_runde_vor()
             return Ergebnis(True, meldung="Zu früh am Flughafen - ihr fliegt eine Warteschleife.")
 
         if auf_hoehe_null and not am_flughafen:
@@ -263,6 +320,7 @@ class Spielplan:
                              meldung="Boden erreicht, bevor der Flughafen erreicht wurde - Notlandung!")
 
         self.am_zug = self._naechster_startspieler()
+        self._bereite_runde_vor()
         return Ergebnis(True, meldung=f"Runde {self.aktuelle_runde} beginnt.")
 
     def _naechster_startspieler(self):
@@ -298,6 +356,9 @@ class Spielplan:
             "verlust_grund": self.verlust_grund,
             "letzte_meldung": self.letzte_meldung,
             "runde": self.aktuelle_runde,
+            "phase": self.phase,
+            "verkehrswuerfel_offen": self.verkehrswuerfel_offen,
+            "verkehrswuerfe": [dict(wurf) for wurf in self.verkehrswuerfe],
             "letzte_runde": self.letzte_runde,
             "warteschleife": self.warteschleife,
             "am_zug": self.am_zug,
@@ -306,6 +367,7 @@ class Spielplan:
             "laenge": self.landung.get_laenge(),
             "entfernungswerte": self.landung.get_entfernungswerte(),
             "flugzeuge": list(self.landung.get_flugzeuge()),
+            "flugzeugwuerfel": self.landung.get_flugzeugwuerfel(),
             # Erlaubte Ruderstellung je Entfernungsfeld (gleiche Indizierung
             # wie "flugzeuge": Index 0 = am weitesten vom Flughafen weg).
             "kurven_min": list(self.landung.get_kurven_min()),

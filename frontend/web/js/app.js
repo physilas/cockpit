@@ -200,6 +200,7 @@ function renderTracks(zustand) {
       const plane = document.createElement("span");
       plane.textContent = "✈";
       plane.style.setProperty("--plane-x", `${x}%`);
+      if (zustand.flugzeugwuerfel?.[i]) plane.style.setProperty("--plane-x", `${x * 0.65}%`);
       plane.style.setProperty("--plane-y", `${yTile}%`);
       plane.style.setProperty("--plane-rotation", `${Math.round(zufall(47) * 46 - 23)}deg`);
       el.appendChild(plane);
@@ -321,7 +322,7 @@ function neuwurfBoxenHTML(anzahl) {
 
 function bindeNeuwurfTokens(zustand) {
   document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
-    token.disabled = zustand.status !== "laeuft";
+    token.disabled = zustand.status !== "laeuft" || zustand.phase !== "platzieren";
     token.title = neuwurfPhase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
     token.addEventListener("click", toggleNeuwurfPanel);
   });
@@ -342,6 +343,9 @@ function render(zustand) {
 
   renderAttitude(zustand.fluglage);
   renderTracks(zustand);
+  renderVerkehr(zustand, TRACK_UNIT_PX, true, () => {
+    nachAktion(pyToJs(bridge.wirf_verkehrswuerfel()));
+  });
   renderCockpitBoard(zustand);
   renderWuerfel("pilot", zustand);
   renderWuerfel("kopilot", zustand);
@@ -356,6 +360,9 @@ function render(zustand) {
         ? "🎉 Sicher gelandet!"
         : `💥 Verloren – ${grundText(zustand.verlust_grund)}`) +
       "</div>";
+    rundenendeBtn.disabled = true;
+  } else if (zustand.phase !== "platzieren") {
+    amZugEl.textContent = "Zuerst schwarze Würfel werfen";
     rundenendeBtn.disabled = true;
   } else {
     amZugEl.textContent = `Am Zug: ${zustand.am_zug === "pilot" ? "Pilotin" : "Co-Pilot"}`;
@@ -390,7 +397,7 @@ function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, g
     ? ausgewaehlterWuerfel?.besitzer === fixierterBesitzer
     : ausgewaehlterWuerfel && eintrag.zugriff.includes(ausgewaehlterWuerfel.besitzer);
 
-  const istKlickbar = zustand.status === "laeuft" && ausgewaehlterWuerfel &&
+  const istKlickbar = zustand.status === "laeuft" && zustand.phase === "platzieren" && ausgewaehlterWuerfel &&
     zustand.am_zug === ausgewaehlterWuerfel.besitzer && kannHierPlatzieren;
 
   if (istKlickbar) {
@@ -583,7 +590,7 @@ function renderWuerfel(besitzer, zustand) {
 
   const werte = zustand[`${besitzer}_wuerfel`];
   const frei  = zustand[`${besitzer}_wuerfel_frei`];
-  const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft";
+  const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft" && zustand.phase === "platzieren";
   const sichtbar  = diceVisible === besitzer;
 
   const imNeuwurf = neuwurfPhase !== 0;

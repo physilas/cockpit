@@ -287,3 +287,56 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   #s-aero .aero-zahl { font-size: .66rem; }
   #s-runde, #am-zug-anzeige { font-size: .65rem; }
 }
+
+/* Verkehrswürfel: schwarze Symbole auf der Strecke und gemeinsame Wurfphase. */
+.traffic-die {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  padding: 2px;
+  border: 1px solid #dbe9e4;
+  border-radius: 3px;
+  color: #fff;
+  background: linear-gradient(145deg, #35383d, #060709);
+  box-shadow: 0 1px 2px #0009;
+  font: 900 .7rem/1 ui-monospace, Menlo, monospace;
+}
+.traffic-die svg { display: block; width: 100%; height: 100%; }
+.traffic-cube { padding: 0; background: #edf6ed; }
+#distance-traffic { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.vtrack-traffic { position: absolute; right: 3%; display: flex; gap: 2px; }
+.vtrack-traffic .traffic-die { width: 13px; height: 13px; padding: 1px; }
+.vtrack-traffic small { color: #fff; font: 900 .65rem/13px ui-monospace, Menlo, monospace; }
+#verkehr-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .4rem;
+  padding: .6rem .7rem;
+  border: 2px solid #71898a;
+  border-radius: 8px;
+  color: #edf6ed;
+  background: linear-gradient(140deg, #29393e, #101c22);
+  font-size: .76rem;
+}
+#verkehr-panel strong { font-size: .8rem; }
+#verkehr-panel button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 42px;
+  padding: .4rem .65rem;
+  border: 1px solid #ffe06b;
+  border-radius: 5px;
+  color: #fff;
+  background: linear-gradient(#e48525, #b94117);
+  font-size: .76rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+#verkehr-panel button:disabled { opacity: .45; cursor: default; }
+.traffic-results { display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
+.traffic-result { display: inline-flex; align-items: center; gap: .35rem; }

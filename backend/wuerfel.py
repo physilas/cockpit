@@ -3,6 +3,12 @@ import random
 from .regeln import WUERFEL_MIN, WUERFEL_MAX
 
 BESITZER = ("pilot", "kopilot")
+VERKEHRSWUERFEL_SEITEN = (2, 3, 3, 4, 4, 5)
+
+
+def wirf_verkehrswuerfel():
+    """Sechs gleich wahrscheinliche Seiten; 3 und 4 kommen doppelt vor."""
+    return random.choice(VERKEHRSWUERFEL_SEITEN)
 
 
 class Wuerfel:

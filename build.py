@@ -87,6 +87,7 @@ def build():
                 "frontend/web/manifest.json",
                 "frontend/web/css/style.css",
                 "frontend/web/js/app.js",
+                "frontend/web/js/traffic.js",
                 "frontend/web/js/multiplayer.js",
                 "frontend/web/sw.js",
             )

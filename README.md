@@ -130,8 +130,8 @@ spezifische Werte liegen jeweils im passenden `backend/landungen/*.yaml`:
    ursprünglichen Datei kommen im Basis-Regelheft gar nicht vor - ich
    vermute, sie gehören zu den fortgeschrittenen Szenarien unter dem
    Schachteleinsatz (S.3-Hinweis). Die Kurven-Korridore werden bereits
-   beim Bewegen geprüft; `flugzeugwuerfel` ist für die zukünftige Dynamik-
-   Mechanik reserviert und wird noch nicht ausgewertet.
+   beim Bewegen geprüft; `flugzeugwuerfel` steuert inzwischen die
+   schwarzen Verkehrswürfel vor Rundenbeginn (siehe FRA weiter unten).
 5. `RUDER_STALL_SCHWELLE` ist jetzt auf **3** gesetzt (Trudeln bei
    `|Fluglage| > 2`, wie von dir bestätigt).
 6. Deine `Arrivals.pdf` scheint ein separates Erweiterungsmodul mit
@@ -215,6 +215,35 @@ wird, sollte er entweder einen eigenen Client bekommen oder durch einen
 späteren Cloud-Session-Service ersetzt werden.
 
 ## Erweiterungspunkte
+
+### FRA und schwarze Verkehrswürfel
+
+`backend/landungen/FRA.yaml` enthält eine eigene Frankfurt-Strecke mit
+milden Kurven, vier initialen Flugzeugen und schwarzen Verkehrswürfeln.
+Die zweite Zahl jeder Distanzzeile gibt die Anzahl der schwarzen Würfel
+an; mehrere Symbole auf einem Feld bedeuten entsprechend mehrere Würfe.
+Diese Spalte entspricht „Number of traffic dice“ im
+[Streckengenerator](https://skyteam.fly.dev/).
+
+Vor **jeder Runde** werden die schwarzen Würfel des aktuellen Felds
+geworfen, auch beim Stehenbleiben. Die sechs gleich wahrscheinlichen
+Seiten sind **2, 3, 3, 4, 4, 5**. Wie beim Funk zählt das aktuelle Feld
+als 1: Eine 2 platziert ein Flugzeug ein Feld voraus, eine 3 zwei Felder
+voraus. Auch auf einem bereits belegten Feld kommt ein weiteres Flugzeug
+hinzu. Liegt das Ziel hinter dem Flughafen, entfällt das neue Flugzeug.
+Überflogene Felder lösen keinen zusätzlichen Wurf aus.
+
+In beiden Web-Spielmodi zeigt der Bereich „Schwarze Verkehrswürfel“
+die offenen Würfe und ihre Ergebnisse. Erst nach dem letzten Wurf werden
+die acht Spielerwürfel geworfen und die normalen Aktionen freigegeben.
+Im Multiplayer würfelt die Person, die die Runde beginnt; beide Geräte
+sehen denselben Verkehr und dieselben Ergebnisse.
+
+Engine-Snapshots enthalten dazu `phase`, `flugzeugwuerfel`,
+`verkehrswuerfel_offen` und `verkehrswuerfe`. Die gemeinsame Aktion heißt
+`wirf_verkehrswuerfel`; sie kann nach Abschluss der Wurfphase keine
+zusätzlichen Flugzeuge erzeugen. Nach Änderungen wie bisher `make build`
+ausführen, damit Flughafen, Engine und PWA-Cache aktualisiert werden.
 
 Die Regeln bleiben in `Spielplan`/`Cockpit`, ohne Browser- oder Transport-
 Abhängigkeiten. Das ist die Grenze für einen künftigen KI-Partner und einen

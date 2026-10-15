@@ -96,6 +96,10 @@ def main():
     try:
         while spiel.status == "laeuft":
             displayer.display_spielplan()
+            if spiel.verkehrswuerfel_offen:
+                input(f"Enter zum Werfen eines schwarzen Würfels ({spiel.verkehrswuerfel_offen} offen)...")
+                print(spiel.wirf_verkehrswuerfel().meldung)
+                continue
             spielzug(spiel)
 
             if spiel.alle_wuerfel_platziert() and spiel.status == "laeuft":

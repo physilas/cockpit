@@ -20,6 +20,7 @@ const STATIC_ASSETS = [
   "./css/style.css",
   "./js/engine-src.js",
   "./js/game-schema.js",
+  "./js/traffic.js",
   "./js/build-info.js",
   "./js/app.js",
   "./multiplayer.html",
