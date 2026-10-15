@@ -32,9 +32,9 @@ const STATIC_ASSETS = [
   "./bildnachweise.html",
   "./js/multiplayer.js",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-180.png",
+  "./icons/icon-fly-team-192.png",
+  "./icons/icon-fly-team-512.png",
+  "./icons/icon-fly-team-180.png",
   ...["YUL", "LHR", "HND", "OSL", "ATL", "PRG", "GIG", "TGU", "KEF", "KUL", "PBH", "MUC", "FRA"]
     .map(code => `./assets/landings/${code}-city.webp`),
 ];
