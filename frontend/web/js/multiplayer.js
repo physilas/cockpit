@@ -483,11 +483,11 @@ function renderTracks(z) {
   const distanzEinheiten = Math.max(0, z.entfernung + 1);
 
   setzeGauge("altitude", hoehenEinheiten);
-  document.getElementById("s-hoehe-label").textContent = z.hoehe + " ft";
+  document.getElementById("altitude-track").setAttribute("aria-label", `Höhenleiste: ${z.hoehe} ft`);
   renderAltitudeLabels(hoehenEinheiten * TRACK_UNIT_PX, z.hoehe, z.neuwurf_hoehen || []);
 
   setzeGauge("distance", distanzEinheiten);
-  document.getElementById("s-entfernung-label").textContent = "Entf. " + z.entfernung;
+  document.getElementById("distance-track").setAttribute("aria-label", `Entfernungsleiste: ${z.entfernung} Schritte bis zum Flughafen`);
   renderDistanceLabels(z.entfernung, z.entfernungswerte);
 
   const obstaclesEl = document.getElementById("distance-obstacles");

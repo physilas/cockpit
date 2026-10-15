@@ -184,11 +184,11 @@ header h1 { flex-shrink: 0; white-space: nowrap; }
 #spiel-auswahl { min-width: 0; }
 #spiel-auswahl select { min-width: 0; }
 header button { min-height: 36px; white-space: nowrap; }
-main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3rem; justify-content: flex-end; }
+main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2rem; justify-content: flex-end; }
 #tracks-leiste { min-height: 0; padding: 0 .15rem; gap: .28rem; }
 .vtrack-col { gap: .15rem; }
-.vtrack-wrap { padding-top: 7px; }
-.vtrack-caption { padding: .2rem; font-size: .75rem; }
+.vtrack-wrap { padding-top: 7px; padding-bottom: 4px; border-bottom: 1px solid #8ba9a9; border-radius: 16px 16px 9px 9px; }
+.tracks-marker-row { bottom: 8px; }
 .dice-tray { min-width: 0; min-height: 0; padding: .3rem .2rem; gap: .2rem; }
 .dice-tray-label { font-size: .59rem; letter-spacing: .025em; }
 .wuerfel-reihe { gap: .2rem; }
@@ -198,11 +198,12 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3
 .kaffee-auswahl button,
 .wuerfel-slot > button:not(.view-btn):not(.hide-btn) { min-height: 28px; padding: 2px 4px; font-size: .75rem; }
 
-.board-grid { grid-template-columns: 78px minmax(0, 1fr) 78px; gap: .3rem; min-height: 0; margin-top: -.65rem; padding: 1.1rem .5rem .4rem; }
+.board-grid { grid-template-columns: 78px minmax(0, 1fr) 78px; gap: .3rem; min-height: 0; margin-top: -.65rem; padding: .7rem .5rem .3rem; }
 .side-col { gap: .3rem; }
 .side-col > div:not(.side-block) { gap: .3rem; }
 .side-block { padding: .25rem .1rem; }
 .side-block-label { margin-bottom: .15rem; font-size: .56rem; }
+#reroll-slot-pilot { margin-top: .65rem; }
 .feld-zeile { gap: .13rem; }
 .feld-label, .inline-label, .ruder-slot-group > span { font-size: .62rem; }
 .feld-slots { gap: .18rem; }
@@ -210,13 +211,18 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3
 .feld-zelle { flex-shrink: 0; width: 42px; height: 42px; border-radius: 7px; font-size: 1rem; touch-action: manipulation; }
 .feld-zelle small { font-size: .68rem; }
 .feld-licht { width: 8px; height: 8px; }
-.center-col { justify-content: flex-start; gap: .25rem; }
+/* Side-panel lights sit beside their fields without moving the field centres
+   or adding a separate row beneath every activation target. */
+.side-col .feld-slot-mit-licht { position: relative; }
+.side-col .feld-slot-mit-licht .feld-licht { position: absolute; top: calc(50% - 4px); left: -10px; }
+#col-pilot .feld-slot-mit-licht .feld-licht { right: -10px; left: auto; }
+.center-col { justify-content: flex-start; gap: .1rem; }
 .attitude-gauge-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) 42px; gap: .3rem; }
 .ruder-slot-group { width: 42px; gap: .12rem; }
 .ruder-slot-group .feld-zelle { width: 42px; height: 42px; }
 .attitude-gauge { min-width: 0; justify-self: center; width: min(100%, 148px); }
 .attitude-gauge svg { width: 100%; height: auto; }
-#s-aero { width: min(100%, 236px); height: auto; min-height: 0; aspect-ratio: 250 / 90; margin-top: -.65rem; overflow: visible; }
+#s-aero { width: min(100%, 236px); height: auto; min-height: 0; aspect-ratio: 250 / 90; margin-top: -2.15rem; overflow: visible; }
 #s-aero::before { display: none; }
 .aero-shell { display: block; width: 100%; height: auto; overflow: visible; }
 .aero-number { fill: #f4f7e8; font: 900 15px ui-monospace, Menlo, monospace; }
@@ -237,7 +243,7 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3
 #s-kaffee-status { display: flex; justify-content: center; gap: 2px; }
 #s-kaffee-status .ressourcen-box { margin: 0; }
 .reroll-token { width: 34px; height: 34px; font-size: 1.1rem; }
-#aktionen-leiste { padding: .3rem .45rem; gap: .3rem; }
+#aktionen-leiste { padding: .15rem .45rem; gap: .3rem; }
 .aktionen-buttons button { min-height: 36px; padding: .35rem .45rem; font-size: .75rem; }
 #meldung-leiste { min-height: 1rem; line-height: 1.25; }
 #meldung-leiste:empty { display: none; }
@@ -261,7 +267,7 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3
   .wuerfel { width: 36px; height: 36px; }
   .board-grid { grid-template-columns: 60px minmax(0, 1fr) 60px; padding-inline: .4rem; }
   .feld-zelle, .ruder-slot-group .feld-zelle, #konzentration-reihe .feld-zelle { width: 40px; height: 40px; }
-  .ruder-slot-group { width: 40px; }
+  .ruder-slot-group { width: 40px; transform: translateY(-6px); }
   .attitude-gauge-row { grid-template-columns: 40px minmax(0, 1fr) 40px; gap: .2rem; }
   .attitude-gauge { width: min(100%, 126px); }
   .schub-reihe .feld-zelle { width: 42px; height: 42px; }
@@ -273,6 +279,7 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .3
 }
 
 @media (max-width: 360px) {
+  #s-aero { margin-top: 0; }
   #tracks-leiste { grid-template-columns: 48px minmax(0, 1fr) 16px minmax(0, 1fr) 48px; }
   .vtrack-obstacle > span { font-size: 1.2rem; }
   .vtrack-heightlabel { font-size: .65rem; letter-spacing: 0; }

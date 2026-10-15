@@ -88,7 +88,7 @@
       </div>
       <div class="vtrack-col">
         <div class="vtrack-wrap">
-          <div class="vtrack" id="distance-track">
+          <div class="vtrack" id="distance-track" role="group" aria-label="Entfernungsleiste">
             <div class="vtrack-grid"></div>
             <div class="vtrack-fill-remaining" id="distance-fill"></div>
             <div class="vtrack-fill-used" id="distance-used"></div>
@@ -96,7 +96,6 @@
             <div id="distance-obstacles"></div>
           </div>
         </div>
-        <div class="vtrack-caption" id="s-entfernung-label">-</div>
       </div>
       <div class="tracks-marker-col">
         <div class="tracks-marker-row" id="tracks-marker">
@@ -107,7 +106,7 @@
       </div>
       <div class="vtrack-col">
         <div class="vtrack-wrap">
-          <div class="vtrack" id="altitude-track">
+          <div class="vtrack" id="altitude-track" role="group" aria-label="Höhenleiste">
             <div class="vtrack-grid"></div>
             <div class="vtrack-fill-remaining" id="altitude-fill"></div>
             <div class="vtrack-fill-used" id="altitude-used"></div>
@@ -115,7 +114,6 @@
             <span class="vtrack-zielicon" id="altitude-landing-icon" title="Landung bei 0 ft">🛬</span>
           </div>
         </div>
-      <div class="vtrack-caption" id="s-hoehe-label">-</div>
       </div>
       <div class="dice-tray kopilot" aria-label="Würfel des Co-Piloten">
         <span class="dice-tray-label">Co-Pilot</span>
@@ -144,7 +142,7 @@
         <div class="attitude-gauge-row">
           <div class="ruder-slot-group"><span>Ruder</span><div class="ruder-dice-slot" id="ruder-slot-pilot"></div></div>
           <div class="attitude-gauge" id="attitude-gauge" title="Fluglage">
-            <svg viewBox="0 0 100 100" width="100" height="100">
+            <svg viewBox="0 8 100 90" width="100" height="90">
               <clipPath id="attitude-clip"><circle cx="50" cy="60" r="35"/></clipPath>
               <g clip-path="url(#attitude-clip)">
                 <rect x="-10" y="-10" width="120" height="70" fill="#5b9bd5"/>

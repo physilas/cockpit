@@ -167,11 +167,11 @@ function renderTracks(zustand) {
   const distanzEinheiten = Math.max(0, zustand.entfernung + 1);
 
   setzeGauge("altitude", hoehenEinheiten);
-  document.getElementById("s-hoehe-label").textContent = zustand.hoehe + " ft";
+  document.getElementById("altitude-track").setAttribute("aria-label", `Höhenleiste: ${zustand.hoehe} ft`);
   renderAltitudeLabels(hoehenEinheiten * TRACK_UNIT_PX, zustand.hoehe, zustand.neuwurf_hoehen || []);
 
   setzeGauge("distance", distanzEinheiten);
-  document.getElementById("s-entfernung-label").textContent = "Entf. " + zustand.entfernung;
+  document.getElementById("distance-track").setAttribute("aria-label", `Entfernungsleiste: ${zustand.entfernung} Schritte bis zum Flughafen`);
   renderDistanceLabels(zustand.entfernung, zustand.entfernungswerte);
 
   const obstaclesEl = document.getElementById("distance-obstacles");
