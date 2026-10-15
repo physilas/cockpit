@@ -321,7 +321,6 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   background: linear-gradient(140deg, #29393e, #101c22);
   font-size: .76rem;
 }
-#verkehr-panel strong { font-size: .8rem; }
 #verkehr-panel button {
   display: inline-flex;
   align-items: center;
@@ -338,8 +337,6 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   cursor: pointer;
 }
 #verkehr-panel button:disabled { opacity: .45; cursor: default; }
-.traffic-results { display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
-.traffic-result { display: inline-flex; align-items: center; gap: .35rem; }
 
 /* Drei getrennte Bereiche pro Distanzfeld: Zahlen links, Kurven oben
    rechts, Flugzeuge darunter; Würfel bleiben in ihrer rechten Spur. */
@@ -363,22 +360,19 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   display: flex;
   align-items: center;
   justify-content: center;
+  container-type: inline-size;
 }
 .vtrack-aircraft.with-traffic { right: 32px; }
-.aircraft-group { position: relative; display: block; width: 24px; height: 20px; }
-.aircraft-icon { display: block; color: #fff; font-size: 21px; line-height: 20px; text-shadow: 0 0 4px #84eaff; }
-.aircraft-count {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  min-width: 12px;
-  padding: 0 2px;
-  border: 1px solid #b8e9f0;
-  border-radius: 3px;
-  color: #fff;
-  background: #08283f;
-  font: 900 9px/11px ui-monospace, Menlo, monospace;
-  text-align: center;
+.aircraft-group { --fitted-plane-size: min(var(--plane-size), calc(100cqw / var(--formation-factor))); position: relative; display: flex; flex-direction: column; justify-content: center; width: min(100%, var(--formation-width)); height: 20px; }
+.aircraft-row { display: flex; align-items: center; justify-content: center; flex: 1; min-height: 0; }
+.aircraft-icon { display: block; flex-shrink: 0; width: var(--fitted-plane-size); color: #fff; font-size: var(--fitted-plane-size); line-height: 1; text-shadow: 0 0 4px #84eaff; }
+.aircraft-icon + .aircraft-icon { margin-left: calc(var(--fitted-plane-size) * -.3); }
+.aircraft-arriving .aircraft-new { animation: traffic-arrival 1.2s ease-out both; }
+@keyframes traffic-arrival {
+  0% { opacity: 0; transform: translateX(-14px) scale(.4); filter: drop-shadow(0 0 10px #fff); }
+  35% { opacity: 1; transform: translateX(0) scale(1.45); filter: drop-shadow(0 0 9px #ffe774); }
+  65% { transform: scale(1.15); filter: drop-shadow(0 0 6px #ffe774); }
+  100% { opacity: 1; transform: none; filter: none; }
 }
 
 /* Weißer Nebel deckt nur das Cockpit ab; die Strecke bleibt einsehbar. */
@@ -388,9 +382,11 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   right: 0;
   bottom: 0;
   left: 0;
-  background: linear-gradient(#ffffffb8, #fffffff0 75%);
+  background: #fffffff0;
   backdrop-filter: blur(1.5px);
   -webkit-backdrop-filter: blur(1.5px);
+  mask-image: linear-gradient(to bottom, transparent 0, #00000008 30px, #00000030 70px, #00000080 120px, #000000d9 170px, #000 220px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #00000008 30px, #00000030 70px, #00000080 120px, #000000d9 170px, #000 220px);
 }
 .verkehr-aktiv .board-grid { filter: grayscale(.6); }
 .verkehr-aktiv .wuerfel-reihe { visibility: hidden; }
@@ -428,8 +424,6 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
 #verkehr-dialog[open] { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
 #verkehr-dialog::backdrop { background: transparent; }
 #verkehr-dialog h2 { margin: 0; font-size: 1.05rem; }
-#verkehr-dialog p { margin: 0; font-size: .8rem; line-height: 1.4; }
-#verkehr-dialog small { color: #577078; font-size: .65rem; line-height: 1.4; }
 .traffic-roll-stage { display: grid; place-items: center; height: 96px; perspective: 450px; }
 .traffic-roll-die {
   display: grid;
@@ -444,8 +438,7 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   font: 900 40px/1 ui-monospace, Menlo, monospace;
 }
 .traffic-roll-die.rolling { animation: traffic-tumble .55s ease-in-out infinite; }
-.traffic-roll-result { min-height: 2.3em; font-weight: 850; }
-.traffic-roll-remaining { color: #52717a; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #verkehr-dialog button {
   width: 100%;
   min-height: 44px;
@@ -465,4 +458,11 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
   35% { transform: translateY(-10px) rotateX(30deg) rotateZ(18deg); }
   70% { transform: translateY(-3px) rotateX(-22deg) rotateZ(-16deg); }
 }
-@media (prefers-reduced-motion: reduce) { .traffic-roll-die.rolling { animation: none; } }
+@keyframes traffic-arrival-still {
+  from { filter: drop-shadow(0 0 9px #ffe774); }
+  to { filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .traffic-roll-die.rolling { animation: none; }
+  .aircraft-arriving .aircraft-new { animation: traffic-arrival-still .8s ease-out both; }
+}

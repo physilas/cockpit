@@ -15,7 +15,7 @@ function verkehrswuerfelSymbol(wert = null) {
   return el;
 }
 
-// Ein gut sichtbares Symbol mit Anzahl ersetzt überlappende Flugzeugstapel.
+// Enge, gleichmäßige Formationen statt zufälliger Stapel oder Zähler.
 // Links bleiben die Entfernungszahlen, rechts eine eigene Würfelspur frei.
 function renderEntfernungsFlugzeuge(z, trackUnit) {
   const container = document.getElementById("distance-obstacles");
@@ -25,6 +25,7 @@ function renderEntfernungsFlugzeuge(z, trackUnit) {
     if (anzahl <= 0 || entfernung > z.entfernung) return;
     const feld = document.createElement("span");
     feld.className = "vtrack-aircraft";
+    feld.dataset.distance = entfernung;
     feld.style.top = (entfernung * trackUnit + 8) + "px";
     if (z.flugzeugwuerfel?.[i]) feld.classList.add("with-traffic");
     const label = `${anzahl} ${anzahl === 1 ? "Flugzeug" : "Flugzeuge"} auf Entfernung ${entfernung}`;
@@ -33,20 +34,41 @@ function renderEntfernungsFlugzeuge(z, trackUnit) {
     feld.setAttribute("aria-label", label);
     const gruppe = document.createElement("span");
     gruppe.className = "aircraft-group";
-    const flugzeug = document.createElement("span");
-    flugzeug.className = "aircraft-icon";
-    flugzeug.textContent = "✈";
-    flugzeug.setAttribute("aria-hidden", "true");
-    gruppe.appendChild(flugzeug);
-    if (anzahl > 1) {
-      const zaehler = document.createElement("span");
-      zaehler.className = "aircraft-count";
-      zaehler.textContent = anzahl;
-      zaehler.setAttribute("aria-hidden", "true");
-      gruppe.appendChild(zaehler);
+    const zeilen = Math.ceil(anzahl / 3);
+    const spalten = Math.ceil(anzahl / zeilen);
+    const groesse = Math.min(21, 24 / zeilen);
+    gruppe.style.setProperty("--plane-size", `${groesse}px`);
+    gruppe.style.setProperty("--formation-factor", 1 + (spalten - 1) * .7);
+    gruppe.style.setProperty("--formation-width", `${groesse * (1 + (spalten - 1) * .7)}px`);
+    for (let k = 0; k < anzahl; k += spalten) {
+      const zeile = document.createElement("span");
+      zeile.className = "aircraft-row";
+      for (let n = k; n < Math.min(k + spalten, anzahl); n++) {
+        const flugzeug = document.createElement("span");
+        flugzeug.className = "aircraft-icon";
+        flugzeug.textContent = "✈";
+        flugzeug.setAttribute("aria-hidden", "true");
+        zeile.appendChild(flugzeug);
+      }
+      gruppe.appendChild(zeile);
     }
     feld.appendChild(gruppe);
     container.appendChild(feld);
+  });
+}
+
+function animiereVerkehrsFlugzeuge(wuerfe) {
+  wuerfe.forEach(wurf => {
+    if (wurf.ziel_entfernung === null) return;
+    const feld = document.querySelector(`.vtrack-aircraft[data-distance="${wurf.ziel_entfernung}"]`);
+    if (!feld) return;
+    feld.classList.add("aircraft-arriving");
+    const neu = [...feld.querySelectorAll(".aircraft-icon")].at(-1);
+    neu.classList.add("aircraft-new");
+    feld.querySelector(".aircraft-group").addEventListener("animationend", () => {
+      feld.classList.remove("aircraft-arriving");
+      neu.classList.remove("aircraft-new");
+    }, { once: true });
   });
 }
 
@@ -80,14 +102,30 @@ function positioniereVerkehrDialog() {
   const hoehe = window.visualViewport?.height || window.innerHeight;
   const header = document.querySelector("#game-header:not(.versteckt), #spiel-header:not(.versteckt)");
   const rand = header?.getBoundingClientRect().bottom || 0;
-  const cockpitTop = document.querySelector(".board-grid")?.getBoundingClientRect().top || rand;
-  const top = Math.max(rand, Math.min(cockpitTop, hoehe - 80));
+  // Das Cockpit überlappt die Leisten im Layout. Seine Oberkante ist deshalb
+  // kein sicherer Nebelbeginn; niemals in die vollständige Leiste hineinragen.
+  const strecke = document.getElementById("distance-track");
+  const streckenRand = (document.getElementById("tracks-leiste") || strecke)?.getBoundingClientRect().bottom || rand;
+  const top = Math.ceil(Math.max(rand, streckenRand, strecke?.getBoundingClientRect().bottom || 0));
   ui.nebel.style.top = `${top}px`;
   if (ui.dialog?.open) {
+    ui.dialog.style.maxHeight = `${Math.max(120, hoehe - top - 24)}px`;
     const halb = ui.dialog.getBoundingClientRect().height / 2;
-    const mitte = Math.max(halb + 12, Math.min(hoehe - halb - 12, (top + hoehe) / 2));
+    const mitte = Math.max(top + halb + 12, Math.min(hoehe - halb - 12, (top + hoehe) / 2));
     ui.dialog.style.top = `${mitte}px`;
   }
+}
+
+function richteVerkehrStreckeAus() {
+  const strecke = document.getElementById("distance-track");
+  if (!strecke) return;
+  const header = document.querySelector("#game-header:not(.versteckt), #spiel-header:not(.versteckt)");
+  const rand = header?.getBoundingClientRect().bottom || 0;
+  const leiste = (strecke.closest(".vtrack-wrap") || strecke).getBoundingClientRect();
+  if (leiste.top < rand || leiste.bottom > (window.visualViewport?.height || window.innerHeight)) {
+    window.scrollBy({ top: leiste.top - rand - 8, behavior: "auto" });
+  }
+  positioniereVerkehrDialog();
 }
 
 function erstelleVerkehrDialog() {
@@ -101,22 +139,20 @@ function erstelleVerkehrDialog() {
   const dialog = document.createElement("dialog");
   dialog.id = "verkehr-dialog";
   dialog.setAttribute("aria-labelledby", "verkehr-dialog-titel");
-  dialog.setAttribute("aria-describedby", "verkehr-dialog-hinweis");
-  dialog.innerHTML = `<h2 id="verkehr-dialog-titel">Schwarzer Verkehrswürfel</h2>
-    <p id="verkehr-dialog-hinweis"></p>
+  dialog.innerHTML = `<h2 id="verkehr-dialog-titel">Schwarzer Würfel</h2>
     <div class="traffic-roll-stage"><span class="traffic-roll-die" aria-label="Noch nicht geworfen">?</span></div>
-    <p class="traffic-roll-result" role="status" aria-live="polite"></p>
-    <p class="traffic-roll-remaining"></p>
-    <button type="button" class="traffic-roll-button" autofocus>Schwarzen Würfel werfen</button>
-    <button type="button" class="traffic-peek-button">Strecke ansehen</button>
-    <small>Seiten: 2, 3, 3, 4, 4, 5 · Aktuelles Feld zählt als 1.</small>`;
+    <span class="traffic-roll-result sr-only" role="status" aria-live="polite"></span>
+    <button type="button" class="traffic-roll-button" autofocus>Werfen</button>
+    <button type="button" class="traffic-peek-button">Strecke ansehen</button>`;
   dialog.querySelector(".traffic-roll-button").addEventListener("click", () => {
     if (!ui.zustand?.verkehrswuerfel_offen) {
       ui.bestaetigt = true;
       ui.aktiv = false;
       dialog.close();
       setzeVerkehrSperre(false);
-      document.querySelector("#verkehr-panel button")?.remove();
+      const panel = document.getElementById("verkehr-panel");
+      panel.replaceChildren();
+      panel.classList.add("versteckt");
       document.querySelector(".view-btn:not(:disabled), #rundenende-btn:not(:disabled)")?.focus();
     } else {
       starteVerkehrAnimation();
@@ -147,7 +183,10 @@ function oeffneVerkehrDialog() {
   ui.streckeAnsehen = false;
   const dialog = erstelleVerkehrDialog();
   aktualisiereVerkehrDialog();
-  if (!dialog.open) dialog.showModal();
+  if (!dialog.open) {
+    richteVerkehrStreckeAus();
+    dialog.showModal();
+  }
   setzeVerkehrSperre(true);
   positioniereVerkehrDialog();
   requestAnimationFrame(positioniereVerkehrDialog);
@@ -161,6 +200,9 @@ function verkehrWurfFehlgeschlagen() {
   if (ui.dialog) {
     aktualisiereVerkehrDialog();
     ui.dialog.querySelector(".traffic-roll-result").textContent = "Wurf nicht ausgeführt. Bitte erneut versuchen.";
+    if (ui.darfWerfen && ui.zustand?.verkehrswuerfel_offen) {
+      ui.dialog.querySelector(".traffic-roll-button").textContent = "Erneut werfen";
+    }
   }
 }
 
@@ -193,21 +235,15 @@ function aktualisiereVerkehrDialog() {
   die.textContent = ui.busy ? "?" : (letzter?.wert ?? "?");
   die.setAttribute("aria-label", ui.busy ? "Würfel wird geworfen" : (letzter ? `Gewürfelt: ${letzter.wert}` : "Noch nicht geworfen"));
   die.classList.toggle("rolling", ui.busy);
-  ui.dialog.querySelector("#verkehr-dialog-hinweis").textContent = offen
-    ? (ui.darfWerfen ? "Vor Rundenbeginn kommt neuer Flugverkehr hinzu." : "Die Person am Zug wirft. Das Ergebnis erscheint auch hier.")
-    : "Alle schwarzen Würfel sind geworfen. Die Runde ist bereit.";
   ui.dialog.querySelector(".traffic-roll-result").textContent = ui.busy
     ? "Würfel wird geworfen …"
     : letzter ? verkehrErgebnisText(letzter)
     : ui.darfWerfen ? "Würfle zuerst den schwarzen Würfel." : "Warte auf den schwarzen Würfel.";
-  ui.dialog.querySelector(".traffic-roll-remaining").textContent = offen
-    ? `Noch ${offen} ${offen === 1 ? "Wurf" : "Würfe"} offen`
-    : "Jetzt können die Spielerwürfel verwendet werden.";
   const button = ui.dialog.querySelector(".traffic-roll-button");
   button.textContent = !offen ? "Runde beginnen"
     : ui.busy ? "Würfelt …"
-    : !ui.darfWerfen ? "Warte auf den Wurf …"
-    : letzter ? "Nächsten schwarzen Würfel werfen" : "Schwarzen Würfel werfen";
+    : !ui.darfWerfen ? "Warte …"
+    : offen > 1 ? `Werfen (${offen})` : "Werfen";
   button.disabled = ui.busy || (offen > 0 && !ui.darfWerfen);
 }
 
@@ -234,7 +270,7 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
     // Die Track-Höhe enthält auch den Rahmen; am untersten Feld Luft lassen.
     gruppe.style.top = ((entfernung + 1) * trackUnit - 22) + "px";
     const label = `${anzahl} ${anzahl === 1 ? "schwarzer Verkehrswürfel" : "schwarze Verkehrswürfel"} auf Entfernung ${entfernung}`;
-    gruppe.title = `${label} – vor jeder Runde werfen (2, 3, 3, 4, 4, 5)`;
+    gruppe.title = label;
     gruppe.setAttribute("role", "img");
     gruppe.setAttribute("aria-label", label);
     for (let n = 0; n < Math.min(anzahl, 2); n++) gruppe.appendChild(verkehrswuerfelSymbol());
@@ -251,6 +287,7 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
   const key = `${z.runde}:${z.hoehe}:${z.entfernung}`;
   const wuerfe = z.verkehrswuerfe || [];
   const offen = z.status === "laeuft" && z.verkehrswuerfel_offen > 0;
+  const neueWuerfe = ui.key === key ? wuerfe.slice(ui.gesehen) : [];
   if (ui.key !== key || wuerfe.length < ui.gesehen) resetVerkehrUi();
   ui.key = key;
   ui.zustand = z;
@@ -260,6 +297,8 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
     clearTimeout(ui.timer);
     ui.timer = null;
     ui.busy = false;
+    animiereVerkehrsFlugzeuge(neueWuerfe);
+    document.getElementById("meldung-leiste")?.replaceChildren();
   }
   ui.gesehen = wuerfe.length;
   if (offen) ui.aktiv = true;
@@ -267,37 +306,13 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
 
   const panel = document.getElementById("verkehr-panel");
   panel.replaceChildren();
-  panel.classList.toggle("versteckt", !offen && wuerfe.length === 0);
+  panel.classList.toggle("versteckt", !ui.aktiv);
   if (!offen && wuerfe.length === 0) {
     setzeVerkehrSperre(false);
     if (ui.dialog?.open) ui.dialog.close();
     return;
   }
 
-  const titel = document.createElement("strong");
-  titel.textContent = offen
-    ? `Vor Rundenbeginn: ${z.verkehrswuerfel_offen} ${z.verkehrswuerfel_offen === 1 ? "schwarzer Würfel" : "schwarze Würfel"} offen`
-    : "Schwarze Würfel dieser Runde";
-  panel.appendChild(titel);
-  if (offen) {
-    const hinweis = document.createElement("span");
-    hinweis.textContent = "Seiten: 2, 3, 3, 4, 4, 5 · Aktuelles Feld zählt als 1.";
-    panel.appendChild(hinweis);
-  }
-  if (wuerfe.length) {
-    const ergebnisse = document.createElement("div");
-    ergebnisse.className = "traffic-results";
-    wuerfe.forEach(wurf => {
-      const ergebnis = document.createElement("span");
-      ergebnis.className = "traffic-result";
-      ergebnis.appendChild(verkehrswuerfelSymbol(wurf.wert));
-      const text = document.createElement("span");
-      text.textContent = verkehrErgebnisText(wurf);
-      ergebnis.appendChild(text);
-      ergebnisse.appendChild(ergebnis);
-    });
-    panel.appendChild(ergebnisse);
-  }
   if (ui.aktiv) {
     const button = document.createElement("button");
     button.type = "button";

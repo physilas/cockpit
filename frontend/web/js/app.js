@@ -848,6 +848,10 @@ function spielfeldUntenAusrichten() {
   const ausrichten = () => {
     const spielUi = document.getElementById("spiel-ui");
     if (!spielUi || spielUi.classList.contains("versteckt")) return;
+    if (verkehrDialogUi.aktiv) {
+      richteVerkehrStreckeAus();
+      return;
+    }
     spielUi.scrollIntoView({ block: "end", inline: "nearest", behavior: "auto" });
   };
   requestAnimationFrame(() => requestAnimationFrame(ausrichten));

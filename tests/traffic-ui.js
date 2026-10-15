@@ -16,11 +16,16 @@ document.getElementById("run-tests").addEventListener("click", async event => {
   });
   let z = base();
   let calls = 0;
-  const render = (allowed = true, roll = mockRoll) => renderVerkehr(z, 36, allowed, roll);
+  const render = (allowed = true, roll = mockRoll) => {
+    renderEntfernungsFlugzeuge(z, 36);
+    renderVerkehr(z, 36, allowed, roll);
+  };
   function mockRoll() {
     calls++;
     const result = calls === 1 ? { wert: 3, ziel_entfernung: 4 } : { wert: 5, ziel_entfernung: null };
-    z = { ...z, verkehrswuerfel_offen: z.verkehrswuerfel_offen - 1,
+    const flugzeuge = [...z.flugzeuge];
+    if (result.ziel_entfernung !== null) flugzeuge[z.laenge - 1 - result.ziel_entfernung]++;
+    z = { ...z, flugzeuge, verkehrswuerfel_offen: z.verkehrswuerfel_offen - 1,
       verkehrswuerfe: [...z.verkehrswuerfe, result] };
     render();
     return true;
@@ -30,9 +35,16 @@ document.getElementById("run-tests").addEventListener("click", async event => {
   try {
     resetVerkehrUi();
     renderEntfernungsFlugzeuge(z, 36);
-    assert(find('.vtrack-aircraft[aria-label="3 Flugzeuge auf Entfernung 4"] .aircraft-count').textContent === "3", "Flugzeuganzahl fehlt");
+    assert(find('.vtrack-aircraft[aria-label="3 Flugzeuge auf Entfernung 4"]').querySelectorAll(".aircraft-icon").length === 3, "Nicht jedes Flugzeug dargestellt");
+    assert(!find(".aircraft-count"), "Flugzeugzähler noch vorhanden");
     assert(find('.vtrack-aircraft[aria-label="3 Flugzeuge auf Entfernung 4"]').classList.contains("with-traffic"), "Würfelspur nicht freigehalten");
-    report("Mehrere Flugzeuge werden als Symbol mit Anzahl dargestellt");
+    const formation = find('.vtrack-aircraft[aria-label="3 Flugzeuge auf Entfernung 4"]');
+    const bereich = formation.getBoundingClientRect();
+    assert([...formation.querySelectorAll(".aircraft-icon")].every(el => {
+      const icon = el.getBoundingClientRect();
+      return icon.left >= bereich.left - .5 && icon.right <= bereich.right + .5;
+    }), "Enge Formation ragt in Zahlen oder Würfelspur");
+    report("Jedes Flugzeug erscheint einzeln in einer kompakten Formation ohne Zahl");
 
     render();
     assert(find("dialog").open && isBlocked(), "Dialog/Sperre fehlt");
@@ -40,12 +52,25 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     assert(find('.vtrack-traffic[aria-label="2 schwarze Verkehrswürfel auf Entfernung 4"]').children.length === 2, "Mehrfachmarker fehlt");
     report("Fällige Würfel öffnen automatisch den Dialog und sperren Aktionen");
 
+    await new Promise(requestAnimationFrame);
+    assert(!find("dialog p, dialog small, #verkehr-panel strong"), "Überflüssige Erklärungstexte sichtbar");
+    assert(getComputedStyle(find(".traffic-roll-result")).position === "absolute", "Statuskommentar noch sichtbar");
+    assert(parseFloat(find(".traffic-fog").style.top) >= find("#distance-track").getBoundingClientRect().bottom, "Nebel überdeckt Entfernungsleiste");
+    assert(getComputedStyle(find(".traffic-fog")).maskImage.includes("gradient"), "Weicher Nebelübergang fehlt");
+    report("Kompakter Dialog; Nebel blendet erst unter der gesamten Strecke ein");
+
     clickRoll(); clickRoll();
     await waitForRoll();
     assert(calls === 1 && z.verkehrswuerfel_offen === 1, "Doppelter/verlorener Wurf");
     assert(find("dialog").open && isBlocked() && find(".traffic-roll-die").textContent === "3", "Erstes Ergebnis fehlt");
     assert(!find(".traffic-roll-button").disabled, "Nächster Wurf gesperrt");
     report("Doppelklick würfelt nur einmal; weitere Würfe bleiben möglich");
+
+    assert(find('.aircraft-arriving[data-distance="4"]').querySelectorAll(".aircraft-icon").length === 4, "Neues Flugzeug auf belegtem Feld nicht animiert");
+    assert(find('.aircraft-arriving[data-distance="4"]').querySelectorAll(".aircraft-row").length === 2, "Große Formation nicht in Reihen angeordnet");
+    render();
+    assert(!find(".aircraft-arriving"), "Dasselbe Ergebnis startet die Animation nochmals");
+    report("Nur ein neuer Wurf animiert das Zielfeld, auch bei Mehrfachbelegung");
 
     find(".traffic-peek-button").click();
     render();
@@ -58,8 +83,10 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     await waitForRoll();
     assert(calls === 2 && z.verkehrswuerfel_offen === 0 && isBlocked(), "Letztes Ergebnis gibt Cockpit zu früh frei");
     assert(find(".traffic-roll-result").textContent.includes("Glück gehabt"), "Zu kurze Strecke falsch angezeigt");
+    assert(!find(".aircraft-arriving"), "Fehlendes Flugzeug wird trotzdem animiert");
     clickRoll(); render();
     assert(!find("dialog").open && !find(".board-grid").inert && find(".traffic-fog").hidden, "Bestätigung gibt Cockpit nicht frei");
+    assert(find("#verkehr-panel").classList.contains("versteckt") && !find("#verkehr-panel").children.length, "Unnötige Ergebnisbox bleibt sichtbar");
     report("Letzter Wurf bleibt sichtbar; Runde beginnen entfernt Nebel und Sperre");
 
     z = { ...base(), runde: 2, hoehe: 5000 };
@@ -84,9 +111,9 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     z = { ...base(), verkehrswuerfel_offen: 0 }; render();
     assert(!find("dialog").open && !find(".board-grid").inert, "Normale Runde wird gesperrt");
     report("Spielwechsel bricht Animation ab; ohne fällige Würfel bleibt alles frei");
-    output.textContent += `\n${passed}/8 Tests bestanden.`;
+    output.textContent += `\n${passed}/10 Tests bestanden.`;
   } catch (error) {
-    output.textContent += `✗ ${error.message}\n${passed}/8 Tests bestanden.`;
+    output.textContent += `✗ ${error.message}\n${passed}/10 Tests bestanden.`;
   } finally {
     resetVerkehrUi();
     event.target.disabled = false;

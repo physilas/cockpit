@@ -234,17 +234,22 @@ hinzu. Liegt das Ziel hinter dem Flughafen, entfällt das neue Flugzeug.
 Überflogene Felder lösen keinen zusätzlichen Wurf aus.
 
 In beiden Web-Spielmodi öffnet sich bei fälligen Würfen automatisch ein
-Dialog mit einem animierten schwarzen Zahlenwürfel. Weißer Nebel sperrt
-das Cockpit; die Entfernungsleiste bleibt sichtbar. „Strecke ansehen“
+kompakter Dialog mit schwarzem Zahlenwürfel und Wurfbutton, ohne
+Erklärungstexte. Weißer Nebel sperrt das Cockpit und blendet erst unterhalb
+der vollständigen Entfernungsleiste weich ein. Ein neu hinzugekommenes
+Flugzeug wird kurz auf seinem Zielfeld eingeblendet, auch bei
+Mehrfachbelegung; wiederholtes Rendern spielt die Animation nicht erneut.
+Bei reduzierter Bewegung blitzt nur das Zielfeld auf. „Strecke ansehen“
 schließt nur den Dialog, nicht die Wurfphase. Mehrere Würfe werden einzeln
 abgearbeitet, anschließend gibt „Runde beginnen“ das Cockpit frei.
 Erst nach dem letzten Wurf werden die acht Spielerwürfel geworfen.
 Kurven stehen klein am oberen Feldrand, Verkehrswürfel rechts und
-Flugzeuge dazwischen; eine Zahl am Flugzeug zeigt Mehrfachbelegungen.
+Flugzeuge dazwischen. Jedes Flugzeug erscheint als eigenes Symbol in
+einer engen Formation, bei größeren Gruppen in mehreren Reihen, ohne Zähler.
 Im Multiplayer würfelt die Person, die die Runde beginnt; beide Geräte
 sehen denselben Verkehr und dieselben Ergebnisse.
 
-Die Browser-Regressionsprüfung für Dialog, Sperre, Mehrfachwürfe und
+Die Browser-Regressionsprüfung für Dialog, Nebel, Flugzeuganimation, Sperre, Mehrfachwürfe und
 Rollenwechsel läuft ohne zusätzliche Pakete: lokalen Webserver starten,
 `tests/traffic-ui.html` öffnen und „UI-Tests starten“ anklicken.
 
