@@ -154,3 +154,47 @@ header.has-sync-reminder { flex-wrap: wrap; }
 #sync-reminder .traffic-die { width: 38px; height: 38px; font-size: 1.3rem; }
 #sync-reminder small { display: block; margin-top: .15rem; font-weight: 800; }
 #rueckgaengig-btn:disabled { opacity: .4; cursor: default; }
+
+/* Two private hands meet in the middle; only the confirmed pair is revealed. */
+#trade-dialog { width: min(94vw,520px); max-height: 88dvh; overflow: auto; padding: 1rem; border: 2px solid #6b8d90; border-radius: 14px; color: #21474f; background: linear-gradient(140deg,#f4f7eb,#d5e5de); box-shadow: 0 16px 46px #082c4266; }
+#trade-dialog::backdrop { background: #0c2e4288; backdrop-filter: blur(3px); }
+#trade-title { margin: 0 0 .35rem; text-align: center; font-size: 1.15rem; }
+#trade-hint { margin: 0 0 .85rem; color: #4f6d70; font-size: .76rem; line-height: 1.5; text-align: center; }
+.trade-sides { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1rem; }
+.trade-side { min-width: 0; padding: .65rem .35rem; border: 1px solid #8ea9aa; border-top: 4px solid var(--pilot); border-radius: 9px; background: #ffffff66; }
+.trade-side.kopilot { border-top-color: var(--copilot); }
+.trade-side h3 { margin: 0 0 .5rem; font-size: .78rem; text-align: center; }
+.trade-reveal { display: block; width: 100%; min-height: 32px; margin-bottom: .6rem; padding: .2rem; border: 1px solid #89a6a8; border-radius: 5px; color: #345f6a; background: #f4f7ee; font-size: .69rem; }
+.trade-private { display: grid; align-items: center; min-height: 32px; margin: 0 0 .6rem; color: #6b8282; font-size: .62rem; line-height: 1.35; text-align: center; }
+.trade-hand { display: grid; grid-template-columns: repeat(2,max-content); justify-content: center; gap: 12px; padding-inline: 4px; }
+.trade-die, .trade-picked, .trade-flying { display: grid; place-items: center; width: clamp(40px,9vw,48px); height: clamp(40px,9vw,48px); padding: 0; border: 2px solid #b8e8fa; border-radius: 8px; color: #fff; background: linear-gradient(145deg,#3cafe9,#204aa5); box-shadow: inset 0 1px #ffffff88,0 2px 2px #18384b44; font: 900 1.15rem/1 ui-monospace,monospace; }
+.kopilot .trade-die, .kopilot .trade-picked, .trade-flying.kopilot { border-color: #ffda88; background: linear-gradient(145deg,#f6b449,#c55e21); }
+.trade-die { transition: transform .22s ease,outline-color .22s ease; }
+.trade-die.selected { outline: 2px solid #e7c44d; outline-offset: 2px; transform: translateX(6px); }
+.kopilot .trade-die.selected { transform: translateX(-6px); }
+.trade-die.placed { opacity: .3; filter: grayscale(1); }
+.trade-die:disabled { cursor: default; }
+.trade-selection { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem; min-height: 58px; margin: .5rem 0 .2rem; }
+.kopilot .trade-selection { flex-direction: row-reverse; }
+.trade-picked { width: 28px; height: 28px; font-size: .9rem; }
+.trade-direction { color: #36788c; font-size: 1.4rem; font-weight: 900; }
+.kopilot .trade-direction { color: #bd7023; }
+.trade-selection small { flex-basis: 100%; color: #4c6f70; font-size: .65rem; font-weight: 800; text-align: center; }
+.trade-confirm, .trade-continue { min-height: 40px; width: 100%; padding: .3rem; border: 1px solid #5d8b92; border-radius: 6px; background: #255866; color: #fff9df; font-size: .74rem; font-weight: 800; }
+.trade-confirm.ready { color: #28552f; border-color: #95b47a; background: #e1efcf; }
+#trade-dialog button:disabled { opacity: .5; cursor: default; }
+.trade-status { margin: .7rem 0 .2rem; min-height: 2em; color: #567477; font-size: .73rem; text-align: center; }
+.trade-cancel, .trade-undo { min-height: 34px; width: 100%; margin-top: .4rem; padding: .25rem; border: 1px solid #8ea9aa; border-radius: 5px; color: #3d6671; background: transparent; font-size: .72rem; }
+#trade-dialog button:focus-visible { outline: 3px solid #bf8e22; outline-offset: 2px; }
+.trade-result-stage { position: relative; height: 120px; margin: 1.2rem 0 .5rem; }
+.trade-crossing { position: absolute; left: 50%; top: 40px; transform: translateX(-50%); color: #6e9298; font-size: 2rem; }
+.trade-flying { position: absolute; top: 30px; transform: translateX(-50%); }
+.trade-flying.pilot { left: 78%; animation: trade-pilot-flight 1.2s ease-in-out both; }
+.trade-flying.kopilot { left: 22%; animation: trade-copilot-flight 1.2s ease-in-out both; }
+.trade-receipts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0 0 1rem; text-align: center; }
+.trade-receipts span { display: block; color: #4c6f70; font-size: .75rem; }
+.trade-receipts strong { display: block; margin: .2rem 0; font: 900 1.3rem ui-monospace,monospace; }
+@keyframes trade-pilot-flight { 0% { left: 22%; } 50% { transform: translate(-50%,-24px); } 100% { left: 78%; } }
+@keyframes trade-copilot-flight { 0% { left: 78%; } 50% { transform: translate(-50%,24px); } 100% { left: 22%; } }
+@media(max-width:360px) { #trade-dialog { padding: .75rem; } .trade-sides { gap: .65rem; } .trade-side h3 { font-size: .71rem; } }
+@media(prefers-reduced-motion:reduce) { .trade-die { transition: none; } .trade-flying { animation: none; } }

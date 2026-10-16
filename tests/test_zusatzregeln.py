@@ -202,13 +202,72 @@ class ModuleTest(unittest.TestCase):
         g.am_zug = "kopilot"
         self.assertTrue(g.zusatz.aktion("pilot", "kooperation_start", {}))
         self.assertTrue(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":0}))
-        self.assertEqual(g.zustand()["kooperation"], {"wartet_auf":"kopilot"})
-        self.assertEqual(g.pilot_wuerfel[0].augenzahl, 1)
+        k = g.zustand()["kooperation"]
+        self.assertEqual(k["auswahl"], {"pilot":0, "kopilot":None})
+        self.assertEqual(k["bestaetigt"], {"pilot":False, "kopilot":False})
+        self.assertEqual(set(k), {"id", "wartet_auf", "auswahl", "bestaetigt"})
+        self.assertIsNone(g.zustand()["kooperation_ergebnis"])
         self.assertFalse(g.trinke_kaffee("kopilot", 1, -1))
         self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_wahl", {"wuerfel_index":1}))
-        self.assertEqual((g.pilot_wuerfel[0].augenzahl, g.kopilot_wuerfel[1].augenzahl), (6, 1))
+        self.assertEqual((g.pilot_wuerfel[0].augenzahl,g.kopilot_wuerfel[1].augenzahl), (1,6))
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_bestaetigen", {}))
+        self.assertEqual((g.pilot_wuerfel[0].augenzahl,g.kopilot_wuerfel[1].augenzahl), (1,6))
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_bestaetigen", {}))
+        self.assertEqual((g.pilot_wuerfel[0].augenzahl,g.kopilot_wuerfel[1].augenzahl), (6,1))
+        result = g.zustand()["kooperation_ergebnis"]
+        self.assertEqual(result["vorher"], {"pilot":1,"kopilot":6})
+        self.assertEqual(result["nachher"], {"pilot":6,"kopilot":1})
         self.assertEqual(g.am_zug, "kopilot")
+        self.assertTrue(g.pilot_wuerfel[0].ist_verfuegbar())
+        self.assertTrue(g.kopilot_wuerfel[1].ist_verfuegbar())
         self.assertFalse(g.zusatz.aktion("pilot", "kooperation_start", {}))
+        self.assertFalse(g.zusatz.aktion("kopilot", "kooperation_bestaetigen", {}))
+
+    def test_working_together_independent_order_and_editing_confirmation(self):
+        g = self.game(cards=("working-together", "control"))
+        g.pilot_wuerfel[0].augenzahl = 1; g.pilot_wuerfel[1].augenzahl = 3
+        g.kopilot_wuerfel[2].augenzahl = 5
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_start", {}))
+        self.assertFalse(g.zusatz.aktion("kopilot", "kooperation_bestaetigen", {}))
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_wahl", {"wuerfel_index":2}))
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_bestaetigen", {}))
+        self.assertFalse(g.zusatz.aktion("kopilot", "kooperation_bestaetigen", {}))
+        self.assertFalse(g.zusatz.aktion("kopilot", "kooperation_wahl", {"wuerfel_index":0}))
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_freigeben", {}))
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":0}))
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":1}))
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_bestaetigen", {}))
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_bestaetigen", {}))
+        self.assertEqual((g.pilot_wuerfel[0].augenzahl,g.pilot_wuerfel[1].augenzahl,g.kopilot_wuerfel[2].augenzahl), (1,5,3))
+
+    def test_working_together_cancel_does_not_spend_card_and_rejects_stale_messages(self):
+        g = self.game(cards=("working-together", "control"))
+        before = [w.augenzahl for w in g.pilot_wuerfel+g.kopilot_wuerfel]
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_start", {}))
+        old_id = g.zustand()["kooperation"]["id"]
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":0}))
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_bestaetigen", {}))
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_abbrechen", {"kooperation_id":old_id}))
+        self.assertTrue(g.zustand()["kooperation_verfuegbar"])
+        self.assertEqual([w.augenzahl for w in g.pilot_wuerfel+g.kopilot_wuerfel], before)
+        self.assertTrue(g.zusatz.aktion("kopilot", "kooperation_start", {}))
+        self.assertFalse(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":1,"kooperation_id":old_id}))
+        self.assertEqual(g.zustand()["kooperation"]["auswahl"], {"pilot":None,"kopilot":None})
+
+    def test_working_together_rejects_placed_dice_and_snapshots_are_detached(self):
+        g = self.game(cards=("working-together", "control"))
+        g.pilot_wuerfel[3].platziert = True
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_start", {}))
+        for index in [3,-1,4,True,None,"1"]:
+            self.assertFalse(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":index}))
+        self.assertTrue(g.zusatz.aktion("pilot", "kooperation_wahl", {"wuerfel_index":0}))
+        snapshot = g.zustand()["kooperation"]
+        snapshot["auswahl"]["pilot"] = 3
+        snapshot["bestaetigt"]["kopilot"] = True
+        self.assertEqual(g.zustand()["kooperation"]["auswahl"]["pilot"], 0)
+        self.assertFalse(g.zustand()["kooperation"]["bestaetigt"]["kopilot"])
+        self.assertFalse(g.zusatz.aktion("hacker", "kooperation_bestaetigen", {}))
+        self.assertFalse(g.zusatz.aktion("pilot", None, {}))
 
     def test_synchronisation_other_player_rolls_then_places_on_either_colour_once(self):
         g = self.game(cards=("synchronisation", "control"))

@@ -14,7 +14,7 @@ Stand: 16. Oktober 2026. Grundlage: das bereitgestellte **Sky Team Flight Log**,
 | 6 · gering bis mittel | Kontrolle, Anpassung, Voraussicht, Meisterschaft | Kaffee bei gleichen Rudern; einmaliges Drehen je Person; Neuwurf vor dem ersten Zug des Startspielers; begrenzter Plättchenvorrat |
 | 7 · mittel | Wind | Persistenter Ring mit 18 Positionen, Start bei +3; Drehen um die aktuelle Fluglage nach Ruderauflösung; Modifikator auch beim Landen |
 | 8 · mittel | Eisbremsen | Vier Paare 2/3/4/5, oben Pilotin, unten beide; gleiche Runde und feste Reihenfolge; alle Paare als zusätzliche Siegbedingung |
-| 9 · mittel bis hoch | Zusammenarbeit | Zwei private Auswahlen, anschließend atomarer Werttausch; einmal pro Runde, regulärer Zug bleibt bestehen |
+| 9 · mittel bis hoch | Zusammenarbeit | Zwei unabhängige private Auswahlen mit eigener Bestätigung, danach offener animierter Werttausch; einmal pro Runde, regulärer Zug bleibt bestehen |
 | 10 · hoch | Praktikant | Sechs zufällig angeordnete Plättchen 1–6, Zugriff von beiden Enden, je ein Trainingsfeld; verpflichtende Zusatzplatzierung ohne Kaffee/Konzentration; vollständige Ausbildung als Siegbedingung |
 | 11 · hoch | Synchronisation | Ein zusätzlicher schwarzer Würfel pro Runde nach Fahrwerk und Klappen; Person gegenüber dem auslösenden Zug würfelt per Dialog und platziert auf einem Feld beliebiger Farbe; Kaffee möglich |
 | 12 · hoch | Echtzeit | 60 Sekunden ab den Spielerwürfen, Host prüft Deadline vor Aktionen und wertet automatisch aus; danach Besprechung vor dem nächsten Wurf |
@@ -25,9 +25,11 @@ Stand: 16. Oktober 2026. Grundlage: das bereitgestellte **Sky Team Flight Log**,
 
 Die Verkehrsflugzeuge verwenden über alle sichtbaren Felder dieselbe Größe und feste Zellenabstände. Ihre kleinen Drehungen sind stabil; die Hüllflächen überlagern sich nicht. Der Mittelmarker zwischen Höhen- und Entfernungsleiste entfällt. Beide Leisten stehen enger zusammen; Kaffeeplätze sind quadratisch und die Symbole darin zentriert.
 
+Zusammenarbeit öffnet einen Dialog mit zwei Würfelhänden. Jede Person deckt nur ihre eigenen freien Würfel auf, wählt einen und bestätigt. Der gewählte Würfel rückt zur Mitte; Pfeil und Status zeigen auch auf dem anderen Gerät die Auswahl und Bestätigung. Bis beide bestätigen, bleiben fremde Werte verborgen. Anschließend werden ausschließlich die zwei gewählten Würfel offen animiert getauscht. Bestätigte Auswahlen können vor dem Tausch wieder freigegeben werden; Abbrechen verbraucht die Karte nicht. Bei Pass & Play wird beim Weitergeben die vorherige Hand wieder verdeckt. Die Animation respektiert reduzierte Bewegung.
+
 ### Engine und Transport
 
-`backend/zusatzregeln.py` verwaltet Karten, Zusatzaktionen und die Uhr. `Cockpit` enthält Wind, Kerosin und Eisbremsen; `Spielplan` verbindet die Regeln mit Platzierung und Rundenende. `backend/bridge.py` bietet JSON-basierte Aktionen an. Der Multiplayer-Host weist die Rolle über die Verbindung zu und verteilt ausschließlich rollengefilterte Zustände. Die erste Tauschwahl wird nicht übertragen. Würfelwerte des Partners bleiben verdeckt, solange sie nicht platziert sind.
+`backend/zusatzregeln.py` verwaltet Karten, Zusatzaktionen und die Uhr. `Cockpit` enthält Wind, Kerosin und Eisbremsen; `Spielplan` verbindet die Regeln mit Platzierung und Rundenende. `backend/bridge.py` bietet JSON-basierte Aktionen an. Der Multiplayer-Host weist die Rolle über die Verbindung zu und verteilt ausschließlich rollengefilterte Zustände. Beim Tausch werden Auswahlpositionen und Bestätigungen öffentlich übertragen, keine freien Würfelwerte des Partners. Erst beide Bestätigungen lösen den atomaren Tausch aus und geben genau das gewählte Paar öffentlich frei. Eine Tausch-ID weist verspätete Auswahlen eines abgebrochenen Tauschs zurück.
 
 Die Uhr verwendet eine feste Host-Deadline. Das Öffnen eines Dialogs und Hintergrundtabs verlängern sie nicht. Wenn der Browser eingefroren ist, erfolgt die Auswertung beim nächsten Host-Tick oder spätestens vor der nächsten Aktion. Der Client zeigt die verbleibende Zeit relativ zur Host-Messung an. Nach Ablauf werden ungespielte Würfel ignoriert; fehlende Pflichtfelder verlieren. Verkehr bleibt vor dem Wurf der Spielerwürfel eine eigene Phase.
 
@@ -35,7 +37,7 @@ Neuwurfmaterial: zwei Grundspiel-Plättchen plus ein zusätzliches Plättchen au
 
 ### Prüfung
 
-55 native Tests einschließlich aller 21 Varianten mit sämtlichen zulässigen Kartensets, Verbrauchsgrenzen, Ringumlauf, Eis-Paaren, Zusatzaktionen, verdeckten Tauschzuständen, Ressourcenlimits, kombinierten Landebedingungen und verspäteten Aktionen. Zusätzlich 12 DOM-Regressionen für Verkehr, Größen, Abstände und Hüllflächen bei 80–200 px Leistenbreite sowie 30 Instrumentenprüfungen für beide Web-UIs: Rollenrechte, Platzierungsargumente, Privatheit, Markerpositionen, Dialoge, Kopfbereich und 320–600 px breite Spielpläne.
+72 native Tests einschließlich aller 21 Varianten mit sämtlichen zulässigen Kartensets, Verbrauchsgrenzen, Ringumlauf, Eis-Paaren, Zusatzaktionen, gegenseitigen Tauschbestätigungen, Abbruch und verspäteten Auswahlen, Ressourcenlimits, kombinierten Landebedingungen und Rückgängig. Zusätzlich DOM-Regressionen für Verkehr, Größen, Abstände und Hüllflächen sowie 36 Instrumentenprüfungen für beide Web-UIs: Rollenrechte, Platzierungsargumente, private Hände beim Tausch und Weitergeben, Bestätigungen, offenes Tauschergebnis, Markerpositionen, Dialoge, Kopfbereich und 320–600 px breite Spielpläne.
 
 Manuell mit echtem Pyodide geprüft: Kerosinaktion und Praktikantenplatzierung in Pass & Play, automatischer Echtzeitabschluss sowie Zusammenarbeit und Synchronisation zwischen zwei über PeerJS verbundenen Browser-Clients. Das ersetzt keine Erprobung auf zwei unterschiedlichen physischen Geräten.
 

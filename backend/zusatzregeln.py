@@ -17,12 +17,13 @@ class Zusatzregeln:
         self.praktikant = random.sample(range(1, 7), 6) if "intern" in self.c.module else []
         self.anpassung = {r: False for r in BESITZER}
         self.deadline = None
+        self.kooperation_nummer = 0
         self.neue_runde()
 
     def neue_runde(self):
         self.offen = []
         self.kooperation = None
-        self.kooperation_erste_wahl = None
+        self.kooperation_ergebnis = None
         self.kooperation_genutzt = False
         self.voraussicht_genutzt = False
         self.ausgeloest = set()
@@ -191,24 +192,47 @@ class Zusatzregeln:
         if aktion == "kooperation_start":
             if "working-together" not in self.karten or self.kooperation_genutzt or self.kooperation or any(not s.verfuegbare_wuerfel(r) for r in BESITZER):
                 return Ergebnis(False, "karte_nicht_verfuegbar")
-            self.kooperation = {"wartet_auf": rolle}
-            return Ergebnis(True, meldung="Zusammenarbeit: beide wählen nacheinander einen freien Würfel.")
-        if aktion == "kooperation_wahl" and self.kooperation:
-            if self.kooperation["wartet_auf"] != rolle:
-                return Ergebnis(False, "nicht_am_zug")
-            i = params.get("wuerfel_index")
-            if not s._gueltiger_wuerfel_index(i) or not s._wuerfel_liste(rolle)[i].ist_verfuegbar():
-                return Ergebnis(False, "wuerfel_nicht_verfuegbar")
-            if self.kooperation_erste_wahl is None:
-                self.kooperation_erste_wahl = (rolle, i)
-                self.kooperation["wartet_auf"] = "kopilot" if rolle == "pilot" else "pilot"
-                return Ergebnis(True, meldung="Gerät weitergeben: Partner wählt seinen Würfel.")
-            first, index = self.kooperation_erste_wahl
-            a, b = s._wuerfel_liste(first)[index], s._wuerfel_liste(rolle)[i]
-            a.augenzahl, b.augenzahl = b.augenzahl, a.augenzahl
-            self.kooperation = self.kooperation_erste_wahl = None
-            self.kooperation_genutzt = True
-            return Ergebnis(True, meldung="Würfelwerte getauscht. Der reguläre Zug bleibt bestehen.")
+            self.kooperation_nummer += 1
+            self.kooperation_ergebnis = None
+            self.kooperation = {"id": self.kooperation_nummer, "wartet_auf": rolle,
+                               "auswahl": {r: None for r in BESITZER},
+                               "bestaetigt": {r: False for r in BESITZER}}
+            return Ergebnis(True, meldung="Zusammenarbeit: wählt je einen Würfel und bestätigt beide.")
+        if isinstance(aktion, str) and aktion.startswith("kooperation_") and self.kooperation:
+            k = self.kooperation
+            if params.get("kooperation_id", k["id"]) != k["id"]:
+                return Ergebnis(False, "karte_nicht_verfuegbar")
+            if aktion == "kooperation_abbrechen":
+                self.kooperation = None
+                return Ergebnis(True, meldung="Würfeltausch abgebrochen.")
+            if aktion == "kooperation_freigeben":
+                k["bestaetigt"][rolle] = False
+            elif aktion == "kooperation_wahl":
+                if k["bestaetigt"][rolle]:
+                    return Ergebnis(False, "karte_nicht_verfuegbar")
+                i = params.get("wuerfel_index")
+                if not s._gueltiger_wuerfel_index(i) or not s._wuerfel_liste(rolle)[i].ist_verfuegbar():
+                    return Ergebnis(False, "wuerfel_nicht_verfuegbar")
+                k["auswahl"][rolle] = i
+            elif aktion == "kooperation_bestaetigen":
+                i = k["auswahl"][rolle]
+                if i is None or not s._wuerfel_liste(rolle)[i].ist_verfuegbar() or k["bestaetigt"][rolle]:
+                    return Ergebnis(False, "karte_nicht_verfuegbar")
+                k["bestaetigt"][rolle] = True
+            else:
+                return Ergebnis(False, "ungueltige_aktion")
+            if all(k["bestaetigt"].values()):
+                dice = {r: s._wuerfel_liste(r)[k["auswahl"][r]] for r in BESITZER}
+                before = {r: w.augenzahl for r, w in dice.items()}
+                dice["pilot"].augenzahl, dice["kopilot"].augenzahl = before["kopilot"], before["pilot"]
+                self.kooperation_ergebnis = {"id": k["id"], "auswahl": dict(k["auswahl"]),
+                                             "vorher": before,
+                                             "nachher": {r: w.augenzahl for r, w in dice.items()}}
+                self.kooperation = None
+                self.kooperation_genutzt = True
+                return Ergebnis(True, meldung="Beide bestätigt: Würfelwerte getauscht. Der reguläre Zug bleibt bestehen.")
+            k["wartet_auf"] = next(r for r in BESITZER if not k["bestaetigt"][r])
+            return Ergebnis(True, meldung="Auswahl bestätigt." if k["bestaetigt"][rolle] else "Würfel für den Tausch ausgewählt.")
         if self.kooperation:
             return Ergebnis(False, "zusatzaktion_offen")
         if aktion not in ("adaptation", "anticipation") or aktion not in self.karten:
@@ -237,7 +261,10 @@ class Zusatzregeln:
             "wind_position": c.wind_position, "wind_ring": list(c.WIND_RING), "wind_wert": c.wind_wert(),
             "eis_fortschritt": c.eis_fortschritt, "praktikant": self.praktikant.copy(),
             "zusatzaktion": {"rolle": self.offen[0]["rolle"], "quelle": self.offen[0]["wuerfel"].quelle, "wert": self.offen[0]["wuerfel"].augenzahl, "geworfen": self.offen[0]["wuerfel"].augenzahl is not None, "ziele": self.platzierziele(), "kaffee_deltas": c.moegliche_kaffee_deltas(self.offen[0]["wuerfel"].augenzahl) if self.offen[0]["wuerfel"].quelle == "synchronisation" and self.offen[0]["wuerfel"].augenzahl is not None else []} if self.offen else None,
-            "kooperation": dict(self.kooperation) if self.kooperation else None,
+            # Selection positions/readiness are public; faces stay in each player's
+            # filtered dice hand until both confirmations make the pair public.
+            "kooperation": {**self.kooperation, "auswahl": dict(self.kooperation["auswahl"]), "bestaetigt": dict(self.kooperation["bestaetigt"])} if self.kooperation else None,
+            "kooperation_ergebnis": {**self.kooperation_ergebnis, **{key: dict(self.kooperation_ergebnis[key]) for key in ("auswahl", "vorher", "nachher")}} if self.kooperation_ergebnis else None,
             "kooperation_verfuegbar": "working-together" in self.karten and not self.kooperation_genutzt and all(s.verfuegbare_wuerfel(r) for r in BESITZER),
             "anpassung_verfuegbar": {r: "adaptation" in self.karten and not self.anpassung[r] for r in BESITZER},
             "voraussicht_verfuegbar": "anticipation" in self.karten and not self.voraussicht_genutzt and not self.platzierungen,

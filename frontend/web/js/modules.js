@@ -9,6 +9,93 @@ window.FlightModules = (() => {
   let bonusTargets = new Map();
   const syncUi = {dialog:null,key:null,peek:false,busy:false,timer:null};
 
+  const tradeUi = {dialog:null,key:null,revealed:null,closed:new Set()};
+  function resetTrade() {
+    if (tradeUi.dialog?.open) tradeUi.dialog.close();
+    tradeUi.key = tradeUi.revealed = null; tradeUi.closed.clear();
+  }
+  function renderTrade(z, options) {
+    const k = z.kooperation, result = k ? null : z.kooperation_ergebnis;
+    const key = `${z.szenario_id}:${z.runde}:${(k || result)?.id}:${z.rueckgaengig_id || 0}`;
+    if ((!k && !result) || z.status !== 'laeuft' || z.zusatzaktion || (result && tradeUi.closed.has(key))) {
+      if (tradeUi.dialog?.open) tradeUi.dialog.close();
+      return;
+    }
+    if (tradeUi.key !== key) {tradeUi.key = key; tradeUi.revealed = null; closeDetail();}
+    let d = tradeUi.dialog;
+    if (!d) {
+      d = document.createElement('dialog'); d.id = 'trade-dialog';
+      d.setAttribute('aria-labelledby','trade-title');
+      d.setAttribute('aria-describedby','trade-hint');
+      d.addEventListener('cancel', event => {
+        event.preventDefault();
+        if (current.z.kooperation) act(current.options.role || current.z.kooperation.wartet_auf,'kooperation_abbrechen',{kooperation_id:current.z.kooperation.id});
+        else {tradeUi.closed.add(tradeUi.key); d.close();}
+      });
+      document.body.appendChild(d); tradeUi.dialog = d;
+    }
+    if (result && d.dataset.phase === 'result' && d.dataset.resultKey === key) return;
+    const focused = d.contains(document.activeElement) ? document.activeElement.dataset.focus : null;
+    d.dataset.phase = result ? 'result' : 'choice'; d.dataset.resultKey = result ? key : '';
+    d.replaceChildren();
+    d.insertAdjacentHTML('beforeend', `<h2 id="trade-title">${result ? 'Würfel getauscht!' : 'Zusammenarbeit'}</h2><p id="trade-hint">${result ? 'Beide haben bestätigt. Diese beiden Würfel werden offen getauscht.' : options.role ? 'Wähle einen eigenen freien Würfel und bestätige. Die andere Seite zeigt, sobald dein Partner gewählt hat.' : 'Seht eure Würfel nacheinander an und bestätigt jeweils. Es ist immer nur eine Hand aufgedeckt.'}</p>`);
+    if (result) {
+      const stage = document.createElement('div'); stage.className = 'trade-result-stage';
+      stage.innerHTML = `<span class="trade-crossing" aria-hidden="true">⇄</span>${['pilot','kopilot'].map(r => `<span class="trade-flying ${r}" aria-label="${name(r)} gibt ${result.vorher[r]}">${result.vorher[r]}</span>`).join('')}`;
+      d.appendChild(stage);
+      const receipt = document.createElement('div'); receipt.className = 'trade-receipts';
+      receipt.innerHTML = ['pilot','kopilot'].map(r => `<div class="${r}"><span>${name(r)} erhält</span><strong>${result.nachher[r]}</strong></div>`).join('');
+      d.appendChild(receipt);
+      button(d,'Weiter', () => {tradeUi.closed.add(key); d.close();},false,'trade-continue');
+    } else {
+      const sides = document.createElement('div'); sides.className = 'trade-sides'; d.appendChild(sides);
+      for (const role of ['pilot','kopilot']) {
+        const own = !options.role || options.role === role;
+        const visible = own && tradeUi.revealed === role;
+        const index = k.auswahl?.[role], confirmed = Boolean(k.bestaetigt?.[role]);
+        const side = document.createElement('section'); side.className = `trade-side ${role}`;
+        side.dataset.role = role;
+        side.innerHTML = `<h3>${name(role)}${options.role ? (own ? ' · Du' : ' · Partner') : ''}</h3>`;
+        if (own) {
+          const reveal = button(side,visible ? 'Verdecken' : 'Würfel ansehen', () => {
+            tradeUi.revealed = visible ? null : role;
+            options.conceal();
+          },confirmed && !options.role,'trade-reveal');
+          reveal.dataset.focus = `${role}-reveal`;
+        } else side.insertAdjacentHTML('beforeend','<p class="trade-private">Eigene Würfel bleiben privat</p>');
+        const hand = document.createElement('div'); hand.className = 'trade-hand'; side.appendChild(hand);
+        z[`${role}_wuerfel`].forEach((value,i) => {
+          const free = z[`${role}_wuerfel_frei`][i], selected = i === index;
+          const shown = !free || visible ? value : '?';
+          const die = button(hand,shown ?? '?', () => act(role,'kooperation_wahl',{wuerfel_index:i,kooperation_id:k.id}), !own || !visible || !free || confirmed, `trade-die${selected ? ' selected' : ''}${!free ? ' placed' : ''}`);
+          die.setAttribute('aria-label',`${name(role)}, Würfel ${i + 1}: ${shown ?? '?'}${selected ? ', gewählt' : ''}${!free ? ', bereits gelegt' : ''}`);
+          die.setAttribute('aria-pressed',String(selected)); die.dataset.focus = `${role}-${i}`;
+        });
+        const selected = index != null;
+        const status = document.createElement('div'); status.className = 'trade-selection'; status.setAttribute('role','status');
+        const value = selected && visible ? z[`${role}_wuerfel`][index] : '?';
+        status.innerHTML = selected ? `<span class="trade-picked">${value}</span><span class="trade-direction" aria-hidden="true">${role === 'pilot' ? '→' : '←'}</span><small>${confirmed ? '✓ Bestätigt' : 'Gewählt'}</small>` : '<small>Noch nicht gewählt</small>';
+        side.appendChild(status);
+        if (own) {
+          const confirm = button(side,confirmed ? 'Auswahl ändern' : 'Bestätigen', () => {
+            if (!options.role) tradeUi.revealed = null;
+            act(role,confirmed ? 'kooperation_freigeben' : 'kooperation_bestaetigen',{kooperation_id:k.id});
+          },!selected,`trade-confirm${confirmed ? ' ready' : ''}`);
+          confirm.dataset.focus = `${role}-confirm`;
+          confirm.setAttribute('aria-label',`${name(role)}: ${confirmed ? 'Auswahl ändern' : 'Tausch bestätigen'}`);
+        }
+        sides.appendChild(side);
+      }
+      const status = document.createElement('p'); status.className = 'trade-status'; status.setAttribute('role','status');
+      status.textContent = Object.values(k.bestaetigt || {}).some(Boolean) ? 'Warte auf die zweite Bestätigung …' : 'Die Werte bleiben unverändert, bis beide bestätigen.';
+      d.appendChild(status);
+      button(d,'Abbrechen', () => act(options.role || k.wartet_auf,'kooperation_abbrechen',{kooperation_id:k.id}),false,'trade-cancel');
+    }
+    if (z.rueckgaengig_moeglich) button(d,'↶ Rückgängig', () => document.dispatchEvent(new Event('cockpit-undo')),false,'trade-undo');
+    if (!d.open) d.showModal();
+    if (focused) [...d.querySelectorAll('[data-focus]')].find(b => b.dataset.focus === focused && !b.disabled)?.focus({preventScroll:true});
+  }
+
   function resetSync() {
     clearTimeout(syncUi.timer);
     syncUi.timer = null; syncUi.key = null; syncUi.peek = syncUi.busy = false;
@@ -336,9 +423,9 @@ window.FlightModules = (() => {
       (p.kaffee_deltas || []).forEach(delta => button(el, `☕ ${signed(delta)}`, () => act(p.rolle, 'bonus_kaffee', {delta}), !active || !allowed(p.rolle)));
       if (p.wert != null && !p.ziele.length) el.insertAdjacentHTML('beforeend','<p>Kein erlaubtes Ziel mehr verfügbar.</p>');
     }
-    const picker = z.kooperation ? {role:z.kooperation.wartet_auf, type:'kooperation_wahl'} : choice;
+    const picker = choice;
     if (picker && active) {
-      const el = section(z.kooperation ? 'Zusammenarbeit: Würfel wählen' : 'Fähigkeit: Würfel wählen', `${name(picker.role)} wählt einen eigenen freien Würfel.`);
+      const el = section('Fähigkeit: Würfel wählen', `${name(picker.role)} wählt einen eigenen freien Würfel.`);
       if (!allowed(picker.role)) {
         el.insertAdjacentHTML('beforeend', `<p>Warte auf ${name(picker.role)} …</p>`);
       } else if (revealed !== picker.role) {
@@ -354,14 +441,14 @@ window.FlightModules = (() => {
   }
   function render(z, options) {
     const scenarioChanged = current?.z.szenario_id !== z.szenario_id;
-    if (current?.z.rueckgaengig_id !== z.rueckgaengig_id) {resetSync(); choice = revealed = null; closeDetail();}
+    if (current?.z.rueckgaengig_id !== z.rueckgaengig_id) {resetTrade(); resetSync(); choice = revealed = null; closeDetail();}
     current = {z,options};
-    if (scenarioChanged) closeDetail();
+    if (scenarioChanged) {resetTrade(); closeDetail();}
     const key = `${z.szenario_id}:${z.runde}:${z.kooperation?.wartet_auf || ''}`;
     if (context !== key) {choice = revealed = null; context = key;}
     renderFuel(z); renderWind(z); renderIce(z); renderIntern(z); renderCards(z); renderRealtime(z);
     renderBonusTargets(z,options);
-    renderPending(z,options); renderDetail(); renderSync(z,options); updateTimer();
+    renderPending(z,options); renderDetail(); renderSync(z,options); renderTrade(z,options); updateTimer();
   }
   function updateTimer() {
     if (!current) return;
@@ -374,5 +461,5 @@ window.FlightModules = (() => {
     el.classList.toggle('urgent', Boolean(z.timer_deadline_ms) && seconds <= 10);
   }
   setInterval(() => {updateTimer(); if (current?.z.timer_deadline_ms && current.z.status === 'laeuft') current.options.onTick?.();}, 200);
-  return {render, renderBrakes, rerollHTML, identifyField, reset() {resetSync(); clearBonusTargets(); closeDetail(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
+  return {render, renderBrakes, rerollHTML, identifyField, reset() {resetTrade(); resetSync(); clearBonusTargets(); closeDetail(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
 })();

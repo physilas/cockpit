@@ -179,11 +179,58 @@ document.getElementById('run-tests').addEventListener('click', async event => {
       assert(!document.getElementById('flight-modules').textContent.includes('1: 4'),'Private value exposed early');
       assert(actions.length===actionsBefore,'Ability used before die selection');
     });
-    test('Pending partner choices stay private on the other device', () => {
-      options.role='kopilot'; render({kooperation:{wartet_auf:'pilot'}});
-      assert(document.getElementById('flight-modules').textContent.includes('Warte auf Pilotin'),'Missing partner waiting message');
-      assert(!document.getElementById('flight-modules').querySelector('button'),'Other role can reveal dice');
+    let trade = {id:17,wartet_auf:'pilot',auswahl:{pilot:null,kopilot:null},bestaetigt:{pilot:false,kopilot:false}};
+    options.role='pilot'; actions=[];
+    render({kooperation:trade,kopilot_wuerfel:[null,null,null,null]});
+    test('Trade popup starts with both hands concealed and only the own hand can be revealed', () => {
+      assert(document.querySelector('#trade-dialog[open]'),'Trade popup absent');
+      assert([...document.querySelectorAll('.trade-die')].every(b=>b.textContent==='?'),'Hand exposed before reveal');
+      assert(!document.querySelector('.trade-side.kopilot .trade-reveal'),'Can reveal partner hand');
+      document.querySelector('.trade-side.pilot .trade-reveal').click();
+      assert(document.querySelector('.trade-side.pilot .trade-die').textContent==='4','Own hand cannot be revealed');
+      assert([...document.querySelectorAll('.trade-side.kopilot .trade-die')].every(b=>b.textContent==='?' && b.disabled),'Partner values exposed');
     });
+    test('Selecting a trade die sends its index and moves the selected die toward the other side', () => {
+      document.querySelectorAll('.trade-side.pilot .trade-die')[2].click();
+      assert(JSON.stringify(actions.at(-1))===JSON.stringify(['pilot','kooperation_wahl',{wuerfel_index:2,kooperation_id:17}]),'Selection payload lost identity');
+      trade={...trade,auswahl:{pilot:2,kopilot:1}};
+      render({kooperation:trade,kopilot_wuerfel:[null,null,null,null]});
+      assert(document.querySelectorAll('.trade-die.selected').length===2,'Other selection is not visible');
+      assert(document.querySelector('.trade-side.kopilot .trade-picked').textContent==='?','Other chosen face leaked');
+      assert(document.querySelector('.trade-side.pilot .trade-direction').textContent==='→','Outgoing arrow absent');
+    });
+    test('Confirmation locks only the own selection and publishes partner readiness without their face', () => {
+      document.querySelector('.trade-side.pilot .trade-confirm').click();
+      assert(actions.at(-1)[1]==='kooperation_bestaetigen','Selection not confirmed');
+      trade={...trade,bestaetigt:{pilot:true,kopilot:false},wartet_auf:'kopilot'};
+      render({kooperation:trade,kopilot_wuerfel:[null,null,null,null]});
+      assert([...document.querySelectorAll('.trade-side.pilot .trade-die')].every(b=>b.disabled),'Confirmed choice remains editable');
+      assert(document.querySelector('.trade-side.pilot .trade-selection').textContent.includes('Bestätigt'),'Confirmation status absent');
+      assert(document.querySelector('.trade-side.kopilot .trade-picked').textContent==='?','Face exposed before second confirmation');
+    });
+    test('Pass & Play hides the first hand when the device changes sides', () => {
+      options.role=null;
+      trade={id:18,wartet_auf:'pilot',auswahl:{pilot:0,kopilot:1},bestaetigt:{pilot:false,kopilot:false}};
+      render({kooperation:trade});
+      document.querySelector('.trade-side.pilot .trade-reveal').click();
+      document.querySelector('.trade-side.pilot .trade-confirm').click();
+      trade={...trade,bestaetigt:{pilot:true,kopilot:false},wartet_auf:'kopilot'};
+      render({kooperation:trade});
+      document.querySelector('.trade-side.kopilot .trade-reveal').click();
+      assert([...document.querySelectorAll('.trade-side.pilot .trade-die')].every(b=>b.textContent==='?'),'First hand remains visible to partner');
+      assert(document.querySelector('.trade-side.kopilot .trade-die').textContent==='1','Second hand not revealed');
+    });
+    test('The completed exchange reveals exactly the selected pair and does not replay after continuing', () => {
+      const result={id:18,auswahl:{pilot:0,kopilot:1},vorher:{pilot:4,kopilot:6},nachher:{pilot:6,kopilot:4}};
+      render({kooperation:null,kooperation_ergebnis:result});
+      assert(!document.querySelector('.trade-hand'),'Whole hands exposed in result');
+      assert([...document.querySelectorAll('.trade-flying')].map(e=>e.textContent).join(',')==='4,6','Wrong open pair');
+      assert([...document.querySelectorAll('.trade-receipts strong')].map(e=>e.textContent).join(',')==='6,4','Wrong received values');
+      document.querySelector('.trade-continue').click();
+      FlightModules.render(state,options);
+      assert(!document.querySelector('#trade-dialog[open]'),'Acknowledged animation repeats');
+    });
+    FlightModules.reset(); options.role=null;
     const bonusTarget = {ziel:'ruder',index:null,ziel_besitzer:'pilot',funk_feld:0,label:'Ruder · Pilotin'};
     const unrolled = {rolle:'kopilot',quelle:'synchronisation',wert:null,geworfen:false,ziele:[],kaffee_deltas:[]};
     options.role='pilot'; render({zusatzaktion:unrolled});
