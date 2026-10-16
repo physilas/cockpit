@@ -7,6 +7,8 @@ bool/None) zurück, nie Wuerfel-/Ergebnis-Objekte direkt - das macht die
 und hält die Spielregeln komplett in Python (kein Regel-Code in JS).
 """
 import json
+from copy import deepcopy
+from functools import wraps
 from .spielplan import Spielplan
 from .cockpit import Ergebnis
 from .regeln import grund_text as _grund_text
@@ -14,6 +16,33 @@ from .landung import flughafen_liste as _flughafen_liste
 from .ui_schema import feld_layout as _feld_layout
 
 _spiel = None
+_verlauf = []
+_revision = 0
+_undo_id = 0
+
+
+def _mit_verlauf(aktion):
+    """Keep complete object graphs, including pending abilities and die references."""
+    @wraps(aktion)
+    def ausfuehren(*args, **kwargs):
+        global _revision
+        if _spiel is None:
+            return aktion(*args, **kwargs)
+        # The UI polls at 5 Hz; an unchanged clock must not copy or fill history.
+        if aktion.__name__ == "tick" and (
+            _spiel.zusatz.deadline is None or _spiel.zusatz.clock() < _spiel.zusatz.deadline
+        ):
+            return aktion(*args, **kwargs)
+        vorher = deepcopy(_spiel)
+        antwort = aktion(*args, **kwargs)
+        if (antwort["ergebnis"]["erfolg"] or vorher.status != _spiel.status
+                or vorher.aktuelle_runde != _spiel.aktuelle_runde):
+            _verlauf.append(vorher)
+            del _verlauf[:-200]
+            _revision += 1
+        antwort["zustand"] = zustand()
+        return antwort
+    return ausfuehren
 
 
 def grund_text(code):
@@ -28,9 +57,13 @@ def flughaefen_liste():
 
 
 def neues_spiel(flughafen="MUC", karten_json="[]"):
-    global _spiel
-    _spiel = Spielplan(flughafen, faehigkeitskarten=json.loads(karten_json))
-    _spiel.starte_spiel()
+    global _spiel, _revision, _undo_id
+    spiel = Spielplan(flughafen, faehigkeitskarten=json.loads(karten_json))
+    spiel.starte_spiel()
+    _spiel = spiel
+    _verlauf.clear()
+    _revision += 1
+    _undo_id += 1
     return zustand()
 
 
@@ -51,9 +84,34 @@ def _kein_spiel():
 def zustand():
     if _spiel is None:
         return None
-    return _spiel.zustand()
+    return {**_spiel.zustand(), "rueckgaengig_moeglich": bool(_verlauf),
+            "rueckgaengig_version": _revision, "rueckgaengig_id": _undo_id}
 
 
+def rueckgaengig(besitzer=None, version=None):
+    """Either crew member may undo the latest shared action, never a stale version.
+
+    Real-time deadlines retain their original absolute time: undo does not
+    pause or rewind the clock. A new game intentionally clears the history.
+    """
+    global _spiel, _revision, _undo_id
+    if _spiel is None:
+        return _kein_spiel()
+    if besitzer is not None and besitzer not in ("pilot", "kopilot"):
+        result = Ergebnis(False, "ungueltiger_besitzer")
+    elif version is not None and (type(version) is not int or version != _revision):
+        result = Ergebnis(False, "spielstand_geaendert")
+    elif not _verlauf:
+        result = Ergebnis(False, "kein_rueckgaengig")
+    else:
+        _spiel = _verlauf.pop()
+        _revision += 1
+        _undo_id += 1
+        result = Ergebnis(True, meldung="Letzter Spielschritt rückgängig.")
+    return {"ergebnis": _ergebnis_zu_dict(result), "zustand": zustand()}
+
+
+@_mit_verlauf
 def platziere(besitzer, wuerfel_index, ziel, index=None, funk_feld=0):
     if _spiel is None:
         return _kein_spiel()
@@ -66,6 +124,7 @@ def platziere(besitzer, wuerfel_index, ziel, index=None, funk_feld=0):
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
+@_mit_verlauf
 def trinke_kaffee(besitzer, wuerfel_index, delta):
     if _spiel is None:
         return _kein_spiel()
@@ -79,6 +138,7 @@ def moegliche_kaffee_deltas(besitzer, wuerfel_index):
     return _spiel.moegliche_kaffee_deltas(besitzer, wuerfel_index)
 
 
+@_mit_verlauf
 def benutze_neuwurf(pilot_indizes, kopilot_indizes):
     if _spiel is None:
         return _kein_spiel()
@@ -92,6 +152,7 @@ def benutze_neuwurf(pilot_indizes, kopilot_indizes):
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
+@_mit_verlauf
 def rundenende():
     if _spiel is None:
         return _kein_spiel()
@@ -99,10 +160,11 @@ def rundenende():
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
+@_mit_verlauf
 def wirf_verkehrswuerfel(besitzer=None):
     if _spiel is None:
         return _kein_spiel()
-    ergebnis = _spiel.wirf_verkehrswuerfel(besitzer)
+    ergebnis = _spiel.wirf_verkehrswuerfel(besitzer, runde_starten=False)
     return {"ergebnis": _ergebnis_zu_dict(ergebnis), "zustand": zustand()}
 
 
@@ -121,6 +183,7 @@ def feld_layout():
     return _feld_layout()
 
 
+@_mit_verlauf
 def modul_aktion(besitzer, aktion, parameter_json="{}"):
     if _spiel is None:
         return _kein_spiel()
@@ -135,6 +198,7 @@ def modul_aktion(besitzer, aktion, parameter_json="{}"):
     return {"ergebnis": _ergebnis_zu_dict(result), "zustand": zustand()}
 
 
+@_mit_verlauf
 def tick():
     if _spiel is None:
         return _kein_spiel()

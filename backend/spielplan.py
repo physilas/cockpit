@@ -82,8 +82,8 @@ class Spielplan:
         self.zusatz.wuerfel_geworfen()
         return True
 
-    def wirf_verkehrswuerfel(self, besitzer=None):
-        """Ein Symbol auflösen. Nach dem letzten Wurf beginnt die Platzierphase."""
+    def wirf_verkehrswuerfel(self, besitzer=None, runde_starten=True):
+        """Ein Symbol auflösen; die Web-UI darf den Rundenstart kurz verzögern."""
         if self.status != "laeuft":
             return Ergebnis(False, "spiel_beendet")
         if besitzer is not None:
@@ -106,7 +106,8 @@ class Spielplan:
             meldung += f"Ein weiteres Flugzeug auf Entfernung {ziel}."
         if self.verkehrswuerfel_offen == 0:
             self.phase = "vorbereitung"
-            self.wuerfeln_fuer_runde()
+            if runde_starten:
+                self.wuerfeln_fuer_runde()
             meldung += f" Runde {self.aktuelle_runde} ist bereit."
         self.letzte_meldung = meldung
         return Ergebnis(True, meldung=meldung)

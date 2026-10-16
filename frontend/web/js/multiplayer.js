@@ -26,6 +26,7 @@ let bridge = null;       // Pyodide-Bridge (nur Host)
 let pyodideReady = false;
 let partnerConnected = false;
 let aktuellerZustand = null;
+let rueckgaengigId = null;
 let ausgewaehlterWuerfel = null;
 let kaffeeMenuFuer = null;
 let eigeneWuerfelVersteckt = false;
@@ -227,6 +228,14 @@ function hostAktion(msg, absender) {
       ));
       zeigeErgebnis(r.ergebnis);
       raw = r.zustand;
+    } else if (msg.typ === "rueckgaengig") {
+      const r = pyToJs(bridge.rueckgaengig(msg.besitzer, msg.version));
+      zeigeErgebnis(r.ergebnis);
+      raw = r.zustand;
+    } else if (msg.typ === "verkehr_start") {
+      const z = pyToJs(bridge.zustand());
+      if (msg.besitzer !== z.am_zug || msg.version !== z.rueckgaengig_version || z.phase !== "vorbereitung" || !z.verkehrswuerfe.length || z.verkehrswuerfel_offen) return false;
+      raw = pyToJs(bridge.wuerfeln_fuer_runde());
     } else if (msg.typ === "modul_aktion") {
       const r = pyToJs(bridge.modul_aktion(msg.besitzer, msg.aktion, JSON.stringify(msg.parameter || {})));
       zeigeErgebnis(r.ergebnis);
@@ -598,6 +607,13 @@ function renderAltitudeLabels(markerY, aktuelleHoehe, neuwurfHoehen) {
 
 function render(z) {
   if(!z)return;
+  if (rueckgaengigId !== z.rueckgaengig_id) {
+    if (rueckgaengigId !== null) eigeneWuerfelVersteckt = true;
+    rueckgaengigId = z.rueckgaengig_id;
+    ausgewaehlterWuerfel = kaffeeMenuFuer = null;
+    neuwurfUiReset(); FlightModules.reset(); resetVerkehrUi();
+  }
+  document.getElementById("rueckgaengig-btn").disabled = !z.rueckgaengig_moeglich || neuwurfUi.phase !== 0;
   Landings.updateFlight(z);
   document.getElementById("s-runde").textContent = z.letzte_runde
     ? "🛬 Landung"
@@ -611,7 +627,7 @@ function render(z) {
   renderTracks(z);
   renderVerkehr(z, TRACK_UNIT_PX, myRole === z.am_zug, () => {
     return meineAktion({ typ: "wirf_verkehrswuerfel" });
-  });
+  }, () => meineAktion({typ:"verkehr_start",version:z.rueckgaengig_version}));
 
   if(myRole) {
     const b=document.getElementById("meine-rolle-badge");
@@ -967,12 +983,6 @@ function renderNeuwurf(z) {
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const joinCode = params.get("join");
-  if (joinCode) {
-    showScreen("screen-join");
-    document.getElementById("join-code-input").value = joinCode;
-    starte_Beitreten(joinCode);
-    return;
-  }
 
   document.getElementById("btn-host").addEventListener("click", waehleLandung);
   document.getElementById("btn-join").addEventListener("click", () => showScreen("screen-join"));
@@ -985,7 +995,17 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("neues-spiel-btn")?.addEventListener("click", waehleLandung);
   document.getElementById("rundenende-btn")?.addEventListener("click", () => meineAktion({typ:"rundenende"}));
+  document.getElementById("rueckgaengig-btn")?.addEventListener("click", () => document.dispatchEvent(new Event("cockpit-undo")));
+  document.addEventListener("cockpit-undo", () => {
+    if (neuwurfUi.phase !== 0 || !aktuellerZustand?.rueckgaengig_moeglich) return;
+    meineAktion({typ:"rueckgaengig",version:aktuellerZustand.rueckgaengig_version});
+  });
   document.getElementById("menue-btn")?.addEventListener("click", () => {
     window.location = "index.html";
   });
+  if (joinCode) {
+    showScreen("screen-join");
+    document.getElementById("join-code-input").value = joinCode;
+    starte_Beitreten(joinCode);
+  }
 });

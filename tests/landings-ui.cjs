@@ -50,7 +50,7 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     assert.equal(await page.evaluate(() => pyToJs(bridge.zustand()).verkehrswuerfel_offen),1);
     await page.locator('.traffic-roll-button').click();
     await page.waitForFunction(() => pyToJs(bridge.zustand()).phase === 'platzieren');
-    await page.getByRole('button',{name:'Runde beginnen',exact:true}).click();
+    await page.locator('#verkehr-dialog').waitFor({state:'hidden'});
     await page.locator('#neues-spiel-btn').click();
     assert.equal(await page.locator('dialog[open]').count(),0);
     await page.locator('[data-action="gallery"]').click(); await page.locator('[data-filter="custom"]').click();
@@ -93,7 +93,7 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
       await host.locator('.traffic-roll-button').click();
       await host.waitForFunction(count=>pyToJs(bridge.zustand()).verkehrswuerfel_offen<count,remaining);
     }
-    await host.getByRole('button',{name:'Runde beginnen',exact:true}).click();
+    await host.locator('#verkehr-dialog').waitFor({state:'hidden'});
     assert.ok(await host.evaluate(()=>pyToJs(bridge.zustand()).pilot_wuerfel.every(v=>Number.isInteger(v))));
     let msg=await host.evaluate(()=>window.fixtureHost.sent.filter(m=>m.typ==='zustand').at(-1));
     assert.equal(msg.zustand.szenario_id,'HND-red'); assert.ok(msg.zustand.pilot_wuerfel.every(v=>v===null));

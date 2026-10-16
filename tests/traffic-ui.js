@@ -9,16 +9,20 @@ document.getElementById("run-tests").addEventListener("click", async event => {
   const report = message => { passed++; output.textContent += `✓ ${message}\n`; };
   const find = selector => document.querySelector(selector);
   const waitForRoll = () => new Promise(resolve => setTimeout(resolve, 650));
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const base = () => ({
-    runde: 1, hoehe: 6000, entfernung: 6, laenge: 7, status: "laeuft",
+    runde: 1, hoehe: 6000, entfernung: 6, laenge: 7, status: "laeuft", phase: "verkehr",
+    rueckgaengig_moeglich: true,
     flugzeuge: [0, 1, 3, 0, 1, 1, 0], flugzeugwuerfel: [1, 0, 2, 0, 1, 0, 0],
     verkehrswuerfel_offen: 2, verkehrswuerfe: [],
   });
   let z = base();
-  let calls = 0;
+  let calls = 0, starts = 0, undos = 0;
+  const undo = () => undos++;
+  document.addEventListener("cockpit-undo", undo);
   const render = (allowed = true, roll = mockRoll) => {
     renderEntfernungsFlugzeuge(z, 36);
-    renderVerkehr(z, 36, allowed, roll);
+    renderVerkehr(z, 36, allowed, roll, () => { starts++; z.phase = "platzieren"; render(allowed, roll); });
   };
   function mockRoll() {
     calls++;
@@ -27,6 +31,7 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     if (result.ziel_entfernung != null) flugzeuge[z.laenge - 1 - result.ziel_entfernung]++;
     z = { ...z, flugzeuge, verkehrswuerfel_offen: z.verkehrswuerfel_offen - 1,
       verkehrswuerfe: [...z.verkehrswuerfe, result] };
+    if (!z.verkehrswuerfel_offen) z.phase = "vorbereitung";
     render();
     return true;
   }
@@ -103,6 +108,8 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     assert(calls === 1 && z.verkehrswuerfel_offen === 1, "Doppelter/verlorener Wurf");
     assert(find("dialog").open && isBlocked() && find(".traffic-roll-die").textContent === "3", "Erstes Ergebnis fehlt");
     assert(!find(".traffic-roll-button").disabled, "Nächster Wurf gesperrt");
+    await wait(1050);
+    assert(starts === 0 && isBlocked(), "Runde beginnt vor dem letzten Würfel");
     report("Doppelklick würfelt nur einmal; weitere Würfe bleiben möglich");
 
     assert(find('.aircraft-arriving[data-distance="4"]').querySelectorAll(".aircraft-icon").length === 4, "Neues Flugzeug auf belegtem Feld nicht animiert");
@@ -118,26 +125,51 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     assert(find("dialog").open && calls === 1, "Wiederöffnen würfelt erneut");
     report("Strecke ansehen und Dialog wieder öffnen verändern keine Würfe");
 
+    find(".traffic-undo-button").click();
+    assert(undos === 1, "Rückgängig im Dialog nicht erreichbar");
+    report("Rückgängig ist auch im modalen Würfeldialog erreichbar");
+
     clickRoll();
     await waitForRoll();
     assert(calls === 2 && z.verkehrswuerfel_offen === 0 && isBlocked(), "Letztes Ergebnis gibt Cockpit zu früh frei");
     assert(find(".traffic-roll-result").textContent.includes("Glück gehabt"), "Zu kurze Strecke (Pyodide undefined) falsch angezeigt");
     assert(verkehrErgebnisText({wert:5,ziel_entfernung:null}).includes("Glück gehabt"), "Remote null falsch angezeigt");
     assert(!find(".aircraft-arriving"), "Fehlendes Flugzeug wird trotzdem animiert");
+    assert(find(".traffic-roll-button").disabled, "Manueller Start überspringt den Cooldown");
     clickRoll(); render();
-    assert(!find("dialog").open && !find(".board-grid").inert && find(".traffic-fog").hidden, "Bestätigung gibt Cockpit nicht frei");
+    await wait(450); render();
+    assert(starts === 0 && isBlocked(), "Cooldown kürzer als eine Sekunde");
+    await wait(600);
+    assert(starts === 1 && z.phase === "platzieren", "Automatischer Rundenstart fehlt/ist doppelt");
+    assert(!find("dialog").open && !find(".board-grid").inert && find(".traffic-fog").hidden, "Automatischer Start gibt Cockpit nicht frei");
     assert(find("#verkehr-panel").classList.contains("versteckt") && !find("#verkehr-panel").children.length, "Unnötige Ergebnisbox bleibt sichtbar");
-    report("Letzter Wurf bleibt sichtbar; Runde beginnen entfernt Nebel und Sperre");
+    report("Eine Sekunde nach dem letzten Wurf startet die Runde automatisch; Rendern verlängert die Pause nicht");
 
     z = { ...base(), runde: 2, hoehe: 5000 };
     render(false);
     assert(find("dialog").open && find(".traffic-roll-button").disabled, "Wartende Person darf würfeln");
     clickRoll();
     assert(calls === 2, "Falsche Rolle hat gewürfelt");
-    z = { ...z, verkehrswuerfel_offen: 0, verkehrswuerfe: [{ wert: 4, ziel_entfernung: 3 }] };
+    z = { ...z, phase: "vorbereitung", verkehrswuerfel_offen: 0, verkehrswuerfe: [{ wert: 4, ziel_entfernung: 3 }] };
     render(false);
-    assert(find(".traffic-roll-die").textContent === "4" && !find(".traffic-roll-button").disabled, "Remote-Ergebnis nicht übernommen");
+    assert(find(".traffic-roll-die").textContent === "4" && find(".traffic-roll-button").disabled, "Remote-Ergebnis nicht übernommen");
+    await wait(1100);
+    assert(starts === 1 && !isBlocked(), "Wartendes Gerät startet eigenständig die Runde");
     report("Neue Runde am selben Feld öffnet erneut; andere Rolle wartet auf das Ergebnis");
+
+    resetVerkehrUi(); render();
+    assert(find("dialog").open && isBlocked(), "Abschluss-Snapshot nach Neuverbindung startet keinen Cooldown");
+    resetVerkehrUi();
+    await wait(1100);
+    assert(starts === 1 && !isBlocked(), "Spielwechsel lässt einen alten Cooldown weiterlaufen");
+    report("Neuverbindung erkennt den Abschluss; Spielwechsel bricht den Cooldown ab");
+
+    render();
+    z = { ...z, phase: "verkehr", verkehrswuerfel_offen: 1, verkehrswuerfe: [] };
+    render();
+    await wait(1100);
+    assert(starts === 1 && isBlocked() && find(".traffic-roll-die").textContent === "?", "Rückgängig lässt alten Rundenstart oder Würfelwert stehen");
+    report("Rückgängig während des Cooldowns verwirft den ausstehenden Rundenstart");
 
     resetVerkehrUi(); z = base();
     render(true, () => false);
@@ -148,14 +180,15 @@ document.getElementById("run-tests").addEventListener("click", async event => {
     render(); clickRoll(); resetVerkehrUi();
     await waitForRoll();
     assert(calls === 2 && !find("dialog").open && find(".traffic-fog").hidden, "Abgebrochene Animation würfelt nach Spielwechsel");
-    z = { ...base(), verkehrswuerfel_offen: 0 }; render();
+    z = { ...base(), phase: "platzieren", verkehrswuerfel_offen: 0 }; render();
     assert(!find("dialog").open && !find(".board-grid").inert, "Normale Runde wird gesperrt");
     report("Spielwechsel bricht Animation ab; ohne fällige Würfel bleibt alles frei");
-    output.textContent += `\n${passed}/12 Tests bestanden.`;
+    output.textContent += `\n${passed}/15 Tests bestanden.`;
   } catch (error) {
-    output.textContent += `✗ ${error.message}\n${passed}/12 Tests bestanden.`;
+    output.textContent += `✗ ${error.message}\n${passed}/15 Tests bestanden.`;
   } finally {
     resetVerkehrUi();
+    document.removeEventListener("cockpit-undo", undo);
     event.target.disabled = false;
   }
 });

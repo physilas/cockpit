@@ -30,6 +30,8 @@ window.COCKPIT_SCHEMA = {
     "unbekanntes_ziel": "Unbekanntes Ziel",
     "noch_nicht_alle_wuerfel_platziert": "Noch nicht alle Würfel platziert",
     "kein_spiel_aktiv": "Kein Spiel aktiv",
+    "kein_rueckgaengig": "Noch kein Spielschritt zum Rückgängigmachen",
+    "spielstand_geaendert": "Der Spielstand hat sich inzwischen geändert",
     "runde_nicht_bereit": "Zuerst die schwarzen Verkehrswürfel werfen",
     "kein_verkehrswuerfel_offen": "Kein schwarzer Verkehrswürfel mehr offen",
     "kerosin_leer": "Kerosin aufgebraucht",

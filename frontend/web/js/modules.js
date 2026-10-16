@@ -13,6 +13,8 @@ window.FlightModules = (() => {
     clearTimeout(syncUi.timer);
     syncUi.timer = null; syncUi.key = null; syncUi.peek = syncUi.busy = false;
     if (syncUi.dialog?.open) syncUi.dialog.close();
+    document.getElementById('sync-reminder')?.remove();
+    document.querySelectorAll('header.has-sync-reminder').forEach(el => el.classList.remove('has-sync-reminder'));
   }
   function showSync() {
     syncUi.peek = false;
@@ -26,10 +28,11 @@ window.FlightModules = (() => {
     if (!syncUi.dialog) {
       const d = document.createElement('dialog'); d.id = 'sync-dialog';
       d.setAttribute('aria-labelledby','sync-dialog-title');
-      d.innerHTML = '<h2 id="sync-dialog-title">Synchronisation</h2><div class="traffic-roll-stage"><span class="traffic-roll-die">?</span></div><p class="sync-role" role="status"></p><button type="button" class="sync-roll-button">Werfen</button><button type="button" class="sync-peek-button">Cockpit ansehen</button>';
+      d.innerHTML = '<h2 id="sync-dialog-title">Synchronisation</h2><div class="traffic-roll-stage"><span class="traffic-roll-die">?</span></div><p class="sync-role" role="status"></p><button type="button" class="sync-roll-button">Werfen</button><button type="button" class="sync-peek-button">Cockpit ansehen</button><button type="button" class="sync-undo-button">↶ Rückgängig</button>';
       document.body.appendChild(d); syncUi.dialog = d;
       const peek = () => {syncUi.peek = true; d.close();};
       d.querySelector('.sync-peek-button').addEventListener('click',peek);
+      d.querySelector('.sync-undo-button').addEventListener('click', () => document.dispatchEvent(new Event('cockpit-undo')));
       d.addEventListener('cancel', e => {e.preventDefault(); peek();});
       d.querySelector('.sync-roll-button').addEventListener('click', () => {
         const pending = current?.z.zusatzaktion;
@@ -54,6 +57,17 @@ window.FlightModules = (() => {
     const b = d.querySelector('.sync-roll-button');
     b.textContent = rolled ? 'Im Cockpit platzieren' : syncUi.busy ? 'Würfelt …' : allowed(p.rolle) ? 'Werfen' : `Warte auf ${name(p.rolle)} …`;
     b.disabled = !allowed(p.rolle) || syncUi.busy || options.reroll;
+    d.querySelector('.sync-undo-button').disabled = !z.rueckgaengig_moeglich || syncUi.busy || options.reroll;
+    let reminder = document.getElementById('sync-reminder');
+    if (!reminder) {
+      reminder = document.createElement('button'); reminder.id = 'sync-reminder'; reminder.type = 'button';
+      reminder.addEventListener('click',showSync);
+      document.body.appendChild(reminder);
+    }
+    reminder.innerHTML = `<span class="traffic-die" aria-hidden="true">${rolled ? p.wert : '?'}</span><span>Synchronisation · ${name(p.rolle)}<small>${rolled ? 'Im Cockpit platzieren' : 'Schwarzen Würfel werfen'}</small></span>`;
+    reminder.setAttribute('aria-label', rolled ? `Synchronisation: schwarzer Würfel ${p.wert}. ${name(p.rolle)} muss ihn im Cockpit platzieren.` : `Synchronisation: ${name(p.rolle)} würfelt den schwarzen Würfel.`);
+    const header = document.querySelector('#game-header:not(.versteckt), #spiel-header:not(.versteckt)');
+    if (header) {header.appendChild(reminder); header.classList.add('has-sync-reminder');}
     if (!syncUi.peek && !d.open) d.showModal();
   }
 
@@ -340,6 +354,7 @@ window.FlightModules = (() => {
   }
   function render(z, options) {
     const scenarioChanged = current?.z.szenario_id !== z.szenario_id;
+    if (current?.z.rueckgaengig_id !== z.rueckgaengig_id) {resetSync(); choice = revealed = null; closeDetail();}
     current = {z,options};
     if (scenarioChanged) closeDetail();
     const key = `${z.szenario_id}:${z.runde}:${z.kooperation?.wartet_auf || ''}`;

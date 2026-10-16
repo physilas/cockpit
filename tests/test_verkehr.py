@@ -157,8 +157,10 @@ class VerkehrTest(unittest.TestCase):
             with patch("backend.spielplan.wirf_verkehrswuerfel", return_value=2):
                 antwort = bridge.wirf_verkehrswuerfel("pilot")
             self.assertTrue(antwort["ergebnis"]["erfolg"])
-            self.assertEqual(antwort["zustand"]["phase"], "platzieren")
+            self.assertEqual(antwort["zustand"]["phase"], "vorbereitung")
+            self.assertEqual(antwort["zustand"]["pilot_wuerfel"], [None] * 4)
             self.assertEqual(antwort["zustand"]["verkehrswuerfe"], [{"wert": 2, "ziel_entfernung": 5}])
+            self.assertEqual(bridge.wuerfeln_fuer_runde()["phase"], "platzieren")
 
     def test_verkehr_auch_in_warteschleife_und_landerunde_aber_nicht_nach_spielende(self):
         spiel = Spielplan("FRA")

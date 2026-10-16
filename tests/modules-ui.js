@@ -8,7 +8,7 @@ document.getElementById('run-tests').addEventListener('click', async event => {
   const test = (label, fn) => {fn(); count++; lines.push(`✓ ${label}`); output.textContent = lines.join('\n');};
   const options = {role:null, selected, reroll:false, onAction:(...args) => actions.push(args), onPlace:(...args) => actions.push(args), conceal() {options.selected = null; FlightModules.render(state,options);}};
   const base = {
-    szenario_id:'fixture', runde:1, status:'laeuft', phase:'platzieren', am_zug:'pilot',
+    szenario_id:'fixture', runde:1, status:'laeuft', phase:'platzieren', am_zug:'pilot', rueckgaengig_id:0, rueckgaengig_moeglich:true,
     module:['kerosene','wind','ice','intern','realtime'], faehigkeitskarten:['control','adaptation'],
     kerosin:20, wind_position:0, wind_wert:3, wind_ring:[3,3,2,2,1,0,-1,-2,-3,-3,-3,-2,-1,0,1,2,2,3],
     eis_fortschritt:0, praktikant:[3,6,1,5,4,2], bremsstaerke:1.5,
@@ -211,10 +211,37 @@ document.getElementById('run-tests').addEventListener('click', async event => {
     test('The result closes into direct board placement with the same pending die', () => {
       document.querySelector('.sync-roll-button').click();
       assert(!document.querySelector('#sync-dialog[open]'),'Roll popup still blocks board');
+      const reminder=document.getElementById('sync-reminder');
+      assert(reminder.closest('header') && reminder.querySelector('.traffic-die').textContent==='4','Top reminder lost rolled value');
+      assert(reminder.textContent.includes('Co-Pilot') && reminder.textContent.includes('Im Cockpit platzieren'),'Top reminder lost task or role');
       document.querySelector('#ruder-slot-pilot .bonus-target').click();
       assert(actions.length===2 && actions[1][1]==='zusatz_platzieren' && actions[1][2]===bonusTarget,'Board placement lost the bonus target');
       render({});
       assert(!document.querySelector('#sync-dialog[open]'),'Popup reappears after completion');
+      assert(!document.getElementById('sync-reminder'),'Reminder remains after placement');
+    });
+    test('Reminder tracks coffee, stays public to the waiting player and reopens the die', () => {
+      const pending={...unrolled,wert:5,geworfen:true,ziele:[bonusTarget]};
+      options.role='pilot'; render({zusatzaktion:pending});
+      document.querySelector('.sync-peek-button').click();
+      const reminder=document.getElementById('sync-reminder');
+      assert(reminder.querySelector('.traffic-die').textContent==='5','Coffee adjustment absent from reminder');
+      assert(!document.querySelector('.bonus-target'),'Waiting role can place shared die');
+      for (const width of [320,390,600]) {
+        fixture.style.width=`${width}px`;
+        const r=rect(reminder), h=rect(reminder.closest('header'));
+        assert(r.left>=h.left && r.right<=h.right,'Reminder overflows narrow header');
+        assert(r.bottom<=rect(document.querySelector('.board-grid')).top,'Reminder covers cockpit');
+      }
+      reminder.click();
+      assert(document.querySelector('#sync-dialog[open]'),'Reminder cannot reopen popup');
+    });
+    test('Undo resets pending popup state and removes reminders when the trigger is undone', () => {
+      render({rueckgaengig_id:1,zusatzaktion:unrolled});
+      assert(document.querySelector('#sync-dialog .traffic-roll-die').textContent==='?','Undo leaves stale value');
+      assert(document.querySelector('#sync-dialog[open]'),'Undo does not reopen pending roll');
+      render({rueckgaengig_id:2});
+      assert(!document.getElementById('sync-reminder') && !document.querySelector('header.has-sync-reminder'),'Undo trigger leaves reminder');
     });
     options.onAction=onAction; options.role=null;
     lines.push(`\n${count} Prüfungen bestanden.`); output.textContent=lines.join('\n');

@@ -148,3 +148,9 @@
 #sync-dialog button { width: 100%; min-height: 42px; padding: .45rem; border: 1px solid #e7b141; border-radius: 6px; color: #fff; background: linear-gradient(#e48525,#b94117); font-size: .82rem; font-weight: 800; }
 #sync-dialog button:disabled { opacity: .5; cursor: default; }
 #sync-dialog .sync-peek-button { color: #315b65; border-color: #95b3b5; background: transparent; }
+#sync-dialog .sync-undo-button, #verkehr-dialog .traffic-undo-button { color: #315b65; border-color: #95b3b5; background: transparent; }
+header.has-sync-reminder { flex-wrap: wrap; }
+#sync-reminder { display: flex; align-items: center; gap: .6rem; flex-basis: 100%; width: 100%; padding: .35rem .6rem; border: 1px solid #7c9da1; border-radius: 7px; background: #f4faf6; color: #21474f; font-size: .75rem; text-align: left; }
+#sync-reminder .traffic-die { width: 38px; height: 38px; font-size: 1.3rem; }
+#sync-reminder small { display: block; margin-top: .15rem; font-weight: 800; }
+#rueckgaengig-btn:disabled { opacity: .4; cursor: default; }

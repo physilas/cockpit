@@ -241,8 +241,9 @@ Flugzeug wird kurz auf seinem Zielfeld eingeblendet, auch bei
 Mehrfachbelegung; wiederholtes Rendern spielt die Animation nicht erneut.
 Bei reduzierter Bewegung blitzt nur das Zielfeld auf. „Strecke ansehen“
 schließt nur den Dialog, nicht die Wurfphase. Mehrere Würfe werden einzeln
-abgearbeitet, anschließend gibt „Runde beginnen“ das Cockpit frei.
-Erst nach dem letzten Wurf werden die acht Spielerwürfel geworfen.
+abgearbeitet. Eine Sekunde nach dem letzten Ergebnis beginnt die Runde
+automatisch: Der Dialog schließt, der Nebel verschwindet und erst jetzt
+werden die acht Spielerwürfel geworfen (bzw. die Echtzeituhr gestartet).
 Kurven stehen klein am oberen Feldrand, Verkehrswürfel rechts und
 Flugzeuge dazwischen. Jedes Flugzeug erscheint als eigenes Symbol ohne
 Zähler, leicht zufällig versetzt und gedreht. Die Verteilung bleibt pro
@@ -316,4 +317,17 @@ CC0, CC BY und CC BY-SA; die jeweilige Bildfassung behält die angegebene Lizenz
 
 Die Zusatzinstrumente sind in das Cockpit integriert: Treibstoff rechts mit Würfelfeld unter den Klappen, Eisbremsen im Bremsbereich und ein vergrößerbares Windrad neben dem Schub. Praktikant und ausgewählte Fähigkeitskarten nutzen schmale Leisten darunter. Flughafeninfos stehen platzsparend im 42 px hohen Kopfbereich. Ein einzelner Neuwurfknopf zeigt die verfügbare Anzahl. Die UI-Prüfung dafür läuft unter `tests/modules-ui.html` über „Instrumente prüfen“.
 
-Praktikantenplättchen und Synchronisationswürfel werden direkt auf hervorgehobene Cockpitfelder gelegt. Bei Synchronisation würfelt die Person gegenüber dem auslösenden Zug zuerst im schwarzen Würfeldialog; danach werden die erlaubten Ziele freigegeben. Die regulären Spielerwürfel werden dabei nicht verbraucht.
+Praktikantenplättchen und Synchronisationswürfel werden direkt auf hervorgehobene Cockpitfelder gelegt. Bei Synchronisation würfelt die Person gegenüber dem auslösenden Zug zuerst im schwarzen Würfeldialog; danach werden die erlaubten Ziele freigegeben. Eine Anzeige im fixierten Kopfbereich zeigt weiterhin den schwarzen Zahlenwürfel, die zuständige Rolle und die offene Aufgabe. Die regulären Spielerwürfel werden dabei nicht verbraucht.
+
+### Rückgängig
+
+Der ↶-Button im Kopfbereich stellt den letzten Spielschritt vollständig
+wieder her, einschließlich Würfeln, Ressourcen, Zugfolge, Zusatzaktionen
+und Rundenwechseln. Bis zu 200 Schritte sind verfügbar; eine neue Partie
+leert den Verlauf. Ungültige Aktionen werden nicht mitgezählt. Auch in
+den schwarzen Würfeldialogen ist Rückgängig verfügbar.
+Im Multiplayer können beide Crewmitglieder den letzten gemeinsamen
+Schritt zurücknehmen; der Host verteilt den wiederhergestellten Stand
+mit derselben Würfel-Privatsphäre wie sonst. Veraltete doppelte Anfragen
+werden abgewiesen. Die Echtzeituhr wird dabei nicht angehalten oder
+zurückgedreht.

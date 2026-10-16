@@ -94,15 +94,17 @@ function animiereVerkehrsFlugzeuge(wuerfe) {
 
 const verkehrDialogUi = {
   key: null, zustand: null, darfWerfen: false, werfen: null,
+  starteRunde: null, cooldown: null,
   aktiv: false, bestaetigt: false, streckeAnsehen: false,
   gesehen: 0, busy: false, timer: null, dialog: null, nebel: null,
 };
 
 function resetVerkehrUi() {
   clearTimeout(verkehrDialogUi.timer);
+  clearTimeout(verkehrDialogUi.cooldown);
   Object.assign(verkehrDialogUi, {
     key: null, zustand: null, aktiv: false, bestaetigt: false,
-    streckeAnsehen: false, gesehen: 0, busy: false, timer: null,
+    streckeAnsehen: false, gesehen: 0, busy: false, timer: null, cooldown: null,
   });
   if (verkehrDialogUi.dialog?.open) verkehrDialogUi.dialog.close();
   setzeVerkehrSperre(false);
@@ -163,20 +165,13 @@ function erstelleVerkehrDialog() {
     <div class="traffic-roll-stage"><span class="traffic-roll-die" aria-label="Noch nicht geworfen">?</span></div>
     <span class="traffic-roll-result sr-only" role="status" aria-live="polite"></span>
     <button type="button" class="traffic-roll-button" autofocus>Werfen</button>
-    <button type="button" class="traffic-peek-button">Strecke ansehen</button>`;
+    <button type="button" class="traffic-peek-button">Strecke ansehen</button>
+    <button type="button" class="traffic-undo-button">↶ Rückgängig</button>`;
   dialog.querySelector(".traffic-roll-button").addEventListener("click", () => {
-    if (!ui.zustand?.verkehrswuerfel_offen) {
-      ui.bestaetigt = true;
-      ui.aktiv = false;
-      dialog.close();
-      setzeVerkehrSperre(false);
-      const panel = document.getElementById("verkehr-panel");
-      panel.replaceChildren();
-      panel.classList.add("versteckt");
-      document.querySelector(".view-btn:not(:disabled), #rundenende-btn:not(:disabled)")?.focus();
-    } else {
-      starteVerkehrAnimation();
-    }
+    if (ui.zustand?.verkehrswuerfel_offen) starteVerkehrAnimation();
+  });
+  dialog.querySelector(".traffic-undo-button").addEventListener("click", () => {
+    document.dispatchEvent(new Event("cockpit-undo"));
   });
   const ansehen = () => {
     ui.streckeAnsehen = true;
@@ -260,11 +255,31 @@ function aktualisiereVerkehrDialog() {
     : letzter ? verkehrErgebnisText(letzter)
     : ui.darfWerfen ? "Würfle zuerst den schwarzen Würfel." : "Warte auf den schwarzen Würfel.";
   const button = ui.dialog.querySelector(".traffic-roll-button");
-  button.textContent = !offen ? "Runde beginnen"
+  button.textContent = !offen ? "Startet …"
     : ui.busy ? "Würfelt …"
     : !ui.darfWerfen ? "Warte …"
     : offen > 1 ? `Werfen (${offen})` : "Werfen";
-  button.disabled = ui.busy || (offen > 0 && !ui.darfWerfen);
+  button.disabled = !offen || ui.busy || !ui.darfWerfen;
+  ui.dialog.querySelector(".traffic-undo-button").disabled = ui.busy || !z.rueckgaengig_moeglich;
+}
+
+function starteVerkehrCooldown() {
+  const ui = verkehrDialogUi;
+  if (ui.cooldown !== null || !ui.aktiv || ui.zustand?.verkehrswuerfel_offen) return;
+  const key = ui.key;
+  ui.cooldown = setTimeout(() => {
+    ui.cooldown = null;
+    if (ui.key !== key || !ui.aktiv || ui.zustand?.verkehrswuerfel_offen) return;
+    ui.bestaetigt = true;
+    ui.aktiv = false;
+    if (ui.dialog?.open) ui.dialog.close();
+    setzeVerkehrSperre(false);
+    const panel = document.getElementById("verkehr-panel");
+    panel.replaceChildren(); panel.classList.add("versteckt");
+    // Only the designated crew member starts the authoritative round.
+    // Other devices receive the host snapshot; no private dice leak early.
+    if (ui.darfWerfen && ui.zustand?.phase === "vorbereitung") ui.starteRunde?.();
+  }, 1000);
 }
 
 function verkehrErgebnisText(wurf) {
@@ -273,7 +288,7 @@ function verkehrErgebnisText(wurf) {
     : `+1 ✈ auf Entfernung ${wurf.ziel_entfernung}`;
 }
 
-function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
+function renderVerkehr(z, trackUnit, darfWerfen, werfen, starteRunde = null) {
   const track = document.getElementById("distance-track");
   let symbole = document.getElementById("distance-traffic");
   if (!symbole) {
@@ -313,6 +328,7 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
   ui.zustand = z;
   ui.darfWerfen = darfWerfen;
   ui.werfen = werfen;
+  ui.starteRunde = starteRunde;
   if (wuerfe.length > ui.gesehen) {
     clearTimeout(ui.timer);
     ui.timer = null;
@@ -321,7 +337,7 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
     document.getElementById("meldung-leiste")?.replaceChildren();
   }
   ui.gesehen = wuerfe.length;
-  if (offen) ui.aktiv = true;
+  if (offen || (z.phase === "vorbereitung" && wuerfe.length && !ui.bestaetigt)) ui.aktiv = true;
   if (z.status !== "laeuft" || ui.bestaetigt) ui.aktiv = false;
 
   const panel = document.getElementById("verkehr-panel");
@@ -345,4 +361,5 @@ function renderVerkehr(z, trackUnit, darfWerfen, werfen) {
   aktualisiereVerkehrDialog();
   if (ui.aktiv && !ui.streckeAnsehen) oeffneVerkehrDialog();
   else if (!ui.aktiv && ui.dialog?.open) ui.dialog.close();
+  if (!offen && wuerfe.length && ui.aktiv) starteVerkehrCooldown();
 }

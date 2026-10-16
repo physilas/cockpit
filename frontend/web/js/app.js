@@ -21,6 +21,7 @@ let kaffeeMenuOffenFuer = null;
 let neuwurfOffen = false;
 let neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
 let aktuellerZustand = null;
+let rueckgaengigId = null;
 
 // Pass-&-Play Würfelsichtbarkeit
 // null = alle verborgen; "pilot" / "kopilot" = nur diese Seite sichtbar
@@ -268,7 +269,13 @@ function bindeNeuwurfTokens(zustand) {
 
 function render(zustand) {
   if (!zustand) return;
+  if (rueckgaengigId !== zustand.rueckgaengig_id) {
+    rueckgaengigId = zustand.rueckgaengig_id;
+    ausgewaehlterWuerfel = kaffeeMenuOffenFuer = null;
+    neuwurfReset(); FlightModules.reset(); resetVerkehrUi();
+  }
   aktuellerZustand = zustand;
+  document.getElementById("rueckgaengig-btn").disabled = !zustand.rueckgaengig_moeglich || neuwurfPhase !== 0;
   Landings.updateFlight(zustand);
 
   document.getElementById("s-runde").textContent = zustand.letzte_runde
@@ -286,7 +293,7 @@ function render(zustand) {
     const antwort = pyToJs(bridge.wirf_verkehrswuerfel());
     nachAktion(antwort);
     return antwort.ergebnis.erfolg;
-  });
+  }, () => render(pyToJs(bridge.wuerfeln_fuer_runde())));
   renderCockpitBoard(zustand);
   renderWuerfel("pilot", zustand);
   renderWuerfel("kopilot", zustand);
@@ -898,6 +905,11 @@ window.startPassAndPlay = function() {
 
 document.getElementById("neues-spiel-btn").addEventListener("click", window.startPassAndPlay);
 document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
+document.getElementById("rueckgaengig-btn").addEventListener("click", () => document.dispatchEvent(new Event("cockpit-undo")));
+document.addEventListener("cockpit-undo", () => {
+  if (!bridge || neuwurfPhase !== 0 || !aktuellerZustand?.rueckgaengig_moeglich) return;
+  nachAktion(pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version)));
+});
 document.getElementById("menue-btn").addEventListener("click", zurueckZumMenue);
 
 if (new URLSearchParams(window.location.search).get("view") === "landings") {
