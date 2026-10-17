@@ -5,6 +5,7 @@ reset()/step() return (observation, info) and
 small native adapter, not a Gymnasium Env subclass. No torch dependency here.
 """
 from contextlib import contextmanager
+import math
 import random
 
 from backend.spielplan import Spielplan
@@ -13,18 +14,24 @@ from .observation import MAX_TRACK_LENGTH, encode, visible_state
 
 
 class CrewEnv:
-    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256):
+    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0):
         if max_steps < 1 or not 0 <= round_reward <= 0.1:
             raise ValueError("max_steps muss positiv sein, round_reward zwischen 0 und 0.1.")
+        if any(not math.isfinite(v) or v < 0 for v in (sync_weight, sync_tolerance)):
+            raise ValueError("sync_weight und sync_tolerance müssen endlich und nichtnegativ sein.")
         self.airport = airport
         self.round_reward = float(round_reward)
         self.max_steps = max_steps
+        self.sync_weight = float(sync_weight)
+        self.sync_tolerance = float(sync_tolerance)
         self.rng = random.Random(0)
         self.game = None
         self.reroll = None
         self.steps = 0
         self.truncated = False
         self.blocked = False
+        self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0}
+        self.reward_totals = self.reward_components.copy()
 
     @contextmanager
     def _engine_randomness(self):
@@ -61,6 +68,8 @@ class CrewEnv:
             self.rng.seed(seed)
         self.reroll, self.steps, self.truncated = None, 0, False
         self.blocked = False
+        self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0}
+        self.reward_totals = self.reward_components.copy()
         with self._engine_randomness():
             self.game = Spielplan(self.airport)
             if self.game.cockpit.module or self.game.zusatz.karten:
@@ -72,6 +81,7 @@ class CrewEnv:
         return self.observation(), self.info()
 
     def _advance(self):
+        round_resolved = False
         while self.game.status == "laeuft":
             if self.game.phase == "verkehr":
                 result = self.game.wirf_verkehrswuerfel()
@@ -81,11 +91,21 @@ class CrewEnv:
                 if not self.game.wuerfeln_fuer_runde():
                     raise RuntimeError("Runde konnte nicht gestartet werden.")
             elif self.game.alle_wuerfel_platziert():
+                round_resolved = True
                 result = self.game.rundenende()
                 if not result.erfolg:
                     raise RuntimeError(result.grund)
             else:
                 break
+        return round_resolved
+
+    def sync_error(self):
+        """Late progress beyond a tolerance, in route fields (1000 ft per round).
+
+        Early arrival and holding are allowed. This is a deliberately biased,
+        optional training heuristic, not potential-based shaping.
+        """
+        return max(0.0, self.game.landung.entfernung - self.game.landung.hoehe / 1000 - self.sync_tolerance)
 
     def view(self, role=None):
         return visible_state(self.game, role or self.current_role, self.reroll,
@@ -122,7 +142,20 @@ class CrewEnv:
         return {"role": self.current_role, "action_mask": self.action_mask(),
                 "status": "truncated" if self.truncated else "verloren" if self.blocked else self.game.status,
                 "reason": "step_limit" if self.truncated else "no_legal_actions" if self.blocked else self.game.verlust_grund,
-                "round": self.game.aktuelle_runde, "steps": self.steps}
+                "round": self.game.aktuelle_runde, "steps": self.steps,
+                "reward_components": self.reward_components.copy(), "reward_totals": self.reward_totals.copy()}
+
+    def episode_record(self, seed, ai_role, total_return):
+        """Public final-state diagnostics; no hidden hands in logs or replays."""
+        info, c, landing = self.info(), self.game.cockpit, self.game.landung
+        return {"seed": seed, "ai_role": ai_role, "status": info["status"], "reason": info["reason"] or "",
+                "round": info["round"], "steps": info["steps"], "return": total_return,
+                **{f"{name}_return": value for name, value in self.reward_totals.items()},
+                "distance_remaining": landing.entfernung, "height_remaining": landing.hoehe,
+                "airport_reached": int(landing.entfernung == 0),
+                "landing_round_started": int(self.game.letzte_runde), "sync_error": self.sync_error(),
+                "gear_count": sum(c.fahrwerk_ausgefahren), "flap_count": sum(c.landeklappen_ausgefahren),
+                "brake_strength": c.bremsstaerke(), "planes_remaining": sum(landing.flugzeuge)}
 
     def step(self, action_id):
         if self.game is None or self.done:
@@ -147,13 +180,18 @@ class CrewEnv:
                     self.reroll = None
             if result is not None and not result.erfolg:
                 raise RuntimeError(f"Maske und Engine widersprechen sich: {result.grund}")
-            self._advance()
+            round_resolved = self._advance()
         self.steps += 1
         if self.game.status == "laeuft" and not any(self.action_mask()):
             self.blocked = True
         terminated = self.game.status != "laeuft" or self.blocked
         self.truncated = self.steps >= self.max_steps and not terminated
-        reward = self.round_reward * (self.game.aktuelle_runde - old_round)
-        if terminated:
-            reward += 1.0 if self.game.status == "gewonnen" else -1.0
+        self.reward_components = {
+            "outcome": (1.0 if self.game.status == "gewonnen" else -1.0) if terminated else 0.0,
+            "round": self.round_reward * (self.game.aktuelle_runde - old_round),
+            "sync": -self.sync_weight * self.sync_error() if round_resolved else 0.0,
+        }
+        for name, value in self.reward_components.items():
+            self.reward_totals[name] += value
+        reward = sum(self.reward_components.values())
         return self.observation(), reward, terminated, self.truncated, self.info()

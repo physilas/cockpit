@@ -11,6 +11,11 @@ from .agents import HeuristicAgent, ModelAgent, RandomAgent
 from .environment import CrewEnv
 
 
+PERFORMANCE_METRICS = ("win_rate", "mean_round", "mean_return", "truncated_rate",
+    "mean_outcome_return", "mean_round_return", "mean_sync_return", "mean_distance_remaining",
+    "airport_reached_rate", "landing_round_rate", "mean_sync_error")
+
+
 def wilson_interval(wins, games):
     p, z = wins / games, 1.96
     denominator = 1 + z * z / games
@@ -20,10 +25,11 @@ def wilson_interval(wins, games):
 
 
 def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
-             ai_role="both", round_reward=0.02, max_steps=256, replay=None, render=False):
+             ai_role="both", round_reward=0.02, max_steps=256, sync_weight=0.0, sync_tolerance=1.0,
+             replay=None, render=False):
     if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
         raise ValueError("Mindestens eine Partie und eine gültige Rolle sind erforderlich.")
-    env = CrewEnv(airport, round_reward, max_steps)
+    env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance)
     records = []
     # With a partner, 'both' means games per role, on the same seed set.
     roles = ("pilot", "kopilot") if partner is not None and ai_role == "both" else (ai_role,)
@@ -50,15 +56,22 @@ def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
                     replay.write(json.dumps({"game": game_index, "seed": game_seed, "ai_role": tested_role,
                         "acting_role": view["role"], "action_id": action_id, "action": action.to_dict(),
                         "played_value": played_value, "reward": reward, "public_state": public,
+                        "reward_components": info["reward_components"],
                         "outcome": info["status"]}, ensure_ascii=False) + "\n")
-            records.append({"seed": game_seed, "ai_role": tested_role, "status": info["status"],
-                            "reason": info["reason"] or "", "round": info["round"],
-                            "steps": info["steps"], "return": total_reward})
+            records.append(env.episode_record(game_seed, tested_role, total_reward))
+    return summarize_episodes(records)
+
+
+def summarize_episodes(records):
     wins = sum(r["status"] == "gewonnen" for r in records)
     low, high = wilson_interval(wins, len(records))
     return {"games": len(records), "wins": wins, "win_rate": wins / len(records),
             "win_ci_low": low, "win_ci_high": high, "mean_round": mean(r["round"] for r in records),
             "mean_return": mean(r["return"] for r in records),
+            "truncated_rate": mean(r["status"] == "truncated" for r in records),
+            **{f"mean_{key}": mean(r[key] for r in records) for key in ("outcome_return", "round_return", "sync_return", "distance_remaining", "sync_error")},
+            "airport_reached_rate": mean(r["airport_reached"] for r in records),
+            "landing_round_rate": mean(r["landing_round_started"] for r in records),
             "truncated": sum(r["status"] == "truncated" for r in records),
             "loss_reasons": dict(Counter(reason for r in records for reason in r["reason"].split(",") if reason)),
             "episodes": records}
@@ -75,6 +88,9 @@ def main():
     parser.add_argument("--games", type=int, default=200)
     parser.add_argument("--seed", type=int, default=2_000_000, help="Separate final-test seeds; training validation starts at 1,000,000.")
     parser.add_argument("--stochastic", action="store_true", help="Sample model actions instead of argmax.")
+    parser.add_argument("--round-reward", type=float, default=None)
+    parser.add_argument("--sync-weight", type=float, default=None, help="0 schaltet die Synchronisationsstrafe ab; sonst Checkpoint-Wert.")
+    parser.add_argument("--sync-tolerance", type=float, default=None)
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--json", type=Path, help="Save summary and per-game results, readable by the notebook.")
     parser.add_argument("--render", action="store_true")
@@ -91,6 +107,8 @@ def main():
     else:
         agent = HeuristicAgent() if args.baseline == "heuristic" else RandomAgent(args.seed + 17)
     airport = args.airport or config.get("airport", "MUC")
+    reward_options = {key: getattr(args, key) if getattr(args, key) is not None else config.get(key, default)
+                      for key, default in (("round_reward", 0.02), ("sync_weight", 0.0), ("sync_tolerance", 1.0))}
     partner = None if args.partner == "self" else HeuristicAgent() if args.partner == "heuristic" else RandomAgent(args.seed + 31)
     handle = None
     try:
@@ -99,13 +117,15 @@ def main():
             handle = args.replay.open("w", encoding="utf-8")
         result = evaluate(agent, games=args.games, seed=args.seed, airport=airport,
                           partner=partner, ai_role=args.ai_role, replay=handle, render=args.render,
-                          round_reward=config.get("round_reward", 0.02), max_steps=config.get("max_steps", 256))
+                          max_steps=config.get("max_steps", 256), **reward_options)
     finally:
         if handle:
             handle.close()
     print(f"{result['wins']}/{result['games']} Siege = {result['win_rate']:.1%} "
           f"(95%-Intervall {result['win_ci_low']:.1%}–{result['win_ci_high']:.1%})")
     print(f"Mittlere erreichte Runde: {result['mean_round']:.2f}; Abbrüche: {result['truncated']}")
+    print(f"Mittlere Restentfernung: {result['mean_distance_remaining']:.2f}; "
+          f"Flughafen erreicht: {result['airport_reached_rate']:.1%}; Landerunde begonnen: {result['landing_round_rate']:.1%}")
     print("Verlustgründe:", json.dumps(result["loss_reasons"], ensure_ascii=False))
     if partner is not None and args.ai_role == "both":
         for role in ("pilot", "kopilot"):
@@ -114,7 +134,7 @@ def main():
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps({"airport": airport, "partner": args.partner,
-                                        "stochastic": args.stochastic, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
+                                        "stochastic": args.stochastic, **reward_options, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":

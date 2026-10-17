@@ -66,9 +66,10 @@ GAE-Lambda 0,95, PPO-Clipping 0,2, Entropiegewicht 0,01. Bei großer KL-Divergen
 endet das Update nach der aktuellen Epoche früher. Rollout-Masken werden gespeichert
 und bei jedem Update unverändert wiederverwendet.
 
-Reward: Sieg +1, Niederlage −1, Rundenwechsel zusätzlich +0,02. Beide Rollen
-optimieren denselben gemeinsamen Return, ohne Vorzeichenwechsel zwischen Zügen.
-Mit `--round-reward 0` lässt sich reiner Endreward vergleichen. Das Netz produziert
+Reward bei einem **neuen** Training: Sieg +1, Niederlage −1, kein pauschaler
+Rundenbonus und eine Synchronisationsstrafe mit Gewicht 0,05 und einem Feld Toleranz.
+Beide Rollen optimieren denselben gemeinsamen Return, ohne Vorzeichenwechsel zwischen Zügen.
+Mit `--sync-weight 0 --round-reward 0` lässt sich reiner Endreward vergleichen. Das Netz produziert
 Logits; ungültige Aktionen erhalten Wahrscheinlichkeit 0. Beim Training werden
 Aktionen gezogen, bei der Standardauswertung wird Argmax verwendet.
 
@@ -82,10 +83,12 @@ Jeder Lauf erzeugt:
 
 - `config.json`: Konfiguration und PyTorch-Version.
 - `metrics.csv`: Eine Zeile pro Update, getrennte Trainings- und Validierungswerte.
-- `episodes.csv`: Ergebnis, Verlustgrund, Runde, Länge und Return pro Partie.
+- `episodes.csv`: Ergebnis, Verlustgrund, Rundenzähler, Länge, getrennte Reward-Anteile,
+  Restentfernung, Resthöhe, Rückstand und tatsächlicher Beginn der Landerunde pro Partie.
 - `latest.pt`: Letztes vollständiges Update einschließlich Optimizer und RNG-Zustand.
-- `best.pt`: Bester deterministischer Validierungsstand, zuerst nach Gewinnrate,
-  bei Gleichstand nach erreichter Runde. Vor dem ersten Validierungslauf fehlt diese Datei.
+- `best.pt`: Bester deterministischer Validierungsstand: zuerst Gewinnrate, dann
+  begonnene Landerunden, erreichte Flughäfen, geringere Restentfernung und zuletzt
+  Rundenzähler. Vor dem ersten Validierungslauf fehlt diese Datei.
 
 Die Validierung spielt standardmäßig alle fünf Updates 100 Partien mit festen
 Seeds. Training verwendet einen separaten Seed-Namensraum. Wiederholte Auswahl
@@ -99,10 +102,53 @@ Fortsetzen, z. B. bis insgesamt eine Million Entscheidungen:
 
 `--steps` ist das **Gesamtziel**, kein Zusatzbudget. Ganze Partien können das Ziel
 leicht überschreiten. Strg+C lässt den letzten vollständig gespeicherten Stand
-erhalten. Beim Fortsetzen bleiben Strecke, Rewards, Horizont, Discount, GAE,
+erhalten. Beim Fortsetzen bleiben Strecke, Horizont, Discount, GAE,
 Trainingsseed und Netzgröße des Checkpoints erhalten; der Optimizer behält seinen
 gespeicherten Zustand samt Lernrate. Für ein älteres `best.pt` ein neues Laufverzeichnis
 verwenden, damit ältere und neuere Logzeilen nicht vermischt werden.
+
+## Vom bisherigen Modell mit Synchronisationsstrafe weitertrainieren
+
+Die bestehenden Modellgewichte bleiben kompatibel: Netz, Eingaben, Masken und
+Aktions-IDs ändern sich nicht. Der Critic muss sich an die neue Belohnung anpassen;
+eine zunächst größere Value-Loss ist deshalb erwartbar. Ein Neustart ist nicht nötig,
+eine Verbesserung der Spielstärke aber auch nicht automatisch garantiert.
+
+```bash
+.venv/bin/python -m ai.train --resume runs/muc/latest.pt --steps 4000000 --device cpu --run-dir runs/muc-sync --round-reward 0 --sync-weight 0.05 --sync-tolerance 1
+```
+
+Der Zusatz wird **einmal nach einer Rundenauswertung** berechnet:
+
+```text
+Rückstand = max(0, verbleibende Entfernung - verbleibende Höhe / 1000 - Toleranz)
+Synchronisationsreward = -Gewicht * Rückstand
+```
+
+Auf MUC passen 6 Entfernungsfelder zu 6000 Fuß. Bei 3000 Fuß, Entfernung 6 und
+Toleranz 1 beträgt der Rückstand 2 und die Strafe −0,10. Ein Feld Abweichung ist
+erlaubt, frühes Ankommen und Warteschleifen werden nicht bestraft. Kaffee und
+Neuwurfauswahl erzeugen selbst keine Synchronisationsstrafe. Die Heuristik verändert
+bewusst das Trainingsziel und ist kein potentialbasiertes Shaping. Sieg-/Verlustregeln
+und Informationsgrenzen bleiben gleich. Die Abstimmung ist zunächst für MUC gedacht.
+
+`--round-reward`, `--sync-weight` und `--sync-tolerance` übernehmen beim Fortsetzen
+den gespeicherten Wert, **sofern der Parameter nicht ausdrücklich angegeben wird**.
+Alte Checkpoints ohne Synchronisationsparameter bedeuten Gewicht 0. Explizite Werte,
+auch `0`, überschreiben den Checkpoint. Änderungen erfordern ein neues Laufverzeichnis,
+damit verschiedene Trainingsziele nicht in einer Kurve vermischt werden.
+
+Später die Hilfe ausschalten und die Gewichte weiterverwenden:
+
+```bash
+.venv/bin/python -m ai.train --resume runs/muc-sync/latest.pt --steps 6000000 --run-dir runs/muc-no-shaping --round-reward 0 --sync-weight 0
+```
+
+Ohne Änderungen genügt zum Weitertrainieren von `muc-sync` das übliche `--resume`
+mit demselben Laufverzeichnis und einem größeren Gesamtziel. Historische CSV-Dateien
+werden bei Bedarf um neue Spalten erweitert; alte fehlende Kennzahlen bleiben leer.
+Die Auswahl von `best.pt` wird bei einem neuen Reward oder dem Wechsel vom alten
+Bewertungsverfahren neu begonnen.
 
 ## Loss-Kurven im Jupyter-Notebook
 
@@ -110,8 +156,8 @@ verwenden, damit ältere und neuere Logzeilen nicht vermischt werden.
 .venv/bin/python -m jupyterlab ai/analysis.ipynb
 ```
 
-Im Notebook `RUN_NAME = "muc"` setzen und **Run → Run All Cells** wählen.
-Voreingestellt ist `muc-smoke`, der hier erstellte kurze Funktionstest. Neue
+Im Notebook `RUN_NAME = "muc-sync"` für das neue Training setzen und
+**Run → Run All Cells** wählen. Voreingestellt ist `muc` für deine bisherigen Daten. Neue
 Messwerte erscheinen nach erneutem Ausführen der Zellen, auch während des Trainings.
 Wenn ein anderer Python-Kernel gewählt wird, muss er dieselben Pakete enthalten;
 der Start über `.venv/bin/python -m jupyterlab` verwendet die Projektumgebung.
@@ -121,6 +167,8 @@ Enthalten sind:
 - Policy- und Value-Loss auf getrennten Skalen, mit optionaler Glättung.
 - Trainings- und Validierungsgewinnrate mit 95%-Wilson-Intervallen.
 - Erreichte Runde, Return, Abbrüche am Sicherheitslimit und Verlustgründe.
+- Getrennte Kurven für Endergebnis, Rundenbonus und Synchronisationsstrafe.
+- Restentfernung bei Spielende, Flughafenquote, tatsächliche Landerundenquote und Rückstand.
 - Entropie, ungefähre KL-Divergenz, PPO-Clip-Anteil, Explained Variance,
   Gradientennorm und Durchsatz.
 - Vergleich zusätzlicher Testberichte, einschließlich beider Rollen mit fremden Partnern.
@@ -129,6 +177,9 @@ Enthalten sind:
 Eine fallende Value-Loss kann bedeuten, dass das Netz lediglich die häufigen
 Niederlagen besser vorhersagt. Policy-Loss ist durch Advantage-Normalisierung
 häufig nahe null und muss nicht monoton sinken. Gewinnrate ist das primäre Ziel.
+Der Rundenzähler allein belegt keinen Landefortschritt. Bei einer Notlandung kann
+er schon 7 anzeigen, obwohl die eigentliche Landerunde gar nicht begonnen hat.
+Gesamtrewards verschiedener Reward-Konfigurationen sind nicht direkt vergleichbar.
 
 ## Modell automatisch testen
 

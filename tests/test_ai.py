@@ -8,6 +8,8 @@ import random
 import tempfile
 from pathlib import Path
 import unittest
+from contextlib import redirect_stdout
+from unittest.mock import patch
 
 from ai.actions import ACTIONS, ACTION_IDS, Action, SLOTS, execute_placement
 from ai.agents import HeuristicAgent, RandomAgent
@@ -195,6 +197,92 @@ class EnvironmentTests(unittest.TestCase):
             self.assertNotIn("partner_dice", public)
 
 
+def scripted_round(env, engine_value=1):
+    """Resolve a real base-game round without traffic or upgrades."""
+    for role in ("pilot", "kopilot"):
+        for die, value in zip(env.game._wuerfel_liste(role), (1, engine_value, 1, 1)):
+            die.augenzahl = value
+    queues = {
+        "pilot": [place_id(0, "ruder", "pilot"), place_id(1, "triebwerk", "pilot"),
+                  place_id(2, "funk", "pilot"), place_id(3, "konzentration", index=0)],
+        "kopilot": [place_id(0, "ruder", "kopilot"), place_id(1, "triebwerk", "kopilot"),
+                    place_id(2, "konzentration", index=1), place_id(3, "konzentration", index=2)]}
+    return [env.step(queues[env.current_role].pop(0)) for _ in range(8)]
+
+
+class SynchronizationTests(unittest.TestCase):
+    def test_backlog_penalty_once_at_round_end_with_separate_components(self):
+        env = CrewEnv("TEST", round_reward=0.02, sync_weight=0.05)
+        env.reset(seed=1)
+        env.game.landung.hoehe = 1000
+        results = scripted_round(env)
+        for _, reward, _, _, info in results[:-1]:
+            self.assertEqual(reward, 0)
+            self.assertEqual(info["reward_components"]["sync"], 0)
+        _, reward, terminated, truncated, info = results[-1]
+        self.assertTrue(terminated)
+        self.assertFalse(truncated)
+        self.assertEqual(info["reason"], "notlandung")
+        self.assertEqual(info["reward_components"], {"outcome": -1, "round": 0.02, "sync": -0.05})
+        self.assertAlmostEqual(reward, -1.03)
+        record = env.episode_record(1, "both", sum(r[1] for r in results))
+        self.assertEqual((record["round"], record["landing_round_started"], record["distance_remaining"]), (2, 0, 2))
+        self.assertAlmostEqual(record["return"], record["outcome_return"] + record["round_return"] + record["sync_return"])
+
+    def test_one_field_tolerance_and_progress_vs_stalling(self):
+        stalled = CrewEnv("TEST", round_reward=0, sync_weight=0.05, sync_tolerance=0)
+        moving = CrewEnv("TEST", round_reward=0, sync_weight=0.05, sync_tolerance=0)
+        for env in (stalled, moving):
+            env.reset(seed=1)
+            env.game.landung.hoehe = 2000
+        stall_reward = scripted_round(stalled)[-1][1]
+        move_reward = scripted_round(moving, engine_value=3)[-1][1]
+        self.assertAlmostEqual(stall_reward, -0.05)
+        self.assertEqual(move_reward, 0)
+        self.assertEqual((stalled.game.landung.entfernung, moving.game.landung.entfernung), (2, 1))
+        stalled.sync_tolerance = 1
+        self.assertEqual(stalled.sync_error(), 0)
+
+    def test_early_arrival_and_holding_do_not_receive_penalty(self):
+        env = CrewEnv("TEST", round_reward=0, sync_weight=0.5, sync_tolerance=0)
+        env.reset(seed=2)
+        env.game.landung.entfernung = 0
+        env.game.landung.hoehe = 3000
+        env.game.warteschleife = True
+        result = scripted_round(env)[-1]
+        self.assertEqual(result[1], 0)
+        self.assertEqual(result[-1]["reward_totals"]["sync"], 0)
+        self.assertEqual(env.game.landung.hoehe, 2000)
+        self.assertFalse(env.done)
+
+    def test_coffee_and_rerolls_do_not_charge_backlog_again(self):
+        env = CrewEnv(sync_weight=0.05, sync_tolerance=0)
+        env.reset(seed=42)
+        env.game.landung.hoehe = 1000
+        env.game.cockpit.kaffeetassen = 1
+        delta = -1 if env.game.pilot_wuerfel[0].augenzahl > 1 else 1
+        choices = [action_id("coffee", die=0, delta=delta), action_id("reroll_start"),
+                   action_id("reroll_select", subset=1), action_id("reroll_select", subset=0)]
+        for selected in choices:
+            _, reward, _, _, info = env.step(selected)
+            self.assertEqual(reward, 0)
+            self.assertEqual(info["reward_totals"]["sync"], 0)
+        self.assertEqual(env.sync_error(), 5)
+
+    def test_zero_weight_disables_shaping_and_invalid_parameters_fail(self):
+        env = CrewEnv("TEST", round_reward=0, sync_weight=0, sync_tolerance=0)
+        env.reset(seed=1)
+        env.game.landung.hoehe = 1000
+        result = scripted_round(env)[-1]
+        self.assertEqual(result[1], -1)
+        self.assertEqual(result[-1]["reward_components"]["sync"], 0)
+        for bad in (-0.1, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                CrewEnv(sync_weight=bad)
+            with self.assertRaises(ValueError):
+                CrewEnv(sync_tolerance=bad)
+
+
 @unittest.skipUnless(importlib.util.find_spec("torch"), "Optionale KI-Pakete fehlen: pip install -r ai/requirements.txt")
 class LearningTests(unittest.TestCase):
     def setUp(self):
@@ -251,6 +339,80 @@ class LearningTests(unittest.TestCase):
             torch.save(payload, path)
             with self.assertRaises(ValueError):
                 load_checkpoint(path)
+
+    def test_resume_reward_overrides_preserve_unspecified_legacy_values(self):
+        from ai.train import parser, reward_config
+        old = {"round_reward": 0.02}
+        self.assertEqual(reward_config(parser().parse_args([]), old),
+                         {"round_reward": 0.02, "sync_weight": 0, "sync_tolerance": 1})
+        args = parser().parse_args(["--round-reward", "0", "--sync-weight", "0.05"])
+        self.assertEqual(reward_config(args, old), {"round_reward": 0, "sync_weight": 0.05, "sync_tolerance": 1})
+        self.assertEqual(reward_config(parser().parse_args([])),
+                         {"round_reward": 0, "sync_weight": 0.05, "sync_tolerance": 1})
+
+    def test_csv_upgrade_preserves_old_data_and_leaves_new_values_unknown(self):
+        import csv
+        from ai.train import append_rows
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "metrics.csv"
+            append_rows(path, ["update", "total_steps"], [{"update": 1, "total_steps": 12}])
+            append_rows(path, ["update", "total_steps", "train_mean_sync_return"],
+                        [{"update": 2, "total_steps": 24, "train_mean_sync_return": -0.1}])
+            with path.open() as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(rows[0], {"update": "1", "total_steps": "12", "train_mean_sync_return": ""})
+            self.assertEqual(rows[1]["train_mean_sync_return"], "-0.1")
+
+    def test_checkpoint_selection_prefers_actual_progress_over_round_counter(self):
+        from ai.train import validation_score
+        stalled = {"win_rate": 0, "landing_round_rate": 0, "airport_reached_rate": 0,
+                   "mean_distance_remaining": 6, "mean_round": 7}
+        progressing = {**stalled, "mean_distance_remaining": 1, "mean_round": 5}
+        self.assertGreater(validation_score(progressing), validation_score(stalled))
+        landed = {**stalled, "landing_round_rate": 1, "airport_reached_rate": 1, "mean_distance_remaining": 0}
+        self.assertGreater(validation_score(landed), validation_score(progressing))
+
+    def test_legacy_checkpoint_can_continue_with_changed_rewards_and_disable_them(self):
+        import csv
+        import torch
+        from ai.checkpoints import save_checkpoint, load_checkpoint
+        from ai.nn_model import ActorCritic
+        from ai.train import main
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            original, shaped, disabled = root / "old", root / "sync", root / "off"
+            path = original / "latest.pt"
+            model = ActorCritic(hidden_size=32)
+            optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+            config = {"airport": "TEST", "round_reward": 0.02, "max_steps": 256,
+                      "gamma": 0.995, "gae_lambda": 0.95, "seed": 42, "hidden_size": 32}
+            save_checkpoint(path, model, optimizer_state=optimizer.state_dict(), train_config=config,
+                            total_steps=0, episodes=0, update=0, best_score=[-1, -1], torch_rng_state=torch.get_rng_state())
+            original_bytes = path.read_bytes()
+            common = ["ai.train", "--rollout-steps", "64", "--epochs", "1", "--minibatch-size", "32", "--eval-games", "2"]
+            with patch("sys.argv", common + ["--resume", str(path), "--steps", "64", "--run-dir", str(shaped),
+                                              "--round-reward", "0", "--sync-weight", "0.05"]), redirect_stdout(io.StringIO()):
+                main()
+            _, saved = load_checkpoint(shaped / "latest.pt")
+            self.assertEqual(saved["train_config"]["round_reward"], 0)
+            self.assertEqual(saved["train_config"]["sync_weight"], 0.05)
+            self.assertEqual(saved["model_config"], model.config)
+            self.assertTrue(saved["train_config"]["reward_changed_on_resume"])
+            self.assertEqual(path.read_bytes(), original_bytes)
+            with (shaped / "metrics.csv").open() as handle:
+                metrics = list(csv.DictReader(handle))
+            self.assertNotEqual(metrics[-1]["eval_mean_sync_return"], "")
+            with patch("sys.argv", common + ["--resume", str(path), "--steps", "64", "--run-dir", str(original),
+                                              "--round-reward", "0"]), redirect_stdout(io.StringIO()), patch("sys.stderr", io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    main()
+            self.assertEqual(path.read_bytes(), original_bytes)
+            with patch("sys.argv", common + ["--resume", str(shaped / "latest.pt"), "--steps", str(saved["total_steps"] + 32),
+                                              "--run-dir", str(disabled), "--sync-weight", "0"]), redirect_stdout(io.StringIO()):
+                main()
+            _, off = load_checkpoint(disabled / "latest.pt")
+            self.assertEqual(off["train_config"]["sync_weight"], 0)
+            self.assertEqual(off["train_config"]["round_reward"], 0)
 
 
 if __name__ == "__main__":
