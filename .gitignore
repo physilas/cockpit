@@ -11,3 +11,7 @@ logs/
 
 # Generated PDF inspection and browser QA files
 tmp/
+
+# Local AI checkpoints, metrics, replays and notebook cache
+/runs/
+.ipynb_checkpoints/

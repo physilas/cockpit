@@ -1,0 +1,206 @@
+# Eigene KI für MUC
+
+Der erste Meilenstein unterstützt das vollständige Grundspiel auf deiner **eigenen
+Strecke MUC** aus `backend/landungen/MUC.yaml`: Platzieren, Kaffee, gemeinsamer
+Neuwurf, Rundenwechsel, Warteschleife und Landung. Der Code verändert die Strecke
+nicht und ersetzt sie nicht durch eine Logbuch-Variante. Die historischen Hinweise
+auf Platzhalter in dieser YAML bleiben bestehen; trainiert wird genau die aktuell
+spielbare Konfiguration.
+
+Ein gemeinsames PyTorch-Modell spielt beide Rollen. Bei jedem Schritt erhält es
+die öffentlichen Informationen und ausschließlich die eigenen freien Würfel.
+Auch der Critic hat keinen Zugriff auf die Partnerhand. Rollouts werden mit festen
+Gewichten gesammelt, danach folgen PPO-Updates für beide Rollen. Separate Modelle,
+abwechselndes Einfrieren und ein Pool älterer Partner sind mögliche spätere
+Experimente, im ersten Rahmen aber noch nicht eingebaut.
+
+## Installation
+
+Alle Befehle aus dem Projektordner `cockpit` ausführen. Python 3.11 oder neuer
+verwenden. Training und Notebook verwenden dieselbe virtuelle Umgebung:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r ai/requirements-notebook.txt
+```
+
+Nur für Training und Terminalspiel genügt `ai/requirements.txt`.
+Die Pakete wurden für den Funktionstest bereits in der bestehenden `.venv`
+installiert. Ein GPU-System benötigt die zu seiner CUDA-Version passende
+PyTorch-Installation. Für dieses kleine, sequentielle Netz ist CPU ein sinnvoller
+Start; `--device mps` oder `--device cuda` ist optional.
+
+## Dateien und Einstiegspunkte
+
+| Datei | Zweck |
+|---|---|
+| `nn_model.py` | Editierbarer Actor-Critic-Entwurf: zwei versteckte Schichten mit jeweils 128 Neuronen und Tanh |
+| `train.py` | Vollständiges PPO-Self-play mit GAE, Logdateien und Checkpoints |
+| `analysis.ipynb` | Jupyter-Analyse für Loss, Spielleistung und Trainingsstabilität |
+| `environment.py` | Kleine Trainingsumgebung um die bestehende Python-Engine |
+| `observation.py` | Sichtbare Informationen, 349 Features und deren feste Reihenfolge |
+| `actions.py` | 121 feste Aktions-IDs, 20 Zielfelder und regelbasierte Maskierung |
+| `agents.py`, `public_rules.py` | Modellagent, Zufallsagent und einfache Heuristik |
+| `evaluate.py` | Separate Partien, Partnervergleich, Konfidenzintervalle und öffentliche Replays |
+| `play.py` | Selbst im Terminal mit der KI spielen |
+| `checkpoints.py` | Modellgewichte mit geprüftem Beobachtungs- und Aktionsschema speichern/laden |
+
+Die Skripte als Module aufrufen (`python -m ai.train`), damit die Imports stimmen.
+Sie benötigen keine Browser-Oberfläche und kein Pyodide. Die Umgebung besitzt ein
+an Gymnasium angelehntes `reset`-/`step`-Format, ist aber kein Gymnasium-Untertyp.
+
+## Training starten
+
+```bash
+.venv/bin/python -m ai.train --airport MUC --steps 200000 --run-dir runs/muc
+```
+
+200.000 Schritte sind ein Startbudget, keine Zusage einer bestimmten Spielstärke.
+Ein Schritt ist eine Entscheidung, einschließlich Kaffee und Neuwurfauswahl.
+Eine Lernkurve auf mehreren unabhängigen Läufen entscheidet, ob wir Reward,
+Architektur, Umfang oder Trainingspartner ändern müssen.
+
+Standardwerte: 2.048 Entscheidungen pro Rollout (ganze Partien), vier PPO-Epochen,
+Minibatches mit 256 Einträgen, Adam mit Lernrate 0,0003, Discount 0,995,
+GAE-Lambda 0,95, PPO-Clipping 0,2, Entropiegewicht 0,01. Bei großer KL-Divergenz
+endet das Update nach der aktuellen Epoche früher. Rollout-Masken werden gespeichert
+und bei jedem Update unverändert wiederverwendet.
+
+Reward: Sieg +1, Niederlage −1, Rundenwechsel zusätzlich +0,02. Beide Rollen
+optimieren denselben gemeinsamen Return, ohne Vorzeichenwechsel zwischen Zügen.
+Mit `--round-reward 0` lässt sich reiner Endreward vergleichen. Das Netz produziert
+Logits; ungültige Aktionen erhalten Wahrscheinlichkeit 0. Beim Training werden
+Aktionen gezogen, bei der Standardauswertung wird Argmax verwendet.
+
+Ein Neuwurf besteht aus Start und je einer Teilmengenauswahl pro Rolle.
+Mindestens ein Würfel muss gewählt werden; genau ein Plättchen wird verbraucht.
+Der reguläre Zug bleibt bestehen. Menüöffnen, Animationen und Rückgängig sind
+keine KI-Aktionen. Strategisch schlechte, aber erlaubte Aktionen bleiben in der
+Maske verfügbar, auch wenn sie sofort zum Trudeln führen.
+
+Jeder Lauf erzeugt:
+
+- `config.json`: Konfiguration und PyTorch-Version.
+- `metrics.csv`: Eine Zeile pro Update, getrennte Trainings- und Validierungswerte.
+- `episodes.csv`: Ergebnis, Verlustgrund, Runde, Länge und Return pro Partie.
+- `latest.pt`: Letztes vollständiges Update einschließlich Optimizer und RNG-Zustand.
+- `best.pt`: Bester deterministischer Validierungsstand, zuerst nach Gewinnrate,
+  bei Gleichstand nach erreichter Runde. Vor dem ersten Validierungslauf fehlt diese Datei.
+
+Die Validierung spielt standardmäßig alle fünf Updates 100 Partien mit festen
+Seeds. Training verwendet einen separaten Seed-Namensraum. Wiederholte Auswahl
+nach diesen Partien kann zu Überanpassung führen: abschließend neue Seeds testen.
+
+Fortsetzen, z. B. bis insgesamt eine Million Entscheidungen:
+
+```bash
+.venv/bin/python -m ai.train --resume runs/muc/latest.pt --steps 1000000 --run-dir runs/muc
+```
+
+`--steps` ist das **Gesamtziel**, kein Zusatzbudget. Ganze Partien können das Ziel
+leicht überschreiten. Strg+C lässt den letzten vollständig gespeicherten Stand
+erhalten. Beim Fortsetzen bleiben Strecke, Rewards, Horizont, Discount, GAE,
+Trainingsseed und Netzgröße des Checkpoints erhalten; der Optimizer behält seinen
+gespeicherten Zustand samt Lernrate. Für ein älteres `best.pt` ein neues Laufverzeichnis
+verwenden, damit ältere und neuere Logzeilen nicht vermischt werden.
+
+## Loss-Kurven im Jupyter-Notebook
+
+```bash
+.venv/bin/python -m jupyterlab ai/analysis.ipynb
+```
+
+Im Notebook `RUN_NAME = "muc"` setzen und **Run → Run All Cells** wählen.
+Voreingestellt ist `muc-smoke`, der hier erstellte kurze Funktionstest. Neue
+Messwerte erscheinen nach erneutem Ausführen der Zellen, auch während des Trainings.
+Wenn ein anderer Python-Kernel gewählt wird, muss er dieselben Pakete enthalten;
+der Start über `.venv/bin/python -m jupyterlab` verwendet die Projektumgebung.
+
+Enthalten sind:
+
+- Policy- und Value-Loss auf getrennten Skalen, mit optionaler Glättung.
+- Trainings- und Validierungsgewinnrate mit 95%-Wilson-Intervallen.
+- Erreichte Runde, Return, Abbrüche am Sicherheitslimit und Verlustgründe.
+- Entropie, ungefähre KL-Divergenz, PPO-Clip-Anteil, Explained Variance,
+  Gradientennorm und Durchsatz.
+- Vergleich zusätzlicher Testberichte, einschließlich beider Rollen mit fremden Partnern.
+
+`SAVE_FIGURES = True` exportiert PNGs unter `runs/<lauf>/plots/`.
+Eine fallende Value-Loss kann bedeuten, dass das Netz lediglich die häufigen
+Niederlagen besser vorhersagt. Policy-Loss ist durch Advantage-Normalisierung
+häufig nahe null und muss nicht monoton sinken. Gewinnrate ist das primäre Ziel.
+
+## Modell automatisch testen
+
+```bash
+.venv/bin/python -m ai.evaluate --checkpoint runs/muc/best.pt --games 500 --json runs/muc/evaluations/self.json
+.venv/bin/python -m ai.evaluate --checkpoint runs/muc/best.pt --partner heuristic --ai-role both --games 200 --json runs/muc/evaluations/heuristic-partner.json
+.venv/bin/python -m ai.evaluate --baseline heuristic --games 200 --json runs/muc/evaluations/heuristic-baseline.json
+.venv/bin/python -m ai.evaluate --baseline random --games 200 --json runs/muc/evaluations/random-baseline.json
+```
+
+Mit `--partner heuristic --ai-role both --games 200` entstehen **400 Partien**:
+200 als Pilot und 200 als Kopilot, jeweils auf derselben Seed-Liste.
+Die Referenzheuristik ist ein einfacher Vergleich, kein starker oder optimaler
+Spieler. Gute Self-play-Ergebnisse allein belegen keine gute Zusammenarbeit mit
+Menschen; ergänzend selbst spielen und später abwechslungsreichere Partner trainieren.
+
+Standard-Testseeds beginnen bei 2.000.000, Validierungsseeds bei 1.000.000.
+`--seed` erlaubt weitere unabhängige Testreihen. `--stochastic` bewertet dieselbe
+Sampling-Strategie wie beim Training. Werte mit unterschiedlichen Auswahlschemata
+oder Partnern im Notebook getrennt interpretieren.
+
+Eine einzelne Partie als öffentliches Replay und Textausgabe:
+
+```bash
+.venv/bin/python -m ai.evaluate --checkpoint runs/muc/best.pt --games 1 --render --replay runs/muc/replay.jsonl
+```
+
+Replays enthalten öffentliche Brettstände, Aktionen und sichtbar platzierte Werte;
+verdeckte Hände werden nicht gespeichert. Die ausgegebene Runde ist die zuletzt
+erreichte Runde, nicht die Zahl erfolgreich abgeschlossener Runden. Ein Sicherheitslimit
+von 256 Entscheidungen ergibt eine gesonderte Truncation mit Value-Bootstrap,
+keine künstliche Niederlage. Ein Zustand ohne erlaubte Entscheidung gilt als
+festgefahrene Niederlage (`no_legal_actions`).
+
+## Selbst mit der KI spielen
+
+```bash
+.venv/bin/python -m ai.play --checkpoint runs/muc/best.pt --role pilot
+.venv/bin/python -m ai.play --checkpoint runs/muc/best.pt --role kopilot
+```
+
+Das Terminal zeigt nur deine Würfel und die öffentlich platzierten Würfel der KI.
+Wähle eine der angezeigten Aktionsnummern; `q` beendet die Partie. Kaffee und
+Neuwurf sind eigene Entscheidungen, nach denen ggf. dieselbe Rolle weiter am Zug ist.
+Zum Ausprobieren ohne Modell: `python -m ai.play --baseline heuristic`.
+
+Der Browser-Singleplayer und ONNX-Export sind der nächste Integrationsschritt.
+Dieser Meilenstein bietet Training, Analyse und ein spielbares Terminal; die
+bestehenden Web-Spielmodi werden dadurch nicht verändert.
+
+## Tests und Erweiterungen
+
+```bash
+.venv/bin/python -m unittest tests.test_ai -v
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+Die Tests prüfen u. a. identische Eingaben/Masken bei veränderten verdeckten
+Partnerwürfeln, Masken gegen tatsächliche Engine-Aktionen, Neuwürfe, einen
+vollständigen Sieg, getrennte RNGs, Truncation-Bootstrap, endliche Gradienten,
+echte PPO-Updates und Checkpoint-Roundtrips. Ohne ML-Pakete werden die Lern-Tests
+übersprungen; die übrigen Engine- und Informationstests benötigen kein PyTorch.
+
+Beim Ändern von Features, deren Skalierung oder Aktionsbedeutung die
+`SCHEMA_VERSION` in `actions.py` erhöhen. Checkpoints prüfen Reihenfolge und
+Struktur; eine reine Bedeutungsänderung ist nur über die Versionsnummer erkennbar.
+Netzänderungen in `nn_model.py` können ebenfalls neue Checkpoints erfordern.
+
+Die Engine verwendet aktuell den globalen Python-Zufallsgenerator. Der Adapter
+isoliert dessen Zustand pro Umgebung. Für mehrere parallele Umgebungen deshalb
+Prozesse verwenden, keine Threads. Aktuell wird sequentiell trainiert.
+
+Grundlagen: [PPO-Paper](https://arxiv.org/abs/1707.06347),
+[Action Masking](https://arxiv.org/abs/2006.14171),
+[Zusammenarbeit mit menschlichen Partnern](https://arxiv.org/abs/1910.05789).

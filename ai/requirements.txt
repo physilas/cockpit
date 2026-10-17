@@ -1,0 +1,4 @@
+# Keep ML dependencies separate from the browser/engine dependencies.
+-r ../requirements.txt
+numpy>=1.26,<3
+torch>=2.6,<3

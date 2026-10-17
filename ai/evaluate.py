@@ -1,0 +1,121 @@
+"""Held-out rollouts, partner comparisons, public replays and Wilson intervals."""
+import argparse
+from collections import Counter
+import json
+import math
+from pathlib import Path
+from statistics import mean
+
+from .actions import ACTIONS
+from .agents import HeuristicAgent, ModelAgent, RandomAgent
+from .environment import CrewEnv
+
+
+def wilson_interval(wins, games):
+    p, z = wins / games, 1.96
+    denominator = 1 + z * z / games
+    center = (p + z * z / (2 * games)) / denominator
+    margin = z * math.sqrt(p * (1 - p) / games + z * z / (4 * games * games)) / denominator
+    return max(0.0, center - margin), min(1.0, center + margin)
+
+
+def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
+             ai_role="both", round_reward=0.02, max_steps=256, replay=None, render=False):
+    if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
+        raise ValueError("Mindestens eine Partie und eine gültige Rolle sind erforderlich.")
+    env = CrewEnv(airport, round_reward, max_steps)
+    records = []
+    # With a partner, 'both' means games per role, on the same seed set.
+    roles = ("pilot", "kopilot") if partner is not None and ai_role == "both" else (ai_role,)
+    for tested_role in roles:
+        for game_index in range(games):
+            game_seed = seed + game_index
+            _, info = env.reset(seed=game_seed)
+            total_reward = 0.0
+            while not env.done:
+                view = env.view()
+                active = agent if partner is None or env.current_role == tested_role else partner
+                action_id = active.select(view, info["action_mask"])
+                action = ACTIONS[action_id]
+                played_value = view["own_dice"][action.die] if action.kind == "place" else None
+                _, reward, _, _, info = env.step(action_id)
+                total_reward += reward
+                if render:
+                    suffix = f" [Wert {played_value}]" if played_value is not None else ""
+                    print(f"{view['role']}: {action.label()}{suffix}")
+                if replay is not None:
+                    # Deliberately public only: neither private hand appears in a replay.
+                    public = env.view()
+                    public.pop("own_dice")
+                    replay.write(json.dumps({"game": game_index, "seed": game_seed, "ai_role": tested_role,
+                        "acting_role": view["role"], "action_id": action_id, "action": action.to_dict(),
+                        "played_value": played_value, "reward": reward, "public_state": public,
+                        "outcome": info["status"]}, ensure_ascii=False) + "\n")
+            records.append({"seed": game_seed, "ai_role": tested_role, "status": info["status"],
+                            "reason": info["reason"] or "", "round": info["round"],
+                            "steps": info["steps"], "return": total_reward})
+    wins = sum(r["status"] == "gewonnen" for r in records)
+    low, high = wilson_interval(wins, len(records))
+    return {"games": len(records), "wins": wins, "win_rate": wins / len(records),
+            "win_ci_low": low, "win_ci_high": high, "mean_round": mean(r["round"] for r in records),
+            "mean_return": mean(r["return"] for r in records),
+            "truncated": sum(r["status"] == "truncated" for r in records),
+            "loss_reasons": dict(Counter(reason for r in records for reason in r["reason"].split(",") if reason)),
+            "episodes": records}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--checkpoint", type=Path)
+    source.add_argument("--baseline", choices=("random", "heuristic"))
+    parser.add_argument("--partner", choices=("self", "random", "heuristic"), default="self")
+    parser.add_argument("--ai-role", choices=("both", "pilot", "kopilot"), default="both")
+    parser.add_argument("--airport", default=None, help="Standard: Strecke aus dem Checkpoint, sonst MUC.")
+    parser.add_argument("--games", type=int, default=200)
+    parser.add_argument("--seed", type=int, default=2_000_000, help="Separate final-test seeds; training validation starts at 1,000,000.")
+    parser.add_argument("--stochastic", action="store_true", help="Sample model actions instead of argmax.")
+    parser.add_argument("--replay", type=Path)
+    parser.add_argument("--json", type=Path, help="Save summary and per-game results, readable by the notebook.")
+    parser.add_argument("--render", action="store_true")
+    args = parser.parse_args()
+    import torch
+    torch.set_num_threads(1)
+    torch.manual_seed(args.seed)
+    config = {}
+    if args.checkpoint:
+        from .checkpoints import load_checkpoint
+        model, payload = load_checkpoint(args.checkpoint)
+        config = payload.get("train_config", {})
+        agent = ModelAgent(model, deterministic=not args.stochastic)
+    else:
+        agent = HeuristicAgent() if args.baseline == "heuristic" else RandomAgent(args.seed + 17)
+    airport = args.airport or config.get("airport", "MUC")
+    partner = None if args.partner == "self" else HeuristicAgent() if args.partner == "heuristic" else RandomAgent(args.seed + 31)
+    handle = None
+    try:
+        if args.replay:
+            args.replay.parent.mkdir(parents=True, exist_ok=True)
+            handle = args.replay.open("w", encoding="utf-8")
+        result = evaluate(agent, games=args.games, seed=args.seed, airport=airport,
+                          partner=partner, ai_role=args.ai_role, replay=handle, render=args.render,
+                          round_reward=config.get("round_reward", 0.02), max_steps=config.get("max_steps", 256))
+    finally:
+        if handle:
+            handle.close()
+    print(f"{result['wins']}/{result['games']} Siege = {result['win_rate']:.1%} "
+          f"(95%-Intervall {result['win_ci_low']:.1%}–{result['win_ci_high']:.1%})")
+    print(f"Mittlere erreichte Runde: {result['mean_round']:.2f}; Abbrüche: {result['truncated']}")
+    print("Verlustgründe:", json.dumps(result["loss_reasons"], ensure_ascii=False))
+    if partner is not None and args.ai_role == "both":
+        for role in ("pilot", "kopilot"):
+            records = [r for r in result["episodes"] if r["ai_role"] == role]
+            print(f"  KI als {role}: {sum(r['status'] == 'gewonnen' for r in records)}/{len(records)} Siege")
+    if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(json.dumps({"airport": airport, "partner": args.partner,
+                                        "stochastic": args.stochastic, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()
