@@ -85,8 +85,21 @@ Die deterministische Validierung bleibt bei der wahrscheinlichsten Modellaktion.
 Ein Neuwurf besteht aus Start und je einer Teilmengenauswahl pro Rolle.
 Mindestens ein Würfel muss gewählt werden; genau ein Plättchen wird verbraucht.
 Der reguläre Zug bleibt bestehen. Menüöffnen, Animationen und Rückgängig sind
-keine KI-Aktionen. Strategisch schlechte, aber erlaubte Aktionen bleiben in der
-Maske verfügbar, auch wenn sie sofort zum Trudeln führen.
+keine KI-Aktionen.
+
+Die Maske reserviert pro Rolle genügend freie Würfel für die noch offenen
+Pflichtfelder **Ruder und Schub**. Bei zwei freien Würfeln und zwei offenen
+Pflichtfeldern sind nur noch Platzierungen auf diesen Feldern erlaubt. Ist eines
+schon belegt, wird nur ein Würfel reserviert; der andere darf weiterhin für Funk,
+Fahrwerk oder andere Aufgaben verwendet werden. Sind beide Pflichtfelder belegt,
+stehen die restlichen Würfel wie gewohnt zur Verfügung. Kaffee und gemeinsame
+Neuwürfe bleiben zur Vorbereitung erlaubt, da sie keine Würfel auf Nebenfelder
+verbrauchen. Die Prüfung verwendet nur eigene verfügbare Würfel und öffentliche
+Feldbelegungen. Würfelwerte, Reihenfolge, Fluglage und Geschwindigkeit bestimmt
+weiterhin die KI; auch unmittelbar zum Trudeln führende Ruderzüge bleiben erlaubt.
+
+Die Reservierung gilt automatisch für Training, Auswertung und Terminalspiel.
+Die Python-Spielregeln und die Browser-Oberfläche werden dafür nicht verändert.
 
 Jeder Lauf erzeugt:
 
@@ -115,6 +128,20 @@ erhalten. Beim Fortsetzen bleiben Strecke, Horizont, Discount, GAE,
 Trainingsseed und Netzgröße des Checkpoints erhalten; der Optimizer behält seinen
 gespeicherten Zustand samt Lernrate. Für ein älteres `best.pt` ein neues Laufverzeichnis
 verwenden, damit ältere und neuere Logzeilen nicht vermischt werden.
+
+Alte Modellgewichte bleiben mit der Pflichtfeld-Reservierung kompatibel, weil sich
+Features und Aktions-IDs nicht ändern. Die neue Aktionsmaske wird separat als
+`action_mask_version: 2` gespeichert. Beim ersten Fortsetzen eines älteren
+Checkpoints ist ein **neues Laufverzeichnis** nötig; auch die Auswahl von `best.pt`
+beginnt neu. Ein laufender Trainingsprozess muss dafür neu gestartet werden:
+
+```bash
+.venv/bin/python -m ai.train --resume runs/muc4-1/latest.pt --run-dir runs/muc4-2 --steps 4000000 --device cpu
+```
+
+Die gespeicherten Reward- und Explorationsparameter werden dabei übernommen.
+Auswertungen mit der neuen Maske sind getrennt von früheren Auswertungen zu
+interpretieren; JSON-Berichte enthalten dafür ebenfalls die aktive Maskenversion.
 
 ## Vom bisherigen Modell mit Synchronisationsstrafe weitertrainieren
 
@@ -224,7 +251,7 @@ Enthalten sind:
 
 - Policy- und Value-Loss auf getrennten Skalen, mit optionaler Glättung.
 - Trainings- und Validierungsgewinnrate mit 95%-Wilson-Intervallen.
-- Erreichte Runde, Return, Abbrüche am Sicherheitslimit und Verlustgründe.
+- Erreichte Runde, Return, erledigte Landungsvorbereitungen und Verlustgründe.
 - Getrennte Kurven für Endergebnis, Rundenbonus, Synchronisations- und Aufgabenstrafe.
 - Restentfernung bei Spielende, Flughafenquote, tatsächliche Landerundenquote und Rückstand.
 - Noch offene Vorbereitungsschritte im Zeitverlauf und nach Aufgabenart.
@@ -298,8 +325,9 @@ bestehenden Web-Spielmodi werden dadurch nicht verändert.
 ```
 
 Die Tests prüfen u. a. identische Eingaben/Masken bei veränderten verdeckten
-Partnerwürfeln, Masken gegen tatsächliche Engine-Aktionen, Neuwürfe, einen
-vollständigen Sieg, getrennte RNGs, Truncation-Bootstrap, endliche Gradienten,
+Partnerwürfeln, Masken gegen tatsächliche Engine-Aktionen, Neuwürfe, die Reservierung
+von Pflichtwürfeln über vollständige Partien, einen vollständigen Sieg,
+getrennte RNGs, Truncation-Bootstrap, endliche Gradienten,
 echte PPO-Updates und Checkpoint-Roundtrips. Ohne ML-Pakete werden die Lern-Tests
 übersprungen; die übrigen Engine- und Informationstests benötigen kein PyTorch.
 
@@ -307,6 +335,9 @@ Beim Ändern von Features, deren Skalierung oder Aktionsbedeutung die
 `SCHEMA_VERSION` in `actions.py` erhöhen. Checkpoints prüfen Reihenfolge und
 Struktur; eine reine Bedeutungsänderung ist nur über die Versionsnummer erkennbar.
 Netzänderungen in `nn_model.py` können ebenfalls neue Checkpoints erfordern.
+Für Änderungen der Maskierung bei unveränderten Features und Aktions-IDs stattdessen
+`ACTION_MASK_VERSION` erhöhen; die Gewichte bleiben ladbar, die Laufverzeichnisse
+und Validierungsbestwerte werden getrennt.
 
 Die Engine verwendet aktuell den globalen Python-Zufallsgenerator. Der Adapter
 isoliert dessen Zustand pro Umgebung. Für mehrere parallele Umgebungen deshalb

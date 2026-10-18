@@ -11,7 +11,7 @@ import unittest
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
-from ai.actions import ACTIONS, ACTION_IDS, Action, SLOTS, execute_placement
+from ai.actions import ACTIONS, ACTION_IDS, ACTION_MASK_VERSION, Action, SLOTS, execute_placement
 from ai.agents import HeuristicAgent, RandomAgent
 from ai.environment import CrewEnv
 from ai.observation import OBSERVATION_SIZE, encode
@@ -61,6 +61,10 @@ class EnvironmentTests(unittest.TestCase):
                     if action.kind == "place":
                         result = execute_placement(game, env.current_role, action)
                         self.assertEqual(mask[i], legal_placement_in_view(view, action))
+                        required = [view["board"][j] for j, slot in enumerate(SLOTS)
+                                    if slot.owner == view["role"] and slot.target in ("ruder", "triebwerk")]
+                        has_spare = sum(bool(v) for v in view["own_dice"]) > required.count(None)
+                        expected = result.erfolg and (has_spare or SLOTS[action.slot].target in ("ruder", "triebwerk"))
                     else:
                         result = game.trinke_kaffee(env.current_role, action.die, action.delta)
                         # Engine clips out-of-range coffee requests. The agent deliberately
@@ -68,7 +72,8 @@ class EnvironmentTests(unittest.TestCase):
                         value = env.game._wuerfel_liste(env.current_role)[action.die].augenzahl
                         if not 1 <= value + action.delta <= 6:
                             continue
-                    self.assertEqual(mask[i], result.erfolg, (seed, action))
+                        expected = result.erfolg
+                    self.assertEqual(mask[i], expected, (seed, action))
                     checks += 1
                 env.step(agent.select(env.view(), mask))
         self.assertGreater(checks, 2000)
@@ -195,6 +200,109 @@ class EnvironmentTests(unittest.TestCase):
             public = json.loads(line)["public_state"]
             self.assertNotIn("own_dice", public)
             self.assertNotIn("partner_dice", public)
+
+
+class MandatoryFieldTests(unittest.TestCase):
+    def two_optional_placements_per_role(self):
+        env = CrewEnv()
+        env.reset(seed=7)
+        for role, values in (("pilot", (1, 3, 2, 2)), ("kopilot", (1, 1, 2, 2))):
+            for die, value in zip(env.game._wuerfel_liste(role), values):
+                die.augenzahl = value
+        for selected in (place_id(0, "funk", "pilot"), place_id(0, "landeklappe", "kopilot", 0),
+                         place_id(1, "fahrwerk", "pilot", 1), place_id(1, "funk", "kopilot")):
+            env.step(selected)
+        return env
+
+    def test_two_free_dice_are_reserved_for_both_missing_fields_in_each_role(self):
+        env = self.two_optional_placements_per_role()
+        for role, target, index in (("pilot", "fahrwerk", 0), ("kopilot", "landeklappe", 1)):
+            env.game.am_zug = role
+            mask = env.action_mask()
+            placements = [ACTIONS[i] for i, legal in enumerate(mask) if legal and ACTIONS[i].kind == "place"]
+            self.assertEqual({SLOTS[a.slot].target for a in placements}, {"ruder", "triebwerk"})
+            self.assertEqual({a.die for a in placements}, {2, 3})
+            self.assertTrue(all(SLOTS[a.slot].owner == role for a in placements))
+            optional = place_id(2, target, role, index)
+            self.assertTrue(execute_placement(deepcopy(env.game), role, ACTIONS[optional]).erfolg)
+            self.assertFalse(mask[optional])
+            before = deepcopy(env.game.zustand())
+            with self.assertRaises(ValueError):
+                env.step(optional)
+            self.assertEqual(env.game.zustand(), before)
+
+    def test_one_open_field_reserves_only_the_last_die_regardless_of_which_field(self):
+        for first, last in (("ruder", "triebwerk"), ("triebwerk", "ruder")):
+            env = CrewEnv()
+            env.reset(seed=7)
+            for role in ("pilot", "kopilot"):
+                for die, value in zip(env.game._wuerfel_liste(role), (3, 1, 1, 3)):
+                    die.augenzahl = value
+            for selected in (place_id(0, first, "pilot"), place_id(0, first, "kopilot"),
+                             place_id(1, "funk", "pilot"), place_id(1, "funk", "kopilot")):
+                env.step(selected)
+            self.assertTrue(env.action_mask()[place_id(2, "fahrwerk", "pilot", 0)])
+            env.step(place_id(2, "fahrwerk", "pilot", 0))
+            # The partner still has two dice and can use its spare one.
+            self.assertTrue(env.action_mask()[place_id(2, "landeklappe", "kopilot", 0)])
+            env.step(place_id(2, "landeklappe", "kopilot", 0))
+            for role in ("pilot", "kopilot"):
+                env.game.am_zug = role
+                allowed = [ACTIONS[i] for i, valid in enumerate(env.action_mask())
+                           if valid and ACTIONS[i].kind == "place"]
+                self.assertEqual(len(allowed), 1)
+                self.assertEqual((allowed[0].die, SLOTS[allowed[0].slot].target), (3, last))
+
+    def test_filled_mandatory_fields_leave_spare_dice_unrestricted(self):
+        env = CrewEnv()
+        env.reset(seed=7)
+        for role in ("pilot", "kopilot"):
+            for die in env.game._wuerfel_liste(role):
+                die.augenzahl = 1
+        for selected in (place_id(0, "ruder", "pilot"), place_id(0, "ruder", "kopilot"),
+                         place_id(1, "triebwerk", "pilot"), place_id(1, "triebwerk", "kopilot")):
+            env.step(selected)
+        for role, target in (("pilot", "fahrwerk"), ("kopilot", "landeklappe")):
+            env.game.am_zug = role
+            self.assertTrue(env.action_mask()[place_id(2, target, role, 0)])
+
+    def test_coffee_and_joint_reroll_preserve_the_reservation(self):
+        env = self.two_optional_placements_per_role()
+        env.game.cockpit.kaffeetassen = 1
+        env.step(action_id("coffee", die=2, delta=1))
+        env.step(action_id("reroll_start"))
+        env.step(action_id("reroll_select", subset=4))
+        env.step(action_id("reroll_select", subset=4))
+        self.assertEqual(env.current_role, "pilot")
+        for role in ("pilot", "kopilot"):
+            env.game.am_zug = role
+            allowed = [ACTIONS[i] for i, valid in enumerate(env.action_mask()) if valid and ACTIONS[i].kind == "place"]
+            self.assertEqual({SLOTS[a.slot].target for a in allowed}, {"ruder", "triebwerk"})
+            self.assertEqual(len(env.game.verfuegbare_wuerfel(role)), 2)
+
+    def test_reserved_mask_does_not_depend_on_hidden_partner_faces(self):
+        env = self.two_optional_placements_per_role()
+        for role in ("pilot", "kopilot"):
+            env.game.am_zug = role
+            before = (env.view(), env.observation(), env.action_mask())
+            for die in env.game.verfuegbare_wuerfel(env.other_role(role)):
+                die.augenzahl = 7 - die.augenzahl
+            self.assertEqual(before, (env.view(), env.observation(), env.action_mask()))
+
+    def test_complete_masked_games_cannot_run_out_of_mandatory_dice(self):
+        resolved = 0
+        for seed in range(100):
+            env = CrewEnv()
+            env.reset(seed=seed)
+            agent = RandomAgent(seed + 20) if seed < 80 else HeuristicAgent()
+            while not env.done:
+                for role, fields in (("pilot", (env.game.cockpit.ruder_pilot, env.game.cockpit.schub_pilot)),
+                                     ("kopilot", (env.game.cockpit.ruder_kopilot, env.game.cockpit.schub_kopilot))):
+                    self.assertGreaterEqual(len(env.game.verfuegbare_wuerfel(role)), sum(f.ist_frei() for f in fields))
+                env.step(agent.select(env.view(), env.action_mask()))
+            self.assertNotEqual(env.info()["reason"], "pflichtfelder_nicht_erfuellt")
+            resolved += env.rounds_resolved
+        self.assertGreater(resolved, 20)
 
 
 def scripted_round(env, engine_value=1):
@@ -554,6 +662,23 @@ class LearningTests(unittest.TestCase):
                             total_steps=0, episodes=0, update=0, best_score=[-1, -1], torch_rng_state=torch.get_rng_state())
             original_bytes = path.read_bytes()
             common = ["ai.train", "--rollout-steps", "64", "--epochs", "1", "--minibatch-size", "32", "--eval-games", "2"]
+            # An unchanged legacy reward/exploration setup still needs a fresh
+            # log directory when the mandatory-field mask is introduced.
+            with patch("sys.argv", common + ["--resume", str(path), "--steps", "64", "--run-dir", str(original)]), \
+                    redirect_stdout(io.StringIO()), patch("sys.stderr", io.StringIO()) as errors:
+                with self.assertRaises(SystemExit):
+                    main()
+                self.assertIn("Aktionsmasken", errors.getvalue())
+            self.assertEqual(path.read_bytes(), original_bytes)
+            mask_only = root / "mandatory"
+            with patch("sys.argv", common + ["--resume", str(path), "--steps", "64", "--run-dir", str(mask_only)]), redirect_stdout(io.StringIO()):
+                main()
+            _, reserved = load_checkpoint(mask_only / "latest.pt")
+            self.assertEqual(reserved["train_config"]["action_mask_version"], ACTION_MASK_VERSION)
+            self.assertTrue(reserved["train_config"]["mask_changed_on_resume"])
+            self.assertFalse(reserved["train_config"]["reward_changed_on_resume"])
+            self.assertFalse(reserved["train_config"]["exploration_changed_on_resume"])
+            self.assertEqual(reserved["model_config"], model.config)
             with patch("sys.argv", common + ["--resume", str(path), "--steps", "64", "--run-dir", str(shaped),
                                               "--round-reward", "0", "--sync-weight", "0.05", "--task-weight", "0.02",
                                               "--uniform-mix", "0.03"]), redirect_stdout(io.StringIO()):
@@ -566,6 +691,7 @@ class LearningTests(unittest.TestCase):
             self.assertEqual(saved["model_config"], model.config)
             self.assertTrue(saved["train_config"]["reward_changed_on_resume"])
             self.assertTrue(saved["train_config"]["exploration_changed_on_resume"])
+            self.assertTrue(saved["train_config"]["mask_changed_on_resume"])
             self.assertEqual(path.read_bytes(), original_bytes)
             with (shaped / "metrics.csv").open() as handle:
                 metrics = list(csv.DictReader(handle))
@@ -591,6 +717,7 @@ class LearningTests(unittest.TestCase):
             self.assertEqual(off["train_config"]["round_reward"], 0)
             self.assertEqual(off["train_config"]["task_weight"], 0)
             self.assertEqual(off["train_config"]["uniform_mix"], 0)
+            self.assertFalse(off["train_config"]["mask_changed_on_resume"])
 
 
 if __name__ == "__main__":

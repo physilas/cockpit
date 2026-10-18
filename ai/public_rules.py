@@ -10,6 +10,10 @@ def legal_placement_in_view(view, action):
     value = view["own_dice"][action.die]
     if not value or (slot.owner is not None and slot.owner != view["role"]) or view["board"][action.slot]:
         return False
+    missing_required = sum(s.owner == view["role"] and s.target in ("ruder", "triebwerk")
+                           and view["board"][i] is None for i, s in enumerate(SLOTS))
+    if slot.target not in ("ruder", "triebwerk") and sum(bool(v) for v in view["own_dice"]) <= missing_required:
+        return False
     if slot.target == "fahrwerk":
         return value in ((1, 2), (3, 4), (5, 6))[slot.index]
     if slot.target in ("landeklappe", "bremse"):

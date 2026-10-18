@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 from statistics import mean
 
-from .actions import ACTIONS
+from .actions import ACTIONS, ACTION_MASK_VERSION
 from .agents import HeuristicAgent, ModelAgent, RandomAgent
 from .environment import CrewEnv
 
@@ -140,6 +140,7 @@ def main():
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps({"airport": airport, "partner": args.partner,
+                                        "action_mask_version": ACTION_MASK_VERSION,
                                         "stochastic": args.stochastic,
                                         "uniform_mix": agent.uniform_mix if args.checkpoint and args.stochastic else 0.0,
                                         **reward_options, **result}, ensure_ascii=False, indent=2), encoding="utf-8")

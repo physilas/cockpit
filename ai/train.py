@@ -20,6 +20,7 @@ from .checkpoints import load_checkpoint, save_checkpoint
 from .environment import CrewEnv
 from .evaluate import PERFORMANCE_METRICS, evaluate, summarize_episodes
 from .agents import ModelAgent
+from .actions import ACTION_MASK_VERSION
 from .nn_model import ActorCritic
 
 
@@ -237,15 +238,16 @@ def main():
     if not 0 <= args.uniform_mix <= 1:
         arg_parser.error("--uniform-mix must be between 0 and 1.")
     exploration_changed = payload is not None and args.uniform_mix != previous_config.get("uniform_mix", 0.0)
+    mask_changed = payload is not None and previous_config.get("action_mask_version", 1) != ACTION_MASK_VERSION
     effective_rewards = reward_config(args, previous_config)
     reward_changed = payload is not None and effective_rewards != {
         "round_reward": previous_config.get("round_reward", 0.02),
         "sync_weight": previous_config.get("sync_weight", 0.0),
         "sync_tolerance": previous_config.get("sync_tolerance", 1.0),
         "task_weight": previous_config.get("task_weight", 0.0)}
-    if reward_changed or exploration_changed:
+    if reward_changed or exploration_changed or mask_changed:
         if args.run_dir.resolve() == args.resume.resolve().parent:
-            arg_parser.error("Geänderte Rewards oder Exploration brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
+            arg_parser.error("Geänderte Rewards, Exploration oder Aktionsmasken brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
         best_score = (-1.0,) * 5
     for key, value in effective_rewards.items():
         setattr(args, key, value)
@@ -274,7 +276,8 @@ def main():
             arg_parser.error("Checkpoint und Log-Ende passen nicht zusammen. Für diesen Checkpoint ein neues --run-dir verwenden.")
     config = {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}
     config.update({"resumed_from_steps": total_steps, "reward_changed_on_resume": reward_changed,
-                   "exploration_changed_on_resume": exploration_changed})
+                   "exploration_changed_on_resume": exploration_changed,
+                   "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
 
@@ -294,6 +297,7 @@ def main():
     print(f"Rewards: Rundenbonus {args.round_reward:g}, Synchronisationsgewicht {args.sync_weight:g}, "
           f"Toleranz {args.sync_tolerance:g} Feld(er), Aufgabengewicht {args.task_weight:g}.", flush=True)
     print(f"Exploration: {args.uniform_mix:.1%} uniform über erlaubte Aktionen, {1 - args.uniform_mix:.1%} Modell.", flush=True)
+    print("Aktionsmaske: Verbleibende Würfel werden für offene Ruder- und Schubfelder reserviert.", flush=True)
     try:
         while total_steps < args.steps:
             batch, records = collect_rollout(model, env, min(args.rollout_steps, args.steps - total_steps),

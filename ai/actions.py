@@ -1,9 +1,12 @@
-"""Stable action IDs for the base game. No lookahead or strategy in the mask."""
+"""Stable base-game action IDs and engine placement constraints."""
 from dataclasses import asdict, dataclass
 
 
 ROLES = ("pilot", "kopilot")
 SCHEMA_VERSION = 1
+# Mask changes do not change model features/action IDs or invalidate weights.
+# v2 reserves each role's remaining dice for its unfilled mandatory fields.
+ACTION_MASK_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -84,6 +87,7 @@ def placement_is_legal(game, role, die, slot):
     """Use the engine's field constraints; mirror only its two ordering checks.
 
     Intentionally do NOT predict stalls, collisions, or future mandatory fields.
+    The environment separately reserves dice for mandatory fields in its mask.
     Exhaustive differential tests compare this predicate to engine execution.
     """
     if slot.owner is not None and slot.owner != role:

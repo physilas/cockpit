@@ -10,7 +10,7 @@ import random
 
 from backend.spielplan import Spielplan
 from backend.regeln import ANZAHL_RUNDEN
-from .actions import ACTIONS, ACTION_COUNT, ROLES, execute_placement, placement_is_legal, subset_indices, SLOTS
+from .actions import ACTIONS, ACTION_COUNT, ROLES, execute_placement, placement_is_legal, slot_field, subset_indices, SLOTS
 from .observation import MAX_TRACK_LENGTH, encode, visible_state
 
 
@@ -161,9 +161,15 @@ class CrewEnv:
                     nonempty_pair = bool(selected or partner_selection) or partner_can_choose
                     mask[i] = nonempty_pair and all(dice[j].ist_verfuegbar() for j in selected)
             return mask
+        # Own available dice and public occupied fields are sufficient. A
+        # non-mandatory placement may not make this round impossible to finish.
+        missing_required = sum(s.owner == role and s.target in ("ruder", "triebwerk")
+                               and slot_field(self.game, s).ist_frei() for s in SLOTS)
+        reserve_remaining = sum(w.ist_verfuegbar() for w in dice) <= missing_required
         for i, action in enumerate(ACTIONS):
             if action.kind == "place":
-                mask[i] = placement_is_legal(self.game, role, dice[action.die], SLOTS[action.slot])
+                slot = SLOTS[action.slot]
+                mask[i] = (not reserve_remaining or slot.target in ("ruder", "triebwerk")) and placement_is_legal(self.game, role, dice[action.die], slot)
             elif action.kind == "coffee":
                 mask[i] = dice[action.die].ist_verfuegbar() and action.delta in self.game.moegliche_kaffee_deltas(role, action.die)
             elif action.kind == "reroll_start":
