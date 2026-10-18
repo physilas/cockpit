@@ -1,0 +1,2 @@
+-r requirements-notebook.txt
+optuna>=4.5,<6

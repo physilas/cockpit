@@ -12,11 +12,17 @@ from .observation import OBSERVATION_SIZE
 
 
 class ActorCritic(nn.Module):
-    def __init__(self, observation_size=OBSERVATION_SIZE, action_count=ACTION_COUNT, hidden_size=128):
+    def __init__(self, observation_size=OBSERVATION_SIZE, action_count=ACTION_COUNT, hidden_size=128, hidden_layers=2):
         super().__init__()
-        self.config = {"observation_size": observation_size, "action_count": action_count, "hidden_size": hidden_size}
-        self.encoder = nn.Sequential(nn.Linear(observation_size, hidden_size), nn.Tanh(),
-                                     nn.Linear(hidden_size, hidden_size), nn.Tanh())
+        if any(type(n) is not int or n < 1 for n in (observation_size, action_count, hidden_size, hidden_layers)):
+            raise ValueError("Netzdimensionen und Schichtanzahl müssen positive ganze Zahlen sein.")
+        self.config = {"observation_size": observation_size, "action_count": action_count,
+                       "hidden_size": hidden_size, "hidden_layers": hidden_layers}
+        # Keep the original encoder keys (0, 2) for legacy two-layer checkpoints.
+        layers = []
+        for index in range(hidden_layers):
+            layers.extend((nn.Linear(observation_size if index == 0 else hidden_size, hidden_size), nn.Tanh()))
+        self.encoder = nn.Sequential(*layers)
         self.actor = nn.Linear(hidden_size, action_count)
         self.critic = nn.Linear(hidden_size, 1)
         for layer in self.modules():

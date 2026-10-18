@@ -187,6 +187,7 @@ def parser():
     result.add_argument("--epochs", type=int, default=4)
     result.add_argument("--minibatch-size", type=int, default=256)
     result.add_argument("--hidden-size", type=int, default=128)
+    result.add_argument("--hidden-layers", type=int, default=2)
     result.add_argument("--lr", type=float, default=3e-4)
     result.add_argument("--gamma", type=float, default=0.995)
     result.add_argument("--gae-lambda", type=float, default=0.95)
@@ -200,6 +201,7 @@ def parser():
     result.add_argument("--task-weight", type=float, default=None, help="Penalty budget per unfinished landing task: fresh run 0.02; 0 disables; resume otherwise keeps saved value.")
     result.add_argument("--max-steps", type=int, default=256)
     result.add_argument("--eval-every", type=int, default=5)
+    result.add_argument("--eval-steps", type=int, default=None, help="Validate at decision milestones instead of --eval-every updates.")
     result.add_argument("--eval-games", type=int, default=100)
     result.add_argument("--eval-seed", type=int, default=1_000_000)
     result.add_argument("--seed", type=int, default=42)
@@ -209,12 +211,18 @@ def parser():
     return result
 
 
-def main():
+def train(args, *, on_validation=None):
+    """Run PPO; optional callback(row, evaluation) runs after logs/checkpoint commit.
+
+    Callback exceptions (including Optuna pruning) propagate, leaving latest.pt
+    usable. This module has no dependency on Optuna.
+    """
     arg_parser = parser()
-    args = arg_parser.parse_args()
-    for name in ("steps", "rollout_steps", "epochs", "minibatch_size", "hidden_size", "eval_every", "eval_games", "threads", "max_steps"):
+    for name in ("steps", "rollout_steps", "epochs", "minibatch_size", "hidden_size", "hidden_layers", "eval_every", "eval_games", "threads", "max_steps"):
         if getattr(args, name) < 1:
             arg_parser.error(f"--{name.replace('_', '-')} muss positiv sein.")
+    if args.eval_steps is not None and args.eval_steps < 1:
+        arg_parser.error("--eval-steps muss positiv sein.")
     if not 0 < args.gamma <= 1 or not 0 <= args.gae_lambda <= 1 or args.lr <= 0 or not 0 < args.clip < 1:
         arg_parser.error("Ungültige Lernrate, Discount-, GAE- oder Clip-Einstellung.")
     torch.set_num_threads(args.threads)
@@ -226,13 +234,14 @@ def main():
         model, payload = load_checkpoint(args.resume, args.device)
         for name in ("airport", "max_steps", "gamma", "gae_lambda", "seed", "hidden_size"):
             setattr(args, name, payload["train_config"][name])
+        args.hidden_layers = model.config["hidden_layers"]
         total_steps, episodes, update = payload["total_steps"], payload["episodes"], payload["update"]
         if payload.get("best_score_version") == BEST_SCORE_VERSION:
             best_score = tuple(payload["best_score"])
         if any(payload["train_config"].get(key) != getattr(args, key) for key in ("eval_seed", "eval_games")):
             best_score = (-1.0,) * 5
     else:
-        model = ActorCritic(hidden_size=args.hidden_size).to(args.device)
+        model = ActorCritic(hidden_size=args.hidden_size, hidden_layers=args.hidden_layers).to(args.device)
     previous_config = payload["train_config"] if payload else None
     args.uniform_mix = resolve_uniform_mix(args.uniform_mix, previous_config)
     if not 0 <= args.uniform_mix <= 1:
@@ -280,6 +289,7 @@ def main():
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
+    next_eval = ((total_steps // args.eval_steps) + 1) * args.eval_steps if args.eval_steps else None
 
     def save(name):
         device_rng = {}
@@ -300,7 +310,10 @@ def main():
     print("Aktionsmaske: Verbleibende Würfel werden für offene Ruder- und Schubfelder reserviert.", flush=True)
     try:
         while total_steps < args.steps:
-            batch, records = collect_rollout(model, env, min(args.rollout_steps, args.steps - total_steps),
+            rollout_steps = min(args.rollout_steps, args.steps - total_steps)
+            if next_eval is not None:
+                rollout_steps = min(rollout_steps, next_eval - total_steps)
+            batch, records = collect_rollout(model, env, rollout_steps,
                                              seed=args.seed, episodes_done=episodes, gamma=args.gamma, gae_lambda=args.gae_lambda,
                                              uniform_mix=args.uniform_mix)
             stats = ppo_update(model, optimizer, batch, epochs=args.epochs, minibatch_size=args.minibatch_size,
@@ -318,7 +331,9 @@ def main():
             append_rows(args.run_dir / "episodes.csv", EPISODE_FIELDS,
                         [{"phase": "train", "update": update, "total_steps": total_steps, **r} for r in records])
             validation = ""
-            if update % args.eval_every == 0 or total_steps >= args.steps:
+            result = None
+            validation_due = total_steps >= next_eval if next_eval is not None else update % args.eval_every == 0
+            if validation_due or total_steps >= args.steps:
                 model.eval()
                 result = evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
                                   airport=args.airport, round_reward=args.round_reward, max_steps=args.max_steps,
@@ -333,14 +348,26 @@ def main():
                     save("best.pt")
                 validation = (f" | Validierung {result['win_rate']:.1%}, Restdistanz {result['mean_distance_remaining']:.2f}, "
                               f"Landerunde {result['landing_round_rate']:.1%}")
+                if next_eval is not None:
+                    next_eval = ((total_steps // args.eval_steps) + 1) * args.eval_steps
             append_rows(metrics_path, METRIC_FIELDS, [row])
             save("latest.pt")
             print(f"Update {update:4d} | {total_steps:8,d} Schritte | Training {row['train_win_rate']:.1%}, "
                   f"Runde {row['train_mean_round']:.2f}, Restdistanz {training['mean_distance_remaining']:.2f}, "
                   f"Sync {training['mean_sync_return']:+.3f}, Aufgaben {training['mean_tasks_return']:+.3f} | Policy {stats['policy_loss']:.4f}, "
                   f"Value {stats['value_loss']:.4f}, H {stats['entropy']:.3f}{validation}", flush=True)
+            if result is not None and on_validation is not None:
+                on_validation(row, result)
     except KeyboardInterrupt:
         print("Unterbrochen. latest.pt enthält das letzte vollständig gespeicherte Update.", flush=True)
+        raise
+
+
+def main():
+    try:
+        train(parser().parse_args())
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

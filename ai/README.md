@@ -34,7 +34,7 @@ Start; `--device mps` oder `--device cuda` ist optional.
 
 | Datei | Zweck |
 |---|---|
-| `nn_model.py` | Editierbarer Actor-Critic-Entwurf: zwei versteckte Schichten mit jeweils 128 Neuronen und Tanh |
+| `nn_model.py` | Actor-Critic mit konfigurierbarer Breite und Tiefe; Standard zwei Schichten à 128 Neuronen, Tanh |
 | `train.py` | Vollständiges PPO-Self-play mit GAE, Logdateien und Checkpoints |
 | `analysis.ipynb` | Jupyter-Analyse für Loss, Spielleistung und Trainingsstabilität |
 | `environment.py` | Kleine Trainingsumgebung um die bestehende Python-Engine |
@@ -44,10 +44,17 @@ Start; `--device mps` oder `--device cuda` ist optional.
 | `evaluate.py` | Separate Partien, Partnervergleich, Konfidenzintervalle und öffentliche Replays |
 | `play.py` | Selbst im Terminal mit der KI spielen |
 | `checkpoints.py` | Modellgewichte mit geprüftem Beobachtungs- und Aktionsschema speichern/laden |
+| `tuning/` | Kontrollierter Architekturvergleich, Optuna-Suche und eigenes Analyse-Notebook |
 
 Die Skripte als Module aufrufen (`python -m ai.train`), damit die Imports stimmen.
 Sie benötigen keine Browser-Oberfläche und kein Pyodide. Die Umgebung besitzt ein
 an Gymnasium angelehntes `reset`-/`step`-Format, ist aber kein Gymnasium-Untertyp.
+
+Für den Vergleich `2×128` gegen `2×256`, eine kleine Optuna-Suche und Bestätigung
+mit mehreren Trainings-Seeds siehe [tuning/README.md](tuning/README.md).
+Die optionalen Pakete stehen in `ai/requirements-tuning.txt`; normales Training
+benötigt Optuna nicht. `--hidden-size` und `--hidden-layers` steuern neue Netze;
+beim Fortsetzen wird die gespeicherte Architektur geladen.
 
 ## Training starten
 
