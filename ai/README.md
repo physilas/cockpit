@@ -240,7 +240,7 @@ bisheriger Lauf anders heißt, den Checkpoint-Pfad entsprechend ändern. Ohne
 ausdrückliches `--task-weight` bleibt die neue Hilfe bei älteren Checkpoints aus.
 Die 3-%-Exploration wird dabei ebenfalls aktiviert. Später mit `--task-weight 0`
 beziehungsweise `--uniform-mix 0` in einem neuen Laufverzeichnis wieder abschalten.
-Im Notebook `RUN_NAME = "muc-tasks"` auswählen.
+Im Notebook `RUN_NAMES = ["muc-tasks"]` auswählen.
 
 ## Loss-Kurven im Jupyter-Notebook
 
@@ -248,8 +248,16 @@ Im Notebook `RUN_NAME = "muc-tasks"` auswählen.
 .venv/bin/python -m jupyterlab ai/analysis.ipynb
 ```
 
-Im Notebook `RUN_NAME = "muc-tasks"` für das neue Training setzen und
-**Run → Run All Cells** wählen. Voreingestellt ist `muc` für deine bisherigen Daten. Neue
+Im Notebook `RUN_NAMES = ["muc-tasks"]` für das neue Training setzen und
+**Run → Run All Cells** wählen. Mehrere Runs werden in der angegebenen Reihenfolge
+zu einem Verlauf verbunden, zum Beispiel die voreingestellte Auswahl
+`RUN_NAMES = ["muc5", "muc5-1", "muc5-2"]`. Fortlaufende Schrittzähler werden
+übernommen; zurückgesetzte Zähler werden für die Plots hinter den vorherigen Run
+verschoben. Dezente vertikale Linien markieren die Übergänge in allen
+Zeitverlaufsplots, und die Glättung beginnt an jeder Run-Grenze neu. Loss-Gewichte
+gelten pro Run; alle ausgewählten Runs müssen dieselbe Strecke verwenden.
+Die letzte Validierung wird anhand der gewählten Reihenfolge bestimmt.
+Zusätzliche Testberichte werden für alle ausgewählten Runs angezeigt. Neue
 Messwerte erscheinen nach erneutem Ausführen der Zellen, auch während des Trainings.
 Wenn ein anderer Python-Kernel gewählt wird, muss er dieselben Pakete enthalten;
 der Start über `.venv/bin/python -m jupyterlab` verwendet die Projektumgebung.
@@ -268,6 +276,8 @@ Enthalten sind:
 - Vergleich zusätzlicher Testberichte, einschließlich beider Rollen mit fremden Partnern.
 
 `SAVE_FIGURES = True` exportiert PNGs unter `runs/<lauf>/plots/`.
+Bei mehreren Runs liegen sie im Unterordner `concat-<run1>__<run2>…/` des letzten
+ausgewählten Runs; `PLOT_DIR` zeigt den vollständigen Zielpfad.
 Eine fallende Value-Loss kann bedeuten, dass das Netz lediglich die häufigen
 Niederlagen besser vorhersagt. Policy-Loss ist durch Advantage-Normalisierung
 häufig nahe null und muss nicht monoton sinken. Gewinnrate ist das primäre Ziel.
