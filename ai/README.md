@@ -7,6 +7,11 @@ nicht und ersetzt sie nicht durch eine Logbuch-Variante. Die historischen Hinwei
 auf Platzhalter in dieser YAML bleiben bestehen; trainiert wird genau die aktuell
 spielbare Konfiguration.
 
+MUC startet mit einem Flugzeug auf dem Startfeld und acht Flugzeugen insgesamt.
+Die Trainingsumgebung liest die YAML bei jeder neuen Partie neu ein. Das gilt
+auch für laufendes Training ab der nächsten Partie und beim Fortsetzen mit
+`--resume`; gespeicherte Modellgewichte bleiben dabei erhalten.
+
 Ein gemeinsames PyTorch-Modell spielt beide Rollen. Bei jedem Schritt erhält es
 die öffentlichen Informationen und ausschließlich die eigenen freien Würfel.
 Auch der Critic hat keinen Zugriff auf die Partnerhand. Rollouts werden mit festen
@@ -218,8 +223,8 @@ Aufgabenreward = -Aufgabengewicht * offene Aufgaben * (U_neu - U_alt)
 
 Bei unverändert acht offenen Aufgaben und Gewicht 0,02 kostet die erste Runde
 ungefähr −0,0033, die fünfte −0,0294. Abschließen von Aufgaben senkt spätere Kosten.
-Auf MUC gibt es anfangs 17 Aufgaben; wenn keine abgeschlossen wird, beträgt das
-gesamte undiscountete Aufgabenbudget bei Gewicht 0,02 höchstens 0,34. Neue
+Auf MUC gibt es anfangs 16 Aufgaben; wenn keine abgeschlossen wird, beträgt das
+gesamte undiscountete Aufgabenbudget bei Gewicht 0,02 höchstens 0,32. Neue
 Verkehrsflugzeuge auf anderen Strecken können den Aufgabenbestand wieder erhöhen.
 
 Bei einer echten Niederlage wird die verbliebene Dringlichkeit bis 1 abgerechnet.

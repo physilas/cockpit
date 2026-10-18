@@ -395,13 +395,14 @@ class TaskPenaltyTests(unittest.TestCase):
     def test_task_count_tracks_required_preparation_not_optional_brake_upgrades(self):
         env = CrewEnv(task_weight=0.02)
         env.reset(seed=1)
-        self.assertEqual(env.unfinished_tasks(), {"gear": 3, "flaps": 4, "braking": 1, "traffic": 9})
+        self.assertEqual(env.game.landung.flugzeuge_an_aktueller_position(), 1)
+        self.assertEqual(env.unfinished_tasks(), {"gear": 3, "flaps": 4, "braking": 1, "traffic": 8})
         c = env.game.cockpit
         c.fahrwerk_ausgefahren[0] = True
         c.landeklappen_ausgefahren[:2] = [True, True]
         c.bremsen_aktiviert[0] = True
         env.game.landung.flugzeuge[0] -= 1
-        self.assertEqual(env.unfinished_tasks(), {"gear": 2, "flaps": 2, "braking": 0, "traffic": 8})
+        self.assertEqual(env.unfinished_tasks(), {"gear": 2, "flaps": 2, "braking": 0, "traffic": 7})
         before = env.unfinished_tasks()
         c.bremsen_aktiviert[:] = [True, True, True]
         self.assertEqual(env.unfinished_tasks(), before)
