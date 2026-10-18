@@ -1,0 +1,32 @@
+name: Archive training data
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+      timezone: Europe/Berlin
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: archive-training-data
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    if: github.repository == 'physilas/cockpit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify archive safeguards
+        run: python3 -m unittest tests.test_cloud_archive -v
+      - name: Archive, verify GitHub copies, then delete unchanged Cloudflare rows
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CLOUDFLARE_ARCHIVE_TOKEN: ${{ secrets.CLOUDFLARE_ARCHIVE_TOKEN }}
+          CLOUDFLARE_ARCHIVE_URL: https://flyteam-training.silas-zelmer.workers.dev
+        run: python3 cloud/archive_to_github.py

@@ -32,4 +32,4 @@ assert.equal((await worker.fetch(new Request('https://logs.workers.dev/logs',{he
 allowed=false;assert.equal((await worker.fetch(request(),env)).status,429);
 allowed=true;storageFailure=true;assert.equal((await worker.fetch(request(),env)).status,503);
 db.close();
-console.log('✓ Worker + real SQLite: private namespaces, atomic revisions, no read API, consent/schema/size validation, CORS, rate limit and quota errors');
+console.log('✓ Worker + real SQLite: private namespaces, atomic revisions, no public read API, consent/schema/size validation, CORS, rate limit and quota errors');

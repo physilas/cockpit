@@ -1,4 +1,5 @@
-/* Private D1 ingestion for the static GitHub Pages app. No read/list endpoint. */
+/* D1 ingestion for the app; separate authenticated, server-only archive API. */
+import {archiveRequest} from './archive.mjs';
 // Leave room below D1's 2,000,000-byte row limit for metadata and JSON framing.
 const MAX_BYTES = 1_800_000;
 export const UPSERT_SESSION = `
@@ -53,6 +54,7 @@ async function readLimited(request) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url), origin = request.headers.get("Origin");
+    if (url.pathname.startsWith('/archive/')) return archiveRequest(request, env);
     const allowed = (env.ALLOWED_ORIGINS || "").split(",").map(v => v.trim()).filter(Boolean);
     const headers = {"Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Origin"};
     const reply = (status, body) => new Response(JSON.stringify(body), {status, headers});

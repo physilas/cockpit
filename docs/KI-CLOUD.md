@@ -30,8 +30,67 @@ anderen Anwendungen desselben Cloudflare-Kontos.
 
 Eine Datenbankzeile enthält jeweils den aktuellen Stand einer Partie. Neuere
 Stände ersetzen ältere atomar; sie erzeugen keine zusätzliche Partie. Für viele
-Beispiele sollten Daten regelmäßig exportiert und gesichert werden, damit der
-Speicher verfügbar bleibt. Die Einrichtung löscht keine Trainingsdaten automatisch.
+Beispiele werden abgeschlossene Partien täglich nach GitHub archiviert. Erst nach
+verifiziertem GitHub-Backup werden die identischen Versionen aus D1 gelöscht.
+
+## Tägliche Archivierung nach GitHub
+
+Der Workflow [Archive training data](https://github.com/physilas/cockpit/actions/workflows/archive-training.yml)
+läuft täglich gegen **03:17 Uhr deutscher Zeit** (`Europe/Berlin`, einschließlich
+Sommer-/Winterzeit) und kann in GitHub Actions über **Run workflow** manuell
+gestartet werden. Der lokale Computer muss dafür nicht eingeschaltet sein.
+
+1. Der Worker liefert höchstens fünf abgeschlossene Partien pro Abfrage, mit
+   zusammen höchstens etwa 3 MB Nutzdaten. Partien mit Status `active` oder einem
+   Upload innerhalb der letzten zehn Minuten bleiben in D1.
+2. `cloud/archive_to_github.py` schreibt die vollständigen JSON-Nutzlasten in
+   `ai/data/archives/YYYY-MM-DD/{examples|feedback}/SESSION-ID/`. Die Dateinamen
+   enthalten Revision und SHA-256-Prüfsumme. Gewonnene, verlorene und abgebrochene
+   Lernpartien werden gleichermaßen gesichert.
+3. Nach erfolgreichem Commit auf `main` lädt das Skript die Dateien über den
+   aktuellen GitHub-Branch herunter und vergleicht sie bytegenau mit den Originalen.
+4. Erst danach bestätigt es die Archivierung. Der Worker prüft erneut Revision,
+   Status, Mindestalter und SHA-256 und löscht ausschließlich die weiterhin
+   identische Nutzlast. Ein gleichzeitig eingehender neuer Stand bleibt erhalten.
+
+Fehlgeschlagene GitHub-Uploads oder Prüfungen führen zu keiner Löschbestätigung.
+Nach einem Abbruch lassen sich bereits gesicherte Dateien wiederverwenden.
+Pro Lauf sind höchstens 100 Batches vorgesehen; bei Erreichen dieser Grenze bleibt
+der Rest in D1 und der Lauf meldet einen Fehler. Es erfolgt kein automatisches
+Modelltraining.
+
+Der Serverzugang verwendet einen eigenen zufälligen 256-Bit-Schlüssel. Er liegt
+als Worker-Secret `ARCHIVE_TOKEN` und GitHub-Actions-Secret
+`CLOUDFLARE_ARCHIVE_TOKEN` vor. Er erlaubt ausschließlich die Archivendpunkte und
+gewährt keinen Zugriff auf das Cloudflare-Konto. Ein zusätzlicher Cloudflare-
+Account-API-Token ist dafür nicht nötig. GitHub verwendet seinen kurzlebigen,
+auf dieses Repository beschränkten `GITHUB_TOKEN` mit `contents: write`.
+Weder Archivschlüssel noch installationsbezogene Datenbankkennungen werden
+committet. Die JSON-Dateien werden im bestehenden öffentlichen Repository
+veröffentlicht.
+
+Bei einer Neueinrichtung oder Schlüsselrotation denselben neuen Schlüssel über
+Standardeingabe setzen, ohne ihn in Befehlsargumenten oder Dateien im Repository
+zu hinterlegen:
+
+```bash
+npx wrangler secret put ARCHIVE_TOKEN --config cloud/wrangler.jsonc
+gh secret set CLOUDFLARE_ARCHIVE_TOKEN --repo physilas/cockpit
+```
+
+Danach den Worker erneut bereitstellen. Die Routen `POST /archive/export` und
+`POST /archive/ack` erfordern `Authorization: Bearer …` und geben keine
+Browser-CORS-Freigabe aus. Ohne eingerichteten Archivschlüssel bleiben sie gesperrt.
+
+GitHub kann geplante Läufe verzögern; die Daten bleiben bis zum nächsten
+erfolgreichen Lauf in D1. Öffentliche Repositories deaktivieren Zeitpläne nach
+60 Tagen ohne Aktivität. Deshalb legt der Workflow einmal pro UTC-Kalendermonat
+einen kleinen, unveränderlichen Aktivitätsnachweis unter
+`.github/archive-keepalive/` an, auch wenn keine neuen Partien vorliegen.
+
+[GitHub-Zeitpläne](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule),
+[GitHub-Workflow-Token](https://docs.github.com/en/actions/concepts/security/github_token),
+[Cloudflare-Secrets](https://developers.cloudflare.com/workers/configuration/secrets/).
 
 ## Konfiguration und erneute Bereitstellung
 
@@ -117,8 +176,9 @@ enthalten nur öffentliche Lage und eigene Würfel. Erfolge, Niederlagen und
 abgebrochene Partien sind getrennt gekennzeichnet. Ein Upload verändert noch
 keine Modellgewichte.
 
-Der Worker bietet Upload und CORS-Preflight an, keine öffentliche Lese- oder
-Listenfunktion. Er prüft Format, Größe, Einwilligung, Bewertungswerte sowie
+Der Worker bietet Upload und CORS-Preflight sowie getrennte, authentifizierte
+Archivendpunkte an, keine öffentliche Lese- oder Listenfunktion. Er prüft Format,
+Größe, Einwilligung, Bewertungswerte sowie
 Beobachtungs- und Aktionsdimensionen. Die Nutzlast ist auf 1.800.000 Bytes begrenzt,
 damit sie einschließlich Metadaten in eine D1-Zeile passt. Pro Installation gilt
 ein Rate-Limit. Vor dem Lernen sind Replay-/Regelprüfung, Versionsprüfung,
@@ -132,6 +192,8 @@ Teilnehmertrennung, ungültige Daten, Größenlimit, CORS und Datenbankfehler:
 
 ```bash
 node tests/cloud-worker.mjs
+node tests/cloud-archive.mjs
+python3 -m unittest tests.test_cloud_archive -v
 ```
 
 Nach der Bereitstellung wird ein Testupload an den echten Endpunkt geschickt und
