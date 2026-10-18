@@ -249,7 +249,8 @@ der Start über `.venv/bin/python -m jupyterlab` verwendet die Projektumgebung.
 
 Enthalten sind:
 
-- Policy- und Value-Loss auf getrennten Skalen, mit optionaler Glättung.
+- Policy- und Value-Loss auf getrennten Skalen sowie der gewichtete PPO-Gesamtloss
+  auf einer symmetrisch logarithmischen Skala (`symlog`), mit optionaler Glättung.
 - Trainings- und Validierungsgewinnrate mit 95%-Wilson-Intervallen.
 - Erreichte Runde, Return, erledigte Landungsvorbereitungen und Verlustgründe.
 - Getrennte Kurven für Endergebnis, Rundenbonus, Synchronisations- und Aufgabenstrafe.
