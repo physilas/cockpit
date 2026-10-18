@@ -31,10 +31,10 @@ neuwurf_hoehen: [6000, 2000]
 # Regelheft nicht vor (siehe Hinweis in landung.py) und werden aktuell
 # von der Engine nicht ausgewertet - Platzhalterwerte.
 flugzeuge_wuerfel_kurven_min_max:
-- 1 0 -2 2
-- 1 0 -2 2
-- 2 0 -2 2
-- 1 0 -2 2
-- 1 0 -2 2
-- 1 0 -2 2
-- 1 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2

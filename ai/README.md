@@ -223,8 +223,9 @@ Aufgabenreward = -Aufgabengewicht * offene Aufgaben * (U_neu - U_alt)
 
 Bei unverändert acht offenen Aufgaben und Gewicht 0,02 kostet die erste Runde
 ungefähr −0,0033, die fünfte −0,0294. Abschließen von Aufgaben senkt spätere Kosten.
-Auf MUC gibt es anfangs 16 Aufgaben; wenn keine abgeschlossen wird, beträgt das
-gesamte undiscountete Aufgabenbudget bei Gewicht 0,02 höchstens 0,32. Neue
+Die aktuelle MUC-Konfiguration startet ohne Verkehrsflugzeuge mit acht Aufgaben;
+wenn keine abgeschlossen wird, beträgt das gesamte undiscountete Aufgabenbudget
+bei Gewicht 0,02 höchstens 0,16. Neue
 Verkehrsflugzeuge auf anderen Strecken können den Aufgabenbestand wieder erhöhen.
 
 Bei einer echten Niederlage wird die verbliebene Dringlichkeit bis 1 abgerechnet.
@@ -359,8 +360,105 @@ werden. `build.py` selbst benötigt weiterhin kein PyTorch. Die App speichert
 Aufzeichnungen zunächst in IndexedDB. Eine optionale Cloudflare-Anbindung sendet
 die Lernmodi nach Zustimmung automatisch in eine private D1-Datenbank. Einrichtung:
 [docs/KI-CLOUD.md](../docs/KI-CLOUD.md). Die gesammelten Daten verändern die Modelle
-noch nicht automatisch; ihr Import in Demonstrations-/Feedbacktraining ist ein
-separater Trainingsschritt.
+noch nicht automatisch. Gewonnene KI-no-Partien lassen sich ausdrücklich als
+zusätzlicher Nachahmungsterm im PPO-Training verwenden, wie unten beschrieben.
+Die Bewertungen aus KI-ndergartenbetreuung werden dabei nicht eingelesen.
+
+## Gewonnene KI-no-Partien im PPO-Training
+
+Schon eine erfolgreiche Beispielpartie kann eine vorsichtige Orientierung geben.
+Ihre Züge sind zusammenhängende Beobachtungen, keine 60 unabhängigen Belege für
+eine bessere Strategie. Ein Sieg bedeutet auch nicht, dass jeder Zug optimal war.
+Deshalb bleibt normales PPO die Grundlage; der Zusatzterm ist standardmäßig aus.
+
+Mit Beispielen lautet die zu minimierende Loss:
+
+```text
+L = L_PPO + λ(t) · mean(-log π_modell(menschlicher_Zug | Beobachtung, erlaubte_Aktionen))
+λ(t) = 0.01 · max(0, 1 - neue_Selbstspielentscheidungen / 100000)
+```
+
+Das ist ein zusätzlicher [Behavioral-Cloning-Term](https://imitation.readthedocs.io/en/latest/algorithms/bc.html).
+Die gezeigten Aktionen erhalten weder erfundene PPO-Auswahlwahrscheinlichkeiten
+noch eigene Advantages oder Critic-Ziele. Der Term arbeitet mit der reinen,
+maskierten Modellverteilung ohne uniforme Explorationsmischung. Er trainiert Actor
+und gemeinsamen Encoder; dadurch können sich auch Critic-Vorhersagen ändern,
+obwohl die Demonstrationen keinen direkten Value-Loss erzeugen. Das Gewicht ist
+eine vorsichtige Versuchseinstellung, kein empirisch optimierter Wert.
+
+Beispiel für einen neuen Lauf ab vorhandenem Checkpoint:
+
+```bash
+.venv/bin/python -m ai.train \
+  --resume runs/muc5-5/latest.pt \
+  --run-dir runs/muc6-demo \
+  --steps 24000000 \
+  --demo-data ai/data \
+  --demo-coef 0.01 \
+  --demo-decay-steps 100000
+```
+
+`--steps` ist weiterhin der **absolute** Zielzähler einschließlich der bereits
+trainierten Entscheidungen. Das Ziel gegebenenfalls erhöhen, wenn der gewählte
+Checkpoint bereits weiter ist. Der Decay zählt ab dem Aktivieren der
+Demonstrationen, unabhängig vom bisherigen Gesamtzähler. `--demo-decay-steps 0`
+hält das Gewicht ausdrücklich konstant. Ohne explizites `--demo-coef` aktiviert
+`--demo-data` den Wert 0,01, sofern vorher kein aktiver Wert gespeichert war.
+
+Der Importer akzeptiert einzelne Browser-Exportdateien, einzelne archivierte
+Sessions und rekursiv durchsuchte Ordner. Er wählt nur gewonnene KI-no-Partien mit
+Einwilligung auf derselben Strecke. Je Session zählt die neueste Revision; eine
+neuere Niederlage oder ein Abbruch verdrängt einen älteren Sieg. Doppelte Exporte
+werden entfernt, widersprüchliche gleiche Revisionen abgewiesen. Zurückgenommene,
+nicht kompatible und nicht menschliche Aktionen sowie Verwaltungsereignisse
+werden ausgeschlossen. Schema, Maskenversion, Dimensionen, endliche Werte,
+Rollenkennung, erlaubte Aktion und Aktionsbeschreibung werden geprüft. Dies ist
+keine vollständige Wiederholung der Partie in der Engine und kein Echtheitsbeleg
+für menschliche Eingaben aus beliebigen öffentlichen Clients.
+
+Der MUC-Sieg vom 18.10.2026 ergibt 60 Lernpaare: 56 Platzierungen und vier
+Kaffeeaktionen, jeweils 30 Entscheidungen pro Rolle. Jeder PPO-Minibatch verwendet
+die gesamte kleine Sammlung; bei mehr als `--demo-batch-size` (frisch 64) werden
+so viele Züge gleichverteilt mit Zurücklegen gezogen. Die separate Zufallsquelle
+wird im Checkpoint gespeichert und verändert die PPO-Zufallsfolge nicht.
+
+Beim Start wird die Sammlung eingefroren. `config.json` und Checkpoints enthalten
+Quellen, Anzahl, Datenfingerprint und Decay-Ursprung. Resume übernimmt die Parameter
+und prüft den Fingerprint. Änderungen an Gewicht, Decay, Batchgröße oder Lernpaaren
+brauchen ein neues `--run-dir`. Ein später durch die tägliche Archivierung neu
+hinzugekommener Sieg wird dadurch nicht unbemerkt in eine bestehende Kurve gemischt.
+`--demo-coef 0` schaltet den Term ab und benötigt keine Quelldateien mehr.
+
+Die Metriken `demo_loss`, `demo_coef` und `demo_decisions` dokumentieren den Term.
+Sinkende Demo-Loss misst nur die Anpassung an Beispiele. Zur Beurteilung der
+Spielstärke eine PPO-Kontrolle und die Demo-Variante vom **gleichen eingefrorenen
+Checkpoint** mit gleichem Budget starten und auf denselben unabhängigen
+Würfel-Seeds auswerten. Die einzige Beispielpartie nicht durch zufälliges Aufteilen
+ihrer Züge als scheinbar unabhängige Validierung verwenden.
+
+### Erster Kurzvergleich am 18.10.2026
+
+Beide Varianten wurden von derselben eingefrorenen Kopie von
+`muc5-5/latest.pt` bei 23.264.980 Entscheidungen fortgesetzt. Angefordert waren
+je 32.768 neue Entscheidungen; vollständige Episoden führten zu geringfügigem
+Überschreiten. Geprüft wurde mit Argmax auf denselben 300 neuen Seeds ab
+3.000.000. Die lokale MUC-Konfiguration enthielt während dieses Versuchs keinen
+Flugverkehr; die Beispielpartie wurde noch mit Verkehr gespielt.
+
+| Variante | Neue Entscheidungen | Demo-NLL danach | Siege | Mittlere Restdistanz |
+| --- | ---: | ---: | ---: | ---: |
+| PPO-Kontrolle | 32.805 | 14,03 | 0 / 300 | 0,667 |
+| PPO + Demo, Startgewicht 0,01 | 32.823 | 2,98 | 0 / 300 | 0,663 |
+
+Vorher lag die Demo-NLL bei 14,27. Der Term lernt also die gezeigten Aktionen;
+eine höhere Gewinnrate ist durch diesen kurzen Versuch **nicht belegt**. Auch die
+Restdistanz war bei beiden Varianten größer als beim Ausgangsmodell (0,503).
+Es handelt sich um einen einzelnen Trainings-Seed und eine kleine Probe mit
+abweichender Verkehrskonfiguration, nicht um einen Nachweis von Generalisierung.
+Der Term bleibt ausdrücklich optional; vorhandene laufende Trainingsprozesse
+übernehmen ihn erst nach einem Neustart mit `--demo-data` und neuem Laufverzeichnis.
+Lokale Checkpoints, Logs und Messwerte liegen in
+`runs/demo-comparison-2026-10-18/` (nicht in Git versioniert).
 
 ## Tests und Erweiterungen
 

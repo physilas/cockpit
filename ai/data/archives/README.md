@@ -28,5 +28,11 @@ Nachahmungsbeispiel. Vor dem Training Schema und Regeln prüfen, Dubletten
 entfernen sowie `voided` und `training_compatible` beachten. Archivieren startet
 kein Modelltraining.
 
+Am 18.10.2026 wurden zusätzlich drei abgeschlossene KI-no-Partien rein lesend
+aus D1 übernommen: zwei Siege und eine abgebrochene Partie. Die vollständigen
+Nutzlasten und ihre Prüfsummen wurden geprüft; die Cloudflare-Quelldaten blieben
+erhalten. Für das Demonstrationstraining liefern die jeweils neuesten Revisionen
+der beiden Siege zusammen 124 kompatible menschliche Entscheidungen.
+
 Einzelheiten zu Zugang, manuellen Läufen und Grenzen stehen in
 [docs/KI-CLOUD.md](../../../docs/KI-CLOUD.md).

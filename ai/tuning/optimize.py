@@ -33,7 +33,7 @@ def write_json(path, data):
 def source_fingerprint(airport):
     paths = [*ROOT.glob("backend/*.py"), ROOT / "backend/landungen" / f"{airport}.yaml"]
     paths += [ROOT / "ai" / name for name in ("train.py", "nn_model.py", "environment.py", "actions.py",
-              "observation.py", "public_rules.py", "agents.py", "evaluate.py", "checkpoints.py")]
+              "observation.py", "public_rules.py", "agents.py", "evaluate.py", "checkpoints.py", "demonstrations.py")]
     paths += list((ROOT / "ai/tuning").glob("*.py"))
     digest = hashlib.sha256()
     for path in sorted(paths):

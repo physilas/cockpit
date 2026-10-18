@@ -25,8 +25,10 @@ Für den späteren Trainingsimport nur Ereignisse verwenden, bei denen
 `voided == false`, `training_compatible == true` und `action_id != null` gilt.
 Zusätzlich Schema und Aktionsmaskenversion mit dem jeweiligen Trainer prüfen.
 Ein gewonnener Spielausgang kennzeichnet eine erfolgreiche Partie; er bewertet
-nicht jeden einzelnen Zug als optimal. Der bestehende PPO-Trainer liest diesen
-Ordner noch nicht automatisch ein.
+nicht jeden einzelnen Zug als optimal. Mit `--demo-data ai/data` kann der
+PPO-Trainer die gewonnenen, kompatiblen KI-no-Partien als vorsichtig gewichteten
+Nachahmungsterm einlesen. Einzelheiten und Resume-Regeln stehen in
+[ai/README.md](../../README.md#gewonnene-ki-no-partien-im-ppo-training).
 
 Beim Export wurden das vollständige Schema einschließlich Feature-Reihenfolge,
 Aktions-IDs und Slots, die Maskenversion, Beobachtungsdimensionen, endliche

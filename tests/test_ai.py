@@ -395,6 +395,8 @@ class TaskPenaltyTests(unittest.TestCase):
     def test_task_count_tracks_required_preparation_not_optional_brake_upgrades(self):
         env = CrewEnv(task_weight=0.02)
         env.reset(seed=1)
+        # Exercise traffic tasks independently of the configured MUC scenario.
+        env.game.landung.flugzeuge[:] = [1, 1, 2, 1, 1, 1, 1]
         self.assertEqual(env.game.landung.flugzeuge_an_aktueller_position(), 1)
         self.assertEqual(env.unfinished_tasks(), {"gear": 3, "flaps": 4, "braking": 1, "traffic": 8})
         c = env.game.cockpit

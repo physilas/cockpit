@@ -22,6 +22,7 @@ from .evaluate import PERFORMANCE_METRICS, evaluate, summarize_episodes
 from .agents import ModelAgent
 from .actions import ACTION_MASK_VERSION
 from .nn_model import ActorCritic
+from .demonstrations import coefficient as demo_coefficient, load_demonstrations
 
 
 METRIC_FIELDS = ["update", "total_steps", "episodes", "elapsed_seconds", "steps_per_second", "learning_rate",
@@ -29,6 +30,7 @@ METRIC_FIELDS = ["update", "total_steps", "episodes", "elapsed_seconds", "steps_
                  "grad_norm", "train_win_rate", "train_mean_round", "train_mean_return", "train_truncated_rate",
                  "eval_win_rate", "eval_win_ci_low", "eval_win_ci_high", "eval_mean_round", "eval_mean_return"]
 METRIC_FIELDS += ["uniform_mix"]
+METRIC_FIELDS += ["demo_loss", "demo_coef", "demo_decisions"]
 METRIC_FIELDS += [f"{phase}_{name}" for phase in ("train", "eval") for name in PERFORMANCE_METRICS
                   if f"{phase}_{name}" not in METRIC_FIELDS]
 EPISODE_FIELDS = ["phase", "update", "total_steps", "seed", "ai_role", "status", "reason", "round", "steps", "return"]
@@ -116,12 +118,19 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
 
 
 def ppo_update(model, optimizer, batch, *, epochs=4, minibatch_size=256, clip=0.2,
-               value_coef=0.5, entropy_coef=0.01, max_grad_norm=0.5, target_kl=0.03, uniform_mix=0.0):
+               value_coef=0.5, entropy_coef=0.01, max_grad_norm=0.5, target_kl=0.03, uniform_mix=0.0,
+               demonstrations=None, demo_coef=0.0, demo_batch_size=64, demo_generator=None):
+    if not math.isfinite(demo_coef) or demo_coef < 0 or demo_batch_size < 1:
+        raise ValueError("Ungültiges Demonstrationsgewicht oder Batchgröße.")
+    if demo_coef and (demonstrations is None or not len(demonstrations["actions"])):
+        raise ValueError("Ein Demonstrationsterm benötigt gültige Beispiele.")
+    if demo_coef and demo_generator is None:
+        demo_generator = torch.Generator().manual_seed(0)
     model.train()
     advantages = batch["advantages"]
     advantages = (advantages - advantages.mean()) / (advantages.std(unbiased=False) + 1e-8)
     count = len(advantages)
-    metrics = {name: [] for name in ("policy_loss", "value_loss", "entropy", "approx_kl", "clip_fraction", "grad_norm")}
+    metrics = {name: [] for name in ("policy_loss", "value_loss", "entropy", "approx_kl", "clip_fraction", "grad_norm", "demo_loss")}
     for _ in range(epochs):
         permutation = torch.randperm(count, device=advantages.device)
         epoch_kls = []
@@ -135,6 +144,18 @@ def ppo_update(model, optimizer, batch, *, epochs=4, minibatch_size=256, clip=0.
             value_loss = 0.5 * (value - batch["returns"][indices]).square().mean()
             entropy_mean = entropy.mean()
             loss = policy_loss + value_coef * value_loss - entropy_coef * entropy_mean
+            demo_loss = 0.0
+            if demo_coef:
+                examples = demonstrations
+                if len(examples["actions"]) > demo_batch_size:
+                    selected = torch.randint(len(examples["actions"]), (demo_batch_size,), generator=demo_generator)
+                    examples = {key: value[selected.to(value.device)] for key, value in examples.items()}
+                # Pure masked policy, without the uniform exploration floor. No
+                # human log_probs, PPO advantages, rewards, or critic targets.
+                demo_logp, _, _ = model.evaluate_actions(examples["observations"], examples["masks"], examples["actions"])
+                imitation_loss = -demo_logp.mean()
+                loss = loss + demo_coef * imitation_loss
+                demo_loss = imitation_loss.detach().item()
             if not bool(torch.isfinite(loss)):
                 raise RuntimeError("Nicht-endliche PPO-Loss; Training wurde angehalten.")
             optimizer.zero_grad(set_to_none=True)
@@ -146,7 +167,7 @@ def ppo_update(model, optimizer, batch, *, epochs=4, minibatch_size=256, clip=0.
                 clipped = ((ratio - 1).abs() > clip).float().mean().item()
             for name, value_ in (("policy_loss", policy_loss.item()), ("value_loss", value_loss.item()),
                                   ("entropy", entropy_mean.item()), ("approx_kl", kl),
-                                  ("clip_fraction", clipped), ("grad_norm", float(grad_norm))):
+                                  ("clip_fraction", clipped), ("grad_norm", float(grad_norm)), ("demo_loss", demo_loss)):
                 metrics[name].append(value_)
             epoch_kls.append(kl)
         if target_kl > 0 and mean(epoch_kls) > target_kl:
@@ -195,6 +216,10 @@ def parser():
     result.add_argument("--value-coef", type=float, default=0.5)
     result.add_argument("--entropy-coef", type=float, default=0.01)
     result.add_argument("--uniform-mix", type=float, default=None, help="Uniform exploration over legal actions: fresh run 0.03, resume otherwise keeps saved value; 0 disables.")
+    result.add_argument("--demo-data", type=Path, nargs="+", default=None, help="JSON-Dateien/Ordner mit KI-no-Beispielen; ohne Angabe beim Resume gespeicherte Quellen.")
+    result.add_argument("--demo-coef", type=float, default=None, help="Gewicht des zusätzlichen Nachahmungsterms: bei expliziten Beispielen frisch 0.01; sonst aus, Resume übernimmt den Wert. 0 deaktiviert.")
+    result.add_argument("--demo-decay-steps", type=int, default=None, help="Gewicht über so viele NEUE Selbstspiel-Entscheidungen auf 0 senken; frisch 100000, 0 hält es konstant.")
+    result.add_argument("--demo-batch-size", type=int, default=None, help="Höchstens so viele Beispielzüge pro PPO-Minibatch; frisch 64, kleinere Sammlungen werden vollständig verwendet.")
     result.add_argument("--round-reward", type=float, default=None, help="Frischer Lauf: 0; beim Fortsetzen gespeicherter Wert, sofern nicht ausdrücklich angegeben.")
     result.add_argument("--sync-weight", type=float, default=None, help="Strafe pro Feld Rückstand nach Toleranz: frisch 0.05; 0 schaltet sie ab; Resume übernimmt sonst den Checkpoint-Wert.")
     result.add_argument("--sync-tolerance", type=float, default=None, help="Tolerierter Rückstand in Feldern, frisch 1; beim Fortsetzen sonst Checkpoint-Wert.")
@@ -243,6 +268,39 @@ def train(args, *, on_validation=None):
     else:
         model = ActorCritic(hidden_size=args.hidden_size, hidden_layers=args.hidden_layers).to(args.device)
     previous_config = payload["train_config"] if payload else None
+    previous_demo = previous_config or {}
+    explicit_demo_paths = getattr(args, "demo_data", None)
+    demo_paths = explicit_demo_paths if explicit_demo_paths is not None else previous_demo.get("demo_data", [])
+    default_demo_coef = previous_demo.get("demo_coef", 0.0)
+    if explicit_demo_paths and not default_demo_coef:
+        default_demo_coef = 0.01
+    args.demo_coef = (getattr(args, "demo_coef", None) if getattr(args, "demo_coef", None) is not None
+                      else default_demo_coef)
+    args.demo_decay_steps = (getattr(args, "demo_decay_steps", None) if getattr(args, "demo_decay_steps", None) is not None
+                             else previous_demo.get("demo_decay_steps", 100_000))
+    args.demo_batch_size = (getattr(args, "demo_batch_size", None) if getattr(args, "demo_batch_size", None) is not None
+                            else previous_demo.get("demo_batch_size", 64))
+    if (not math.isfinite(args.demo_coef) or args.demo_coef < 0
+            or args.demo_decay_steps < 0 or args.demo_batch_size < 1):
+        arg_parser.error("Demonstrationsgewicht muss endlich und nichtnegativ sein, Decay >= 0, Batchgröße >= 1.")
+    args.demo_data = [str(Path(path).resolve()) for path in (demo_paths or [])] if args.demo_coef else []
+    demos = None
+    if args.demo_coef:
+        try:
+            demos = load_demonstrations(args.demo_data, args.airport)
+        except (ValueError, KeyError, TypeError, OSError) as error:
+            arg_parser.error(str(error))
+    demo_manifest = demos.manifest if demos else None
+    def demo_signature(config):
+        if not config.get("demo_coef", 0):
+            return None
+        return (config["demo_coef"], config.get("demo_decay_steps", 100_000),
+                config.get("demo_batch_size", 64), (config.get("demo_manifest") or {}).get("sha256"))
+    demo_changed = payload is not None and demo_signature(previous_demo) != demo_signature({
+        "demo_coef": args.demo_coef, "demo_decay_steps": args.demo_decay_steps,
+        "demo_batch_size": args.demo_batch_size, "demo_manifest": demo_manifest})
+    demo_start_step = (previous_demo.get("demo_start_step", total_steps)
+                       if payload and not demo_changed else total_steps)
     args.uniform_mix = resolve_uniform_mix(args.uniform_mix, previous_config)
     if not 0 <= args.uniform_mix <= 1:
         arg_parser.error("--uniform-mix must be between 0 and 1.")
@@ -254,15 +312,18 @@ def train(args, *, on_validation=None):
         "sync_weight": previous_config.get("sync_weight", 0.0),
         "sync_tolerance": previous_config.get("sync_tolerance", 1.0),
         "task_weight": previous_config.get("task_weight", 0.0)}
-    if reward_changed or exploration_changed or mask_changed:
+    if reward_changed or exploration_changed or mask_changed or demo_changed:
         if args.run_dir.resolve() == args.resume.resolve().parent:
-            arg_parser.error("Geänderte Rewards, Exploration oder Aktionsmasken brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
+            arg_parser.error("Geänderte Rewards, Exploration, Aktionsmasken oder Demonstrationen brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
         best_score = (-1.0,) * 5
     for key, value in effective_rewards.items():
         setattr(args, key, value)
     if any(not math.isfinite(v) or v < 0 for v in effective_rewards.values()) or args.round_reward > 0.1:
         arg_parser.error("Reward-Gewichte/Toleranz müssen endlich und nichtnegativ sein; --round-reward maximal 0.1.")
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, eps=1e-5)
+    demo_generator = torch.Generator().manual_seed(args.seed + 7_919)
+    if payload and not demo_changed and "demo_rng_state" in payload:
+        demo_generator.set_state(payload["demo_rng_state"].cpu())
     if payload:
         optimizer.load_state_dict(payload["optimizer_state"])
         args.lr = optimizer.param_groups[0]["lr"]
@@ -274,6 +335,7 @@ def train(args, *, on_validation=None):
     env = CrewEnv(args.airport, args.round_reward, args.max_steps, sync_weight=args.sync_weight,
                   sync_tolerance=args.sync_tolerance, task_weight=args.task_weight)
     env.reset(seed=args.seed)  # Validate the scenario before creating output files.
+    demo_tensors = demos.tensors(args.device) if demos else None
     args.run_dir.mkdir(parents=True, exist_ok=True)
     metrics_path = args.run_dir / "metrics.csv"
     if metrics_path.exists():
@@ -286,6 +348,8 @@ def train(args, *, on_validation=None):
     config = {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}
     config.update({"resumed_from_steps": total_steps, "reward_changed_on_resume": reward_changed,
                    "exploration_changed_on_resume": exploration_changed,
+                   "demo_manifest": demo_manifest, "demo_start_step": demo_start_step,
+                   "demo_changed_on_resume": demo_changed,
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
@@ -297,6 +361,8 @@ def train(args, *, on_validation=None):
             device_rng["cuda_rng_state"] = torch.cuda.get_rng_state_all()
         elif str(args.device) == "mps":
             device_rng["mps_rng_state"] = torch.mps.get_rng_state()
+        if demos:
+            device_rng["demo_rng_state"] = demo_generator.get_state()
         save_checkpoint(args.run_dir / name, model, optimizer_state=optimizer.state_dict(),
                         train_config=config, total_steps=total_steps, episodes=episodes, update=update,
                         best_score=list(best_score), best_score_version=BEST_SCORE_VERSION,
@@ -308,6 +374,9 @@ def train(args, *, on_validation=None):
           f"Toleranz {args.sync_tolerance:g} Feld(er), Aufgabengewicht {args.task_weight:g}.", flush=True)
     print(f"Exploration: {args.uniform_mix:.1%} uniform über erlaubte Aktionen, {1 - args.uniform_mix:.1%} Modell.", flush=True)
     print("Aktionsmaske: Verbleibende Würfel werden für offene Ruder- und Schubfelder reserviert.", flush=True)
+    if demos:
+        print(f"Demonstrationen: {demo_manifest['sessions']} gewonnene Partie(n), {len(demos.actions)} Züge; "
+              f"Gewicht {args.demo_coef:g}, Decay {args.demo_decay_steps:,} neue Entscheidungen ab {demo_start_step:,}.", flush=True)
     try:
         while total_steps < args.steps:
             rollout_steps = min(args.rollout_steps, args.steps - total_steps)
@@ -316,9 +385,11 @@ def train(args, *, on_validation=None):
             batch, records = collect_rollout(model, env, rollout_steps,
                                              seed=args.seed, episodes_done=episodes, gamma=args.gamma, gae_lambda=args.gae_lambda,
                                              uniform_mix=args.uniform_mix)
+            effective_demo_coef = demo_coefficient(args.demo_coef, total_steps, demo_start_step, args.demo_decay_steps)
             stats = ppo_update(model, optimizer, batch, epochs=args.epochs, minibatch_size=args.minibatch_size,
                                clip=args.clip, value_coef=args.value_coef, entropy_coef=args.entropy_coef,
-                               uniform_mix=args.uniform_mix)
+                               uniform_mix=args.uniform_mix, demonstrations=demo_tensors,
+                               demo_coef=effective_demo_coef, demo_batch_size=args.demo_batch_size, demo_generator=demo_generator)
             total_steps += len(batch["actions"])
             episodes += len(records)
             update += 1
@@ -326,7 +397,8 @@ def train(args, *, on_validation=None):
             training = summarize_episodes(records)
             row = {"update": update, "total_steps": total_steps, "episodes": episodes, "elapsed_seconds": elapsed,
                    "steps_per_second": (total_steps - starting_steps) / max(elapsed, 1e-6),
-                   "learning_rate": optimizer.param_groups[0]["lr"], "uniform_mix": args.uniform_mix, **stats,
+                   "learning_rate": optimizer.param_groups[0]["lr"], "uniform_mix": args.uniform_mix,
+                   "demo_coef": effective_demo_coef, "demo_decisions": len(demos.actions) if demos else 0, **stats,
                    **{f"train_{key}": training[key] for key in PERFORMANCE_METRICS}}
             append_rows(args.run_dir / "episodes.csv", EPISODE_FIELDS,
                         [{"phase": "train", "update": update, "total_steps": total_steps, **r} for r in records])
@@ -355,7 +427,9 @@ def train(args, *, on_validation=None):
             print(f"Update {update:4d} | {total_steps:8,d} Schritte | Training {row['train_win_rate']:.1%}, "
                   f"Runde {row['train_mean_round']:.2f}, Restdistanz {training['mean_distance_remaining']:.2f}, "
                   f"Sync {training['mean_sync_return']:+.3f}, Aufgaben {training['mean_tasks_return']:+.3f} | Policy {stats['policy_loss']:.4f}, "
-                  f"Value {stats['value_loss']:.4f}, H {stats['entropy']:.3f}{validation}", flush=True)
+                  f"Value {stats['value_loss']:.4f}, H {stats['entropy']:.3f}"
+                  f"{(' | Demo ' + format(stats['demo_loss'], '.4f') + ' × ' + format(effective_demo_coef, '.4g')) if demos else ''}"
+                  f"{validation}", flush=True)
             if result is not None and on_validation is not None:
                 on_validation(row, result)
     except KeyboardInterrupt:
