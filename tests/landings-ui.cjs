@@ -46,11 +46,53 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     let state = await page.evaluate(() => pyToJs(bridge.zustand()));
     assert.equal(state.szenario_id,'PRG-green'); assert.equal(state.mock,false); assert.equal(state.uebung,false);
     assert.deepEqual(state.geplante_module,['kerosene']);
-    assert.match(await page.locator('#flight-summary').innerText(),/Kerosin/);
+    assert.match(await page.locator('#flight-summary').getAttribute('aria-label'),/Kerosin/);
     assert.equal(await page.evaluate(() => pyToJs(bridge.zustand()).verkehrswuerfel_offen),1);
     await page.locator('.traffic-roll-button').click();
     await page.waitForFunction(() => pyToJs(bridge.zustand()).phase === 'platzieren');
     await page.locator('#verkehr-dialog').waitFor({state:'hidden'});
+    await page.evaluate(() => {
+      const spiel = bridge._spiel; spiel.neuwurf_plaettchen = 2; spiel.destroy();
+      // This seed rolls 6 and 1: both selected dice keep their old values.
+      pyodide.runPython('import random\nimport backend.bridge as b\nrandom.seed(42)\nb._spiel.pilot_wuerfel[1].augenzahl = 6\nb._spiel.kopilot_wuerfel[1].augenzahl = 1');
+      const z = pyToJs(bridge.zustand());
+      nachAktion(pyToJs(bridge.platziere(z.am_zug,0,'ruder')));
+    });
+    const beforeReroll = await page.evaluate(() => pyToJs(bridge.zustand()));
+    await page.locator('#s-neuwurf button').click();
+    assert.equal(await page.locator('#neuwurf-dialog[open] .wuerfel').count(),8);
+    assert.equal(await page.locator('#neuwurf-dialog .wuerfel.platziert:disabled').count(),1);
+    assert.equal(await page.locator('#rundenende-btn').isDisabled(),true);
+    await page.locator('#neuwurf-dialog .pilot [data-index="1"]').click();
+    await page.locator('#neuwurf-dialog .kopilot [data-index="1"]').click();
+    assert.equal(await page.locator('#neuwurf-dialog [aria-pressed="true"]').count(),2);
+    await page.screenshot({path:path.join(shotDir,'reroll-desktop-selection.png')});
+    await page.setViewportSize({width:320,height:700});
+    assert.ok(await page.locator('#neuwurf-dialog').evaluate(el => el.scrollWidth <= el.clientWidth));
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:path.join(shotDir,'reroll-mobile-selection.png')});
+    await page.locator('#neuwurf-dialog .pilot .neuwurf-bestaetigen').click();
+    assert.equal(await page.evaluate(() => pyToJs(bridge.zustand()).neuwurf_plaettchen),2);
+    assert.equal(await page.locator('#neuwurf-dialog .pilot [data-index="1"]').isDisabled(),true);
+    await page.locator('#neuwurf-dialog .kopilot .neuwurf-bestaetigen').click();
+    assert.equal(await page.locator('#neuwurf-dialog .neu-gewuerfelt').count(),2);
+    const afterReroll = await page.evaluate(() => pyToJs(bridge.zustand()));
+    assert.equal(afterReroll.pilot_wuerfel[1],beforeReroll.pilot_wuerfel[1],'Same-value reroll fixture');
+    assert.equal(afterReroll.kopilot_wuerfel[1],beforeReroll.kopilot_wuerfel[1],'Same-value reroll fixture');
+    assert.equal(afterReroll.neuwurf_plaettchen,1);
+    assert.equal(afterReroll.am_zug,beforeReroll.am_zug);
+    for (const role of ['pilot','kopilot']) for (const index of [0,2,3]) {
+      assert.equal(afterReroll[`${role}_wuerfel`][index],beforeReroll[`${role}_wuerfel`][index]);
+    }
+    await page.screenshot({path:path.join(shotDir,'reroll-mobile-result.png')});
+    await page.locator('#neuwurf-dialog').waitFor({state:'hidden'});
+    assert.equal(await page.locator('body.neuwurf-dialog-offen').count(),0);
+    await page.locator('#s-neuwurf button').click();
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#neuwurf-dialog').isVisible(),false);
+    assert.equal(await page.evaluate(() => pyToJs(bridge.zustand()).neuwurf_plaettchen),1);
+    await page.setViewportSize({width:1360,height:1000});
+    console.log('✓ Real-engine shared reroll popup, both dice pools, placed dice locked, two confirmations, one token, highlighted results, automatic close, Escape and 320px layout');
     await page.locator('#neues-spiel-btn').click();
     assert.equal(await page.locator('dialog[open]').count(),0);
     await page.locator('[data-action="gallery"]').click(); await page.locator('[data-filter="custom"]').click();
@@ -104,6 +146,48 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     await join.locator('#spiel-ui').waitFor({state:'visible'});
     assert.match(await join.locator('#flight-summary').innerText(),/HND/);
     assert.equal(await join.locator('#neues-spiel-btn').isVisible(),false);
+    const syncJoin = async () => {
+      const snapshot = await host.evaluate(()=>window.fixtureHost.sent.filter(m=>m.typ==='zustand').at(-1));
+      await join.evaluate(m=>window.fixtureClient.handlers.data(JSON.stringify(m)),snapshot);
+      return snapshot;
+    };
+    const deliverJoinAction = async () => {
+      const action = await join.evaluate(()=>window.fixtureClient.sent.at(-1));
+      await host.evaluate(m=>window.fixtureHost.handlers.data(JSON.stringify(m)),action);
+      return syncJoin();
+    };
+    await host.evaluate(() => {
+      const spiel = bridge._spiel; spiel.neuwurf_plaettchen = 2; spiel.destroy();
+      sendState();
+    });
+    const rerollStart = await syncJoin();
+    if (rerollStart.zustand.am_zug === 'pilot') {
+      await host.locator('#s-neuwurf button').click(); await syncJoin();
+    } else {
+      await join.locator('#s-neuwurf button').click(); await deliverJoinAction();
+    }
+    for (const device of [host,join]) {
+      assert.equal(await device.locator('#neuwurf-dialog[open] .wuerfel').count(),8);
+      assert.equal(await device.locator('#neuwurf-dialog .wuerfel').evaluateAll(els=>els.some(el=>el.textContent==='?')),false);
+    }
+    assert.equal(await host.locator('#neuwurf-dialog .kopilot [data-index="1"]').isDisabled(),true);
+    assert.equal(await join.locator('#neuwurf-dialog .pilot [data-index="1"]').isDisabled(),true);
+    await join.locator('#neuwurf-dialog .kopilot [data-index="1"]').click(); await deliverJoinAction();
+    await host.locator('#neuwurf-dialog .pilot [data-index="1"]').click(); await syncJoin();
+    await host.locator('#neuwurf-dialog .pilot .neuwurf-bestaetigen').click(); await syncJoin();
+    assert.equal(await host.evaluate(()=>pyToJs(bridge.zustand()).neuwurf_plaettchen),2);
+    await join.locator('#neuwurf-dialog .kopilot .neuwurf-bestaetigen').click();
+    const rerollResult = await deliverJoinAction();
+    assert.equal(rerollResult.zustand.neuwurf_plaettchen,1);
+    assert.equal(rerollResult.zustand.am_zug,rerollStart.zustand.am_zug);
+    for (const device of [host,join]) assert.equal(await device.locator('#neuwurf-dialog .neu-gewuerfelt').count(),2);
+    assert.ok(rerollResult.zustand.pilot_wuerfel.every(v=>v===null),'Partner tray exposes values during reroll');
+    await host.screenshot({path:path.join(shotDir,'reroll-multiplayer-result.png')});
+    await host.locator('#neuwurf-dialog').waitFor({state:'hidden'});
+    const rerollClosed = await syncJoin();
+    assert.equal(await join.locator('#neuwurf-dialog').isVisible(),false);
+    assert.equal(rerollClosed.neuwurf.wuerfel,null);
+    console.log('✓ Both multiplayer popups, independent own-dice selection, synchronized confirmations/results, one token, automatic close and hidden partner trays (real engine, transport fixture)');
     await host.locator('#neues-spiel-btn').click();
     let waiting=await host.evaluate(()=>window.fixtureHost.sent.at(-1));
     await join.evaluate(m=>window.fixtureClient.handlers.data(JSON.stringify(m)), waiting);

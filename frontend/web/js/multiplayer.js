@@ -31,44 +31,18 @@ let ausgewaehlterWuerfel = null;
 let kaffeeMenuFuer = null;
 let eigeneWuerfelVersteckt = false;
 
-// Neuwurf (Reroll) über zwei Geräte hinweg: die Engine selbst (spielplan.py)
-// weiß nichts von "Phasen" - benutze_neuwurf() bekommt einfach beide
-// Indexlisten auf einmal. Der Zwei-Schritt-Ablauf (erst Initiator, dann
-// Partner) ist reine UI-Choreografie und lebt daher hier als eigenes,
-// vom Host verwaltetes Objekt, das bei jedem Zustands-Update mitgeschickt
-// wird (siehe sendState()) - so sehen beide Geräte immer denselben
-// Neuwurf-Fortschritt, unabhängig davon, wer ihn gestartet hat.
-//   phase: 0 = kein Neuwurf | 1 = Initiator wählt | 2 = Partner wählt
-//   initiator: "pilot" | "kopilot" | null
-//   initiatorAuswahl / partnerAuswahl: Arrays von Würfel-Indizes (0-3)
-// WICHTIG: der eigentliche Zug (z.am_zug) wird von alldem nie berührt -
-// nach Abschluss des Neuwurfs geht es also automatisch exakt dort weiter,
-// wo die Partie vor dem Neuwurf stand.
-let neuwurfUi = { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
+// Der Host sammelt beide Auswahlen und Bestätigungen unabhängig voneinander.
+// phase: 0 = geschlossen, 1 = Auswahl, 2 = Ergebnis mit Hervorhebung.
+// Nur das Popup erhält während des Neuwurfs beide Würfelpools.
+let neuwurfUi = NeuwurfDialog.neuerZustand();
+let neuwurfSequence = 0;
+let neuwurfTimer = null;
 
 function neuwurfUiReset() {
-  neuwurfUi = { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
-}
-
-// Wessen Würfel gerade ausgewählt werden dürfen (oder null, falls kein
-// Neuwurf läuft bzw. gerade niemand dran ist).
-function neuwurfAktivBesitzer() {
-  if (neuwurfUi.phase === 1) return neuwurfUi.initiator;
-  if (neuwurfUi.phase === 2) return neuwurfUi.initiator === "pilot" ? "kopilot" : "pilot";
-  return null;
-}
-
-// Die Auswahl-Liste für `besitzer`, aber nur wenn `besitzer` gerade aktiv
-// dran ist (sonst null - fremde Auswahl wird nie angezeigt/verändert).
-function neuwurfAuswahlFuer(besitzer) {
-  if (neuwurfUi.phase === 1 && besitzer === neuwurfUi.initiator) return neuwurfUi.initiatorAuswahl;
-  if (neuwurfUi.phase === 2 && besitzer !== neuwurfUi.initiator) return neuwurfUi.partnerAuswahl;
-  return null;
-}
-
-function neuwurfIndexToggle(liste, index) {
-  const pos = liste.indexOf(index);
-  if (pos === -1) liste.push(index); else liste.splice(pos, 1);
+  clearTimeout(neuwurfTimer);
+  neuwurfTimer = null;
+  neuwurfUi = NeuwurfDialog.neuerZustand();
+  NeuwurfDialog.schliessen();
 }
 
 // ── Hilfsfunktionen ─────────────────────────────────────────────────────────
@@ -140,6 +114,7 @@ const landingPicker = Landings.mount(document.getElementById("landing-selection"
 function waehleLandung() {
   if (myRole === "kopilot") return;
   choosingLanding = true;
+  neuwurfUiReset();
   resetVerkehrUi();
   for (const id of ["spiel-header", "flight-summary", "spiel-ui"]) document.getElementById(id).classList.add("versteckt");
   showScreen("landing-selection");
@@ -161,6 +136,7 @@ async function ladeEngine() {
     setP(80); txt && (txt.textContent = "Spielregeln werden geladen …");
     pyodide.FS.mkdirTree("/cockpit/backend/landungen");
     for (const [ziel, src] of Object.entries(ENGINE_SRC)) {
+      pyodide.FS.mkdirTree("/cockpit/" + ziel.substring(0, ziel.lastIndexOf("/")));
       pyodide.FS.writeFile("/cockpit/" + ziel, src);
     }
     pyodide.runPython(`import sys; sys.path.insert(0, "/cockpit")`);
@@ -263,37 +239,57 @@ function hostAktion(msg, absender) {
       raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen, JSON.stringify(gewaehlteKarten)));
       neuwurfUiReset();
 
-    // ── Neuwurf: zwei-Schritt-Choreografie, siehe Kommentar bei neuwurfUi ──
+    // ── Gemeinsamer Neuwurf, vom Host einmalig ausgeführt ──
     } else if (msg.typ === "neuwurf_start") {
       const z = pyToJs(bridge.zustand());
-      if (neuwurfUi.phase === 0 && z.neuwurf_plaettchen > 0 && z.status === "laeuft" && z.phase === "platzieren" && !z.zusatzaktion && !z.kooperation) {
-        neuwurfUi = { phase: 1, initiator: msg.besitzer, initiatorAuswahl: [], partnerAuswahl: [] };
-      }
-      raw = pyToJs(bridge.zustand());
-    } else if (msg.typ === "neuwurf_toggle") {
-      const aktiver = neuwurfAktivBesitzer();
-      if (aktiver && msg.besitzer === aktiver) {
-        const liste = neuwurfUi.phase === 1 ? neuwurfUi.initiatorAuswahl : neuwurfUi.partnerAuswahl;
-        neuwurfIndexToggle(liste, msg.index);
-      }
-      raw = pyToJs(bridge.zustand());
-    } else if (msg.typ === "neuwurf_next") {
-      if (neuwurfUi.phase === 1 && msg.besitzer === neuwurfUi.initiator) {
-        neuwurfUi.phase = 2;
-      }
-      raw = pyToJs(bridge.zustand());
-    } else if (msg.typ === "neuwurf_confirm") {
-      const partner = neuwurfUi.initiator === "pilot" ? "kopilot" : "pilot";
-      if (neuwurfUi.phase === 2 && msg.besitzer === partner) {
-        const pilotIdx   = neuwurfUi.initiator === "pilot"   ? neuwurfUi.initiatorAuswahl : neuwurfUi.partnerAuswahl;
-        const kopilotIdx = neuwurfUi.initiator === "kopilot" ? neuwurfUi.initiatorAuswahl : neuwurfUi.partnerAuswahl;
-        bridge.benutze_neuwurf(pilotIdx, kopilotIdx);
+      if (neuwurfUi.phase || z.am_zug !== absender || msg.version !== z.rueckgaengig_version || z.neuwurf_plaettchen <= 0 || z.status !== "laeuft" || z.phase !== "platzieren" || z.zusatzaktion || z.kooperation) return false;
+      neuwurfUi = NeuwurfDialog.neuerZustand();
+      neuwurfUi.phase = 1;
+      neuwurfUi.id = ++neuwurfSequence;
+      neuwurfUi.wuerfel = {pilot: [...z.pilot_wuerfel], kopilot: [...z.kopilot_wuerfel]};
+      ausgewaehlterWuerfel = kaffeeMenuFuer = null;
+      raw = z;
+    } else if (["neuwurf_toggle", "neuwurf_confirm", "neuwurf_cancel"].includes(msg.typ)) {
+      if (neuwurfUi.phase !== 1 || msg.id !== neuwurfUi.id) return false;
+      const z = pyToJs(bridge.zustand());
+      if (msg.typ === "neuwurf_toggle") {
+        if (neuwurfUi.bestaetigt[absender] || !Number.isInteger(msg.index) || !z[`${absender}_wuerfel_frei`][msg.index]) return false;
+        const liste = neuwurfUi.auswahl[absender];
+        const pos = liste.indexOf(msg.index);
+        if (pos === -1) liste.push(msg.index); else liste.splice(pos, 1);
+        neuwurfUi.meldung = "";
+      } else if (msg.typ === "neuwurf_cancel") {
         neuwurfUiReset();
+      } else {
+        if (typeof msg.confirmed !== "boolean") return false;
+        neuwurfUi.bestaetigt[absender] = msg.confirmed;
+        neuwurfUi.meldung = "";
+        if (neuwurfUi.bestaetigt.pilot && neuwurfUi.bestaetigt.kopilot) {
+          if (!neuwurfUi.auswahl.pilot.length && !neuwurfUi.auswahl.kopilot.length) {
+            neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
+            neuwurfUi.meldung = "Wählt zusammen mindestens einen Würfel aus.";
+          } else {
+            const r = pyToJs(bridge.benutze_neuwurf(neuwurfUi.auswahl.pilot, neuwurfUi.auswahl.kopilot));
+            zeigeErgebnis(r.ergebnis);
+            raw = r.zustand;
+            if (r.ergebnis.erfolg) {
+              neuwurfUi.phase = 2;
+              neuwurfUi.vorher = neuwurfUi.wuerfel;
+              neuwurfUi.wuerfel = {pilot: [...raw.pilot_wuerfel], kopilot: [...raw.kopilot_wuerfel]};
+              const id = neuwurfUi.id;
+              neuwurfTimer = setTimeout(() => {
+                if (neuwurfUi.id !== id) return;
+                neuwurfUiReset();
+                sendState();
+              }, 2400);
+            } else {
+              neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
+              neuwurfUi.meldung = grundText(r.ergebnis.grund);
+            }
+          }
+        }
       }
-      raw = pyToJs(bridge.zustand());
-    } else if (msg.typ === "neuwurf_cancel") {
-      neuwurfUiReset();
-      raw = pyToJs(bridge.zustand());
+      if (!raw) raw = z;
     }
   } catch(e) { console.error(e); return false; }
   if (raw) sendState(raw);
@@ -390,6 +386,7 @@ function starte_Beitreten(code) {
     conn.on("data", raw => {
       const msg = JSON.parse(raw);
       if (msg.typ === "landung_waehlen") {
+        neuwurfUiReset();
         resetVerkehrUi();
         for (const id of ["spiel-header", "flight-summary", "spiel-ui"]) document.getElementById(id).classList.add("versteckt");
         showScreen("screen-wait");
@@ -399,7 +396,8 @@ function starte_Beitreten(code) {
         document.getElementById("spiel-header").classList.remove("versteckt");
         document.getElementById("spiel-ui").classList.remove("versteckt");
         aktuellerZustand = msg.zustand;
-        neuwurfUi = msg.neuwurf || { phase: 0, initiator: null, initiatorAuswahl: [], partnerAuswahl: [] };
+        neuwurfUi = msg.neuwurf || NeuwurfDialog.neuerZustand();
+        if (neuwurfUi.phase) ausgewaehlterWuerfel = kaffeeMenuFuer = null;
         render(msg.zustand);
       }
       if (msg.typ === "ergebnis") {
@@ -465,11 +463,11 @@ function bindeNeuwurfTokens(z) {
     token.setAttribute("aria-label", `${token.title} · ${z.neuwurf_plaettchen} Plättchen`);
     token.addEventListener("click", () => {
       if (neuwurfUi.phase !== 0) {
-        meineAktion({ typ: "neuwurf_cancel" });
+        meineAktion({ typ: "neuwurf_cancel", id: neuwurfUi.id });
         return;
       }
       ausgewaehlterWuerfel = null;
-      meineAktion({ typ: "neuwurf_start" });
+      meineAktion({ typ: "neuwurf_start", version: z.rueckgaengig_version });
     });
   });
 }
@@ -667,15 +665,8 @@ function render(z) {
     amZug.textContent = `Zusatzaktion: ${role === 'pilot' ? 'Pilotin' : 'Co-Pilot'}`;
     if (rBtn) rBtn.disabled = true;
   } else if (imNeuwurf) {
-    // Während des Neuwurfs ruht die Platzier-Reihenfolge - der eigentliche
-    // Zug (z.am_zug) bleibt dabei unverändert und läuft danach genau dort
-    // weiter, wo er stand (siehe neuwurfUi-Kommentar oben).
-    const aktiverBesitzer = neuwurfAktivBesitzer();
-    const ichBinAktiv = myRole === aktiverBesitzer;
-    amZug.textContent = ichBinAktiv
-      ? "🔄 Neuwurf: du bist dran ✦"
-      : `🔄 Neuwurf: ${aktiverBesitzer === "pilot" ? "Pilotin" : "Co-Pilot"} wählt …`;
-    amZug.style.color = ichBinAktiv ? "var(--gruen)" : "var(--muted)";
+    amZug.textContent = neuwurfUi.phase === 2 ? "↻ Neu gewürfelt!" : neuwurfUi.bestaetigt[myRole] ? "↻ Warte auf die zweite Bestätigung …" : "↻ Wähle deine Würfel im Popup";
+    amZug.style.color = "var(--muted)";
     if(rBtn)rBtn.disabled=true;
   } else {
     const ichDran=myRole&&z.am_zug===myRole;
@@ -840,10 +831,6 @@ function renderWuerfel(besitzer,z) {
   const istMeins=besitzer===myRole;
 
   const imNeuwurf = neuwurfUi.phase !== 0;
-  const aktiverBesitzer = neuwurfAktivBesitzer();
-  const istNeuwurfAktiv = imNeuwurf && besitzer === aktiverBesitzer;
-  const neuwurfAuswahl = istNeuwurfAktiv ? neuwurfAuswahlFuer(besitzer) : null;
-
   if (istMeins && werte.some(wert => wert !== null)) {
     const hideBtn = document.createElement("button");
     hideBtn.className = eigeneWuerfelVersteckt ? "view-btn" : "hide-btn";
@@ -868,11 +855,8 @@ function renderWuerfel(besitzer,z) {
     if(verborgen)div.classList.add("partner-wuerfel");
     div.textContent=verborgen?"?":String(wert);
 
-    // Markierung: entweder "für's Platzieren ausgewählt" oder (während
-    // eines Neuwurfs) "für den Neuwurf markiert" - nie beides gleichzeitig.
     const istPlatzierAus = !imNeuwurf && ausgewaehlterWuerfel?.besitzer===besitzer&&ausgewaehlterWuerfel?.index===i;
-    const istNeuwurfMarkiert = istNeuwurfAktiv && istMeins && neuwurfAuswahl?.includes(i);
-    if(istPlatzierAus || istNeuwurfMarkiert) div.classList.add("ausgewaehlt");
+    if(istPlatzierAus) div.classList.add("ausgewaehlt");
 
     const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft"&&z.phase==="platzieren"&&!z.zusatzaktion&&!z.kooperation;
     if(!imNeuwurf && istMeins&&frei[i]&&!verborgen&&ichDran){
@@ -880,11 +864,6 @@ function renderWuerfel(besitzer,z) {
         ausgewaehlterWuerfel=istPlatzierAus?null:{besitzer,index:i};
         kaffeeMenuFuer=null;
         render(z);
-      });
-    } else if (imNeuwurf && istNeuwurfAktiv && istMeins && frei[i] && !verborgen) {
-      div.title = "Klicken, um diesen Würfel für den Neuwurf zu markieren/abzuwählen.";
-      div.addEventListener("click", () => {
-        meineAktion({ typ: "neuwurf_toggle", index: i });
       });
     }
     wrap.appendChild(div);
@@ -920,63 +899,13 @@ function renderWuerfel(besitzer,z) {
   });
 }
 
-// Neuwurf-Panel: zeigt nur noch die Anweisung + Aktions-Buttons - die
-// Auswahl selbst passiert direkt an den (eigenen) Würfeln oben, siehe
-// renderWuerfel(). Beide Geräte sehen dank neuwurfUi (vom Host verteilt)
-// jederzeit denselben Fortschritt.
 function renderNeuwurf(z) {
-  const panel=document.getElementById("neuwurf-panel");
-  panel.innerHTML="";
-  if(neuwurfUi.phase===0||z.status!=="laeuft"){panel.classList.add("versteckt");return;}
-  panel.classList.remove("versteckt");
-
-  const partnerRolle = neuwurfUi.initiator === "pilot" ? "kopilot" : "pilot";
-  const initiatorName = neuwurfUi.initiator === "pilot" ? "Pilotin" : "Co-Pilot";
-  const partnerName   = partnerRolle === "pilot" ? "Pilotin" : "Co-Pilot";
-  const aktiverBesitzer = neuwurfAktivBesitzer();
-  const ichBinAktiv = myRole === aktiverBesitzer;
-
-  const intro=document.createElement("p");
-  if (neuwurfUi.phase === 1) {
-    intro.innerHTML = ichBinAktiv
-      ? "Tippe oben deine Würfel an, die neu geworfen werden sollen."
-      : `<strong>${initiatorName}</strong> wählt gerade Würfel zum Neuwerfen aus …`;
-  } else {
-    intro.innerHTML = ichBinAktiv
-      ? "Jetzt du: tippe oben deine Würfel an, die neu geworfen werden sollen."
-      : `Warte auf <strong>${partnerName}</strong> …`;
-  }
-  panel.appendChild(intro);
-
-  if (ichBinAktiv) {
-    const frei = z[`${myRole}_wuerfel_frei`];
-    if (!frei.some(Boolean)) {
-      const s = document.createElement("p");
-      s.textContent = "(keine unplatzierten Würfel verfügbar)";
-      panel.appendChild(s);
-    }
-  }
-
-  const ak=document.createElement("div");
-  ak.className="neuwurf-aktionen";
-
-  if (neuwurfUi.phase === 1 && ichBinAktiv) {
-    const weiter=document.createElement("button");
-    weiter.textContent=`Weiter → ${partnerName}`;
-    weiter.addEventListener("click", () => meineAktion({typ:"neuwurf_next"}));
-    ak.appendChild(weiter);
-  }
-  if (neuwurfUi.phase === 2 && ichBinAktiv) {
-    const ok=document.createElement("button");
-    ok.textContent="🎲 Neu würfeln";
-    ok.addEventListener("click", () => meineAktion({typ:"neuwurf_confirm"}));
-    ak.appendChild(ok);
-  }
-  const ab=document.createElement("button");
-  ab.textContent="Abbrechen";
-  ab.addEventListener("click", () => meineAktion({typ:"neuwurf_cancel"}));
-  ak.appendChild(ab);
-  panel.appendChild(ak);
+  NeuwurfDialog.render(z, neuwurfUi, {
+    role: myRole,
+    onToggle(rolle, index) { meineAktion({typ: "neuwurf_toggle", id: neuwurfUi.id, index}); },
+    onConfirm(rolle) { meineAktion({typ: "neuwurf_confirm", id: neuwurfUi.id, confirmed: !neuwurfUi.bestaetigt[myRole]}); },
+    onCancel() { meineAktion({typ: "neuwurf_cancel", id: neuwurfUi.id}); },
+  });
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────

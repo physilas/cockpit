@@ -15,3 +15,6 @@ tmp/
 # Local AI checkpoints, metrics, replays and notebook cache
 /runs/
 .ipynb_checkpoints/
+
+# Local Cloudflare build and development state
+.wrangler/

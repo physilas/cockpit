@@ -1,0 +1,431 @@
+/* Static GitHub Pages: local inference and IndexedDB learning records. */
+window.Singleplayer = (() => {
+  const catalog = window.COCKPIT_AI_CATALOG;
+  const names = {play: "Mit KI spielen", feedback: "KI-ndergartenbetreuung", examples: "KI-no"};
+  const roleNames = {pilot: "Pilotin", kopilot: "Co-Pilot"};
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  let api, setup = null, session = null, policy = null, reroll = null;
+  let timer = null, generation = 0, paused = "", starting = false, storageError = "";
+  let feedbackIndex = null, saveQueue = Promise.resolve(), memory = new Map();
+  let cloudTimer = null, cloudBusy = false, retryDelay = 5000;
+  const root = () => document.getElementById("singleplayer-menu");
+  const active = () => Boolean(session);
+  const aiRole = () => setup?.humanRole === "pilot" ? "kopilot" : "pilot";
+  const hasAI = () => active() && setup.mode !== "examples";
+  const pending = () => session?.events.filter(e => e.feedback && !e.feedback.committed && !e.voided) || [];
+
+  const dbPromise = new Promise((resolve, reject) => {
+    if (!window.indexedDB) { reject(new Error("Lokaler Speicher nicht verfügbar")); return; }
+    const request = indexedDB.open("flyteam-learning-v1", 2);
+    request.onupgradeneeded = () => {
+      for (const name of ["sessions", "outbox"]) if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name, {keyPath: "id"});
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  // Attach rejection handling immediately, including in private browsing.
+  dbPromise.catch(() => { storageError = "Lokales Speichern nicht möglich. Bitte vor dem Schließen exportieren."; });
+
+  function persist() {
+    if (!session) return;
+    session.data_revision = (session.data_revision || 0) + 1;
+    const data = clone(session);
+    memory.set(data.id, data);
+    saveQueue = saveQueue.then(async () => {
+      const db = await dbPromise;
+      await new Promise((resolve, reject) => {
+        const transaction = db.transaction(["sessions", "outbox"], "readwrite");
+        transaction.objectStore("sessions").put(data);
+        if (LearningCloud.enabled() && data.consent && data.events.length && ["feedback", "examples"].includes(data.mode)) {
+          transaction.objectStore("outbox").put({id: data.id, revision: data.data_revision, session: data});
+        }
+        transaction.oncomplete = resolve;
+        transaction.onerror = transaction.onabort = () => reject(transaction.error);
+      });
+      storageError = "";
+    }).catch(() => { storageError = "Lokales Speichern fehlgeschlagen. Bitte deine Daten exportieren."; })
+      .then(() => { updateStatus(); scheduleCloud(); });
+  }
+
+  function scheduleCloud(delay = 2000) {
+    if (!LearningCloud.enabled() || cloudTimer || cloudBusy) return;
+    cloudTimer = setTimeout(() => { cloudTimer = null; syncCloud(); }, delay);
+  }
+
+  async function syncCloud() {
+    if (!LearningCloud.enabled() || cloudBusy || navigator.onLine === false) return;
+    cloudBusy = true;
+    try {
+      await saveQueue;
+      const db = await dbPromise;
+      const rows = await new Promise((resolve, reject) => {
+        const request = db.transaction("outbox").objectStore("outbox").getAll();
+        request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
+      });
+      for (const row of rows) {
+        await LearningCloud.upload({format: "flyteam-learning-session", version: 1,
+          schema: catalog.schema, action_mask_version: catalog.action_mask_version, session: row.session});
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("outbox", "readwrite"), store = tx.objectStore("outbox");
+          const request = store.get(row.id);
+          request.onsuccess = () => { if (request.result?.revision === row.revision) store.delete(row.id); };
+          tx.oncomplete = resolve; tx.onerror = tx.onabort = () => reject(tx.error);
+        });
+      }
+      retryDelay = 5000;
+      // Pick up edits made while the previous snapshot was in flight.
+      const count = await new Promise(resolve => {
+        const request = db.transaction("outbox").objectStore("outbox").count();
+        request.onsuccess = () => resolve(request.result); request.onerror = () => resolve(0);
+      });
+      if (count) { cloudBusy = false; scheduleCloud(); }
+    } catch {
+      cloudBusy = false; scheduleCloud(retryDelay); retryDelay = Math.min(300000, retryDelay * 2);
+    } finally { cloudBusy = false; }
+  }
+  window.addEventListener("online", () => { clearTimeout(cloudTimer); cloudTimer = null; scheduleCloud(0); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") syncCloud(); });
+  dbPromise.then(() => scheduleCloud()).catch(() => {});
+
+  async function storedSessions() {
+    await saveQueue;
+    try {
+      const db = await dbPromise;
+      const rows = await new Promise((resolve, reject) => {
+        const request = db.transaction("sessions").objectStore("sessions").getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      return [...new Map([...rows, ...memory.values()].map(row => [row.id, row])).values()];
+    } catch { return [...memory.values()]; }
+  }
+
+  function commitFeedback(trigger) {
+    for (const event of pending()) {
+      event.feedback.committed = true;
+      event.feedback.committed_at = new Date().toISOString();
+      event.feedback.trigger = trigger;
+    }
+    feedbackIndex = null;
+  }
+
+  async function exportData() {
+    commitFeedback("export"); persist();
+    const sessions = await storedSessions();
+    const data = {format: "flyteam-learning-data", version: 1, exported_at: new Date().toISOString(),
+                  schema: catalog.schema, action_mask_version: catalog.action_mask_version, sessions};
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = `flyteam-training-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    renderFeedback();
+    const status = document.getElementById("ai-export-status");
+    if (status) status.textContent = `${sessions.length} Partien exportiert.`;
+  }
+
+  function stop(reason = "menu") {
+    generation++; clearTimeout(timer); timer = null;
+    if (session) {
+      commitFeedback(reason);
+      session.status = api.state()?.status === "laeuft" ? "aborted" : (api.state()?.status || "aborted");
+      session.finished_at = new Date().toISOString(); persist();
+    }
+    session = null; policy = null; reroll = null; paused = "";
+    document.getElementById("ai-feedback").classList.add("versteckt");
+    document.getElementById("ai-session-bar").classList.add("versteckt");
+  }
+
+  function showMenu() {
+    if (!api) return;
+    stop(); api.hideGame();
+    document.getElementById("start-menu").classList.add("versteckt");
+    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.modules.length && !s.ability_count);
+    root().innerHTML = `<div class="solo-shell"><button class="landing-back" id="solo-back">← Menü</button>
+      <span class="landing-eyebrow">DEINE CREW</span><h1>Singleplayer</h1>
+      <p class="solo-intro">Zusammen fliegen. Entscheidungen bewerten. Erfahrungen weitergeben.</p>
+      <div class="solo-modes" role="group" aria-label="Spielmodus">
+        <button data-mode="play" aria-pressed="true"><span>🤖</span><strong>Mit KI spielen</strong><small>Du und ein trainiertes Modell im Cockpit.</small></button>
+        <button data-mode="feedback" aria-pressed="false"><span>🧸</span><strong>KI-ndergartenbetreuung</strong><small>Spiele mit der KI und bewerte ihre Entscheidungen.</small></button>
+        <button data-mode="examples" aria-pressed="false"><span>🎬</span><strong>KI-no</strong><small>Pass &amp; Play: Eure Partien werden zu Lernbeispielen.</small></button>
+      </div><div class="solo-settings">
+        <label id="solo-model-label">Trainiertes Modell<select id="solo-model">${catalog.models.map(model => `<option value="${esc(model.id)}">${esc(model.run)} · ${model.checkpoint} · ${Number(model.steps).toLocaleString("de-DE")} Schritte · ${esc(model.airport)}</option>`).join("")}</select></label>
+        <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
+        <label id="solo-route-label" hidden>Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
+      </div><p id="solo-description" class="solo-description"></p>
+      <label id="solo-consent-label" class="solo-consent" hidden><input id="solo-consent" type="checkbox"><span>Ich bin einverstanden, dass meine Spielzüge, KI-Bewertungen und das Spielergebnis ohne Namen oder E-Mail-Adresse gespeichert und zur Verbesserung der KI an den Betreiber übermittelt werden.</span></label>
+      <p class="solo-storage-note">Die KI lernt später aus den gesammelten Beispielen und Bewertungen.</p>
+      <button id="solo-start" class="landing-start">Mit KI starten →</button><p id="solo-error" role="alert"></p>
+      <details class="solo-data"><summary>Eigene Aufzeichnungen</summary><div><button id="solo-export">Aufzeichnungen exportieren</button><span id="ai-export-status" role="status"></span></div>
+      <p class="solo-storage-note" id="solo-storage-status"></p></details></div>`;
+    setup = {mode: "play", humanRole: "pilot", model: null};
+    // Prefer the most recent MUC run without excluding any compatible checkpoint.
+    const preferred = [...catalog.models].filter(m => m.airport === "MUC" && m.checkpoint === "latest").sort((a,b) => b.steps - a.steps)[0];
+    if (preferred) document.getElementById("solo-model").value = preferred.id;
+    document.getElementById("solo-back").onclick = () => { root().classList.add("versteckt"); api.mainMenu(); };
+    root().querySelectorAll("[data-mode]").forEach(button => button.onclick = () => {
+      setup.mode = button.dataset.mode; document.getElementById("solo-consent").checked = false; updateMenu();
+    });
+    document.getElementById("solo-model").onchange = updateMenu;
+    document.getElementById("solo-consent").onchange = updateMenu;
+    document.getElementById("solo-start").onclick = launch;
+    document.getElementById("solo-export").onclick = exportData;
+    root().classList.remove("versteckt"); updateMenu(); window.scrollTo(0,0);
+    storedSessions().then(rows => {
+      const label = document.getElementById("solo-storage-status");
+      if (label) label.textContent = storageError || `${rows.length} aufgezeichnete Partien auf diesem Gerät.`;
+    });
+  }
+
+  function updateMenu() {
+    const examples = setup.mode === "examples";
+    root().querySelectorAll("[data-mode]").forEach(b => {
+      b.setAttribute("aria-pressed", String(b.dataset.mode === setup.mode)); b.disabled = starting;
+    });
+    for (const id of ["solo-model", "solo-role", "solo-route", "solo-consent"]) document.getElementById(id).disabled = starting;
+    document.getElementById("solo-model-label").hidden = examples;
+    document.getElementById("solo-role-label").hidden = examples;
+    document.getElementById("solo-route-label").hidden = !examples;
+    document.getElementById("solo-consent-label").hidden = setup.mode === "play";
+    setup.model = catalog.models.find(m => m.id === document.getElementById("solo-model").value) || null;
+    document.getElementById("solo-description").textContent = examples
+      ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
+      : !setup.model ? "Noch keine Modelle für die App bereitgestellt. KI-no ist bereits verfügbar."
+      : `${setup.model.airport} · ${setup.mode === "feedback" ? "Bewerte KI-Aktionen von −2 bis +2. Dein nächster gültiger Zug speichert das Feedback; ohne Änderung gilt 0." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}`;
+    document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
+      || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
+    document.getElementById("solo-start").textContent = starting ? "Wird vorbereitet …" : examples ? "Beispielpartie starten →" : "Mit KI starten →";
+  }
+
+  async function launch() {
+    if (starting) return;
+    if (setup.mode !== "play" && !document.getElementById("solo-consent").checked) return;
+    const version = ++generation;
+    const config = {...setup, humanRole: document.getElementById("solo-role").value};
+    const scenario = window.LANDING_CATALOG.scenarios.find(s => config.mode === "examples"
+      ? s.id === document.getElementById("solo-route").value : s.engine_code === config.model.airport);
+    if (!scenario) { document.getElementById("solo-error").textContent = "Die Strecke dieses Modells ist nicht verfügbar."; return; }
+    starting = true; updateMenu();
+    try {
+      let loadedPolicy = null;
+      if (config.mode !== "examples") {
+        const response = await fetch(config.model.url);
+        if (!response.ok) throw new Error("Modell konnte nicht geladen werden. Bitte Verbindung prüfen und erneut versuchen.");
+        loadedPolicy = CockpitPolicy.create(await response.json(), catalog);
+      }
+      if (version !== generation) return;
+      setup = config; policy = loadedPolicy;
+      // Recording begins before the first render can schedule the AI.
+      session = {id: crypto.randomUUID(), created_at: new Date().toISOString(), mode: config.mode,
+                 scenario: {id: scenario.id, engine_code: scenario.engine_code}, human_role: config.mode === "examples" ? null : config.humanRole,
+                 model: config.model && config.mode !== "examples" ? clone(config.model) : null,
+                 schema_version: catalog.schema.version, action_mask_version: catalog.action_mask_version,
+                 consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
+                 status: "active", events: [], engine_stack: []};
+      await api.start({...scenario, ability_ids: []});
+      if (version !== generation) return;
+      root().classList.add("versteckt"); persist();
+      navigator.storage?.persist?.().catch(() => {});
+    } catch (error) {
+      stop("start_failed"); root().classList.remove("versteckt");
+      document.getElementById("solo-error").textContent = error.message;
+    } finally { starting = false; if (!root().classList.contains("versteckt")) updateMenu(); }
+  }
+
+  function actionId(action) {
+    return catalog.schema.actions.findIndex(a => {
+      if (a.kind !== action.kind) return false;
+      if (a.kind === "place") {
+        const s = catalog.schema.slots[a.slot];
+        return a.die === action.die && s.target === action.target && (s.owner === null || s.owner === action.role)
+          && s.index === (action.index ?? null) && (s.target !== "funk" || s.radio_index === (action.radio_index || 0));
+      }
+      if (a.kind === "coffee") return a.die === action.die && a.delta === action.delta;
+      if (a.kind === "reroll_select") return a.subset === action.subset;
+      return true;
+    });
+  }
+
+  function decision(role) {
+    const steps = session.events.filter(e => !e.voided && e.action_id !== null).length;
+    return api.decision(role, reroll ? {initiator: reroll.initiator, selections: reroll.selections} : null,
+                        steps, setup.model?.max_steps || 256);
+  }
+
+  function beforeAction(action, actor = "human", suppliedDecision = null) {
+    if (!active()) return null;
+    const id = actionId(action);
+    return {action: clone(action), action_id: id < 0 ? null : id, actor,
+            decision: id < 0 ? null : suppliedDecision || decision(action.role),
+            engine_before: api.state()?.rueckgaengig_version};
+  }
+
+  function afterAction(context, answer) {
+    if (!context || !session || !answer.ergebnis.erfolg) return;
+    if (context.actor === "human" && ["place", "round_end"].includes(context.action.kind)) commitFeedback("human_action");
+    const e = {id: session.events.length, timestamp: new Date().toISOString(),
+               ...context, engine_after: answer.zustand.rueckgaengig_version,
+               outcome: {status: answer.zustand.status, reason: answer.zustand.verlust_grund || "", round: answer.zustand.runde},
+               public_after: api.decision(null, reroll && Object.values(reroll.selections).some(s => s === null)
+                 ? {initiator: reroll.initiator, selections: reroll.selections} : null,
+                 session.events.length + 1, setup.model?.max_steps || 256).public_state,
+               training_compatible: context.action_id !== null && Boolean(context.decision?.action_mask[context.action_id]), voided: false};
+    if (setup.mode === "feedback" && context.actor === "ai") {
+      e.feedback = {value: 0, explicit: false, committed: false}; feedbackIndex = e.id;
+    }
+    session.events.push(e);
+    if (e.engine_after !== e.engine_before) session.engine_stack.push(e.id);
+    if (answer.zustand.status !== "laeuft") {
+      session.status = answer.zustand.status; session.finished_at = e.timestamp;
+    }
+    persist(); renderFeedback();
+  }
+
+  function label(action) {
+    if (action.kind === "place") return `Würfel ${action.die + 1} → ${COCKPIT_SCHEMA.feld_layout.find(f => f.ziel === action.target)?.label || action.target}${action.index != null ? ` ${action.index + 1}` : ""}`;
+    if (action.kind === "coffee") return `Kaffee: Würfel ${action.die + 1} ${action.delta > 0 ? "+" : ""}${action.delta}`;
+    return action.kind === "reroll_start" ? "Gemeinsamen Neuwurf starten" : "Würfel für den Neuwurf auswählen";
+  }
+
+  function renderFeedback() {
+    const panel = document.getElementById("ai-feedback"), events = pending();
+    panel.classList.toggle("versteckt", !events.length);
+    if (!events.length) { panel.replaceChildren(); return; }
+    const selected = events.find(e => e.id === feedbackIndex) || events.at(-1);
+    feedbackIndex = selected.id;
+    panel.innerHTML = `<div class="ai-feedback-heading"><strong>Wie war die KI-Aktion?</strong><output id="ai-rating-value">${selected.feedback.value > 0 ? "+" : ""}${selected.feedback.value}</output></div>
+      ${events.length > 1 ? `<label class="ai-feedback-action">Aktion<select id="ai-feedback-action">${events.map(e => `<option value="${e.id}" ${e.id === selected.id ? "selected" : ""}>${esc(label(e.action))} · ${e.feedback.value > 0 ? "+" : ""}${e.feedback.value}</option>`).join("")}</select></label>` : `<p>${esc(label(selected.action))}</p>`}
+      <input id="ai-rating" type="range" min="-2" max="2" step="1" value="${selected.feedback.value}" aria-label="KI-Aktion bewerten" aria-valuetext="${selected.feedback.value}" list="ai-rating-ticks">
+      <datalist id="ai-rating-ticks">${[-2,-1,0,1,2].map(v => `<option value="${v}"></option>`).join("")}</datalist>
+      <div class="ai-rating-labels"><span>−2 · schlecht</span><span>0 · neutral</span><span>+2 · gut</span></div>
+      <p>Mit deinem nächsten gültigen Zug gespeichert. Unbewertete Aktionen zählen als 0.</p>
+      <button id="ai-feedback-save">Feedback jetzt speichern</button>`;
+    document.getElementById("ai-feedback-action")?.addEventListener("change", event => { feedbackIndex = Number(event.target.value); renderFeedback(); });
+    document.getElementById("ai-rating").oninput = event => {
+      selected.feedback.value = Number(event.target.value); selected.feedback.explicit = true;
+      document.getElementById("ai-rating-value").textContent = `${selected.feedback.value > 0 ? "+" : ""}${selected.feedback.value}`;
+      event.target.setAttribute("aria-valuetext", String(selected.feedback.value)); persist();
+      const option = document.getElementById("ai-feedback-action")?.selectedOptions[0];
+      if (option) option.textContent = `${label(selected.action)} · ${selected.feedback.value > 0 ? "+" : ""}${selected.feedback.value}`;
+    };
+    document.getElementById("ai-feedback-save").onclick = () => { commitFeedback("manual"); persist(); renderFeedback(); };
+  }
+
+  function updateStatus() {
+    const el = document.getElementById("ai-storage-status");
+    if (el && session) el.textContent = storageError || `${session.events.filter(e => !e.voided && e.action_id !== null).length} Entscheidungen aufgezeichnet`;
+  }
+
+  function afterRender(state) {
+    const bar = document.getElementById("ai-session-bar");
+    bar.classList.toggle("versteckt", !active());
+    if (!active()) return;
+    if (state.status !== "laeuft") { clearTimeout(timer); timer = null; }
+    bar.innerHTML = `<div><strong>${names[setup.mode]}</strong><span>${hasAI() ? `Du: ${roleNames[setup.humanRole]} · KI: ${esc(setup.model.run)} / ${setup.model.checkpoint}` : "Beide Rollen werden als Beispiele aufgezeichnet"}</span><small id="ai-storage-status" role="status"></small></div>
+      ${storageError ? '<button id="ai-game-export">Aufzeichnungen sichern</button>' : ""}${paused ? '<button id="ai-resume">KI fortsetzen</button>' : ""}<p class="ai-paused" role="alert">${esc(paused)}</p>`;
+    document.getElementById("ai-game-export")?.addEventListener("click", exportData);
+    document.getElementById("ai-resume")?.addEventListener("click", () => { paused = ""; afterRender(api.state()); });
+    updateStatus();
+    if (hasAI() && !paused && state.status === "laeuft" && state.phase === "platzieren"
+        && !api.rerollAnimating() && !api.roundComplete() && (!reroll || nextRerollRole() === aiRole())
+        && (reroll || state.am_zug === aiRole()) && !timer) {
+      const version = generation;
+      timer = setTimeout(() => {
+        timer = null;
+        if (version !== generation || !hasAI() || paused || api.state().status !== "laeuft") return;
+        try { playAI(); } catch (error) { paused = error.message; afterRender(api.state()); }
+      }, 650);
+    }
+  }
+
+  function playAI() {
+    if (session.events.filter(e => !e.voided && e.action_id !== null).length >= (setup.model.max_steps || 256)) {
+      throw new Error("Das Entscheidungslimit ist erreicht. Du kannst die Partie exportieren oder neu starten.");
+    }
+    const d = decision(aiRole()), id = policy.select(d), action = catalog.schema.actions[id];
+    const a = {...action, role: aiRole()};
+    if (action.kind === "place") {
+      const slot = catalog.schema.slots[action.slot];
+      a.target = slot.target; a.index = slot.index; a.radio_index = slot.radio_index;
+    }
+    if (action.kind === "reroll_start") { beginReroll(aiRole(), "ai", d); return; }
+    if (action.kind === "reroll_select") { confirmReroll(aiRole(), action.subset, "ai", d); return; }
+    const answer = api.execute(a, "ai", d);
+    api.showAnswer(answer);
+    if (!answer.ergebnis.erfolg) throw new Error("Die KI-Aktion konnte nicht ausgeführt werden.");
+  }
+
+  function nextRerollRole() {
+    return [reroll.initiator, reroll.initiator === "pilot" ? "kopilot" : "pilot"].find(role => reroll.selections[role] === null);
+  }
+
+  function beginReroll(role, actor = "human", supplied = null) {
+    if (!active()) return false;
+    if (reroll) { cancelReroll(); return true; }
+    if (hasAI() && actor === "human" && role !== setup.humanRole) return true;
+    const context = beforeAction({kind: "reroll_start", role}, actor, supplied);
+    context.reroll_group = `reroll:${session.events.length}`;
+    reroll = {initiator: role, selections: {pilot: null, kopilot: null}, event_ids: [], group: context.reroll_group};
+    afterAction(context, {ergebnis: {erfolg: true}, zustand: api.state()});
+    reroll.event_ids.push(session.events.at(-1).id);
+    api.openReroll(); api.refresh(); return true;
+  }
+
+  function confirmReroll(role, subset, actor = "human", supplied = null) {
+    if (!reroll || role !== nextRerollRole() || (hasAI() && actor === "human" && role !== setup.humanRole)) return;
+    const d = supplied || decision(role);
+    const a = {kind: "reroll_select", role, subset}, id = actionId(a);
+    if (!d.action_mask[id]) { api.rerollMessage("Wählt zusammen mindestens einen verfügbaren Würfel aus."); return; }
+    const context = beforeAction(a, actor, d);
+    context.reroll_group = reroll.group;
+    reroll.selections[role] = [0,1,2,3].filter(i => subset & (1 << i));
+    if (nextRerollRole()) {
+      afterAction(context, {ergebnis: {erfolg: true}, zustand: api.state()});
+      reroll.event_ids.push(session.events.at(-1).id);
+      api.rerollSelection(role, reroll.selections[role]); api.refresh();
+    } else {
+      const selections = reroll.selections;
+      const answer = api.applyReroll(selections);
+      if (!answer.ergebnis.erfolg) throw new Error("Der gemeinsame Neuwurf konnte nicht ausgeführt werden.");
+      afterAction(context, answer); reroll = null;
+      api.rerollSelection(role, selections[role]); api.rerollResult(answer); api.showAnswer(answer);
+    }
+  }
+
+  function cancelReroll() {
+    if (!reroll) return;
+    for (const id of reroll.event_ids) session.events[id].voided = true;
+    reroll = null;
+    if (hasAI() && api.state().am_zug === aiRole()) {
+      generation++; clearTimeout(timer); timer = null;
+      paused = "Neuwurf abgebrochen. Setze die KI fort, wenn du bereit bist.";
+    }
+    persist(); renderFeedback(); api.closeReroll(); api.refresh();
+  }
+
+  function undo(answer) {
+    if (!session || !answer.ergebnis.erfolg) return;
+    const id = session.engine_stack.pop();
+    if (id !== undefined) {
+      const event = session.events[id]; event.voided = true;
+      if (event.reroll_group) for (const other of session.events) if (other.reroll_group === event.reroll_group) other.voided = true;
+    }
+    if (hasAI()) {
+      generation++; clearTimeout(timer); timer = null;
+      paused = "Spielschritt rückgängig. Setze die KI fort, wenn du bereit bist.";
+    }
+    persist(); renderFeedback();
+  }
+
+  return {
+    connect(adapter) { api = adapter; }, active, hasAI, aiRole, showMenu, stop, beforeAction, afterAction, afterRender, undo,
+    hideMenu() { root().classList.add("versteckt"); },
+    canControl(role) { return !hasAI() || role === setup.humanRole; },
+    visibleRole() { return hasAI() ? setup.humanRole : null; },
+    beginReroll, cancelReroll,
+    confirmReroll(role, indices) { if (!active()) return false; confirmReroll(role, indices.reduce((bits,i) => bits | (1 << i), 0)); return true; },
+    rerollRole() { return hasAI() ? setup.humanRole : null; },
+    rerollPending() { return Boolean(reroll); }, exportData,
+  };
+})();

@@ -16,10 +16,9 @@
 
 let pyodide = null;
 let bridge = null;
+let aiBridge = null;
 let ausgewaehlterWuerfel = null;
 let kaffeeMenuOffenFuer = null;
-let neuwurfOffen = false;
-let neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
 let aktuellerZustand = null;
 let rueckgaengigId = null;
 
@@ -27,11 +26,9 @@ let rueckgaengigId = null;
 // null = alle verborgen; "pilot" / "kopilot" = nur diese Seite sichtbar
 let diceVisible = null;
 
-// Neuwurf-Zweiphasen (Pass & Play)
-// 0 = geschlossen, 1 = Initiator wählt, 2 = Partner wählt
-let neuwurfPhase = 0;
-let neuwurfInitiatorRolle = null;   // wer hat Neuwurf gestartet?
-let neuwurfPhase1Indizes = new Set(); // Würfel-Indizes des Initiators
+// Beide Rollen wählen und bestätigen im gemeinsamen Popup.
+let neuwurfUi = NeuwurfDialog.neuerZustand();
+let neuwurfTimer = null;
 
 async function ladeEngine() {
   pyodide = await loadPyodide();
@@ -40,6 +37,7 @@ async function ladeEngine() {
   // ENGINE_SRC wird von engine-src.js bereitgestellt (auto-generiert durch build.py)
   pyodide.FS.mkdirTree("/cockpit/backend/landungen");
   for (const [ziel, src] of Object.entries(ENGINE_SRC)) {
+    pyodide.FS.mkdirTree("/cockpit/" + ziel.substring(0, ziel.lastIndexOf("/")));
     pyodide.FS.writeFile("/cockpit/" + ziel, src);
   }
 
@@ -48,10 +46,26 @@ import sys
 sys.path.insert(0, "/cockpit")
 `);
   bridge = pyodide.pyimport("backend.bridge");
+  aiBridge = pyodide.pyimport("ai.browser_bridge");
 }
 
 function pyToJs(pyResult) {
   return pyResult.toJs({ dict_converter: Object.fromEntries });
+}
+
+function spielAktion(action, actor = "human", suppliedDecision = null) {
+  if (actor === "human" && action.role && !Singleplayer.canControl(action.role)) {
+    return {ergebnis: {erfolg: false, grund: "nicht_am_zug"}, zustand: aktuellerZustand};
+  }
+  const context = Singleplayer.beforeAction(action, actor, suppliedDecision);
+  let result;
+  if (action.kind === "place") result = bridge.platziere(action.role, action.die, action.target, action.index ?? null, action.radio_index || 0);
+  else if (action.kind === "coffee") result = bridge.trinke_kaffee(action.role, action.die, action.delta);
+  else if (action.kind === "round_end") result = bridge.rundenende();
+  else throw new Error("Unbekannte Spielaktion.");
+  const answer = pyToJs(result);
+  Singleplayer.afterAction(context, answer);
+  return answer;
 }
 
 function grundText(code) {
@@ -261,7 +275,7 @@ function kaffeeBoxenHTML(anzahl) {
 function bindeNeuwurfTokens(zustand) {
   document.querySelectorAll("#s-neuwurf .reroll-token").forEach(token => {
     token.disabled = zustand.neuwurf_plaettchen <= 0 || zustand.status !== "laeuft" || zustand.phase !== "platzieren" || Boolean(zustand.zusatzaktion || zustand.kooperation);
-    token.title = neuwurfPhase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
+    token.title = neuwurfUi.phase === 0 ? "Neuwurf starten" : "Neuwurf abbrechen";
     token.setAttribute("aria-label", `${token.title} · ${zustand.neuwurf_plaettchen} Plättchen`);
     token.addEventListener("click", toggleNeuwurfPanel);
   });
@@ -275,7 +289,8 @@ function render(zustand) {
     neuwurfReset(); FlightModules.reset(); resetVerkehrUi();
   }
   aktuellerZustand = zustand;
-  document.getElementById("rueckgaengig-btn").disabled = !zustand.rueckgaengig_moeglich || neuwurfPhase !== 0;
+  if (Singleplayer.hasAI()) diceVisible = Singleplayer.visibleRole();
+  document.getElementById("rueckgaengig-btn").disabled = !zustand.rueckgaengig_moeglich || neuwurfUi.phase !== 0;
   Landings.updateFlight(zustand);
 
   document.getElementById("s-runde").textContent = zustand.letzte_runde
@@ -299,7 +314,7 @@ function render(zustand) {
   renderWuerfel("kopilot", zustand);
   renderNeuwurfPanel(zustand);
   FlightModules.render(zustand, {
-    role:null, selected:diceVisible ? ausgewaehlterWuerfel : null, reroll:neuwurfPhase !== 0,
+    role:null, selected:diceVisible ? ausgewaehlterWuerfel : null, reroll:neuwurfUi.phase !== 0,
     conceal() {diceVisible = null; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
     onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.platziere(role, die, target, index)));},
     onAction(role, action, params) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.modul_aktion(role, action, JSON.stringify(params))));},
@@ -323,10 +338,14 @@ function render(zustand) {
     const role = zustand.zusatzaktion?.rolle || zustand.kooperation.wartet_auf;
     amZugEl.textContent = `Zusatzaktion: ${role === 'pilot' ? 'Pilotin' : 'Co-Pilot'}`;
     rundenendeBtn.disabled = true;
+  } else if (neuwurfUi.phase) {
+    amZugEl.textContent = "↻ Gemeinsamer Neuwurf";
+    rundenendeBtn.disabled = true;
   } else {
     amZugEl.textContent = `Am Zug: ${zustand.am_zug === "pilot" ? "Pilotin" : "Co-Pilot"}`;
     rundenendeBtn.disabled = false;
   }
+  Singleplayer.afterRender(zustand);
 }
 
 // --- Cockpit-Board (zeigt jedes gelegte Feld; Bremsen/Klappen: nur nächstes frei) ---
@@ -404,11 +423,9 @@ function platziereAusgewaehlten(eintrag, slotIndex) {
   if (warnung && !window.confirm(`⚠️ ${warnung}\n\nTrotzdem platzieren?`)) return;
 
   const brauchtIndex = ["fahrwerk", "landeklappe", "bremse", "konzentration"].includes(eintrag.ziel);
-  const antwort = pyToJs(bridge.platziere(
-    ausgewaehlterWuerfel.besitzer, ausgewaehlterWuerfel.index, eintrag.ziel,
-    brauchtIndex ? slotIndex : null,
-    eintrag.ziel === "funk" ? slotIndex : 0
-  ));
+  const antwort = spielAktion({kind: "place", role: ausgewaehlterWuerfel.besitzer,
+    die: ausgewaehlterWuerfel.index, target: eintrag.ziel,
+    index: brauchtIndex ? slotIndex : null, radio_index: eintrag.ziel === "funk" ? slotIndex : 0});
   ausgewaehlterWuerfel = null;
   diceVisible = null;   // Würfel sofort wieder verbergen
   nachAktion(antwort);
@@ -528,23 +545,6 @@ function renderCockpitBoard(zustand) {
 }
 
 // --- Würfel-Trays + Kaffee ---
-//
-// Neuwurf-Auswahl (Reroll): läuft nicht mehr über eine separate Liste mit
-// Checkboxen ("1:4", "2:2", ...), sondern direkt über Klicks auf die
-// bereits angezeigten Würfel - genau wie beim normalen Platzieren, nur
-// dass hier mehrere Würfel gleichzeitig markiert werden können (Toggle),
-// bis "Weiter"/"Neu würfeln" bestätigt wird.
-function neuwurfAktivBesitzer() {
-  if (neuwurfPhase === 1) return neuwurfInitiatorRolle;
-  if (neuwurfPhase === 2) return neuwurfInitiatorRolle === "pilot" ? "kopilot" : "pilot";
-  return null;
-}
-
-function neuwurfAuswahlSetFuer(besitzer) {
-  if (neuwurfPhase === 1) return neuwurfPhase1Indizes;
-  if (neuwurfPhase === 2) return neuwurfAuswahl[besitzer];
-  return null;
-}
 
 function renderWuerfel(besitzer, zustand) {
   const container = document.getElementById(`wuerfel-${besitzer}`);
@@ -552,29 +552,11 @@ function renderWuerfel(besitzer, zustand) {
 
   const werte = zustand[`${besitzer}_wuerfel`];
   const frei  = zustand[`${besitzer}_wuerfel_frei`];
-  const istAmZug  = zustand.am_zug === besitzer && zustand.status === "laeuft" && zustand.phase === "platzieren" && !zustand.zusatzaktion && !zustand.kooperation;
+  const istAmZug  = Singleplayer.canControl(besitzer) && zustand.am_zug === besitzer && zustand.status === "laeuft" && zustand.phase === "platzieren" && !zustand.zusatzaktion && !zustand.kooperation;
   const sichtbar  = diceVisible === besitzer;
 
-  const imNeuwurf = neuwurfPhase !== 0;
-  const aktiverNeuwurfBesitzer = neuwurfAktivBesitzer();
-  const istNeuwurfAktiv = imNeuwurf && besitzer === aktiverNeuwurfBesitzer;
-  const neuwurfAuswahlSet = istNeuwurfAktiv ? neuwurfAuswahlSetFuer(besitzer) : null;
-
-  // "Würfel anzeigen"-Button (nur Auge, kompakt).
-  //
-  // WICHTIG (Privatsphäre): Solange der Neuwurf-Dialog offen ist, gilt
-  // ausschließlich die Neuwurf-Phase, NICHT "wer ist am Zug" - sonst
-  // bliebe der Knopf für die Würfel des Initiators während Phase 2 aktiv
-  // (er/sie ist ja weiterhin "am Zug"), und der Partner könnte am
-  // gemeinsamen Gerät versehentlich fremde Würfel aufdecken. Außerhalb
-  // eines Neuwurfs gilt wie gewohnt: nur der aktive Spieler sieht seine
-  // eigenen, noch nicht platzierten Würfel.
-  let zeigeViewBtn;
-  if (imNeuwurf) {
-    zeigeViewBtn = !sichtbar && istNeuwurfAktiv;
-  } else {
-    zeigeViewBtn = !sichtbar && istAmZug;
-  }
+  const imNeuwurf = neuwurfUi.phase !== 0;
+  const zeigeViewBtn = !imNeuwurf && !sichtbar && istAmZug;
   if (zeigeViewBtn) {
     const viewBtn = document.createElement("button");
     viewBtn.className = "view-btn";
@@ -589,7 +571,7 @@ function renderWuerfel(besitzer, zustand) {
 
   // Aktive Spielerin bzw. aktiver Spieler kann die offenen Würfel vor dem
   // Weitergeben des Geräts jederzeit wieder verdecken.
-  const darfVerbergen = sichtbar && (imNeuwurf ? istNeuwurfAktiv : istAmZug);
+  const darfVerbergen = !imNeuwurf && sichtbar && istAmZug;
   if (darfVerbergen) {
     const hideBtn = document.createElement("button");
     hideBtn.className = "hide-btn";
@@ -613,25 +595,15 @@ function renderWuerfel(besitzer, zustand) {
     div.className = "wuerfel" + (frei[i] ? "" : " platziert") + (verberge ? " verborgen" : "");
     div.textContent = verberge ? "?" : (wert ?? "");
 
-    // Markierung: entweder "für's Platzieren ausgewählt" (normaler Modus)
-    // oder "für den Neuwurf ausgewählt" (Reroll-Modus) - nie beides.
     const istPlatzierAusgewaehlt = !imNeuwurf && sichtbar &&
       ausgewaehlterWuerfel?.besitzer === besitzer && ausgewaehlterWuerfel?.index === i;
-    const istNeuwurfMarkiert = istNeuwurfAktiv && sichtbar && neuwurfAuswahlSet?.has(i);
-    if (istPlatzierAusgewaehlt || istNeuwurfMarkiert) div.classList.add("ausgewaehlt");
+    if (istPlatzierAusgewaehlt) div.classList.add("ausgewaehlt");
 
     if (!imNeuwurf && sichtbar && frei[i] && istAmZug) {
       div.title = "Klicken zum Auswählen, dann ein Feld im Board anklicken.";
       div.addEventListener("click", () => {
         ausgewaehlterWuerfel = istPlatzierAusgewaehlt ? null : { besitzer, index: i };
         kaffeeMenuOffenFuer = null;
-        render(zustand);
-      });
-    } else if (istNeuwurfAktiv && sichtbar && frei[i]) {
-      div.title = "Klicken, um diesen Würfel für den Neuwurf zu markieren/abzuwählen.";
-      div.addEventListener("click", () => {
-        if (neuwurfAuswahlSet.has(i)) neuwurfAuswahlSet.delete(i);
-        else neuwurfAuswahlSet.add(i);
         render(zustand);
       });
     }
@@ -662,7 +634,7 @@ function renderWuerfel(besitzer, zustand) {
             // Anders als beim Platzieren bleibt hier derselbe Spieler am Zug -
             // die eigenen Würfel sollen daher sichtbar bleiben, damit der neue
             // Wert direkt gesehen und der Würfel weiter platziert werden kann.
-            nachAktion(pyToJs(bridge.trinke_kaffee(besitzer, i, d)), { verbirgWuerfel: false });
+            nachAktion(spielAktion({kind: "coffee", role: besitzer, die: i, delta: d}), { verbirgWuerfel: false });
           });
           menu.appendChild(btn);
         });
@@ -673,139 +645,81 @@ function renderWuerfel(besitzer, zustand) {
   });
 }
 
-// --- Neuwurf-Panel (zwei Phasen für Pass & Play) ---
-//
-// Statt einer eigenen Checkbox-Liste ("1:4", "2:2", ...) wird direkt auf
-// den ohnehin sichtbaren Würfeln oben ausgewählt (siehe renderWuerfel) -
-// das Panel zeigt hier nur noch die Anweisung sowie die Aktions-Buttons.
+// --- Gemeinsames Neuwurf-Popup ---
 function neuwurfReset() {
-  neuwurfPhase = 0;
-  neuwurfInitiatorRolle = null;
-  neuwurfPhase1Indizes = new Set();
-  neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
+  clearTimeout(neuwurfTimer);
+  neuwurfTimer = null;
+  neuwurfUi = NeuwurfDialog.neuerZustand();
+  NeuwurfDialog.schliessen();
   diceVisible = null;
 }
 
 function neuwurfAbbrechen() {
+  if (neuwurfUi.phase === 2) return;
+  if (Singleplayer.rerollPending()) { Singleplayer.cancelReroll(); return; }
   neuwurfReset();
   render(aktuellerZustand);
 }
 
 function toggleNeuwurfPanel() {
-  if (!aktuellerZustand || aktuellerZustand.zusatzaktion || aktuellerZustand.kooperation || aktuellerZustand.neuwurf_plaettchen <= 0) return;
-  if (neuwurfPhase !== 0) {
-    neuwurfAbbrechen();
-    return;
-  }
-  neuwurfPhase = 1;
-  neuwurfInitiatorRolle = aktuellerZustand.am_zug;
-  neuwurfPhase1Indizes = new Set();
-  neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
-  ausgewaehlterWuerfel = null;
+  const z = aktuellerZustand;
+  if (!z || z.status !== "laeuft" || z.phase !== "platzieren" || z.zusatzaktion || z.kooperation || z.neuwurf_plaettchen <= 0) return;
+  if (neuwurfUi.phase) { neuwurfAbbrechen(); return; }
+  if (Singleplayer.beginReroll(z.am_zug)) return;
+  neuwurfUi = NeuwurfDialog.neuerZustand();
+  neuwurfUi.phase = 1;
+  neuwurfUi.wuerfel = {pilot: [...z.pilot_wuerfel], kopilot: [...z.kopilot_wuerfel]};
+  ausgewaehlterWuerfel = kaffeeMenuOffenFuer = null;
   diceVisible = null;
+  render(z);
+}
+
+function neuwurfBestaetigen(rolle) {
+  if (neuwurfUi.phase !== 1) return;
+  if (Singleplayer.confirmReroll(rolle, neuwurfUi.auswahl[rolle])) return;
+  neuwurfUi.bestaetigt[rolle] = !neuwurfUi.bestaetigt[rolle];
+  neuwurfUi.meldung = "";
+  if (neuwurfUi.bestaetigt.pilot && neuwurfUi.bestaetigt.kopilot) {
+    if (!neuwurfUi.auswahl.pilot.length && !neuwurfUi.auswahl.kopilot.length) {
+      neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
+      neuwurfUi.meldung = "Wählt zusammen mindestens einen Würfel aus.";
+    } else {
+      const antwort = pyToJs(bridge.benutze_neuwurf(neuwurfUi.auswahl.pilot, neuwurfUi.auswahl.kopilot));
+      if (antwort.ergebnis.erfolg) {
+        neuwurfUi.phase = 2;
+        neuwurfUi.vorher = neuwurfUi.wuerfel;
+        neuwurfUi.wuerfel = {pilot: [...antwort.zustand.pilot_wuerfel], kopilot: [...antwort.zustand.kopilot_wuerfel]};
+        neuwurfTimer = setTimeout(() => { neuwurfReset(); render(aktuellerZustand); }, 2400);
+      } else {
+        neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
+        neuwurfUi.meldung = grundText(antwort.ergebnis.grund);
+      }
+      nachAktion(antwort);
+      return;
+    }
+  }
   render(aktuellerZustand);
 }
 
 function renderNeuwurfPanel(zustand) {
-  const panel = document.getElementById("neuwurf-panel");
-  panel.innerHTML = "";
-
-  if (neuwurfPhase === 0 || zustand.status !== "laeuft") {
-    panel.classList.add("versteckt");
-    return;
-  }
-  panel.classList.remove("versteckt");
-
-  const partnerRolle = neuwurfInitiatorRolle === "pilot" ? "kopilot" : "pilot";
-  const initiatorName = neuwurfInitiatorRolle === "pilot" ? "Pilotin" : "Co-Pilot";
-  const partnerName   = partnerRolle === "pilot" ? "Pilotin" : "Co-Pilot";
-
-  if (neuwurfPhase === 1) {
-    const hinweis = document.createElement("p");
-    hinweis.innerHTML = `<strong>${initiatorName}</strong>: oben die Würfel antippen, die neu geworfen werden sollen.`;
-    panel.appendChild(hinweis);
-
-    if (diceVisible !== neuwurfInitiatorRolle) {
-      const viewBtn = document.createElement("button");
-      viewBtn.className = "view-btn";
-      viewBtn.textContent = "◉";
-      viewBtn.title = "Würfel anzeigen";
-      viewBtn.addEventListener("click", () => { diceVisible = neuwurfInitiatorRolle; render(aktuellerZustand); });
-      panel.appendChild(viewBtn);
-    } else {
-      const frei = zustand[`${neuwurfInitiatorRolle}_wuerfel_frei`];
-      if (!frei.some(Boolean)) {
-        const s = document.createElement("p");
-        s.textContent = "(keine unplatzierten Würfel verfügbar)";
-        panel.appendChild(s);
-      }
-
-      const ak = document.createElement("div");
-      ak.className = "neuwurf-aktionen";
-
-      const weiter = document.createElement("button");
-      weiter.textContent = `Weiter → ${partnerName}`;
-      weiter.addEventListener("click", () => {
-        neuwurfPhase = 2;
-        diceVisible = null;
-        render(aktuellerZustand);
-      });
-      ak.appendChild(weiter);
-
-      const ab = document.createElement("button");
-      ab.textContent = "Abbrechen";
-      ab.addEventListener("click", () => neuwurfAbbrechen());
-      ak.appendChild(ab);
-      panel.appendChild(ak);
-    }
-  }
-
-  if (neuwurfPhase === 2) {
-    const hinweis = document.createElement("p");
-    hinweis.innerHTML = `<strong>${partnerName}</strong>: oben die Würfel antippen, die neu geworfen werden sollen.`;
-    panel.appendChild(hinweis);
-
-    if (diceVisible !== partnerRolle) {
-      const viewBtn = document.createElement("button");
-      viewBtn.className = "view-btn";
-      viewBtn.textContent = "◉";
-      viewBtn.title = "Würfel anzeigen";
-      viewBtn.addEventListener("click", () => { diceVisible = partnerRolle; render(aktuellerZustand); });
-      panel.appendChild(viewBtn);
-    } else {
-      const frei = zustand[`${partnerRolle}_wuerfel_frei`];
-      if (!frei.some(Boolean)) {
-        const s = document.createElement("p");
-        s.textContent = "(keine unplatzierten Würfel verfügbar)";
-        panel.appendChild(s);
-      }
-
-      const ak = document.createElement("div");
-      ak.className = "neuwurf-aktionen";
-
-      const neuwerfen = document.createElement("button");
-      neuwerfen.textContent = "🎲 Neu würfeln";
-      neuwerfen.addEventListener("click", () => {
-        const pilotIdx   = neuwurfInitiatorRolle === "pilot"
-          ? Array.from(neuwurfPhase1Indizes)
-          : Array.from(neuwurfAuswahl[partnerRolle]);
-        const kopilotIdx = neuwurfInitiatorRolle === "kopilot"
-          ? Array.from(neuwurfPhase1Indizes)
-          : Array.from(neuwurfAuswahl[partnerRolle]);
-
-        const antwort = pyToJs(bridge.benutze_neuwurf(pilotIdx, kopilotIdx));
-        neuwurfReset();
-        nachAktion(antwort);
-      });
-      ak.appendChild(neuwerfen);
-
-      const ab = document.createElement("button");
-      ab.textContent = "Abbrechen";
-      ab.addEventListener("click", () => neuwurfAbbrechen());
-      ak.appendChild(ab);
-      panel.appendChild(ak);
-    }
-  }
+  const ui = Singleplayer.hasAI() && neuwurfUi.wuerfel ? {
+    ...neuwurfUi,
+    wuerfel: {...neuwurfUi.wuerfel, [Singleplayer.aiRole()]: neuwurfUi.wuerfel[Singleplayer.aiRole()].map((v,i) => zustand[`${Singleplayer.aiRole()}_wuerfel_frei`][i] ? null : v)},
+    vorher: neuwurfUi.vorher ? {...neuwurfUi.vorher, [Singleplayer.aiRole()]: [null,null,null,null]} : null,
+  } : neuwurfUi;
+  NeuwurfDialog.render(zustand, ui, {
+    role: Singleplayer.rerollRole(),
+    onToggle(rolle, index) {
+      if (neuwurfUi.phase !== 1 || neuwurfUi.bestaetigt[rolle] || !aktuellerZustand[`${rolle}_wuerfel_frei`][index]) return;
+      const liste = neuwurfUi.auswahl[rolle];
+      const pos = liste.indexOf(index);
+      if (pos === -1) liste.push(index); else liste.splice(pos, 1);
+      neuwurfUi.meldung = "";
+      render(aktuellerZustand);
+    },
+    onConfirm: neuwurfBestaetigen,
+    onCancel: neuwurfAbbrechen,
+  });
 }
 
 function nachAktion(antwort, { verbirgWuerfel = true } = {}) {
@@ -819,7 +733,8 @@ function nachAktion(antwort, { verbirgWuerfel = true } = {}) {
 }
 
 async function rundenendeKlick() {
-  const antwort = pyToJs(bridge.rundenende());
+  if (neuwurfUi.phase) return;
+  const antwort = spielAktion({kind: "round_end"});
   if (!antwort.ergebnis.erfolg) {
     setzeMeldung(`Runde kann noch nicht enden: ${grundText(antwort.ergebnis.grund)}`, "fehler");
     render(antwort.zustand);
@@ -871,12 +786,7 @@ async function neuesSpiel(scenario) {
   resetVerkehrUi();
   ausgewaehlterWuerfel = null;
   kaffeeMenuOffenFuer = null;
-  neuwurfOffen = false;
-  neuwurfPhase = 0;
-  neuwurfInitiatorRolle = null;
-  neuwurfPhase1Indizes = new Set();
-  neuwurfAuswahl = { pilot: new Set(), kopilot: new Set() };
-  diceVisible = null;
+  neuwurfReset();
   const zustand = pyToJs(bridge.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || [])));
   landingPicker.hide();
   document.getElementById("game-header").classList.remove("versteckt");
@@ -887,7 +797,10 @@ async function neuesSpiel(scenario) {
 }
 
 function zurueckZumMenue() {
+  Singleplayer.stop();
+  Singleplayer.hideMenu();
   navigationVersion++;
+  neuwurfReset();
   FlightModules.reset();
   resetVerkehrUi();
   landingPicker.hide();
@@ -896,21 +809,54 @@ function zurueckZumMenue() {
 }
 
 window.startPassAndPlay = function() {
+  Singleplayer.stop();
+  Singleplayer.hideMenu();
   navigationVersion++;
+  neuwurfReset();
   FlightModules.reset();
   resetVerkehrUi();
   for (const id of ["start-menu", "game-header", "flight-summary", "spiel-ui", "lade-hinweis"]) document.getElementById(id).classList.add("versteckt");
   landingPicker.show();
 };
 
-document.getElementById("neues-spiel-btn").addEventListener("click", window.startPassAndPlay);
+document.getElementById("neues-spiel-btn").addEventListener("click", () => Singleplayer.active() ? Singleplayer.showMenu() : window.startPassAndPlay());
 document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
 document.getElementById("rueckgaengig-btn").addEventListener("click", () => document.dispatchEvent(new Event("cockpit-undo")));
 document.addEventListener("cockpit-undo", () => {
-  if (!bridge || neuwurfPhase !== 0 || !aktuellerZustand?.rueckgaengig_moeglich) return;
-  nachAktion(pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version)));
+  if (!bridge || neuwurfUi.phase !== 0 || !aktuellerZustand?.rueckgaengig_moeglich) return;
+  const answer = pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version));
+  Singleplayer.undo(answer);
+  nachAktion(answer);
 });
 document.getElementById("menue-btn").addEventListener("click", zurueckZumMenue);
+
+Singleplayer.connect({
+  state: () => aktuellerZustand,
+  start: neuesSpiel, execute: spielAktion, showAnswer: nachAktion,
+  decision(role, reroll, steps, maxSteps) { return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps)); },
+  refresh() { render(aktuellerZustand); },
+  roundComplete() { return ["pilot", "kopilot"].every(role => aktuellerZustand[`${role}_wuerfel_frei`].every(free => !free)); },
+  rerollAnimating() { return neuwurfUi.phase === 2; },
+  openReroll() {
+    neuwurfUi = NeuwurfDialog.neuerZustand(); neuwurfUi.phase = 1;
+    neuwurfUi.wuerfel = {pilot: [...aktuellerZustand.pilot_wuerfel], kopilot: [...aktuellerZustand.kopilot_wuerfel]};
+    ausgewaehlterWuerfel = kaffeeMenuOffenFuer = null; diceVisible = null;
+  },
+  closeReroll: neuwurfReset,
+  rerollMessage(text) { neuwurfUi.meldung = text; render(aktuellerZustand); },
+  rerollSelection(role, indices) { neuwurfUi.auswahl[role] = indices; neuwurfUi.bestaetigt[role] = true; },
+  applyReroll(selections) { return pyToJs(bridge.benutze_neuwurf(selections.pilot, selections.kopilot)); },
+  rerollResult(answer) {
+    neuwurfUi.phase = 2; neuwurfUi.vorher = neuwurfUi.wuerfel;
+    neuwurfUi.wuerfel = {pilot: [...answer.zustand.pilot_wuerfel], kopilot: [...answer.zustand.kopilot_wuerfel]};
+    neuwurfTimer = setTimeout(() => { neuwurfReset(); render(aktuellerZustand); }, 2400);
+  },
+  mainMenu: zurueckZumMenue,
+  hideGame() {
+    navigationVersion++; neuwurfReset(); FlightModules.reset(); resetVerkehrUi(); landingPicker.hide();
+    for (const id of ["game-header", "flight-summary", "spiel-ui", "lade-hinweis"]) document.getElementById(id).classList.add("versteckt");
+  },
+});
 
 if (new URLSearchParams(window.location.search).get("view") === "landings") {
   window.startPassAndPlay();

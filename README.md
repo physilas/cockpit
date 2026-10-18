@@ -331,3 +331,44 @@ Schritt zurücknehmen; der Host verteilt den wiederhergestellten Stand
 mit derselben Würfel-Privatsphäre wie sonst. Veraltete doppelte Anfragen
 werden abgewiesen. Die Echtzeituhr wird dabei nicht angehalten oder
 zurückgedreht.
+
+### Gemeinsames Neuwurf-Popup (16.10.2026)
+
+Der Neuwurfknopf öffnet in beiden Spielmodi ein Popup mit beiden Würfelpools.
+Im Multiplayer kann jede Person unabhängig ihre eigenen freien Würfel auswählen
+und bestätigen; in Pass & Play stehen beide Bestätigungen auf demselben Gerät.
+Bestätigte Auswahlen können bis zur zweiten Bestätigung wieder geändert werden.
+Bereits gelegte Würfel bleiben gesperrt. Nach beiden Bestätigungen wird genau
+ein Plättchen verbraucht und automatisch neu gewürfelt. Leuchtende Rahmen und
+die Anzeige „vorher → nachher“ markieren die geworfenen Würfel auch bei gleichem
+Ergebnis. Nach 2,4 Sekunden schließt sich das Popup automatisch. Außerhalb des
+Popups bleiben die Würfel des Partners im Multiplayer verdeckt. Abbrechen oder
+zwei leere Auswahlen verbrauchen kein Plättchen; der ursprüngliche Zug bleibt erhalten.
+
+`node tests/multiplayer-actions.cjs` prüft den Hostablauf einschließlich
+veralteter/doppelter Nachrichten und Fehlerfällen. `node tests/landings-ui.cjs`
+prüft das Popup mit echter Engine auf Desktop und Handy sowie die Synchronisierung
+zwischen zwei Browseransichten mit simuliertem PeerJS-Transport.
+
+## Singleplayer und KI-Lernmodi
+
+Unter **Singleplayer** stehen **Mit KI spielen**, **KI-ndergartenbetreuung**
+(Feedback von −2 bis +2) und **KI-no** (Beispielpartien per Pass & Play) bereit.
+Die KI übernimmt eine Rolle mit denselben eigenen Würfeln und öffentlichen
+Informationen wie beim Training. Die beiden Lernmodi fragen vor dem Start nach
+Zustimmung zur Datennutzung. Aufzeichnungen werden lokal gesichert und bei
+konfiguriertem Cloudflare-Endpunkt automatisch zentral hochgeladen.
+
+Modelle für die statische Webseite bereitstellen:
+
+```bash
+.venv/bin/python -m ai.export_browser
+.venv/bin/python build.py
+```
+
+Der Export erfasst kompatible `best.pt` und `latest.pt` aus `runs/`. Die generierten
+Dateien unter `frontend/web/models/` sowie der Modellkatalog müssen mit GitHub Pages
+veröffentlicht werden. Modelle werden bei Auswahl geladen und im Browser ausgeführt.
+Feedback und Demonstrationen sind zunächst Trainingsdaten; sie verändern die
+Gewichte noch nicht automatisch. Die Einrichtung mit einer privaten D1-Datenbank und
+einem Cloudflare Worker ist in [docs/KI-CLOUD.md](docs/KI-CLOUD.md) beschrieben.

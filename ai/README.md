@@ -331,9 +331,31 @@ Wähle eine der angezeigten Aktionsnummern; `q` beendet die Partie. Kaffee und
 Neuwurf sind eigene Entscheidungen, nach denen ggf. dieselbe Rolle weiter am Zug ist.
 Zum Ausprobieren ohne Modell: `python -m ai.play --baseline heuristic`.
 
-Der Browser-Singleplayer und ONNX-Export sind der nächste Integrationsschritt.
-Dieser Meilenstein bietet Training, Analyse und ein spielbares Terminal; die
-bestehenden Web-Spielmodi werden dadurch nicht verändert.
+Die Browser-App bietet unter **Singleplayer** drei Modi: mit einem Modell spielen,
+**KI-ndergartenbetreuung** mit Bewertungen von −2 bis +2 und **KI-no** für
+Pass-&-Play-Beispielpartien. Die beiden Lernmodi benötigen eine Zustimmung zur
+Datennutzung. Bewertungen werden mit der nächsten erfolgreichen menschlichen
+Platzierung gespeichert; ohne Slideränderung gilt 0. Am Spielende können sie
+zusätzlich direkt gespeichert werden. Aufeinanderfolgende KI-Aktionen behalten
+jeweils ihre eigene Bewertung, auswählbar oberhalb des Sliders.
+
+Die Modelle werden als kompakte Float32-Gewichte exportiert und direkt im Browser
+ausgeführt. Beobachtungen und Masken stammen aus demselben Python-Code wie beim
+Training. Ein ONNX-Laufzeitsystem oder Python-Server ist dafür nicht erforderlich:
+
+```bash
+.venv/bin/python -m ai.export_browser
+.venv/bin/python build.py
+```
+
+Der Export findet alle schema-kompatiblen `best.pt`-/`latest.pt` unter `runs/`;
+neue Checkpoints müssen erneut exportiert und mit der Webseite veröffentlicht
+werden. `build.py` selbst benötigt weiterhin kein PyTorch. Die App speichert
+Aufzeichnungen zunächst in IndexedDB. Eine optionale Cloudflare-Anbindung sendet
+die Lernmodi nach Zustimmung automatisch in eine private D1-Datenbank. Einrichtung:
+[docs/KI-CLOUD.md](../docs/KI-CLOUD.md). Die gesammelten Daten verändern die Modelle
+noch nicht automatisch; ihr Import in Demonstrations-/Feedbacktraining ist ein
+separater Trainingsschritt.
 
 ## Tests und Erweiterungen
 

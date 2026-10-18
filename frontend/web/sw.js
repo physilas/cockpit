@@ -20,7 +20,15 @@ const STATIC_ASSETS = [
   "./css/style.css",
   "./css/landings.css",
   "./css/modules.css",
+  "./css/reroll.css",
+  "./css/singleplayer.css",
   "./js/modules.js",
+  "./js/reroll.js",
+  "./js/ai-models.js",
+  "./js/ai-policy.js",
+  "./js/cloud-config.js",
+  "./js/learning-cloud.js",
+  "./js/singleplayer.js",
   "./js/landing-catalog.js",
   "./js/landings.js",
   "./js/engine-src.js",
@@ -82,6 +90,13 @@ self.addEventListener("fetch", event => {
     return;
   }
   event.respondWith(
-    cachedResponse().then(cached => cached || fetch(event.request))
+    cachedResponse().then(cached => cached || fetch(event.request).then(async response => {
+      // Exported checkpoints are immutable and downloaded only when selected.
+      if (response.ok && /\/models\/[a-f0-9]{64}\.json$/.test(new URL(event.request.url).pathname)) {
+        try { const cache = await caches.open(CACHE_NAME); await cache.put(event.request, response.clone()); }
+        catch { /* A full device cache must not prevent playing online. */ }
+      }
+      return response;
+    }))
   );
 });

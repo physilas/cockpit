@@ -28,6 +28,11 @@ PYTHON_DATEIEN = [
     "backend/zusatzregeln.py",
     "backend/spielplan.py",
     "backend/bridge.py",
+    "ai/__init__.py",
+    "ai/actions.py",
+    "ai/observation.py",
+    "ai/environment.py",
+    "ai/browser_bridge.py",
 ]
 
 UI_SCHEMA = "backend/ui_schema.json"
@@ -130,7 +135,15 @@ def build():
                 "frontend/web/css/style.css",
                 "frontend/web/css/landings.css",
                 "frontend/web/css/modules.css",
+                "frontend/web/css/reroll.css",
+                "frontend/web/css/singleplayer.css",
                 "frontend/web/js/modules.js",
+                "frontend/web/js/reroll.js",
+                "frontend/web/js/ai-models.js",
+                "frontend/web/js/ai-policy.js",
+                "frontend/web/js/cloud-config.js",
+                "frontend/web/js/learning-cloud.js",
+                "frontend/web/js/singleplayer.js",
                 "frontend/web/js/landings.js",
                 "frontend/web/js/app.js",
                 "frontend/web/js/traffic.js",

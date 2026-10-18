@@ -1,0 +1,19 @@
+{
+  "name": "flyteam-training",
+  "account_id": "e74bed653a15fdb656713e993e6d13b9",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-18",
+  "workers_dev": true,
+  "vars": { "ALLOWED_ORIGINS": "https://physilas.github.io" },
+  "d1_databases": [
+    {
+      "binding": "TRAINING_DB",
+      "database_name": "flyteam-training",
+      "database_id": "a880eed4-858e-4705-b8ec-02273c8a0f85"
+    }
+  ],
+  "ratelimits": [
+    { "name": "UPLOAD_LIMIT", "namespace_id": "10018", "simple": { "limit": 60, "period": 60 } }
+  ],
+  "observability": { "enabled": false }
+}

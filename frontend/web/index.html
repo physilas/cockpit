@@ -13,6 +13,8 @@
 <link rel="stylesheet" href="css/style.css?v=compact-distance-v2">
 <link rel="stylesheet" href="css/landings.css">
 <link rel="stylesheet" href="css/modules.css">
+<link rel="stylesheet" href="css/reroll.css">
+<link rel="stylesheet" href="css/singleplayer.css">
 <style>
   /* ── Startmenü ── */
   #start-menu {
@@ -50,6 +52,11 @@
       <h1>Fly Team</h1>
     </div>
     <button class="start-btn" style="background:var(--blau);color:white"
+            onclick="Singleplayer.showMenu()">
+      🤖 Singleplayer
+      <span>Mit KI fliegen, Feedback geben und Beispiele sammeln</span>
+    </button>
+    <button class="start-btn" style="background:var(--blau);color:white"
             onclick="startPassAndPlay()">
       👥 Pass &amp; Play
       <span>Zwei Spieler, ein Gerät</span>
@@ -61,6 +68,7 @@
     </button>
   </div>
 
+  <section id="singleplayer-menu" class="versteckt" aria-label="Singleplayer"></section>
   <div id="landing-selection" class="versteckt" aria-label="Landung auswählen"></div>
 
   <!-- ═══ 2. HEADER (versteckt bis Spiel geladen) ═══ -->
@@ -204,8 +212,9 @@
 
     <section id="verkehr-panel" class="versteckt" aria-label="Schwarze Verkehrswürfel" aria-live="polite"></section>
     <section id="flight-modules" class="versteckt" aria-label="Zusatzmodule und Fähigkeiten"></section>
-    <section id="neuwurf-panel" class="versteckt"></section>
     <section id="meldung-leiste"></section>
+    <section id="ai-feedback" class="versteckt" aria-label="KI-Feedback"></section>
+    <section id="ai-session-bar" class="versteckt" aria-label="KI-Protokoll"></section>
 
   </main>
 
@@ -216,6 +225,12 @@
   <script src="js/landing-catalog.js"></script>
   <script src="js/landings.js"></script>
   <script src="js/modules.js"></script>
+  <script src="js/reroll.js"></script>
+  <script src="js/ai-models.js"></script>
+  <script src="js/ai-policy.js"></script>
+  <script src="js/cloud-config.js"></script>
+  <script src="js/learning-cloud.js"></script>
+  <script src="js/singleplayer.js"></script>
   <script src="js/app.js?v=compact-distance-v2"></script>
   <script>
     if ("serviceWorker" in navigator) {
