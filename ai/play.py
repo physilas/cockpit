@@ -34,7 +34,7 @@ def main():
         torch.set_num_threads(1)
         model, payload = load_checkpoint(args.checkpoint)
         config = payload.get("train_config", {})
-        agent = ModelAgent(model, deterministic=not args.stochastic)
+        agent = ModelAgent(model, deterministic=not args.stochastic, uniform_mix=config.get("uniform_mix", 0.0))
     else:
         agent = HeuristicAgent()
     import secrets

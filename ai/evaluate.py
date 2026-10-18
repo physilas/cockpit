@@ -12,7 +12,7 @@ from .environment import CrewEnv
 
 
 PERFORMANCE_METRICS = ("win_rate", "mean_round", "mean_return", "truncated_rate",
-    "mean_outcome_return", "mean_round_return", "mean_sync_return", "mean_distance_remaining",
+    "mean_outcome_return", "mean_round_return", "mean_sync_return", "mean_tasks_return", "mean_tasks_undone", "mean_distance_remaining",
     "airport_reached_rate", "landing_round_rate", "mean_sync_error")
 
 
@@ -26,10 +26,10 @@ def wilson_interval(wins, games):
 
 def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
              ai_role="both", round_reward=0.02, max_steps=256, sync_weight=0.0, sync_tolerance=1.0,
-             replay=None, render=False):
+             task_weight=0.0, replay=None, render=False):
     if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
         raise ValueError("Mindestens eine Partie und eine gültige Rolle sind erforderlich.")
-    env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance)
+    env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance, task_weight=task_weight)
     records = []
     # With a partner, 'both' means games per role, on the same seed set.
     roles = ("pilot", "kopilot") if partner is not None and ai_role == "both" else (ai_role,)
@@ -69,7 +69,7 @@ def summarize_episodes(records):
             "win_ci_low": low, "win_ci_high": high, "mean_round": mean(r["round"] for r in records),
             "mean_return": mean(r["return"] for r in records),
             "truncated_rate": mean(r["status"] == "truncated" for r in records),
-            **{f"mean_{key}": mean(r[key] for r in records) for key in ("outcome_return", "round_return", "sync_return", "distance_remaining", "sync_error")},
+            **{f"mean_{key}": mean(r[key] for r in records) for key in ("outcome_return", "round_return", "sync_return", "tasks_return", "tasks_undone", "distance_remaining", "sync_error")},
             "airport_reached_rate": mean(r["airport_reached"] for r in records),
             "landing_round_rate": mean(r["landing_round_started"] for r in records),
             "truncated": sum(r["status"] == "truncated" for r in records),
@@ -91,6 +91,8 @@ def main():
     parser.add_argument("--round-reward", type=float, default=None)
     parser.add_argument("--sync-weight", type=float, default=None, help="0 schaltet die Synchronisationsstrafe ab; sonst Checkpoint-Wert.")
     parser.add_argument("--sync-tolerance", type=float, default=None)
+    parser.add_argument("--task-weight", type=float, default=None, help="Growing penalty for unfinished landing tasks; 0 disables it; default from checkpoint.")
+    parser.add_argument("--uniform-mix", type=float, default=None, help="Exploration for --stochastic: default from checkpoint; deterministic evaluation uses no mixture.")
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--json", type=Path, help="Save summary and per-game results, readable by the notebook.")
     parser.add_argument("--render", action="store_true")
@@ -103,12 +105,15 @@ def main():
         from .checkpoints import load_checkpoint
         model, payload = load_checkpoint(args.checkpoint)
         config = payload.get("train_config", {})
-        agent = ModelAgent(model, deterministic=not args.stochastic)
+        uniform_mix = args.uniform_mix if args.uniform_mix is not None else config.get("uniform_mix", 0.0)
+        if not 0 <= uniform_mix <= 1:
+            parser.error("--uniform-mix must be between 0 and 1.")
+        agent = ModelAgent(model, deterministic=not args.stochastic, uniform_mix=uniform_mix)
     else:
         agent = HeuristicAgent() if args.baseline == "heuristic" else RandomAgent(args.seed + 17)
     airport = args.airport or config.get("airport", "MUC")
     reward_options = {key: getattr(args, key) if getattr(args, key) is not None else config.get(key, default)
-                      for key, default in (("round_reward", 0.02), ("sync_weight", 0.0), ("sync_tolerance", 1.0))}
+                      for key, default in (("round_reward", 0.02), ("sync_weight", 0.0), ("sync_tolerance", 1.0), ("task_weight", 0.0))}
     partner = None if args.partner == "self" else HeuristicAgent() if args.partner == "heuristic" else RandomAgent(args.seed + 31)
     handle = None
     try:
@@ -126,6 +131,7 @@ def main():
     print(f"Mittlere erreichte Runde: {result['mean_round']:.2f}; Abbrüche: {result['truncated']}")
     print(f"Mittlere Restentfernung: {result['mean_distance_remaining']:.2f}; "
           f"Flughafen erreicht: {result['airport_reached_rate']:.1%}; Landerunde begonnen: {result['landing_round_rate']:.1%}")
+    print(f"Offene Vorbereitungsschritte: {result['mean_tasks_undone']:.2f}; Aufgabenreward: {result['mean_tasks_return']:+.3f}")
     print("Verlustgründe:", json.dumps(result["loss_reasons"], ensure_ascii=False))
     if partner is not None and args.ai_role == "both":
         for role in ("pilot", "kopilot"):
@@ -134,7 +140,9 @@ def main():
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps({"airport": airport, "partner": args.partner,
-                                        "stochastic": args.stochastic, **reward_options, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
+                                        "stochastic": args.stochastic,
+                                        "uniform_mix": agent.uniform_mix if args.checkpoint and args.stochastic else 0.0,
+                                        **reward_options, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":

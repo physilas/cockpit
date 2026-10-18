@@ -67,11 +67,20 @@ endet das Update nach der aktuellen Epoche früher. Rollout-Masken werden gespei
 und bei jedem Update unverändert wiederverwendet.
 
 Reward bei einem **neuen** Training: Sieg +1, Niederlage −1, kein pauschaler
-Rundenbonus und eine Synchronisationsstrafe mit Gewicht 0,05 und einem Feld Toleranz.
+Rundenbonus, eine Synchronisationsstrafe mit Gewicht 0,05 und einem Feld Toleranz
+sowie eine wachsende Aufgabenstrafe mit Gewicht 0,02.
 Beide Rollen optimieren denselben gemeinsamen Return, ohne Vorzeichenwechsel zwischen Zügen.
-Mit `--sync-weight 0 --round-reward 0` lässt sich reiner Endreward vergleichen. Das Netz produziert
+Mit `--sync-weight 0 --task-weight 0 --round-reward 0` lässt sich reiner Endreward vergleichen. Das Netz produziert
 Logits; ungültige Aktionen erhalten Wahrscheinlichkeit 0. Beim Training werden
 Aktionen gezogen, bei der Standardauswertung wird Argmax verwendet.
+
+Neue Trainingsläufe mischen standardmäßig 3 % Gleichverteilung über **erlaubte**
+Aktionen mit 97 % Modellverteilung (`--uniform-mix 0.03`). Bei K erlaubten Aktionen
+erhält jede dadurch mindestens die Wahrscheinlichkeit 0,03/K. Das ist eine
+Explorationsuntergrenze, kein zusätzlicher Rauschwert auf den Logits. PPO verwendet
+beim Sammeln und Aktualisieren dieselbe gemischte Verteilung, einschließlich
+Log-Wahrscheinlichkeiten und Entropie. `--uniform-mix 0` schaltet den Zusatz ab.
+Die deterministische Validierung bleibt bei der wahrscheinlichsten Modellaktion.
 
 Ein Neuwurf besteht aus Start und je einer Teilmengenauswahl pro Rolle.
 Mindestens ein Würfel muss gewählt werden; genau ein Plättchen wird verbraucht.
@@ -132,16 +141,16 @@ Neuwurfauswahl erzeugen selbst keine Synchronisationsstrafe. Die Heuristik verä
 bewusst das Trainingsziel und ist kein potentialbasiertes Shaping. Sieg-/Verlustregeln
 und Informationsgrenzen bleiben gleich. Die Abstimmung ist zunächst für MUC gedacht.
 
-`--round-reward`, `--sync-weight` und `--sync-tolerance` übernehmen beim Fortsetzen
+`--round-reward`, `--sync-weight`, `--sync-tolerance` und `--task-weight` übernehmen beim Fortsetzen
 den gespeicherten Wert, **sofern der Parameter nicht ausdrücklich angegeben wird**.
-Alte Checkpoints ohne Synchronisationsparameter bedeuten Gewicht 0. Explizite Werte,
+Alte Checkpoints ohne Synchronisations- oder Aufgabenparameter bedeuten jeweils Gewicht 0. Explizite Werte,
 auch `0`, überschreiben den Checkpoint. Änderungen erfordern ein neues Laufverzeichnis,
 damit verschiedene Trainingsziele nicht in einer Kurve vermischt werden.
 
 Später die Hilfe ausschalten und die Gewichte weiterverwenden:
 
 ```bash
-.venv/bin/python -m ai.train --resume runs/muc-sync/latest.pt --steps 6000000 --run-dir runs/muc-no-shaping --round-reward 0 --sync-weight 0
+.venv/bin/python -m ai.train --resume runs/muc-sync/latest.pt --steps 6000000 --run-dir runs/muc-no-shaping --round-reward 0 --sync-weight 0 --task-weight 0
 ```
 
 Ohne Änderungen genügt zum Weitertrainieren von `muc-sync` das übliche `--resume`
@@ -150,13 +159,62 @@ werden bei Bedarf um neue Spalten erweitert; alte fehlende Kennzahlen bleiben le
 Die Auswahl von `best.pt` wird bei einem neuen Reward oder dem Wechsel vom alten
 Bewertungsverfahren neu begonnen.
 
+Auch `--uniform-mix` übernimmt beim Fortsetzen den gespeicherten Wert. Bei alten
+Checkpoints ohne diesen Parameter bleibt er 0, bis du ihn ausdrücklich setzt.
+Änderungen der Mischung erfordern ebenfalls ein neues Laufverzeichnis und setzen
+den Vergleich für `best.pt` zurück. Modellgewichte und Optimizer bleiben erhalten.
+
+## Wachsende Strafe für offene Landungsvorbereitungen
+
+`--task-weight` steuert einen weiteren, getrennt protokollierten Reward. Gezählt werden
+die fehlenden drei Fahrwerks- und vier Klappenabschnitte, jedes verbleibende Flugzeug
+und eine fehlende Mindestbremswirkung. Im Grundspiel genügt die erste Bremsstufe für
+die kleinste mögliche Triebwerkssumme 1+1. Weitere Bremsausbauten bleiben optional.
+Kaffee, Neuwurfplättchen und vorübergehende Ruderstellungen sind keine dauerhaften
+Vorbereitungsaufgaben. Die Navigation wird weiterhin mit dem Synchronisationsreward erfasst.
+
+Die Dringlichkeit steigt quadratisch über die sieben Runden. Pro ausgewerteter Runde
+wird nur der **Zuwachs** abgerechnet, damit die Strafe langsam beginnt und insgesamt
+begrenzt bleibt:
+
+```text
+U = min(1, ausgewertete Runden / 7)²
+Aufgabenreward = -Aufgabengewicht * offene Aufgaben * (U_neu - U_alt)
+```
+
+Bei unverändert acht offenen Aufgaben und Gewicht 0,02 kostet die erste Runde
+ungefähr −0,0033, die fünfte −0,0294. Abschließen von Aufgaben senkt spätere Kosten.
+Auf MUC gibt es anfangs 17 Aufgaben; wenn keine abgeschlossen wird, beträgt das
+gesamte undiscountete Aufgabenbudget bei Gewicht 0,02 höchstens 0,34. Neue
+Verkehrsflugzeuge auf anderen Strecken können den Aufgabenbestand wieder erhöhen.
+
+Bei einer echten Niederlage wird die verbliebene Dringlichkeit bis 1 abgerechnet.
+So spart ein früher Absturz nicht einfach die noch offenen Kosten. Ein künstlicher
+Abbruch am Sicherheitslimit löst keine solche Endabrechnung aus. Kaffee und
+Neuwurfauswahl erhalten im normalen Verlauf keine zusätzliche Aufgabenstrafe.
+Die eigentlichen Sieg-/Verlustregeln und das Netzformat ändern sich nicht.
+
+Von deinem bisherigen Modell mit der neuen Hilfe weitertrainieren, beispielsweise
+bis insgesamt acht Millionen Entscheidungen:
+
+```bash
+.venv/bin/python -m ai.train --resume runs/muc-sync/latest.pt --steps 8000000 --device cpu --run-dir runs/muc-tasks --task-weight 0.02 --uniform-mix 0.03
+```
+
+Die vorhandenen Synchronisationsparameter werden dabei übernommen. Falls dein
+bisheriger Lauf anders heißt, den Checkpoint-Pfad entsprechend ändern. Ohne
+ausdrückliches `--task-weight` bleibt die neue Hilfe bei älteren Checkpoints aus.
+Die 3-%-Exploration wird dabei ebenfalls aktiviert. Später mit `--task-weight 0`
+beziehungsweise `--uniform-mix 0` in einem neuen Laufverzeichnis wieder abschalten.
+Im Notebook `RUN_NAME = "muc-tasks"` auswählen.
+
 ## Loss-Kurven im Jupyter-Notebook
 
 ```bash
 .venv/bin/python -m jupyterlab ai/analysis.ipynb
 ```
 
-Im Notebook `RUN_NAME = "muc-sync"` für das neue Training setzen und
+Im Notebook `RUN_NAME = "muc-tasks"` für das neue Training setzen und
 **Run → Run All Cells** wählen. Voreingestellt ist `muc` für deine bisherigen Daten. Neue
 Messwerte erscheinen nach erneutem Ausführen der Zellen, auch während des Trainings.
 Wenn ein anderer Python-Kernel gewählt wird, muss er dieselben Pakete enthalten;
@@ -167,8 +225,9 @@ Enthalten sind:
 - Policy- und Value-Loss auf getrennten Skalen, mit optionaler Glättung.
 - Trainings- und Validierungsgewinnrate mit 95%-Wilson-Intervallen.
 - Erreichte Runde, Return, Abbrüche am Sicherheitslimit und Verlustgründe.
-- Getrennte Kurven für Endergebnis, Rundenbonus und Synchronisationsstrafe.
+- Getrennte Kurven für Endergebnis, Rundenbonus, Synchronisations- und Aufgabenstrafe.
 - Restentfernung bei Spielende, Flughafenquote, tatsächliche Landerundenquote und Rückstand.
+- Noch offene Vorbereitungsschritte im Zeitverlauf und nach Aufgabenart.
 - Entropie, ungefähre KL-Divergenz, PPO-Clip-Anteil, Explained Variance,
   Gradientennorm und Durchsatz.
 - Vergleich zusätzlicher Testberichte, einschließlich beider Rollen mit fremden Partnern.
@@ -198,7 +257,8 @@ Menschen; ergänzend selbst spielen und später abwechslungsreichere Partner tra
 
 Standard-Testseeds beginnen bei 2.000.000, Validierungsseeds bei 1.000.000.
 `--seed` erlaubt weitere unabhängige Testreihen. `--stochastic` bewertet dieselbe
-Sampling-Strategie wie beim Training. Werte mit unterschiedlichen Auswahlschemata
+Sampling-Strategie wie beim Training, einschließlich der gespeicherten Mischung.
+`--uniform-mix` kann sie für einen Test überschreiben. Werte mit unterschiedlichen Auswahlschemata
 oder Partnern im Notebook getrennt interpretieren.
 
 Eine einzelne Partie als öffentliches Replay und Textausgabe:

@@ -30,19 +30,26 @@ class ActorCritic(nn.Module):
         features = self.encoder(observation)
         return self.actor(features), self.critic(features).squeeze(-1)
 
-    def distribution(self, observation, action_mask):
+    def distribution(self, observation, action_mask, uniform_mix=0.0):
+        if not 0 <= uniform_mix <= 1:
+            raise ValueError("uniform_mix must be between 0 and 1.")
         logits, value = self(observation)
         mask = torch.as_tensor(action_mask, dtype=torch.bool, device=logits.device)
         if mask.shape != logits.shape or not bool(mask.any(dim=-1).all()):
             raise ValueError("Jede Beobachtung braucht eine passende Maske mit mindestens einer erlaubten Aktion.")
         logits = logits.masked_fill(~mask, torch.finfo(logits.dtype).min)
-        return Categorical(logits=logits), value
+        distribution = Categorical(logits=logits)
+        if uniform_mix:
+            uniform = mask.to(logits.dtype) / mask.sum(dim=-1, keepdim=True)
+            probabilities = (1 - uniform_mix) * distribution.probs + uniform_mix * uniform
+            distribution = Categorical(probs=probabilities)
+        return distribution, value
 
-    def act(self, observation, action_mask, deterministic=False):
-        distribution, value = self.distribution(observation, action_mask)
+    def act(self, observation, action_mask, deterministic=False, uniform_mix=0.0):
+        distribution, value = self.distribution(observation, action_mask, uniform_mix)
         action = distribution.logits.argmax(dim=-1) if deterministic else distribution.sample()
         return action, distribution.log_prob(action), value
 
-    def evaluate_actions(self, observation, action_mask, actions):
-        distribution, value = self.distribution(observation, action_mask)
+    def evaluate_actions(self, observation, action_mask, actions, uniform_mix=0.0):
+        distribution, value = self.distribution(observation, action_mask, uniform_mix)
         return distribution.log_prob(actions), distribution.entropy(), value

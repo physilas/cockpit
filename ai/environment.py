@@ -9,28 +9,32 @@ import math
 import random
 
 from backend.spielplan import Spielplan
+from backend.regeln import ANZAHL_RUNDEN
 from .actions import ACTIONS, ACTION_COUNT, ROLES, execute_placement, placement_is_legal, subset_indices, SLOTS
 from .observation import MAX_TRACK_LENGTH, encode, visible_state
 
 
 class CrewEnv:
-    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0):
+    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0, task_weight=0.0):
         if max_steps < 1 or not 0 <= round_reward <= 0.1:
             raise ValueError("max_steps muss positiv sein, round_reward zwischen 0 und 0.1.")
-        if any(not math.isfinite(v) or v < 0 for v in (sync_weight, sync_tolerance)):
-            raise ValueError("sync_weight und sync_tolerance müssen endlich und nichtnegativ sein.")
+        if any(not math.isfinite(v) or v < 0 for v in (sync_weight, sync_tolerance, task_weight)):
+            raise ValueError("Reward-Gewichte und Toleranz müssen endlich und nichtnegativ sein.")
         self.airport = airport
         self.round_reward = float(round_reward)
         self.max_steps = max_steps
         self.sync_weight = float(sync_weight)
         self.sync_tolerance = float(sync_tolerance)
+        self.task_weight = float(task_weight)
         self.rng = random.Random(0)
         self.game = None
         self.reroll = None
         self.steps = 0
         self.truncated = False
         self.blocked = False
-        self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0}
+        self.rounds_resolved = 0
+        self.task_urgency = 0.0
+        self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0, "tasks": 0.0}
         self.reward_totals = self.reward_components.copy()
 
     @contextmanager
@@ -68,7 +72,9 @@ class CrewEnv:
             self.rng.seed(seed)
         self.reroll, self.steps, self.truncated = None, 0, False
         self.blocked = False
-        self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0}
+        self.rounds_resolved = 0
+        self.task_urgency = 0.0
+        self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0, "tasks": 0.0}
         self.reward_totals = self.reward_components.copy()
         with self._engine_randomness():
             self.game = Spielplan(self.airport)
@@ -106,6 +112,32 @@ class CrewEnv:
         optional training heuristic, not potential-based shaping.
         """
         return max(0.0, self.game.landung.entfernung - self.game.landung.hoehe / 1000 - self.sync_tolerance)
+
+    def unfinished_tasks(self):
+        """Persistent landing preparation, counted from public board state.
+
+        Only enough braking for the minimum base-game engine sum (1+1) is a
+        requirement. Extra brake upgrades remain useful but optional.
+        """
+        c = self.game.cockpit
+        return {"gear": sum(not done for done in c.fahrwerk_ausgefahren),
+                "flaps": sum(not done for done in c.landeklappen_ausgefahren),
+                "braking": int(c.bremsstaerke() < 2),
+                "traffic": sum(self.game.landung.flugzeuge)}
+
+    def _task_penalty(self, round_resolved, terminated):
+        """Charge the increase in quadratic urgency, not its full value again.
+
+        For a fixed task count, charges telescope to at most weight * count.
+        On a real terminal outcome settle the remaining urgency, so early
+        failure cannot escape the unpaid task cost. Truncations do not settle.
+        """
+        if round_resolved:
+            self.rounds_resolved += 1
+        urgency = 1.0 if terminated else min(1.0, self.rounds_resolved / ANZAHL_RUNDEN) ** 2
+        increase = max(0.0, urgency - self.task_urgency)
+        self.task_urgency = urgency
+        return -self.task_weight * sum(self.unfinished_tasks().values()) * increase
 
     def view(self, role=None):
         return visible_state(self.game, role or self.current_role, self.reroll,
@@ -148,6 +180,7 @@ class CrewEnv:
     def episode_record(self, seed, ai_role, total_return):
         """Public final-state diagnostics; no hidden hands in logs or replays."""
         info, c, landing = self.info(), self.game.cockpit, self.game.landung
+        tasks = self.unfinished_tasks()
         return {"seed": seed, "ai_role": ai_role, "status": info["status"], "reason": info["reason"] or "",
                 "round": info["round"], "steps": info["steps"], "return": total_return,
                 **{f"{name}_return": value for name, value in self.reward_totals.items()},
@@ -155,7 +188,8 @@ class CrewEnv:
                 "airport_reached": int(landing.entfernung == 0),
                 "landing_round_started": int(self.game.letzte_runde), "sync_error": self.sync_error(),
                 "gear_count": sum(c.fahrwerk_ausgefahren), "flap_count": sum(c.landeklappen_ausgefahren),
-                "brake_strength": c.bremsstaerke(), "planes_remaining": sum(landing.flugzeuge)}
+                "brake_strength": c.bremsstaerke(), "planes_remaining": sum(landing.flugzeuge),
+                "tasks_undone": sum(tasks.values()), **{f"{key}_undone": value for key, value in tasks.items()}}
 
     def step(self, action_id):
         if self.game is None or self.done:
@@ -190,6 +224,7 @@ class CrewEnv:
             "outcome": (1.0 if self.game.status == "gewonnen" else -1.0) if terminated else 0.0,
             "round": self.round_reward * (self.game.aktuelle_runde - old_round),
             "sync": -self.sync_weight * self.sync_error() if round_resolved else 0.0,
+            "tasks": self._task_penalty(round_resolved, terminated),
         }
         for name, value in self.reward_components.items():
             self.reward_totals[name] += value
