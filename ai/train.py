@@ -254,13 +254,15 @@ def parser():
     result.add_argument("--device", default="cpu", help="cpu, cuda or mps; CPU is usually useful for this small sequential model.")
     result.add_argument("--threads", type=int, default=1)
     result.add_argument("--resume", type=Path)
-    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3), default=None,
+    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4), default=None,
                         help='Optional public own-hand planner; fresh runs 0, resume preserves saved profile.')
     result.add_argument('--discount-unit', choices=('action', 'placement'), default=None,
                         help='placement does not discount through coffee/reroll helper decisions.')
     result.add_argument('--workers', type=int, default=1, help='Isolated CPU rollout processes; PPO runs on --device.')
     result.add_argument('--partner-fraction', type=float, default=0,
                         help='Fraction of parallel rollout batches paired with the independent heuristic (both roles).')
+    result.add_argument('--partner-checkpoints', nargs='+', type=Path, default=None,
+                        help='Frozen partner league: independent heuristic plus deterministic/noisy versions of each checkpoint.')
     result.add_argument('--transfer-airport', default=None,
                         help='Explicit curriculum transfer to another base-game route; needs resume and a new run directory.')
     result.add_argument('--curriculum-airports', nargs='+', default=None,
@@ -308,6 +310,19 @@ def train(args, *, on_validation=None):
     if airport_changed:
         args.airport = args.transfer_airport
     previous_options = previous_config or {}
+    args.partner_checkpoints = [str(Path(p).resolve()) for p in
+        (args.partner_checkpoints if args.partner_checkpoints is not None else previous_options.get('partner_checkpoints') or [])]
+    from .partners import partner_specs
+    league = partner_specs(args.partner_checkpoints)
+    # Fail before training if a frozen partner is missing or incompatible.
+    from .checkpoints import weight_fingerprint
+    partner_manifest = []
+    for path in args.partner_checkpoints:
+        partner_model, partner_payload = load_checkpoint(path)
+        partner_manifest.append({'checkpoint': path, 'weights_sha256': weight_fingerprint(partner_model),
+            'assistance_version': partner_payload['train_config'].get('assistance_version', 0)})
+    partner_changed = payload is not None and (partner_manifest != previous_options.get('partner_manifest', [])
+        or args.partner_fraction != previous_options.get('partner_fraction', 0))
     args.curriculum_airports = args.curriculum_airports if args.curriculum_airports is not None else (previous_options.get('curriculum_airports') or [])
     curriculum_changed = payload is not None and args.curriculum_airports != (previous_options.get('curriculum_airports') or [])
     args.assistance_version = args.assistance_version if args.assistance_version is not None else (previous_options.get('assistance_version') or 0)
@@ -361,7 +376,7 @@ def train(args, *, on_validation=None):
         "sync_weight": previous_config.get("sync_weight", 0.0),
         "sync_tolerance": previous_config.get("sync_tolerance", 1.0),
         "task_weight": previous_config.get("task_weight", 0.0)}
-    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed or airport_changed or curriculum_changed:
+    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed or airport_changed or curriculum_changed or partner_changed:
         if args.run_dir.resolve() == args.resume.resolve().parent:
             arg_parser.error("Geänderte Rewards, Exploration, Aktionsmasken oder Demonstrationen brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
         best_score = (-1.0,) * 5
@@ -406,6 +421,7 @@ def train(args, *, on_validation=None):
                    'planner_sha256': planner_hash,
                    'airport_changed_on_resume': airport_changed,
                    'curriculum_changed_on_resume': curriculum_changed,
+                   'partner_manifest': partner_manifest, 'partner_changed_on_resume': partner_changed,
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
@@ -431,7 +447,7 @@ def train(args, *, on_validation=None):
         parallel = ParallelGames(args.workers, model.config, dict(airport=args.airport, round_reward=args.round_reward,
             max_steps=args.max_steps, sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance,
             task_weight=args.task_weight, assistance_version=args.assistance_version,
-            curriculum_airports=args.curriculum_airports))
+            curriculum_airports=args.curriculum_airports), partner_specs=league)
     print(f"Self-play auf {args.airport}; {model.config}; Gerät {args.device}. Ziel: {args.steps:,} Schritte.", flush=True)
     print(f"Rewards: Rundenbonus {args.round_reward:g}, Synchronisationsgewicht {args.sync_weight:g}, "
           f"Toleranz {args.sync_tolerance:g} Feld(er), Aufgabengewicht {args.task_weight:g}.", flush=True)

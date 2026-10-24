@@ -11,7 +11,7 @@ import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 3
+ASSISTANCE_VERSION = 4
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -99,6 +99,32 @@ def _bits(values):
     return sum(1 << i for i, value in enumerate(values) if value)
 
 
+def joint_control_probability(rudder_faces, thrust_faces, dice):
+    """Exact chance of two distinct iid dice satisfying two face sets.
+
+    This is a public-information prior, not an inference about a hidden hand.
+    In particular, one die in the intersection cannot fill both controls.
+    """
+    if dice < 2:
+        return 0.0
+    a, b = set(rudder_faces), set(thrust_faces)
+    union, intersection = len(a | b), len(a & b)
+    both = 1 - (1-len(a)/6)**dice - (1-len(b)/6)**dice + (1-union/6)**dice
+    single = dice * intersection / 6 * (1-union/6)**(dice-1)
+    return max(0.0, min(1.0, both-single))
+
+
+def expected_best_face(scores, dice):
+    """Expected best score in iid fair dice, including all bad outcomes."""
+    dice = max(1, dice)
+    levels = sorted(set(scores))
+    result = levels[0]
+    for before, level in zip(levels, levels[1:]):
+        below = sum(value < level for value in scores) / len(scores)
+        result += (level-before) * (1-below**dice)
+    return result
+
+
 def plan_actions(view, mask, *, beam=24, version=1):
     """Rank the first macro action of complete plans for the visible own hand.
 
@@ -162,6 +188,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
                     low, high = cell['min'], cell['max']
         desired_attitude = 0 if view['last_round'] else max(low, min(high, 0))
         attitude = desired_attitude if version >= 3 else view['attitude']
+        rudder_faces = set(range(1, 7))
         if rudder:
             if original_r and (partner_r or version < 3):
                 attitude = view['attitude']
@@ -172,6 +199,14 @@ def plan_actions(view, mask, *, beam=24, version=1):
                 if version >= 3:
                     target += desired_attitude if role == 'pilot' else -desired_attitude
                 value -= 2 * abs(target - 3.5) + 150 * max(0, 1 - target, target - 6)
+                if version >= 4:
+                    def resulting_attitude(other):
+                        return view['attitude'] + (other-rudder if role == 'pilot' else rudder-other)
+                    rudder_faces = {n for n in range(1, 7) if
+                        (resulting_attitude(n) == 0 if view['last_round'] else
+                         low <= resulting_attitude(n) <= high and abs(resulting_attitude(n)) < 3)}
+                    chance = 1-(1-len(rudder_faces)/6)**max(1, view['partner_remaining'])
+                    value -= (140 if view['last_round'] else 70) * (1-chance)
                 attitude = desired_attitude if version >= 3 else 0
             if version >= 3 and not view['last_round']:
                 value -= 60 * max(0, low - attitude, attitude - high) + 2 * abs(attitude - desired_attitude)
@@ -226,7 +261,14 @@ def plan_actions(view, mask, *, beam=24, version=1):
                 good = sum(s >= best - 1 for s in scores)
                 # Four unknown dice can usually supply one of the useful faces.
                 miss = (1 - good / 6) ** max(1, view['partner_remaining'])
-                value += best - (60 if view['last_round'] else 18) * miss
+                if version >= 4:
+                    value += expected_best_face(scores, view['partner_remaining'])
+                    if rudder and not partner_r:
+                        thrust_faces = {n for n, s in enumerate(scores, 1) if s >= best-1}
+                        chance = joint_control_probability(rudder_faces, thrust_faces, view['partner_remaining'])
+                        value -= 80 * (1-chance)
+                else:
+                    value += best - (60 if view['last_round'] else 18) * miss
         # Missing controls are permitted only while building the plan.
         if complete and required:
             value -= 3000 * required
@@ -359,7 +401,7 @@ def _assisted_mask(view, mask, version):
             result[selected] = True
     else:
         for i, quality in ranked.items():
-            if base[i] and quality >= best - 1.5:
+            if base[i] and quality >= best - (8 if version >= 4 else 1.5):
                 result[i] = True
         reroll = ACTION_IDS[Action('reroll_start')]
         if base[reroll] and best < -100:

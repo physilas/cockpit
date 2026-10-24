@@ -102,7 +102,7 @@ def main():
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--json", type=Path, help="Save summary and per-game results, readable by the notebook.")
     parser.add_argument("--render", action="store_true")
-    parser.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3), default=None,
+    parser.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4), default=None,
                         help='Default from checkpoint; 0 evaluates the network without the optional planner.')
     args = parser.parse_args()
     import torch
