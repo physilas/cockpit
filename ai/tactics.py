@@ -12,7 +12,7 @@ import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 4
+ASSISTANCE_VERSION = 5
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -181,7 +181,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
     curve_soon = any(c['distance'] in (view['distance'], view['distance'] - 1)
                      and not c['min'] <= 0 <= c['max'] for c in view['track'])
     control_priority = 0 if version >= 3 and curve_soon and not partner_r and not view['last_round'] else (2.5 if version >= 3 else 1.0)
-    if version >= 4 and curve_soon and not partner_r and not view['last_round']:
+    if version == 4 and curve_soon and not partner_r and not view['last_round']:
         control_priority=-3
 
     @lru_cache(maxsize=4096)
@@ -237,7 +237,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
                 if version >= 3:
                     target += desired_attitude if role == 'pilot' else -desired_attitude
                 value -= 2 * abs(target - 3.5) + 150 * max(0, 1 - target, target - 6)
-                if version >= 4:
+                if version == 4:
                     def resulting_attitude(other):
                         return view['attitude'] + (other-rudder if role == 'pilot' else rudder-other)
                     rudder_faces = {n for n in range(1, 7) if
@@ -300,7 +300,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
                 good = sum(s >= best - 1 for s in scores)
                 # Four unknown dice can usually supply one of the useful faces.
                 miss = (1 - good / 6) ** max(1, view['partner_remaining'])
-                if version >= 4:
+                if version == 4:
                     # Unseen faces are a prior, not an observed catastrophe.
                     # Cap the risk term: a partner may still use shared coffee
                     # or choose another useful task before publishing controls.
@@ -451,7 +451,7 @@ def _assisted_mask(view, mask, version):
             result[selected] = True
     else:
         for i, quality in ranked.items():
-            margin = 3 if version >= 4 and ACTIONS[i].kind == 'place' else 1.5
+            margin = 3 if version == 4 and ACTIONS[i].kind == 'place' else 1.5
             if base[i] and quality >= best - margin:
                 result[i] = True
         reroll = ACTION_IDS[Action('reroll_start')]

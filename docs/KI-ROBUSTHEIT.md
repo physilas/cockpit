@@ -82,6 +82,14 @@ Routen und eingefrorene Partner erfolgen (`--eval-airports` und
 `--eval-partner-fraction`), statt allein über HND-Selbstspiel. Nach dieser
 Erweiterung bestanden alle 170 Tests.
 
+Ein anschließender Entwicklungsvergleich auf 1.400 gepaarten Fällen (2.800
+tatsächlich gespielte Partien) zeigte weiterhin keinen Gesamtfortschritt:
+−0,29 Prozentpunkte, 95-%-Intervall −3,67 bis +3,09. Die Rollen unterschieden
+sich: Pilotin +3,67 Punkte, Co-Pilot −3,83 Punkte, jeweils mit breiten
+Intervallen. Das ist ein Hinweis für getrennte Rollengewichte, kein
+Verbesserungsnachweis. Eine zusätzliche isolierte Kapazitätsvariante (Profil 5)
+veränderte auf 360 gepaarten Fällen keinen einzigen Spielausgang.
+
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse
 und tatsächlich ausgeführten Trainingsläufe werden beim Release ergänzt.

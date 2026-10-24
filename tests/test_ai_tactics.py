@@ -25,7 +25,7 @@ class LandingPlanningTests(unittest.TestCase):
         self.assertEqual(capacity(view, extra_placements=1)['slack'], 1)
 
     def test_assistance_keeps_partner_faces_hidden_and_legacy_mask_separate(self):
-        for profile in (1,2,3):
+        for profile in (1,2,3,5):
             for role in ('pilot','kopilot'):
                 env = CrewEnv(assistance_version=profile)
                 env.reset(seed=5100000)
