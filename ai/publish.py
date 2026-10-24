@@ -11,6 +11,18 @@ from .checkpoints import load_checkpoint, weight_fingerprint, planner_fingerprin
 from .export_browser import export_models
 
 
+def portable_config(value,root):
+    """Release metadata must not expose machine-specific home directories."""
+    if isinstance(value,dict):
+        return {key:portable_config(item,root) for key,item in value.items()}
+    if isinstance(value,list):
+        return [portable_config(item,root) for item in value]
+    if isinstance(value,str) and Path(value).is_absolute():
+        path=Path(value).resolve()
+        return path.relative_to(root).as_posix() if path.is_relative_to(root) else f'external/{path.name}'
+    return value
+
+
 def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).resolve().parents[1], require_all=True):
     if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', release_id):
         raise ValueError('Release ID must contain lowercase letters, digits and hyphens.')
@@ -33,6 +45,7 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
             raise ValueError(f'Insufficient held-out evidence for {airport}.')
     folder = root / 'ai' / 'releases' / release_id
     folder.mkdir(parents=True, exist_ok=True)
+    payload['train_config']=portable_config(payload['train_config'],root.resolve())
     payload['train_config'].update(display_name=name, recommended=True,
         supported_airports=sorted(qualified), quality={'approved': True,
             'evaluation': f'ai/releases/{release_id}/evaluation.json',

@@ -14,7 +14,8 @@ class PublishTests(unittest.TestCase):
             root = Path(tmp)
             model = ActorCritic(hidden_size=8)
             checkpoint = root/'candidate.pt'
-            save_checkpoint(checkpoint, model, train_config={'airport':'MUC','assistance_version':1}, total_steps=10)
+            save_checkpoint(checkpoint, model, train_config={'airport':'MUC','assistance_version':1,
+                'partner_checkpoints':[str(root/'reference.pt')]}, total_steps=10)
             report = {'weights_sha256':weight_fingerprint(model),'assistance_version':1,
                       'planner_sha256':planner_fingerprint(),
                       'minimum_win_rate':.2,'qualified_routes':['MUC'],
@@ -31,6 +32,7 @@ class PublishTests(unittest.TestCase):
             saved,payload = load_checkpoint(path)
             self.assertEqual(weight_fingerprint(saved),weight_fingerprint(model))
             self.assertTrue(payload['train_config']['quality']['approved'])
+            self.assertEqual(payload['train_config']['partner_checkpoints'],['reference.pt'])
             self.assertEqual(catalog['models'][0]['supported_airports'],['MUC'])
 
 
