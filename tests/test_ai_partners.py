@@ -9,6 +9,16 @@ from ai.tactics import joint_control_probability, expected_best_face
 
 
 class PartnerPlanningTests(unittest.TestCase):
+    def test_validation_covers_every_route_partner_and_role_without_budget_growth(self):
+        from ai.parallel import evaluation_cases
+        routes=['MUC','LOG_HND_GREEN','LOG_LHR_GREEN','LOG_YUL_GREEN']
+        cases=evaluation_cases(routes,3,.5,150)
+        self.assertEqual(sum(n for *_,n in cases),150)
+        self.assertEqual(len(cases),4*7)
+        for route in routes:
+            self.assertEqual({(partner,role) for airport,partner,role,n in cases if airport==route},
+                {(None,'both')}|{(p,r) for p in range(3) for r in ('pilot','kopilot')})
+
     def test_partner_fraction_and_roles_remain_balanced_for_arbitrary_fractions(self):
         from collections import Counter
         from ai.parallel import partner_assignment

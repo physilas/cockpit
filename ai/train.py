@@ -254,6 +254,10 @@ def parser():
     result.add_argument("--eval-steps", type=int, default=None, help="Validate at decision milestones instead of --eval-every updates.")
     result.add_argument("--eval-games", type=int, default=100)
     result.add_argument("--eval-seed", type=int, default=1_000_000)
+    result.add_argument('--eval-airports',nargs='+',default=None,
+                        help='Optional validation route mixture; training curriculum remains separate.')
+    result.add_argument('--eval-partner-fraction',type=float,default=None,
+                        help='Fraction of validation games with the frozen partner league instead of self-play.')
     result.add_argument("--seed", type=int, default=42)
     result.add_argument("--device", default="cpu", help="cpu, cuda or mps; CPU is usually useful for this small sequential model.")
     result.add_argument("--threads", type=int, default=1)
@@ -288,8 +292,8 @@ def train(args, *, on_validation=None):
             arg_parser.error(f"--{name.replace('_', '-')} muss positiv sein.")
     if args.eval_steps is not None and args.eval_steps < 1:
         arg_parser.error("--eval-steps muss positiv sein.")
-    if args.workers < 1 or not 0 <= args.partner_fraction <= 1 or args.partner_fraction and args.workers < 2:
-        arg_parser.error('workers must be positive; partner-fraction needs multiple workers and must be in [0,1].')
+    if args.workers < 1 or not 0 <= args.partner_fraction <= 1:
+        arg_parser.error('workers must be positive and partner-fraction must be in [0,1].')
     if not math.isfinite(args.cpu_duty_cycle) or not 0 < args.cpu_duty_cycle <= 1:
         arg_parser.error('--cpu-duty-cycle must be in (0, 1].')
     if not 0 < args.gamma <= 1 or not 0 <= args.gae_lambda <= 1 or args.lr <= 0 or not 0 < args.clip < 1:
@@ -318,6 +322,14 @@ def train(args, *, on_validation=None):
     if airport_changed:
         args.airport = args.transfer_airport
     previous_options = previous_config or {}
+    args.eval_airports=args.eval_airports if args.eval_airports is not None else previous_options.get('eval_airports') or []
+    args.eval_partner_fraction=args.eval_partner_fraction if args.eval_partner_fraction is not None else previous_options.get('eval_partner_fraction') or 0
+    if not math.isfinite(args.eval_partner_fraction) or not 0<=args.eval_partner_fraction<=1:
+        arg_parser.error('--eval-partner-fraction must be in [0,1].')
+    validation_changed=payload is not None and (args.eval_airports!=(previous_options.get('eval_airports') or [])
+        or args.eval_partner_fraction!=(previous_options.get('eval_partner_fraction') or 0))
+    if validation_changed:
+        best_score=(-1.0,)*5
     args.partner_checkpoints = [str(Path(p).resolve()) for p in
         (args.partner_checkpoints if args.partner_checkpoints is not None else previous_options.get('partner_checkpoints') or [])]
     from .partners import partner_specs
@@ -384,7 +396,7 @@ def train(args, *, on_validation=None):
         "sync_weight": previous_config.get("sync_weight", 0.0),
         "sync_tolerance": previous_config.get("sync_tolerance", 1.0),
         "task_weight": previous_config.get("task_weight", 0.0)}
-    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed or airport_changed or curriculum_changed or partner_changed:
+    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed or airport_changed or curriculum_changed or partner_changed or validation_changed:
         if args.run_dir.resolve() == args.resume.resolve().parent:
             arg_parser.error("Geänderte Rewards, Exploration, Aktionsmasken oder Demonstrationen brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
         best_score = (-1.0,) * 5
@@ -409,6 +421,8 @@ def train(args, *, on_validation=None):
                   curriculum_airports=args.curriculum_airports)
     for airport in set(args.curriculum_airports):
         CrewEnv(airport, assistance_version=args.assistance_version).reset(seed=args.seed)
+    for airport in set(args.eval_airports):
+        CrewEnv(airport, assistance_version=args.assistance_version).reset(seed=args.eval_seed)
     env.reset(seed=args.seed)  # Validate the scenario before creating output files.
     demo_tensors = demos.tensors(args.device) if demos else None
     args.run_dir.mkdir(parents=True, exist_ok=True)
@@ -430,6 +444,7 @@ def train(args, *, on_validation=None):
                    'airport_changed_on_resume': airport_changed,
                    'curriculum_changed_on_resume': curriculum_changed,
                    'partner_manifest': partner_manifest, 'partner_changed_on_resume': partner_changed,
+                   'validation_changed_on_resume':validation_changed,
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
@@ -450,7 +465,7 @@ def train(args, *, on_validation=None):
 
     save("latest.pt")
     parallel = None
-    if args.workers > 1:
+    if args.workers > 1 or args.partner_fraction or args.eval_airports or args.eval_partner_fraction:
         from .parallel import ParallelGames
         parallel = ParallelGames(args.workers, model.config, dict(airport=args.airport, round_reward=args.round_reward,
             max_steps=args.max_steps, sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance,
@@ -501,7 +516,8 @@ def train(args, *, on_validation=None):
             validation_due = total_steps >= next_eval if next_eval is not None else update % args.eval_every == 0
             if validation_due or total_steps >= args.steps:
                 model.eval()
-                result = parallel.evaluate(model, games=args.eval_games, seed=args.eval_seed) if parallel else evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
+                result = parallel.evaluate(model, games=args.eval_games, seed=args.eval_seed,
+                                  airports=args.eval_airports,partner_fraction=args.eval_partner_fraction) if parallel else evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
                                   airport=args.airport, round_reward=args.round_reward, max_steps=args.max_steps,
                                   sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance, task_weight=args.task_weight,
                                   assistance_version=args.assistance_version)

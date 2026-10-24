@@ -29,6 +29,23 @@ def partner_assignment(ordinal, fraction, count):
     return (after-1) % count, ('pilot','kopilot')[((after-1)//count) % 2]
 
 
+def evaluation_cases(airports, partners, fraction, games):
+    """Allocate a fixed validation budget without aliasing route and role."""
+    weighted=[]
+    for airport in airports:
+        if fraction<1:
+            weighted.append((airport,None,'both',(1-fraction)/len(airports)))
+        if fraction:
+            for partner in range(partners):
+                for role in ('pilot','kopilot'):
+                    weighted.append((airport,partner,role,fraction/(len(airports)*partners*2)))
+    counts=[math.floor(weight*games) for *_,weight in weighted]
+    order=sorted(range(len(weighted)),key=lambda i:weighted[i][3]*games-counts[i],reverse=True)
+    for i in order[:games-sum(counts)]:
+        counts[i]+=1
+    return [(airport,partner,role,n) for (airport,partner,role,_),n in zip(weighted,counts) if n]
+
+
 def _initialize(model_config, env_options, specs, cpu_duty_cycle):
     global _model, _env_options, _partners, _cpu_duty_cycle
     torch.set_num_threads(1)
@@ -50,10 +67,12 @@ def _collect(task):
 
 
 def _evaluate(task):
-    state, games, seed = task
+    state, games, seed, airport, partner_index, role = task
     _model.load_state_dict(state)
     options = {k: v for k, v in _env_options.items() if k != 'curriculum_airports'}
-    return evaluate(ModelAgent(_model), games=games, seed=seed,cpu_duty_cycle=_cpu_duty_cycle, **options)['episodes']
+    options['airport']=airport
+    return evaluate(ModelAgent(_model), games=games, seed=seed,cpu_duty_cycle=_cpu_duty_cycle,
+        partner=_partners[partner_index] if partner_index is not None else None,ai_role=role,**options)['episodes']
 
 
 class ParallelGames:
@@ -62,6 +81,7 @@ class ParallelGames:
         self.pool = ProcessPoolExecutor(workers, mp_context=multiprocessing.get_context('spawn'),
             initializer=_initialize, initargs=(model_config, env_options, partner_specs or [{'kind':'heuristic'}],cpu_duty_cycle))
         self.partner_count = len(partner_specs or [None])
+        self.airport=env_options['airport']
 
     def collect(self, model, steps, *, seed, update, gamma, gae_lambda, uniform_mix, discount_unit, partner_fraction=0.0):
         state = {k: v.detach().cpu() for k, v in model.state_dict().items()}
@@ -77,13 +97,13 @@ class ParallelGames:
         batch = {k: torch.cat([o[0][k] for o in outputs]).to(device) for k in outputs[0][0]}
         return batch, [r for _, records in outputs for r in records]
 
-    def evaluate(self, model, *, games, seed):
+    def evaluate(self, model, *, games, seed, airports=None, partner_fraction=0):
         state = {k: v.detach().cpu() for k, v in model.state_dict().items()}
-        tasks, offset = [], 0
-        for i in range(min(self.workers, games)):
-            n = games // self.workers + int(i < games % self.workers) if games >= self.workers else 1
-            tasks.append((state, n, seed + offset))
-            offset += n
+        tasks=[]
+        cases=evaluation_cases(airports or [self.airport],self.partner_count,partner_fraction,games)
+        for i,(airport,partner,role,n) in enumerate(cases):
+            for start in range(0,n,25):
+                tasks.append((state,min(25,n-start),seed+i*10_000+start,airport,partner,role))
         records = [r for group in self.pool.map(_evaluate, tasks) for r in group]
         return summarize_episodes(records)
 

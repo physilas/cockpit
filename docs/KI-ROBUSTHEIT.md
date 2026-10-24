@@ -5,10 +5,16 @@ ausgeführt; das neue Profil 4 ergänzt eine explizite Würfelprior-Verteilung.
 Die Partnerhand wird weder gelesen noch an den Planer übergeben.
 
 Nach gemeldeter CPU-Überhitzung wurden sämtliche Trainings-Worker beendet.
-Weitere lokale Läufe erfolgen einzeln mit höchstens zwei CPU-Workern,
+Zunächst wurden die Läufe auf zwei Worker begrenzt. Anschließend hat der Nutzer
+ausdrücklich höchstens sechs CPU-Worker mit jeweils halbem Rechenanteil erlaubt.
+Weitere lokale Läufe erfolgen daher einzeln mit höchstens sechs CPU-Workern,
 `--cpu-duty-cycle 0.5` und niedriger Prozesspriorität (`nice -n 15`). Der
 Rechenanteil wird nach jedem Simulationsschritt durch proportional lange
 Pausen begrenzt. Das ist eine Lastbegrenzung, keine Temperaturmessung.
+
+Die automatische Fortsetzung alle 15 Minuten wurde ausdrücklich freigegeben
+und als „KI schonend weitertrainieren“ eingerichtet. Sie startet keine
+parallelen schweren Läufe und bleibt bei unverändertem Zustand still.
 
 ## Vorab festgelegtes Versuchsprotokoll
 
@@ -66,6 +72,15 @@ auf HND im Selbstspiel 9 statt 7 Siege aus 20 Partien und mit Heuristikpartner
 aber nur +0,8 Prozentpunkte mit einem Intervall von −5,2 bis +6,9 Punkten.
 Das genügt ausdrücklich noch nicht als Verbesserungsnachweis. Die Ergebnisse
 begründen einen weiteren, gedrosselten Trainingsversuch, keine Veröffentlichung.
+
+Der Lauf `league-cool-v4` wurde anschließend mit zwei Workern bei 50 Prozent
+Rechenanteil bis 33.850.068 absolute Entscheidungen abgeschlossen, also 166.239
+neue Entscheidungen. Beste und letzte Gewichte sind identisch. Die letzte
+HND-Selbstspielvalidierung betrug 34 Prozent; die getrennte Partnerauswertung
+folgt. Für Folgeversuche kann die Auswahl des besten Modells nun über mehrere
+Routen und eingefrorene Partner erfolgen (`--eval-airports` und
+`--eval-partner-fraction`), statt allein über HND-Selbstspiel. Nach dieser
+Erweiterung bestanden alle 170 Tests.
 
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse

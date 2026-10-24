@@ -150,12 +150,22 @@ def main():
             row[kind]={}
             for label in checkpoints:
                 summary=summarize_episodes(buckets[label,airport,kind]);summary.pop('episodes')
+                if kind!='self':
+                    summary['by_role']={}
+                    for role in ('pilot','kopilot'):
+                        sub=summarize_episodes([r for r in buckets[label,airport,kind] if r['ai_role']==role])
+                        sub.pop('episodes')
+                        summary['by_role'][role]=sub
                 row[kind][label]=summary
             print(f"{airport} {kind}: {row[kind]['baseline']['win_rate']:.1%} -> {row[kind]['candidate']['win_rate']:.1%}",flush=True)
         report['routes'][airport]=row
     for kind in args.partners:
         subset={label:{k:v for k,v in data.items() if k[1]==kind} for label,data in results.items()}
         report.setdefault('by_partner',{})[kind]=paired_summary(**subset)
+    for role in ('pilot','kopilot'):
+        subset={label:{k:v for k,v in data.items() if k[2]==role} for label,data in results.items()}
+        if subset['baseline']:
+            report.setdefault('by_role',{})[role]=paired_summary(**subset)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report['comparison']),flush=True)
