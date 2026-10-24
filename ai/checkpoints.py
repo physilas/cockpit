@@ -27,7 +27,7 @@ def weight_fingerprint(model):
 
 def planner_fingerprint():
     digest = hashlib.sha256()
-    for name in ('tactics.py', 'public_rules.py', 'environment.py', 'actions.py', 'observation.py'):
+    for name in ('tactics.py', 'horizon.py', 'public_rules.py', 'environment.py', 'actions.py', 'observation.py'):
         digest.update(name.encode())
         digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()

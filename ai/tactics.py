@@ -12,7 +12,7 @@ import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 9
+ASSISTANCE_VERSION = 10
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -153,6 +153,10 @@ def plan_actions(view, mask, *, beam=24, version=1):
     ordinary action is returned. Unseen partner dice are represented by an
     optimistic distribution over faces, not sampled or read from the engine.
     """
+    forecast=None
+    if view.get('_horizon') and not view['reroll'] and 0<view['height']<=2000:
+        from .horizon import make_forecast
+        forecast=make_forecast(view)
     role = view['role']
     partner = ROLES[1 - ROLES.index(role)]
     own_r = _SLOT['ruder', role, None, 0]
@@ -185,7 +189,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
         control_priority=-3
 
     @lru_cache(maxsize=4096)
-    def score(state, complete=False):
+    def score(state, complete=False, projected=False, attitude_target=None):
         dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic = state
         value = 13 * gear.bit_count() + 14 * flaps.bit_count()
         value += sum(w for i, w in enumerate((18, 16, 10)) if brakes & (1 << i))
@@ -224,7 +228,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
                     wanted = 1
                     cell = next(c for c in view['track'] if c['distance'] == view['distance'])
                     low, high = cell['min'], cell['max']
-        desired_attitude = 0 if view['last_round'] else max(low, min(high, 0))
+        desired_attitude = (0 if view['last_round'] else max(low, min(high, 0))) if attitude_target is None else attitude_target
         attitude = desired_attitude if version >= 3 else view['attitude']
         rudder_faces = set(range(1, 7))
         if rudder:
@@ -287,7 +291,9 @@ def plan_actions(view, mask, *, beam=24, version=1):
                                 for c in view['track'] if view['distance'] - move < c['distance'] <= view['distance'])
                 destination = next((c for c in view['track'] if c['distance'] == remaining), None)
                 spawn_cost = 2 * destination['traffic'] if version >= 3 and destination and rounds > 1 else 0
-                return (-30 * abs(move - target) - spawn_cost
+                continuation=(40*forecast(move,attitude,gear,flaps,brakes,coffee,traffic)
+                              if projected and forecast else 0)
+                return (continuation-30 * abs(move - target) - spawn_cost
                         - 500 * max(0, remaining - future_max * (rounds - 1))
                         - (collision_cost if version >= 2 else 0)
                         - (2000 if version >= 3 and bad_curve else 0))
@@ -390,11 +396,23 @@ def plan_actions(view, mask, *, beam=24, version=1):
                     priority = 20
             return score(node[0], _ == depth - 1) + priority
         nodes = sorted(expanded.values(), key=rank, reverse=True)[:beam]
+    if forecast:
+        # Keep several persistent preparation alternatives, sharing their
+        # continuation model across action orders and current control faces.
+        groups=[]
+        for node in sorted(nodes,key=lambda n:score(n[0],True),reverse=True):
+            key=node[0][4:]
+            if key not in groups:
+                groups.append(key)
+            if len(groups)==4:
+                break
+        nodes=[n for n in nodes if n[0][4:] in groups]
     ranked, sequences = {}, {}
     for state, first, sequence in nodes:
         if first is None:
             continue
-        quality = score(state, True)
+        quality = (max(score(state,True,True,target) for target in range(-2,3))
+                   if forecast else score(state,True))
         first_slot = SLOTS[sequence[0][1]]
         # Publish a control early so a partner can respond before spending dice.
         quality += control_priority if first_slot.target == 'ruder' else 0.2 if first_slot.target == 'triebwerk' else 0
@@ -491,6 +509,8 @@ def _assisted_mask(view, mask, version):
     This profile is deliberately a hybrid player, not a claim that all pruned
     actions are rule-illegal. The neural policy ranks the remaining alternatives.
     """
+    if version==10:
+        return _assisted_mask({**view,'_horizon':True},mask,3)
     if version in (6,7,8,9):
         if version in (7,8,9):
             view={**view,'_smart_reroll':True}
