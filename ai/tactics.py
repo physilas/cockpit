@@ -12,7 +12,7 @@ import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 8
+ASSISTANCE_VERSION = 9
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -428,32 +428,55 @@ def _future_action_mask(view,coffee=False):
     return capacity_mask(view,result,include_traffic=True)
 
 
-def _choose_reroll(view,eligible,current_quality):
+@lru_cache(maxsize=5)
+def _weighted_rolls(count):
+    """Every unordered iid outcome, with its number of ordered realizations."""
+    return tuple((faces,factorial(count)//prod(factorial(faces.count(n)) for n in set(faces)))
+                 for faces in combinations_with_replacement(range(1,7),count))
+
+
+def _choose_reroll(view,eligible,current_quality,*,exact=False):
     none=next((i for i in eligible if not ACTIONS[i].subset),None)
     if none is not None and current_quality>=-100:
         return none
-    available=sum(bool(d) for d in view['own_dice'])
+    available_indices=[i for i,d in enumerate(view['own_dice']) if d]
+    available=len(available_indices)
+    quality_cache={}
+    def quality(dice):
+        # Base-game dice have no identity-dependent effects. Canonicalizing
+        # only available positions shares at most C(9,4)=126 leaf searches
+        # across every possible four-die reroll subset.
+        key=tuple(sorted(dice[i] for i in available_indices)) if exact else tuple(dice)
+        if key not in quality_cache:
+            if exact:
+                dice=list(dice)
+                for i,face in zip(available_indices,key):
+                    dice[i]=face
+            changed={**view,'own_dice':dice,'reroll':None}
+            ranked,_=plan_actions(changed,_future_action_mask(changed,coffee=True),
+                                  version=3,beam=24 if available<=2 else 8)
+            quality_cache[key]=max(ranked.values(),default=-10000)
+        return quality_cache[key]
     scores={}
     for action_id in eligible:
         indices=[j for j in range(4) if ACTIONS[action_id].subset & (1<<j)]
         if not indices:
-            qualities=[current_quality]
+            qualities=[(current_quality,1)]
         else:
-            rolls=(product(range(1,7),repeat=len(indices)) if available<=2 or len(indices)==1
-                   else (tuple(row[j] for j in indices) for row in _REROLL_PROBES))
+            rolls=(_weighted_rolls(len(indices)) if exact else
+                   ((faces,1) for faces in (product(range(1,7),repeat=len(indices)) if available<=2 or len(indices)==1
+                   else (tuple(row[j] for j in indices) for row in _REROLL_PROBES))))
             qualities=[]
-            for faces in rolls:
+            for faces,weight in rolls:
                 dice=list(view['own_dice'])
                 for index,face in zip(indices,faces):
                     dice[index]=face
-                changed={**view,'own_dice':dice,'reroll':None}
                 # An optimistic own-hand rescue test, rather than a prediction
                 # of the partner's private dice or their eventual decisions.
-                ranked,_=plan_actions(changed,_future_action_mask(changed,coffee=True),
-                                      version=3,beam=24 if available<=2 else 8)
-                qualities.append(max(ranked.values(),default=-10000))
-        scores[action_id]=(sum(q>=-100 for q in qualities)/len(qualities),
-            sum(max(-3000,min(500,q)) for q in qualities)/len(qualities),-len(indices))
+                qualities.append((quality(dice),weight))
+        total=sum(weight for _,weight in qualities)
+        scores[action_id]=(sum(weight for q,weight in qualities if q>=-100)/total,
+            sum(max(-3000,min(500,q))*weight for q,weight in qualities)/total,-len(indices))
     return max(eligible,key=lambda i:(*scores[i],-i))
 
 
@@ -468,10 +491,12 @@ def _assisted_mask(view, mask, version):
     This profile is deliberately a hybrid player, not a claim that all pruned
     actions are rule-illegal. The neural policy ranks the remaining alternatives.
     """
-    if version in (6,7,8):
-        if version in (7,8):
+    if version in (6,7,8,9):
+        if version in (7,8,9):
             view={**view,'_smart_reroll':True}
-        return _assisted_mask(view,mask,4 if version!=8 and view['role']=='pilot' else 3)
+        if version==9:
+            view={**view,'_exact_reroll':True}
+        return _assisted_mask(view,mask,4 if version not in (8,9) and view['role']=='pilot' else 3)
     base = capacity_mask(view, mask, include_traffic=version >= 3)
     planning_mask = list(base)
     for i, action in enumerate(ACTIONS):
@@ -501,7 +526,7 @@ def _assisted_mask(view, mask, version):
             wanted = 0
         eligible = [i for i, a in enumerate(ACTIONS) if base[i] and a.kind == 'reroll_select']
         if eligible:
-            selected = (_choose_reroll(view,eligible,rescue_score) if view.get('_smart_reroll') else
+            selected = (_choose_reroll(view,eligible,rescue_score,exact=view.get('_exact_reroll',False)) if view.get('_smart_reroll') else
                         min(eligible, key=lambda i: (ACTIONS[i].subset ^ wanted).bit_count()))
             result[selected] = True
     else:

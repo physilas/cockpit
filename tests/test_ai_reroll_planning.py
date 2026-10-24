@@ -1,9 +1,10 @@
 from copy import deepcopy
 import unittest
+from unittest.mock import patch
 
 from ai.actions import ACTIONS,ACTION_IDS,Action,SLOTS
 from ai.environment import CrewEnv
-from ai.tactics import assisted_mask
+from ai.tactics import assisted_mask,_weighted_rolls,_choose_reroll
 
 
 class RerollPlanningTests(unittest.TestCase):
@@ -27,7 +28,7 @@ class RerollPlanningTests(unittest.TestCase):
     def test_preserves_the_only_die_matching_the_known_partner_control(self):
         view=self.view([3,6,0,0],0)
         before=deepcopy(view)
-        for version in (7,8):
+        for version in (7,8,9):
             actual=assisted_mask(view,self.mask((1,2,3)),version=version)
             self.assertEqual([i for i,v in enumerate(actual) if v],
                 [ACTION_IDS[Action('reroll_select',subset=2)]])
@@ -39,7 +40,7 @@ class RerollPlanningTests(unittest.TestCase):
         view['reroll']['selections']['kopilot']=None
         slot=next(i for i,s in enumerate(SLOTS) if s.target=='ruder' and s.owner=='pilot')
         view['board'][slot]={'owner':'pilot','value':3}
-        for version in (7,8):
+        for version in (7,8,9):
             actual=assisted_mask(view,self.mask((0,1)),version=version)
             self.assertTrue(actual[ACTION_IDS[Action('reroll_select',subset=0)]])
             self.assertFalse(actual[ACTION_IDS[Action('reroll_select',subset=1)]])
@@ -49,4 +50,26 @@ class RerollPlanningTests(unittest.TestCase):
         for role in ('pilot','kopilot'):
             env.game.am_zug=role
             view,mask=env.view(),env.action_mask()
-            self.assertEqual(assisted_mask(view,mask,version=8),assisted_mask(view,mask,version=3))
+            for version in (8,9):
+                self.assertEqual(assisted_mask(view,mask,version=version),assisted_mask(view,mask,version=3))
+
+    def test_multiset_probabilities_cover_every_fair_roll(self):
+        for count in range(5):
+            self.assertEqual(sum(weight for _,weight in _weighted_rolls(count)),6**count)
+        four=dict(_weighted_rolls(4))
+        self.assertEqual(len(four),126)
+        self.assertEqual(four[1,1,1,1],1)
+        self.assertEqual(four[1,2,3,4],24)
+
+    def test_full_subset_search_reuses_at_most_126_distinct_hands(self):
+        view=self.view([6,6,6,6],0)
+        before=deepcopy(view)
+        eligible=[i for i,a in enumerate(ACTIONS) if a.kind=='reroll_select' and a.subset]
+        def rank(changed,*args,**kwargs):
+            good={1,2,3}.issubset(changed['own_dice'])
+            return {0:100 if good else -1000},{}
+        with patch('ai.tactics.plan_actions',side_effect=rank) as planner:
+            selected=_choose_reroll(view,eligible,-1000,exact=True)
+        self.assertEqual(ACTIONS[selected].subset,15)
+        self.assertEqual(planner.call_count,126)
+        self.assertEqual(view,before)

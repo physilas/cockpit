@@ -136,6 +136,19 @@ Intervall −2,93 bis +2,93. Der Trainingshöchststand wird deshalb nicht freige
 Profil 8 isoliert als nächsten Versuch die Neuwurfänderung mit unveränderten
 Crew-1-Gewichten und Profil-3-Platzierungsplanung für beide Rollen.
 
+Profil 8 zeigte auf 1.400 Entwicklungsfällen ab Seed 11.005.000 nur +0,29
+Prozentpunkte (11 verbessert, 7 schlechter, Intervall −0,61 bis +1,18). Auch das
+ist noch kein Freigabenachweis. Profil 9 ersetzt die Stichproben durch sämtliche
+ungeordneten Neuwurfergebnisse mit ihrer exakten Multinomialgewichtung.
+Die Würfelidentität ist im unterstützten Grundspiel ohne Karten für die
+hypothetische Folgesuche austauschbar. Dadurch benötigen alle möglichen
+Teilmengen zusammen höchstens 126 unterschiedliche Vier-Würfel-Folgesuchen.
+Bereits verbrauchte Würfelpositionen bleiben verbraucht. Die gewählten
+Neuwurfpositionen beziehen sich weiterhin auf die tatsächliche eigene Hand.
+Die Ergebniswahrscheinlichkeiten werden exakt summiert; die Bewertung der
+jeweiligen eigenen Fortsetzung bleibt die begrenzte Rundenplanung.
+Alle 181 Tests bestanden vor dem Vergleich dieser Variante.
+
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse
 und tatsächlich ausgeführten Trainingsläufe werden beim Release ergänzt.

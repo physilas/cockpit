@@ -262,7 +262,7 @@ def parser():
     result.add_argument("--device", default="cpu", help="cpu, cuda or mps; CPU is usually useful for this small sequential model.")
     result.add_argument("--threads", type=int, default=1)
     result.add_argument("--resume", type=Path)
-    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4, 5, 6, 7, 8), default=None,
+    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), default=None,
                         help='Optional public own-hand planner; fresh runs 0, resume preserves saved profile.')
     result.add_argument('--discount-unit', choices=('action', 'placement'), default=None,
                         help='placement does not discount through coffee/reroll helper decisions.')
