@@ -96,7 +96,7 @@ Aus dem Projektordner, nach der Veröffentlichung von `crew-basegame-v1`:
 .venv/bin/python -m ai.train \
   --resume ai/releases/crew-basegame-v1/best.pt \
   --run-dir runs/crew-basegame-next \
-  --steps 35000000 --device mps --workers 8 \
+  --steps 35000000 --device mps --workers 2 --cpu-duty-cycle 0.5 \
   --rollout-steps 8192 --minibatch-size 1024 --epochs 4 \
   --assistance-version 3 --discount-unit placement \
   --partner-fraction 0.25 --eval-every 8 --eval-games 150
@@ -117,7 +117,7 @@ Einen **fertigen, unveränderten** Checkpoint auf neuen Seeds prüfen und freige
 ```bash
 .venv/bin/python -m ai.route_eval \
   --checkpoint runs/crew-basegame-next/best.pt \
-  --games 500 --partner-games 100 --seed 9000000 --workers 6 \
+  --games 500 --partner-games 100 --seed 9000000 --workers 2 --cpu-duty-cycle 0.5 \
   --output runs/crew-basegame-next/qualification.json
 
 .venv/bin/python -m ai.publish \

@@ -15,7 +15,7 @@ from .partners import FrozenPartner
 
 
 def _run(task):
-    label, checkpoint, profile, airport, kind, frozen, role, seed, games, margin, beam = task
+    label, checkpoint, profile, airport, kind, frozen, role, seed, games, margin, beam, duty = task
     torch.set_num_threads(1)
     torch.manual_seed(seed)
     probing = label == 'candidate' and (margin is not None or beam is not None)
@@ -34,8 +34,9 @@ def _run(task):
             if margin is None:
                 return ranks,sequences
             best=max(ranks.values(),default=0)
-            default_margin=8 if kw.get('version',1)>=4 else 1.5
-            return {i:best-(best-v)*default_margin/margin for i,v in ranks.items()},sequences
+            from .actions import ACTIONS
+            return {i:best-(best-v)*(3 if kw.get('version',1)>=4 and ACTIONS[i].kind=='place' else 1.5)/margin
+                    for i,v in ranks.items()},sequences
         tactics.plan_actions=shortlist_probe
         tactics._cached_mask.cache_clear()
     model, _ = load_checkpoint(checkpoint)
@@ -51,7 +52,7 @@ def _run(task):
                 probe_enabled=True
         partner.select=unprobed_partner
     records = evaluate(ModelAgent(model), airport=airport, assistance_version=profile,
-        partner=partner, ai_role=role, seed=seed, games=games, round_reward=0)['episodes']
+        partner=partner, ai_role=role, seed=seed, games=games, round_reward=0,cpu_duty_cycle=duty)['episodes']
     if probing:
         tactics.plan_actions=original
         tactics._cached_mask.cache_clear()
@@ -85,7 +86,8 @@ def main():
     p.add_argument('--partners', nargs='+', choices=['self','heuristic','frozen','noisy'], default=['self','heuristic','frozen','noisy'])
     p.add_argument('--games', type=int, default=100, help='Games per route/partner/role.')
     p.add_argument('--seed', type=int, default=10_000_000)
-    p.add_argument('--workers', type=int, default=8)
+    p.add_argument('--workers', type=int, default=2)
+    p.add_argument('--cpu-duty-cycle',type=float,default=.5)
     p.add_argument('--output', type=Path, required=True)
     args=p.parse_args()
     if min(args.games,args.workers)<1 or args.candidate_margin is not None and args.candidate_margin<=0:
@@ -103,14 +105,42 @@ def main():
                 for start in range(0,args.games,20):
                     for label,path in checkpoints.items():
                         tasks.append((label,str(path),metadata[label]['profile'],airport,kind,str(args.baseline),role,
-                                      args.seed+start,min(20,args.games-start),args.candidate_margin,args.candidate_beam))
+                                      args.seed+start,min(20,args.games-start),args.candidate_margin,args.candidate_beam,args.cpu_duty_cycle))
     results={label:{} for label in checkpoints}
     buckets={}
+    args.output.parent.mkdir(parents=True,exist_ok=True)
+    manifest={'models':metadata,'planner_sha256':planner_fingerprint(),'seed':args.seed,
+              'airports':args.airports,'partners':args.partners,'games':args.games,
+              'margin':args.candidate_margin,'beam':args.candidate_beam}
+    journal=args.output.with_suffix('.episodes.jsonl')
+    cached=[]
+    if journal.exists():
+        lines=journal.read_text().splitlines()
+        if json.loads(lines[0])!=manifest:
+            raise ValueError('Comparison journal belongs to a different experiment; use a new --output.')
+        cached=[json.loads(line) for line in lines[1:]]
+    else:
+        journal.write_text(json.dumps(manifest)+'\n')
+    def remember(output):
+        label,airport,kind,role,records=output
+        buckets.setdefault((label,airport,kind),[]).extend(records)
+        for record in records:
+            results[label][airport,kind,role,record['seed']]=record
+    completed=set()
+    for output in cached:
+        remember(output)
+        label,airport,kind,role,records=output
+        completed.add((label,airport,kind,role,records[0]['seed']))
+    remaining=[t for t in tasks if (t[0],t[3],t[4],t[6],t[7]) not in completed]
+    print(f"CPU: {args.workers} Worker × {args.cpu_duty_cycle:.0%}; {len(cached)}/{len(tasks)} Blöcke gespeichert.",flush=True)
     with ProcessPoolExecutor(args.workers,mp_context=multiprocessing.get_context('spawn')) as pool:
-        for label,airport,kind,role,records in pool.map(_run,tasks):
-            buckets.setdefault((label,airport,kind),[]).extend(records)
-            for record in records:
-                results[label][airport,kind,role,record['seed']]=record
+        for i,output in enumerate(pool.map(_run,remaining),len(cached)+1):
+            remember(output)
+            with journal.open('a') as handle:
+                handle.write(json.dumps(output)+'\n')
+            label,airport,kind,role,records=output
+            print(f"[{i}/{len(tasks)}] {label} {airport} {kind} {role}: "
+                  f"{sum(r['status']=='gewonnen' for r in records)}/{len(records)}",flush=True)
     report={'format':1,'seed':args.seed,'games_per_role':args.games,'models':metadata,
             'planner_sha256':planner_fingerprint(),'development_margin':args.candidate_margin,
             'development_beam':args.candidate_beam,'routes':{},'comparison':paired_summary(**results)}

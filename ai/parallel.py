@@ -19,6 +19,7 @@ from .partners import make_partner
 _model = None
 _env_options = None
 _partners = None
+_cpu_duty_cycle = 1
 
 
 def partner_assignment(ordinal, fraction, count):
@@ -28,12 +29,13 @@ def partner_assignment(ordinal, fraction, count):
     return (after-1) % count, ('pilot','kopilot')[((after-1)//count) % 2]
 
 
-def _initialize(model_config, env_options, specs):
-    global _model, _env_options, _partners
+def _initialize(model_config, env_options, specs, cpu_duty_cycle):
+    global _model, _env_options, _partners, _cpu_duty_cycle
     torch.set_num_threads(1)
     _model = ActorCritic(**model_config)
     _env_options = env_options
     _partners = [make_partner(spec) for spec in specs]
+    _cpu_duty_cycle = cpu_duty_cycle
 
 
 def _collect(task):
@@ -44,21 +46,21 @@ def _collect(task):
     env = CrewEnv(**_env_options)
     return collect_rollout(_model, env, steps, seed=namespace, episodes_done=0,
         gamma=gamma, gae_lambda=gae_lambda, uniform_mix=uniform_mix, discount_unit=discount_unit,
-        partner=_partners[partner_index] if ai_role else None, ai_role=ai_role or 'both')
+        partner=_partners[partner_index] if ai_role else None, ai_role=ai_role or 'both',cpu_duty_cycle=_cpu_duty_cycle)
 
 
 def _evaluate(task):
     state, games, seed = task
     _model.load_state_dict(state)
     options = {k: v for k, v in _env_options.items() if k != 'curriculum_airports'}
-    return evaluate(ModelAgent(_model), games=games, seed=seed, **options)['episodes']
+    return evaluate(ModelAgent(_model), games=games, seed=seed,cpu_duty_cycle=_cpu_duty_cycle, **options)['episodes']
 
 
 class ParallelGames:
-    def __init__(self, workers, model_config, env_options, *, partner_specs=None):
+    def __init__(self, workers, model_config, env_options, *, partner_specs=None, cpu_duty_cycle=1):
         self.workers = workers
         self.pool = ProcessPoolExecutor(workers, mp_context=multiprocessing.get_context('spawn'),
-            initializer=_initialize, initargs=(model_config, env_options, partner_specs or [{'kind':'heuristic'}]))
+            initializer=_initialize, initargs=(model_config, env_options, partner_specs or [{'kind':'heuristic'}],cpu_duty_cycle))
         self.partner_count = len(partner_specs or [None])
 
     def collect(self, model, steps, *, seed, update, gamma, gae_lambda, uniform_mix, discount_unit, partner_fraction=0.0):

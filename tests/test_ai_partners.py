@@ -32,6 +32,15 @@ class PartnerPlanningTests(unittest.TestCase):
             actual=sum(max(hand) for hand in product(scores,repeat=count))/6**count
             self.assertAlmostEqual(expected_best_face(scores,count),actual)
 
+    def test_joint_prior_spends_shared_coffee_only_once(self):
+        for a,b in [({2},{2}),({1,2},{4,5})]:
+            for coffee in (1,2,3):
+                for count in (2,3):
+                    wins=sum(any(i!=j and min(abs(x-t) for t in a)+min(abs(y-t) for t in b)<=coffee
+                        for i,x in enumerate(hand) for j,y in enumerate(hand))
+                        for hand in product(range(1,7),repeat=count))
+                    self.assertAlmostEqual(joint_control_probability(a,b,count,coffee),wins/6**count)
+
     def test_new_profile_does_not_read_partner_hand(self):
         env=CrewEnv('LOG_HND_GREEN',assistance_version=4)
         env.reset(seed=5100001)
@@ -39,6 +48,20 @@ class PartnerPlanningTests(unittest.TestCase):
         for die in env.game._wuerfel_liste(env.other_role(env.current_role)):
             die.augenzahl=7-die.augenzahl
         self.assertEqual(old,(env.view(),env.action_mask()))
+
+    def test_unseen_partner_risk_alone_does_not_spend_reroll(self):
+        from ai.actions import ACTION_IDS,Action
+        env=CrewEnv('MUC',assistance_version=4);env.reset(seed=7)
+        g,c=env.game,env.game.cockpit
+        g.am_zug='pilot';g.letzte_runde=True;g.landung.hoehe=0
+        c.fahrwerk_ausgefahren[:]=[True]*3;c.landeklappen_ausgefahren[:]=[True]*4
+        c.bremsen_aktiviert[:]=[True,False,False]
+        for d,v in zip(g.pilot_wuerfel,(3,1,5,6)):
+            d.augenzahl=v
+        g.kopilot_wuerfel[0].augenzahl=3;c.ruder_kopilot.platziere(g.kopilot_wuerfel[0])
+        for d in g.kopilot_wuerfel[1:3]:
+            d.platziert=True
+        self.assertFalse(env.action_mask()[ACTION_IDS[Action('reroll_start')]])
 
     def test_frozen_partner_applies_its_own_profile_and_does_not_mutate_view(self):
         env=CrewEnv('MUC');env.reset(seed=5100002)

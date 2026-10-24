@@ -4,6 +4,12 @@ Crew 1 bleibt die eingefrorene Referenz. Assistenzprofil 3 wird unverändert
 ausgeführt; das neue Profil 4 ergänzt eine explizite Würfelprior-Verteilung.
 Die Partnerhand wird weder gelesen noch an den Planer übergeben.
 
+Nach gemeldeter CPU-Überhitzung wurden sämtliche Trainings-Worker beendet.
+Weitere lokale Läufe erfolgen einzeln mit höchstens zwei CPU-Workern,
+`--cpu-duty-cycle 0.5` und niedriger Prozesspriorität (`nice -n 15`). Der
+Rechenanteil wird nach jedem Simulationsschritt durch proportional lange
+Pausen begrenzt. Das ist eine Lastbegrenzung, keine Temperaturmessung.
+
 ## Vorab festgelegtes Versuchsprotokoll
 
 - Entwicklung: Seeds ab 10.000.000 für den ersten Planervergleich, anschließend
@@ -27,7 +33,10 @@ Die Partnerhand wird weder gelesen noch an den Planer übergeben.
 Profil 4 berechnet den Erwartungswert des besten verfügbaren Schubwürfels
 unter einer Gleichverteilungsannahme. Für unbekanntes Ruder und Schub wird
 zusätzlich die Wahrscheinlichkeit berechnet, dass **zwei verschiedene** Würfel
-die beiden Anforderungen erfüllen. Das ist eine optimistische Partnerwahl
+die beiden Anforderungen erfüllen. Vorhandener Kaffee kann dabei beide Würfel
+anpassen; die gemeinsame Ressource wird nur einmal verbraucht. Die
+Wahrscheinlichkeit wird über gewichtete Würfel-Multimengen exakt summiert.
+Das ist eine optimistische Partnerwahl
 mit einer expliziten Prior-Annahme, keine vollständige Simulation menschlicher
 Entscheidungen oder bedingte Rekonstruktion bereits beobachteter Partnerzüge.
 
@@ -35,6 +44,28 @@ Eine etwas breitere Auswahl guter erster Aktionen erlaubt PPO mehr eigene
 Entscheidungen. Die Bewertungsgewichte bleiben programmiert. Die eingefrorene
 Partnerliga läuft getrennt vom trainierten Netz; ihre Aktionen werden nicht
 als PPO-Entscheidungen des trainierten Spielers ausgegeben.
+
+Die Suche prüft außerdem die öffentliche Funk- und Platzierungskapazität
+eines gesamten hypothetischen Eigenplans. Ein guter erster Zug allein darf
+keinen Plan bevorzugen, dessen spätere optionalen Züge benötigte Würfel
+verbrauchen würden. Ein Neuwurf wird nicht allein aufgrund angenommener
+schlechter Partnerwürfel erzwungen.
+
+## Bisherige Entwicklungsergebnisse, keine Freigabe
+
+Der erste Versuch mit sehr breiter Auswahl und ungekapptem Risiko verschlechterte
+die Leistung deutlich. Auch 116.376 neue Trainingsentscheidungen machten ihn
+nicht konkurrenzfähig. Er wird nicht angeboten. Der getrennte Kontrolllauf
+mit unverändertem Profil 3 wurde nach 109.025 neuen Entscheidungen wegen der
+gemeldeten Überhitzung beendet; ein kleiner Vergleich zeigte keinen belastbaren
+Gesamtfortschritt.
+
+Die überarbeitete Planung erreichte auf einem kleinen Entwicklungsvergleich
+auf HND im Selbstspiel 9 statt 7 Siege aus 20 Partien und mit Heuristikpartner
+3 statt 1 Siege aus 40 Partien. Insgesamt über vier Routen war die Änderung
+aber nur +0,8 Prozentpunkte mit einem Intervall von −5,2 bis +6,9 Punkten.
+Das genügt ausdrücklich noch nicht als Verbesserungsnachweis. Die Ergebnisse
+begründen einen weiteren, gedrosselten Trainingsversuch, keine Veröffentlichung.
 
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse

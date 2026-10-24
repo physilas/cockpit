@@ -15,12 +15,12 @@ from .evaluate import evaluate, summarize_episodes
 
 
 def _run(task):
-    checkpoint, airport, assistance, seed, games, partner, role = task
+    checkpoint, airport, assistance, seed, games, partner, role, duty = task
     torch.set_num_threads(1)
     model, _ = load_checkpoint(checkpoint)
     return evaluate(ModelAgent(model), airport=airport, assistance_version=assistance,
         games=games, seed=seed, round_reward=0, partner=HeuristicAgent() if partner else None,
-        ai_role=role)['episodes']
+        ai_role=role,cpu_duty_cycle=duty)['episodes']
 
 
 def main():
@@ -30,7 +30,8 @@ def main():
     p.add_argument('--games', type=int, default=500)
     p.add_argument('--partner-games', type=int, default=100)
     p.add_argument('--seed', type=int, default=7_000_000)
-    p.add_argument('--workers', type=int, default=6)
+    p.add_argument('--workers', type=int, default=2)
+    p.add_argument('--cpu-duty-cycle',type=float,default=.5)
     p.add_argument('--assistance-version', type=int, default=None)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--minimum-win-rate', type=float, default=.2)
@@ -53,7 +54,7 @@ def main():
             for kind, partner, roles, n in [('self', False, ('both',), args.games),
                                            ('heuristic_partner', True, ('pilot', 'kopilot'), args.partner_games)]:
                 seed = args.seed + (100_000 if partner else 0)
-                tasks = [(str(args.checkpoint), airport, profile, seed + start, min(25, n - start), partner, role)
+                tasks = [(str(args.checkpoint), airport, profile, seed + start, min(25, n - start), partner, role,args.cpu_duty_cycle)
                          for role in roles for start in range(0, n, 25)]
                 records = [r for group in pool.map(_run, tasks) for r in group]
                 summary = summarize_episodes(records)

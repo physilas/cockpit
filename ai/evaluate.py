@@ -27,7 +27,9 @@ def wilson_interval(wins, games):
 
 def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
              ai_role="both", round_reward=0.02, max_steps=256, sync_weight=0.0, sync_tolerance=1.0,
-             task_weight=0.0, replay=None, render=False, assistance_version=0):
+             task_weight=0.0, replay=None, render=False, assistance_version=0,cpu_duty_cycle=1):
+    from .throttle import CpuBudget
+    cpu_budget=CpuBudget(cpu_duty_cycle)
     if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
         raise ValueError("Mindestens eine Partie und eine gültige Rolle sind erforderlich.")
     env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance, task_weight=task_weight,
@@ -49,6 +51,7 @@ def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
                 played_value = view["own_dice"][action.die] if action.kind == "place" else None
                 _, reward, _, _, info = env.step(action_id)
                 total_reward += reward
+                cpu_budget.pause()
                 if render:
                     suffix = f" [Wert {played_value}]" if played_value is not None else ""
                     print(f"{view['role']}: {action.label()}{suffix}")

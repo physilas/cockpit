@@ -5,8 +5,9 @@ the partner's hand, or a random generator. The optional assistance profile is
 separate from the historical legal-action mask, so old checkpoints and human
 demonstrations retain their meaning.
 """
-from math import ceil
+from math import ceil, factorial, prod
 from functools import lru_cache
+from itertools import combinations_with_replacement
 import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
@@ -99,7 +100,7 @@ def _bits(values):
     return sum(1 << i for i, value in enumerate(values) if value)
 
 
-def joint_control_probability(rudder_faces, thrust_faces, dice):
+def joint_control_probability(rudder_faces, thrust_faces, dice, coffee=0):
     """Exact chance of two distinct iid dice satisfying two face sets.
 
     This is a public-information prior, not an inference about a hidden hand.
@@ -108,14 +109,34 @@ def joint_control_probability(rudder_faces, thrust_faces, dice):
     if dice < 2:
         return 0.0
     a, b = set(rudder_faces), set(thrust_faces)
+    if coffee:
+        return _joint_with_coffee(tuple(sorted(a)),tuple(sorted(b)),dice,coffee)
     union, intersection = len(a | b), len(a & b)
     both = 1 - (1-len(a)/6)**dice - (1-len(b)/6)**dice + (1-union/6)**dice
     single = dice * intersection / 6 * (1-union/6)**(dice-1)
     return max(0.0, min(1.0, both-single))
 
 
+@lru_cache(maxsize=4096)
+def _joint_with_coffee(a,b,dice,coffee):
+    if not a or not b:
+        return 0.0
+    costs_a={n:min(abs(n-target) for target in a) for n in range(1,7)}
+    costs_b={n:min(abs(n-target) for target in b) for n in range(1,7)}
+    wins=0
+    for hand in combinations_with_replacement(range(1,7),dice):
+        if any(costs_a[x]+costs_b[y]<=coffee for i,x in enumerate(hand) for j,y in enumerate(hand) if i!=j):
+            wins+=factorial(dice)//prod(factorial(hand.count(n)) for n in set(hand))
+    return wins/6**dice
+
+
 def expected_best_face(scores, dice):
     """Expected best score in iid fair dice, including all bad outcomes."""
+    return _expected_best_face(tuple(scores),max(1,dice))
+
+
+@lru_cache(maxsize=2048)
+def _expected_best_face(scores, dice):
     dice = max(1, dice)
     levels = sorted(set(scores))
     result = levels[0]
@@ -154,10 +175,16 @@ def plan_actions(view, mask, *, beam=24, version=1):
     partner_radios = sum(s.owner == partner and s.target == 'funk' and view['board'][i] is None
                         for i, s in enumerate(SLOTS))
     partner_clearance = max(0, min(partner_radios, view['partner_remaining'] - partner_required))
+    partner_budget = capacity(view,partner)
+    if version >= 4:
+        partner_clearance=min(partner_clearance,max(0,partner_budget['slack']))
     curve_soon = any(c['distance'] in (view['distance'], view['distance'] - 1)
                      and not c['min'] <= 0 <= c['max'] for c in view['track'])
     control_priority = 0 if version >= 3 and curve_soon and not partner_r and not view['last_round'] else (2.5 if version >= 3 else 1.0)
+    if version >= 4 and curve_soon and not partner_r and not view['last_round']:
+        control_priority=-3
 
+    @lru_cache(maxsize=4096)
     def score(state, complete=False):
         dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic = state
         value = 13 * gear.bit_count() + 14 * flaps.bit_count()
@@ -173,6 +200,17 @@ def plan_actions(view, mask, *, beam=24, version=1):
         need = ((3 - gear.bit_count()) + int(not brakes) if role == 'pilot' else 4 - flaps.bit_count())
         spare = sum(bool(d) for d in dice) - required + 2 * future
         value -= 1000 * max(0, need - spare)
+        if version >= 4:
+            # Check the WHOLE hypothetical plan, not only its first placement.
+            # Otherwise the search can promise later optional moves which
+            # would spend the dice needed to clear public traffic.
+            own_slack=spare-need
+            own_radios=sum(s.target=='funk' and s.owner==role and not used & (1<<i)
+                           for i,s in enumerate(SLOTS))+(1 if role=='pilot' else 2)*future
+            partner_radio_budget=partner_radios+(1 if partner=='pilot' else 2)*future
+            radio_budget=max(0,min(own_slack,own_radios))+max(0,min(partner_budget['slack'],partner_radio_budget))
+            shortfall=max(0,sum(traffic)-own_slack-partner_budget['slack'],sum(traffic)-radio_budget)
+            value-=1000*shortfall
         wanted = min(2, ceil((view['distance'] + int(version >= 2 and rounds > 1)) / rounds))
         low, high = -2, 2
         if version >= 3 and not view['last_round'] and not view['holding']:
@@ -205,7 +243,8 @@ def plan_actions(view, mask, *, beam=24, version=1):
                     rudder_faces = {n for n in range(1, 7) if
                         (resulting_attitude(n) == 0 if view['last_round'] else
                          low <= resulting_attitude(n) <= high and abs(resulting_attitude(n)) < 3)}
-                    chance = 1-(1-len(rudder_faces)/6)**max(1, view['partner_remaining'])
+                    reachable={n for n in range(1,7) if any(abs(n-target)<=coffee for target in rudder_faces)}
+                    chance = 1-(1-len(reachable)/6)**max(1, view['partner_remaining'])
                     value -= (140 if view['last_round'] else 70) * (1-chance)
                 attitude = desired_attitude if version >= 3 else 0
             if version >= 3 and not view['last_round']:
@@ -262,10 +301,15 @@ def plan_actions(view, mask, *, beam=24, version=1):
                 # Four unknown dice can usually supply one of the useful faces.
                 miss = (1 - good / 6) ** max(1, view['partner_remaining'])
                 if version >= 4:
-                    value += expected_best_face(scores, view['partner_remaining'])
+                    # Unseen faces are a prior, not an observed catastrophe.
+                    # Cap the risk term: a partner may still use shared coffee
+                    # or choose another useful task before publishing controls.
+                    adjusted=[max(scores[actual-1]-.5*abs(actual-face) for actual in range(1,7)
+                                  if abs(actual-face)<=coffee) for face in range(1,7)]
+                    value += expected_best_face([max(s,best-80) for s in adjusted], view['partner_remaining'])
                     if rudder and not partner_r:
                         thrust_faces = {n for n, s in enumerate(scores, 1) if s >= best-1}
-                        chance = joint_control_probability(rudder_faces, thrust_faces, view['partner_remaining'])
+                        chance = joint_control_probability(rudder_faces, thrust_faces, view['partner_remaining'],coffee)
                         value -= 80 * (1-chance)
                 else:
                     value += best - (60 if view['last_round'] else 18) * miss
@@ -389,9 +433,15 @@ def _assisted_mask(view, mask, version):
         planning_mask = capacity_mask(view, planning_mask, include_traffic=version >= 3)
     ranked, sequences = plan_actions(view, planning_mask, version=version, beam=64 if version >= 3 else 24)
     best = max(ranked.values(), default=-10000)
+    rescue_score = best
+    if version >= 4 and best < -100:
+        # A reroll must be justified by our visible hand, rather than solely
+        # by hypothetical bad faces in the partner's unseen hand.
+        optimistic, _ = plan_actions(view, planning_mask, version=3, beam=64)
+        rescue_score = max(optimistic.values(),default=-10000)
     result = [False] * len(mask)
     if view['reroll']:
-        if best < -100:
+        if rescue_score < -100:
             wanted = sum(1 << i for i, d in enumerate(view['own_dice']) if d)
         else:
             wanted = 0
@@ -401,10 +451,11 @@ def _assisted_mask(view, mask, version):
             result[selected] = True
     else:
         for i, quality in ranked.items():
-            if base[i] and quality >= best - (8 if version >= 4 else 1.5):
+            margin = 3 if version >= 4 and ACTIONS[i].kind == 'place' else 1.5
+            if base[i] and quality >= best - margin:
                 result[i] = True
         reroll = ACTION_IDS[Action('reroll_start')]
-        if base[reroll] and best < -100:
+        if base[reroll] and rescue_score < -100:
             result = [False] * len(mask)
             result[reroll] = True
     return result if any(result) else base

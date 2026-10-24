@@ -85,7 +85,9 @@ def compute_gae(rewards, values, bootstrap=0.0, gamma=0.995, gae_lambda=0.95, *,
 
 
 def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, gae_lambda, uniform_mix=0.0, discount_unit='action',
-                    partner=None, ai_role='both'):
+                    partner=None, ai_role='both', cpu_duty_cycle=1.0):
+    from .throttle import CpuBudget
+    cpu_budget=CpuBudget(cpu_duty_cycle)
     device = next(model.parameters()).device
     data = {name: [] for name in ("observations", "masks", "actions", "log_probs", "values", "advantages", "returns")}
     records = []
@@ -107,6 +109,7 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
                     rewards[-1] += discounts[-1] * reward
                     discounts[-1] *= gamma if advances else 1.0
                     traces[-1] *= gae_lambda if advances else 1.0
+                cpu_budget.pause()
                 continue
             with torch.no_grad():
                 action, log_prob, value = model.act(torch.tensor(observation, dtype=torch.float32, device=device), mask,
@@ -123,6 +126,7 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
             traces.append(gae_lambda if advances else 1.0)
             observation, reward, terminated, truncated, info = env.step(int(action.item()))
             rewards.append(reward)
+            cpu_budget.pause()
         bootstrap = 0.0
         if truncated and not terminated:
             with torch.no_grad():
@@ -259,6 +263,8 @@ def parser():
     result.add_argument('--discount-unit', choices=('action', 'placement'), default=None,
                         help='placement does not discount through coffee/reroll helper decisions.')
     result.add_argument('--workers', type=int, default=1, help='Isolated CPU rollout processes; PPO runs on --device.')
+    result.add_argument('--cpu-duty-cycle', type=float, default=1,
+                        help='Simulation CPU duty cycle per worker, e.g. 0.5 inserts equal work/rest time.')
     result.add_argument('--partner-fraction', type=float, default=0,
                         help='Fraction of parallel rollout batches paired with the independent heuristic (both roles).')
     result.add_argument('--partner-checkpoints', nargs='+', type=Path, default=None,
@@ -284,6 +290,8 @@ def train(args, *, on_validation=None):
         arg_parser.error("--eval-steps muss positiv sein.")
     if args.workers < 1 or not 0 <= args.partner_fraction <= 1 or args.partner_fraction and args.workers < 2:
         arg_parser.error('workers must be positive; partner-fraction needs multiple workers and must be in [0,1].')
+    if not math.isfinite(args.cpu_duty_cycle) or not 0 < args.cpu_duty_cycle <= 1:
+        arg_parser.error('--cpu-duty-cycle must be in (0, 1].')
     if not 0 < args.gamma <= 1 or not 0 <= args.gae_lambda <= 1 or args.lr <= 0 or not 0 < args.clip < 1:
         arg_parser.error("Ungültige Lernrate, Discount-, GAE- oder Clip-Einstellung.")
     torch.set_num_threads(args.threads)
@@ -447,12 +455,13 @@ def train(args, *, on_validation=None):
         parallel = ParallelGames(args.workers, model.config, dict(airport=args.airport, round_reward=args.round_reward,
             max_steps=args.max_steps, sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance,
             task_weight=args.task_weight, assistance_version=args.assistance_version,
-            curriculum_airports=args.curriculum_airports), partner_specs=league)
+            curriculum_airports=args.curriculum_airports), partner_specs=league, cpu_duty_cycle=args.cpu_duty_cycle)
     print(f"Self-play auf {args.airport}; {model.config}; Gerät {args.device}. Ziel: {args.steps:,} Schritte.", flush=True)
     print(f"Rewards: Rundenbonus {args.round_reward:g}, Synchronisationsgewicht {args.sync_weight:g}, "
           f"Toleranz {args.sync_tolerance:g} Feld(er), Aufgabengewicht {args.task_weight:g}.", flush=True)
     print(f"Exploration: {args.uniform_mix:.1%} uniform über erlaubte Aktionen, {1 - args.uniform_mix:.1%} Modell.", flush=True)
     print("Aktionsmaske: Verbleibende Würfel werden für offene Ruder- und Schubfelder reserviert.", flush=True)
+    print(f"CPU: {args.workers} Worker, {args.cpu_duty_cycle:.0%} Rechenanteil je Worker.",flush=True)
     if demos:
         print(f"Demonstrationen: {demo_manifest['sessions']} gewonnene Partie(n), {len(demos.actions)} Züge; "
               f"Gewicht {args.demo_coef:g}, Decay {args.demo_decay_steps:,} neue Entscheidungen ab {demo_start_step:,}.", flush=True)
@@ -468,7 +477,8 @@ def train(args, *, on_validation=None):
             else:
                 batch, records = collect_rollout(model, env, rollout_steps,
                                              seed=args.seed, episodes_done=episodes, gamma=args.gamma, gae_lambda=args.gae_lambda,
-                                             uniform_mix=args.uniform_mix, discount_unit=args.discount_unit)
+                                             uniform_mix=args.uniform_mix, discount_unit=args.discount_unit,
+                                             cpu_duty_cycle=args.cpu_duty_cycle)
             effective_demo_coef = demo_coefficient(args.demo_coef, total_steps, demo_start_step, args.demo_decay_steps)
             stats = ppo_update(model, optimizer, batch, epochs=args.epochs, minibatch_size=args.minibatch_size,
                                clip=args.clip, value_coef=args.value_coef, entropy_coef=args.entropy_coef,
