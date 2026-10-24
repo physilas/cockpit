@@ -1,5 +1,16 @@
 # Begrenzte Mehr-Runden-Planung vom 25. Oktober 2026
 
+## Ergebnis
+
+Der begrenzte Versuch ist abgeschlossen. Die größere Folgeprobe auf 2.800
+gepaarten Fällen ergab +0,43 Prozentpunkte (48 verbessert, 36 schlechter;
+95-%-Intervall −0,45 bis +1,30). Ein verlässlicher Gesamtfortschritt ist damit
+weiterhin nicht belegt. Crew 1 bleibt Standard; Profil 10 wird nicht als neues
+freigegebenes Modell angeboten. Die beiden vollständigen Berichte stehen unter
+[`ai/experiments/multiround-2026-10-25`](../ai/experiments/multiround-2026-10-25/README.md).
+Es folgen keine weiteren Läufe dieses Versuchs; die automatische Fortsetzung
+bleibt pausiert. Neue Features oder größere Netze wurden nur besprochen.
+
 Dieser Versuch ergänzt Crew 1 um Assistenzprofil 10. Die Netzgewichte bleiben
 für den Vergleich eingefroren. Die freigegebenen Modelle und ihre Menüeinträge
 ändern sich dadurch zunächst nicht. Die automatische Fortsetzung des früheren
@@ -66,7 +77,8 @@ Auf 560 gepaarten Entwicklungsfällen ergaben sich 12 Verbesserungen und fünf
 Verschlechterungen: +1,25 Prozentpunkte, 95-%-Intervall −0,67 bis +3,17. Auf
 YUL war die kleine Probe günstig, auf LHR uneinheitlich. Das begründet nur die
 Prüfung auf 100 neuen Seeds je Kombination, keine Freigabe. Der größere
-Vergleich verwendet denselben Planercode und Seed 11.008.000.
+Vergleich verwendete denselben Planercode und Seed 11.008.000; das Ergebnis
+steht oben.
 
 Die neue Planung wurde auch in Pyodide mit identischem Quellfingerabdruck
 geprüft. Der konkrete späte Beispielzustand benötigte dort 141 ms und lieferte
