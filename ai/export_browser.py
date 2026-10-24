@@ -15,12 +15,19 @@ from .checkpoints import load_checkpoint, schema
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def export_models(runs_dir, output_dir):
+def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
     output_dir = Path(output_dir)
+    catalog_path = output_dir / 'js' / 'ai-models.js'
+    previous = None
+    if merge and catalog_path.exists():
+        previous = json.loads(catalog_path.read_text().split(' = ', 1)[1].strip().rstrip(';'))
+        if previous['schema'] != schema():
+            raise ValueError('Existing browser catalog uses a different model schema.')
     assets = output_dir / "models"
     assets.mkdir(parents=True, exist_ok=True)
     models, skipped = [], []
-    for path in sorted(Path(runs_dir).rglob("*.pt")):
+    for path in sorted(checkpoints if checkpoints is not None else Path(runs_dir).rglob("*.pt")):
+        path = Path(path)
         if path.stem not in ("best", "latest"):
             continue
         try:
@@ -44,10 +51,18 @@ def export_models(runs_dir, output_dir):
                            "checkpoint": path.stem, "steps": payload.get("total_steps", 0),
                            "airport": config.get("airport", "MUC"), "max_steps": config.get("max_steps", 256),
                            "task_weight": config.get("task_weight", 0),
+                           'assistance_version': config.get('assistance_version', 0),
+                           'name': config.get('display_name'), 'recommended': config.get('recommended', False),
                            "trained_action_mask_version": config.get("action_mask_version", 1),
                            "fingerprint": fingerprint, "url": f"models/{asset.name}"})
         except (ValueError, KeyError, RuntimeError, OSError) as error:
             skipped.append({"checkpoint": str(path.relative_to(runs_dir)), "reason": str(error)})
+    if previous:
+        new_ids = {m['id'] for m in models}
+        old = [m for m in previous['models'] if m['id'] not in new_ids]
+        if any(m.get('recommended') for m in models):
+            old = [{**m, 'recommended': False} for m in old]
+        models = models + old
     catalog = {"format": 1, "schema": schema(), "action_mask_version": ACTION_MASK_VERSION,
                "models": models, "skipped": skipped}
     target = output_dir / "js" / "ai-models.js"

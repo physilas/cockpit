@@ -9,13 +9,13 @@ from backend import bridge
 from .environment import CrewEnv
 
 
-def decision(role=None, reroll_json="null", steps=0, max_steps=256):
+def decision(role=None, reroll_json="null", steps=0, max_steps=256, assistance_version=0):
     game = bridge._spiel
     if game is None:
         raise ValueError("Kein Spiel aktiv.")
     if game.cockpit.module or game.zusatz.karten:
         raise ValueError("Die KI unterstützt bisher Grundspiel-Strecken ohne Module und Karten.")
-    env = CrewEnv(max_steps=max_steps)
+    env = CrewEnv(max_steps=max_steps, assistance_version=assistance_version)
     env.game = game
     env.steps = steps
     env.reroll = json.loads(reroll_json)

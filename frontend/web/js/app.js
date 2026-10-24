@@ -833,7 +833,7 @@ document.getElementById("menue-btn").addEventListener("click", zurueckZumMenue);
 Singleplayer.connect({
   state: () => aktuellerZustand,
   start: neuesSpiel, execute: spielAktion, showAnswer: nachAktion,
-  decision(role, reroll, steps, maxSteps) { return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps)); },
+  decision(role, reroll, steps, maxSteps, assistanceVersion = 0) { return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps, assistanceVersion)); },
   refresh() { render(aktuellerZustand); },
   roundComplete() { return ["pilot", "kopilot"].every(role => aktuellerZustand[`${role}_wuerfel_frei`].every(free => !free)); },
   rerollAnimating() { return neuwurfUi.phase === 2; },

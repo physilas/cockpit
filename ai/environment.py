@@ -15,7 +15,7 @@ from .observation import MAX_TRACK_LENGTH, encode, visible_state
 
 
 class CrewEnv:
-    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0, task_weight=0.0):
+    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0, task_weight=0.0, assistance_version=0):
         if max_steps < 1 or not 0 <= round_reward <= 0.1:
             raise ValueError("max_steps muss positiv sein, round_reward zwischen 0 und 0.1.")
         if any(not math.isfinite(v) or v < 0 for v in (sync_weight, sync_tolerance, task_weight)):
@@ -26,6 +26,10 @@ class CrewEnv:
         self.sync_weight = float(sync_weight)
         self.sync_tolerance = float(sync_tolerance)
         self.task_weight = float(task_weight)
+        if assistance_version not in (0, 1):
+            raise ValueError('Unbekanntes KI-Assistenzprofil.')
+        self.assistance_version = assistance_version
+        self.assisted_roles = ROLES
         self.rng = random.Random(0)
         self.game = None
         self.reroll = None
@@ -36,6 +40,12 @@ class CrewEnv:
         self.task_urgency = 0.0
         self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0, "tasks": 0.0}
         self.reward_totals = self.reward_components.copy()
+        self._reset_diagnostics()
+
+    def _reset_diagnostics(self):
+        self.diagnostics = {'coffee_actions': 0, 'coffee_units': 0, 'rerolls': 0,
+                            'coffee_reversals': 0, 'first_action_reroll': 0, 'capacity_impossible': 0}
+        self._last_action = None
 
     @contextmanager
     def _engine_randomness(self):
@@ -76,6 +86,7 @@ class CrewEnv:
         self.task_urgency = 0.0
         self.reward_components = {"outcome": 0.0, "round": 0.0, "sync": 0.0, "tasks": 0.0}
         self.reward_totals = self.reward_components.copy()
+        self._reset_diagnostics()
         with self._engine_randomness():
             self.game = Spielplan(self.airport)
             if self.game.cockpit.module or self.game.zusatz.karten:
@@ -160,7 +171,7 @@ class CrewEnv:
                     partner_can_choose = partner_selection is None and bool(self.game.verfuegbare_wuerfel(self.other_role(role)))
                     nonempty_pair = bool(selected or partner_selection) or partner_can_choose
                     mask[i] = nonempty_pair and all(dice[j].ist_verfuegbar() for j in selected)
-            return mask
+            return self._assist(mask)
         # Own available dice and public occupied fields are sufficient. A
         # non-mandatory placement may not make this round impossible to finish.
         missing_required = sum(s.owner == role and s.target in ("ruder", "triebwerk")
@@ -174,7 +185,15 @@ class CrewEnv:
                 mask[i] = dice[action.die].ist_verfuegbar() and action.delta in self.game.moegliche_kaffee_deltas(role, action.die)
             elif action.kind == "reroll_start":
                 mask[i] = self.game.neuwurf_plaettchen > 0 and any(w.ist_verfuegbar() for w in dice)
-        return mask
+        return self._assist(mask)
+
+    def _assist(self, mask):
+        if not self.assistance_version or self.current_role not in self.assisted_roles:
+            return mask
+        if self.game.cockpit.module or self.game.zusatz.karten:
+            raise ValueError('Die Rundenplanung unterstützt noch keine Module oder Fähigkeitskarten/Zusatzwürfel.')
+        from .tactics import assisted_mask
+        return assisted_mask(self.view(), mask)
 
     def info(self):
         return {"role": self.current_role, "action_mask": self.action_mask(),
@@ -195,7 +214,8 @@ class CrewEnv:
                 "landing_round_started": int(self.game.letzte_runde), "sync_error": self.sync_error(),
                 "gear_count": sum(c.fahrwerk_ausgefahren), "flap_count": sum(c.landeklappen_ausgefahren),
                 "brake_strength": c.bremsstaerke(), "planes_remaining": sum(landing.flugzeuge),
-                "tasks_undone": sum(tasks.values()), **{f"{key}_undone": value for key, value in tasks.items()}}
+                "tasks_undone": sum(tasks.values()), **{f"{key}_undone": value for key, value in tasks.items()},
+                **self.diagnostics}
 
     def step(self, action_id):
         if self.game is None or self.done:
@@ -203,6 +223,16 @@ class CrewEnv:
         if type(action_id) is not int or not 0 <= action_id < ACTION_COUNT or not self.action_mask()[action_id]:
             raise ValueError(f"Aktion {action_id!r} ist in diesem Zustand nicht erlaubt.")
         action, role = ACTIONS[action_id], self.current_role
+        if action.kind == 'coffee':
+            self.diagnostics['coffee_actions'] += 1
+            self.diagnostics['coffee_units'] += abs(action.delta)
+            previous = self._last_action
+            if previous and previous[0] == role and previous[1].kind == 'coffee' and previous[1].die == action.die and previous[1].delta * action.delta < 0:
+                self.diagnostics['coffee_reversals'] += 1
+        if action.kind == 'reroll_start':
+            self.diagnostics['rerolls'] += 1
+            self.diagnostics['first_action_reroll'] = max(self.diagnostics['first_action_reroll'], int(self.steps == 0))
+        self._last_action = (role, action)
         old_round = self.game.aktuelle_runde
         with self._engine_randomness():
             result = None
@@ -222,6 +252,10 @@ class CrewEnv:
                 raise RuntimeError(f"Maske und Engine widersprechen sich: {result.grund}")
             round_resolved = self._advance()
         self.steps += 1
+        from .tactics import capacity
+        public = self.view()
+        if any(capacity(public, r)['slack'] < 0 for r in ROLES):
+            self.diagnostics['capacity_impossible'] = 1
         if self.game.status == "laeuft" and not any(self.action_mask()):
             self.blocked = True
         terminated = self.game.status != "laeuft" or self.blocked

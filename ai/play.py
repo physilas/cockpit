@@ -38,7 +38,9 @@ def main():
     else:
         agent = HeuristicAgent()
     import secrets
-    env = CrewEnv(args.airport or config.get("airport", "MUC"), max_steps=config.get("max_steps", 256))
+    env = CrewEnv(args.airport or config.get("airport", "MUC"), max_steps=config.get("max_steps", 256),
+                  assistance_version=config.get('assistance_version', 0))
+    env.assisted_roles = (CrewEnv.other_role(args.role),)
     _, info = env.reset(seed=args.seed if args.seed is not None else secrets.randbits(64))
     print(f"Du spielst {args.role}. Aktionsnummer eingeben; q beendet die Partie.")
     try:

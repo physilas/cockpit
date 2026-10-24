@@ -32,6 +32,8 @@ PYTHON_DATEIEN = [
     "ai/actions.py",
     "ai/observation.py",
     "ai/environment.py",
+    "ai/public_rules.py",
+    "ai/tactics.py",
     "ai/browser_bridge.py",
 ]
 

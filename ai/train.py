@@ -37,6 +37,7 @@ EPISODE_FIELDS = ["phase", "update", "total_steps", "seed", "ai_role", "status",
 EPISODE_FIELDS += ["outcome_return", "round_return", "sync_return", "distance_remaining", "height_remaining",
                    "airport_reached", "landing_round_started", "sync_error", "gear_count", "flap_count", "brake_strength", "planes_remaining"]
 EPISODE_FIELDS += ["tasks_return", "tasks_undone", "gear_undone", "flaps_undone", "braking_undone", "traffic_undone"]
+EPISODE_FIELDS += ['coffee_actions', 'coffee_units', 'rerolls', 'coffee_reversals', 'first_action_reroll', 'capacity_impossible']
 BEST_SCORE_VERSION = 2
 
 
@@ -68,30 +69,44 @@ def resolve_uniform_mix(value, previous=None):
     return previous.get("uniform_mix", 0.0) if previous is not None else 0.03
 
 
-def compute_gae(rewards, values, bootstrap=0.0, gamma=0.995, gae_lambda=0.95):
+def compute_gae(rewards, values, bootstrap=0.0, gamma=0.995, gae_lambda=0.95, *, discounts=None, traces=None):
     """One complete cooperative episode; bootstrap only on time-limit truncation."""
     advantages = [0.0] * len(rewards)
     advantage, next_value = 0.0, bootstrap
     for i in reversed(range(len(rewards))):
-        delta = rewards[i] + gamma * next_value - values[i]
-        advantage = delta + gamma * gae_lambda * advantage
+        discount = gamma if discounts is None else discounts[i]
+        trace = gae_lambda if traces is None else traces[i]
+        delta = rewards[i] + discount * next_value - values[i]
+        advantage = delta + discount * trace * advantage
         advantages[i] = advantage
         next_value = values[i]
     return advantages, [a + v for a, v in zip(advantages, values)]
 
 
-def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, gae_lambda, uniform_mix=0.0):
+def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, gae_lambda, uniform_mix=0.0, discount_unit='action',
+                    partner=None, ai_role='both'):
     device = next(model.parameters()).device
     data = {name: [] for name in ("observations", "masks", "actions", "log_probs", "values", "advantages", "returns")}
     records = []
+    env.assisted_roles = ('pilot', 'kopilot') if partner is None else (ai_role,)
     model.eval()
     while len(data["actions"]) < minimum_steps:
         # String namespaces keep training seeds disjoint from integer validation/test seeds.
         episode_seed = f"train:{seed}:{episodes_done + len(records)}"
         observation, info = env.reset(seed=episode_seed)
-        rewards, values = [], []
+        rewards, values, discounts, traces = [], [], [], []
         while not env.done:
             mask = info["action_mask"]
+            if partner is not None and env.current_role != ai_role:
+                from .actions import ACTIONS
+                selected = partner.select(env.view(), mask)
+                observation, reward, terminated, truncated, info = env.step(selected)
+                advances = discount_unit == 'action' or ACTIONS[selected].kind == 'place'
+                if rewards:
+                    rewards[-1] += discounts[-1] * reward
+                    discounts[-1] *= gamma if advances else 1.0
+                    traces[-1] *= gae_lambda if advances else 1.0
+                continue
             with torch.no_grad():
                 action, log_prob, value = model.act(torch.tensor(observation, dtype=torch.float32, device=device), mask,
                                                     uniform_mix=uniform_mix)
@@ -101,6 +116,10 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
             data["log_probs"].append(float(log_prob.item()))
             data["values"].append(float(value.item()))
             values.append(float(value.item()))
+            from .actions import ACTIONS
+            advances = discount_unit == 'action' or ACTIONS[int(action.item())].kind == 'place'
+            discounts.append(gamma if advances else 1.0)
+            traces.append(gae_lambda if advances else 1.0)
             observation, reward, terminated, truncated, info = env.step(int(action.item()))
             rewards.append(reward)
         bootstrap = 0.0
@@ -108,10 +127,11 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
             with torch.no_grad():
                 _, final_value = model(torch.tensor(observation, dtype=torch.float32, device=device))
             bootstrap = float(final_value.item())
-        advantages, returns = compute_gae(rewards, values, bootstrap, gamma, gae_lambda)
+        advantages, returns = compute_gae(rewards, values, bootstrap, gamma, gae_lambda,
+                                          discounts=discounts, traces=traces)
         data["advantages"].extend(advantages)
         data["returns"].extend(returns)
-        records.append(env.episode_record(episode_seed, "both", sum(rewards)))
+        records.append(env.episode_record(episode_seed, ai_role, sum(rewards)))
     tensors = {name: torch.tensor(items, dtype=torch.bool if name == "masks" else torch.long if name == "actions" else torch.float32,
                                   device=device) for name, items in data.items()}
     return tensors, records
@@ -233,6 +253,13 @@ def parser():
     result.add_argument("--device", default="cpu", help="cpu, cuda or mps; CPU is usually useful for this small sequential model.")
     result.add_argument("--threads", type=int, default=1)
     result.add_argument("--resume", type=Path)
+    result.add_argument('--assistance-version', type=int, choices=(0, 1), default=None,
+                        help='Optional public own-hand planner; fresh runs 0, resume preserves saved profile.')
+    result.add_argument('--discount-unit', choices=('action', 'placement'), default=None,
+                        help='placement does not discount through coffee/reroll helper decisions.')
+    result.add_argument('--workers', type=int, default=1, help='Isolated CPU rollout processes; PPO runs on --device.')
+    result.add_argument('--partner-fraction', type=float, default=0,
+                        help='Fraction of parallel rollout batches paired with the independent heuristic (both roles).')
     return result
 
 
@@ -248,6 +275,8 @@ def train(args, *, on_validation=None):
             arg_parser.error(f"--{name.replace('_', '-')} muss positiv sein.")
     if args.eval_steps is not None and args.eval_steps < 1:
         arg_parser.error("--eval-steps muss positiv sein.")
+    if args.workers < 1 or not 0 <= args.partner_fraction <= 1 or args.partner_fraction and args.workers < 2:
+        arg_parser.error('workers must be positive; partner-fraction needs multiple workers and must be in [0,1].')
     if not 0 < args.gamma <= 1 or not 0 <= args.gae_lambda <= 1 or args.lr <= 0 or not 0 < args.clip < 1:
         arg_parser.error("Ungültige Lernrate, Discount-, GAE- oder Clip-Einstellung.")
     torch.set_num_threads(args.threads)
@@ -268,6 +297,11 @@ def train(args, *, on_validation=None):
     else:
         model = ActorCritic(hidden_size=args.hidden_size, hidden_layers=args.hidden_layers).to(args.device)
     previous_config = payload["train_config"] if payload else None
+    previous_options = previous_config or {}
+    args.assistance_version = args.assistance_version if args.assistance_version is not None else previous_options.get('assistance_version', 0)
+    args.discount_unit = args.discount_unit or previous_options.get('discount_unit', 'action')
+    planning_changed = payload is not None and any(getattr(args, k) != previous_options.get(k, d)
+        for k, d in (('assistance_version', 0), ('discount_unit', 'action')))
     previous_demo = previous_config or {}
     explicit_demo_paths = getattr(args, "demo_data", None)
     demo_paths = explicit_demo_paths if explicit_demo_paths is not None else previous_demo.get("demo_data", [])
@@ -312,7 +346,7 @@ def train(args, *, on_validation=None):
         "sync_weight": previous_config.get("sync_weight", 0.0),
         "sync_tolerance": previous_config.get("sync_tolerance", 1.0),
         "task_weight": previous_config.get("task_weight", 0.0)}
-    if reward_changed or exploration_changed or mask_changed or demo_changed:
+    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed:
         if args.run_dir.resolve() == args.resume.resolve().parent:
             arg_parser.error("Geänderte Rewards, Exploration, Aktionsmasken oder Demonstrationen brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
         best_score = (-1.0,) * 5
@@ -333,7 +367,7 @@ def train(args, *, on_validation=None):
         if str(args.device) == "mps" and "mps_rng_state" in payload:
             torch.mps.set_rng_state(payload["mps_rng_state"].cpu())
     env = CrewEnv(args.airport, args.round_reward, args.max_steps, sync_weight=args.sync_weight,
-                  sync_tolerance=args.sync_tolerance, task_weight=args.task_weight)
+                  sync_tolerance=args.sync_tolerance, task_weight=args.task_weight, assistance_version=args.assistance_version)
     env.reset(seed=args.seed)  # Validate the scenario before creating output files.
     demo_tensors = demos.tensors(args.device) if demos else None
     args.run_dir.mkdir(parents=True, exist_ok=True)
@@ -350,6 +384,7 @@ def train(args, *, on_validation=None):
                    "exploration_changed_on_resume": exploration_changed,
                    "demo_manifest": demo_manifest, "demo_start_step": demo_start_step,
                    "demo_changed_on_resume": demo_changed,
+                   'planning_changed_on_resume': planning_changed,
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
@@ -369,6 +404,12 @@ def train(args, *, on_validation=None):
                         torch_rng_state=torch.get_rng_state(), **device_rng)
 
     save("latest.pt")
+    parallel = None
+    if args.workers > 1:
+        from .parallel import ParallelGames
+        parallel = ParallelGames(args.workers, model.config, dict(airport=args.airport, round_reward=args.round_reward,
+            max_steps=args.max_steps, sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance,
+            task_weight=args.task_weight, assistance_version=args.assistance_version))
     print(f"Self-play auf {args.airport}; {model.config}; Gerät {args.device}. Ziel: {args.steps:,} Schritte.", flush=True)
     print(f"Rewards: Rundenbonus {args.round_reward:g}, Synchronisationsgewicht {args.sync_weight:g}, "
           f"Toleranz {args.sync_tolerance:g} Feld(er), Aufgabengewicht {args.task_weight:g}.", flush=True)
@@ -382,9 +423,14 @@ def train(args, *, on_validation=None):
             rollout_steps = min(args.rollout_steps, args.steps - total_steps)
             if next_eval is not None:
                 rollout_steps = min(rollout_steps, next_eval - total_steps)
-            batch, records = collect_rollout(model, env, rollout_steps,
+            if parallel:
+                batch, records = parallel.collect(model, rollout_steps, seed=args.seed, update=update,
+                    gamma=args.gamma, gae_lambda=args.gae_lambda, uniform_mix=args.uniform_mix,
+                    discount_unit=args.discount_unit, partner_fraction=args.partner_fraction)
+            else:
+                batch, records = collect_rollout(model, env, rollout_steps,
                                              seed=args.seed, episodes_done=episodes, gamma=args.gamma, gae_lambda=args.gae_lambda,
-                                             uniform_mix=args.uniform_mix)
+                                             uniform_mix=args.uniform_mix, discount_unit=args.discount_unit)
             effective_demo_coef = demo_coefficient(args.demo_coef, total_steps, demo_start_step, args.demo_decay_steps)
             stats = ppo_update(model, optimizer, batch, epochs=args.epochs, minibatch_size=args.minibatch_size,
                                clip=args.clip, value_coef=args.value_coef, entropy_coef=args.entropy_coef,
@@ -407,9 +453,10 @@ def train(args, *, on_validation=None):
             validation_due = total_steps >= next_eval if next_eval is not None else update % args.eval_every == 0
             if validation_due or total_steps >= args.steps:
                 model.eval()
-                result = evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
+                result = parallel.evaluate(model, games=args.eval_games, seed=args.eval_seed) if parallel else evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
                                   airport=args.airport, round_reward=args.round_reward, max_steps=args.max_steps,
-                                  sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance, task_weight=args.task_weight)
+                                  sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance, task_weight=args.task_weight,
+                                  assistance_version=args.assistance_version)
                 for key in (*PERFORMANCE_METRICS, "win_ci_low", "win_ci_high"):
                     row[f"eval_{key}"] = result[key]
                 append_rows(args.run_dir / "episodes.csv", EPISODE_FIELDS,
@@ -435,6 +482,9 @@ def train(args, *, on_validation=None):
     except KeyboardInterrupt:
         print("Unterbrochen. latest.pt enthält das letzte vollständig gespeicherte Update.", flush=True)
         raise
+    finally:
+        if parallel:
+            parallel.close()
 
 
 def main():

@@ -150,7 +150,7 @@ window.Singleplayer = (() => {
         <button data-mode="feedback" aria-pressed="false"><span>🧸</span><strong>KI-ndergartenbetreuung</strong><small>Spiele mit der KI und bewerte ihre Entscheidungen.</small></button>
         <button data-mode="examples" aria-pressed="false"><span>🎬</span><strong>KI-no</strong><small>Pass &amp; Play: Eure Partien werden zu Lernbeispielen.</small></button>
       </div><div class="solo-settings">
-        <label id="solo-model-label">Trainiertes Modell<select id="solo-model">${catalog.models.map(model => `<option value="${esc(model.id)}">${esc(model.run)} · ${model.checkpoint} · ${Number(model.steps).toLocaleString("de-DE")} Schritte · ${esc(model.airport)}</option>`).join("")}</select></label>
+        <label id="solo-model-label">Trainiertes Modell<select id="solo-model">${catalog.models.map(model => `<option value="${esc(model.id)}">${esc(model.name || model.run)} · ${model.checkpoint} · ${Number(model.steps).toLocaleString("de-DE")} Schritte · ${esc(model.airport)}</option>`).join("")}</select></label>
         <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
         <label id="solo-route-label" hidden>Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
       </div><p id="solo-description" class="solo-description"></p>
@@ -161,7 +161,9 @@ window.Singleplayer = (() => {
       <p class="solo-storage-note" id="solo-storage-status"></p></details></div>`;
     setup = {mode: "play", humanRole: "pilot", model: null};
     // Prefer the most recent MUC run without excluding any compatible checkpoint.
-    const preferred = [...catalog.models].filter(m => m.airport === "MUC" && m.checkpoint === "latest").sort((a,b) => b.steps - a.steps)[0];
+    const preferred = [...catalog.models].filter(m => m.airport === "MUC").sort((a,b) =>
+      Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)) ||
+      Number(b.checkpoint === "latest") - Number(a.checkpoint === "latest") || b.steps - a.steps)[0];
     if (preferred) document.getElementById("solo-model").value = preferred.id;
     document.getElementById("solo-back").onclick = () => { root().classList.add("versteckt"); api.mainMenu(); };
     root().querySelectorAll("[data-mode]").forEach(button => button.onclick = () => {
@@ -250,7 +252,8 @@ window.Singleplayer = (() => {
   function decision(role) {
     const steps = session.events.filter(e => !e.voided && e.action_id !== null).length;
     return api.decision(role, reroll ? {initiator: reroll.initiator, selections: reroll.selections} : null,
-                        steps, setup.model?.max_steps || 256);
+                        steps, setup.model?.max_steps || 256,
+                        hasAI() && role === aiRole() ? setup.model?.assistance_version || 0 : 0);
   }
 
   function beforeAction(action, actor = "human", suppliedDecision = null) {
@@ -322,7 +325,7 @@ window.Singleplayer = (() => {
     bar.classList.toggle("versteckt", !active());
     if (!active()) return;
     if (state.status !== "laeuft") { clearTimeout(timer); timer = null; }
-    bar.innerHTML = `<div><strong>${names[setup.mode]}</strong><span>${hasAI() ? `Du: ${roleNames[setup.humanRole]} · KI: ${esc(setup.model.run)} / ${setup.model.checkpoint}` : "Beide Rollen werden als Beispiele aufgezeichnet"}</span><small id="ai-storage-status" role="status"></small></div>
+    bar.innerHTML = `<div><strong>${names[setup.mode]}</strong><span>${hasAI() ? `Du: ${roleNames[setup.humanRole]} · KI: ${esc(setup.model.name || setup.model.run)} / ${setup.model.checkpoint}` : "Beide Rollen werden als Beispiele aufgezeichnet"}</span><small id="ai-storage-status" role="status"></small></div>
       ${storageError ? '<button id="ai-game-export">Aufzeichnungen sichern</button>' : ""}${paused ? '<button id="ai-resume">KI fortsetzen</button>' : ""}<p class="ai-paused" role="alert">${esc(paused)}</p>`;
     document.getElementById("ai-game-export")?.addEventListener("click", exportData);
     document.getElementById("ai-resume")?.addEventListener("click", () => { paused = ""; afterRender(api.state()); });

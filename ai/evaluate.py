@@ -13,7 +13,8 @@ from .environment import CrewEnv
 
 PERFORMANCE_METRICS = ("win_rate", "mean_round", "mean_return", "truncated_rate",
     "mean_outcome_return", "mean_round_return", "mean_sync_return", "mean_tasks_return", "mean_tasks_undone", "mean_distance_remaining",
-    "airport_reached_rate", "landing_round_rate", "mean_sync_error")
+    "airport_reached_rate", "landing_round_rate", "mean_sync_error", "mean_coffee_actions", "mean_coffee_units",
+    "mean_rerolls", "mean_coffee_reversals", "first_action_reroll_rate", "capacity_impossible_rate")
 
 
 def wilson_interval(wins, games):
@@ -26,14 +27,16 @@ def wilson_interval(wins, games):
 
 def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
              ai_role="both", round_reward=0.02, max_steps=256, sync_weight=0.0, sync_tolerance=1.0,
-             task_weight=0.0, replay=None, render=False):
+             task_weight=0.0, replay=None, render=False, assistance_version=0):
     if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
         raise ValueError("Mindestens eine Partie und eine gültige Rolle sind erforderlich.")
-    env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance, task_weight=task_weight)
+    env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance, task_weight=task_weight,
+                  assistance_version=assistance_version)
     records = []
     # With a partner, 'both' means games per role, on the same seed set.
     roles = ("pilot", "kopilot") if partner is not None and ai_role == "both" else (ai_role,)
     for tested_role in roles:
+        env.assisted_roles = ('pilot', 'kopilot') if partner is None else (tested_role,)
         for game_index in range(games):
             game_seed = seed + game_index
             _, info = env.reset(seed=game_seed)
@@ -72,6 +75,9 @@ def summarize_episodes(records):
             **{f"mean_{key}": mean(r[key] for r in records) for key in ("outcome_return", "round_return", "sync_return", "tasks_return", "tasks_undone", "distance_remaining", "sync_error")},
             "airport_reached_rate": mean(r["airport_reached"] for r in records),
             "landing_round_rate": mean(r["landing_round_started"] for r in records),
+            **{f'mean_{key}': mean(r.get(key, 0) for r in records) for key in
+               ('coffee_actions', 'coffee_units', 'rerolls', 'coffee_reversals')},
+            **{f'{key}_rate': mean(r.get(key, 0) for r in records) for key in ('first_action_reroll', 'capacity_impossible')},
             "truncated": sum(r["status"] == "truncated" for r in records),
             "loss_reasons": dict(Counter(reason for r in records for reason in r["reason"].split(",") if reason)),
             "episodes": records}
@@ -96,6 +102,8 @@ def main():
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--json", type=Path, help="Save summary and per-game results, readable by the notebook.")
     parser.add_argument("--render", action="store_true")
+    parser.add_argument('--assistance-version', type=int, choices=(0, 1), default=None,
+                        help='Default from checkpoint; 0 evaluates the network without the optional planner.')
     args = parser.parse_args()
     import torch
     torch.set_num_threads(1)
@@ -112,6 +120,7 @@ def main():
     else:
         agent = HeuristicAgent() if args.baseline == "heuristic" else RandomAgent(args.seed + 17)
     airport = args.airport or config.get("airport", "MUC")
+    assistance = config.get('assistance_version', 0) if args.assistance_version is None else args.assistance_version
     reward_options = {key: getattr(args, key) if getattr(args, key) is not None else config.get(key, default)
                       for key, default in (("round_reward", 0.02), ("sync_weight", 0.0), ("sync_tolerance", 1.0), ("task_weight", 0.0))}
     partner = None if args.partner == "self" else HeuristicAgent() if args.partner == "heuristic" else RandomAgent(args.seed + 31)
@@ -122,7 +131,7 @@ def main():
             handle = args.replay.open("w", encoding="utf-8")
         result = evaluate(agent, games=args.games, seed=args.seed, airport=airport,
                           partner=partner, ai_role=args.ai_role, replay=handle, render=args.render,
-                          max_steps=config.get("max_steps", 256), **reward_options)
+                          max_steps=config.get("max_steps", 256), assistance_version=assistance, **reward_options)
     finally:
         if handle:
             handle.close()
@@ -143,7 +152,7 @@ def main():
                                         "action_mask_version": ACTION_MASK_VERSION,
                                         "stochastic": args.stochastic,
                                         "uniform_mix": agent.uniform_mix if args.checkpoint and args.stochastic else 0.0,
-                                        **reward_options, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
+                                        'assistance_version': assistance, **reward_options, **result}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":
