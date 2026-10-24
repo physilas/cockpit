@@ -27,9 +27,10 @@ class RerollPlanningTests(unittest.TestCase):
     def test_preserves_the_only_die_matching_the_known_partner_control(self):
         view=self.view([3,6,0,0],0)
         before=deepcopy(view)
-        actual=assisted_mask(view,self.mask((1,2,3)),version=7)
-        self.assertEqual([i for i,v in enumerate(actual) if v],
-            [ACTION_IDS[Action('reroll_select',subset=2)]])
+        for version in (7,8):
+            actual=assisted_mask(view,self.mask((1,2,3)),version=version)
+            self.assertEqual([i for i,v in enumerate(actual) if v],
+                [ACTION_IDS[Action('reroll_select',subset=2)]])
         self.assertEqual(view,before)
 
     def test_future_coffee_is_considered_before_rerolling_a_fixable_die(self):
@@ -38,6 +39,14 @@ class RerollPlanningTests(unittest.TestCase):
         view['reroll']['selections']['kopilot']=None
         slot=next(i for i,s in enumerate(SLOTS) if s.target=='ruder' and s.owner=='pilot')
         view['board'][slot]={'owner':'pilot','value':3}
-        actual=assisted_mask(view,self.mask((0,1)),version=7)
-        self.assertTrue(actual[ACTION_IDS[Action('reroll_select',subset=0)]])
-        self.assertFalse(actual[ACTION_IDS[Action('reroll_select',subset=1)]])
+        for version in (7,8):
+            actual=assisted_mask(view,self.mask((0,1)),version=version)
+            self.assertTrue(actual[ACTION_IDS[Action('reroll_select',subset=0)]])
+            self.assertFalse(actual[ACTION_IDS[Action('reroll_select',subset=1)]])
+
+    def test_profile_eight_preserves_crew_one_placement_choices_for_both_roles(self):
+        env=CrewEnv('LOG_HND_GREEN');env.reset(seed=5100004)
+        for role in ('pilot','kopilot'):
+            env.game.am_zug=role
+            view,mask=env.view(),env.action_mask()
+            self.assertEqual(assisted_mask(view,mask,version=8),assisted_mask(view,mask,version=3))

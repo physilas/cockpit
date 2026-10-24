@@ -123,6 +123,19 @@ feste, ausgeglichene Proben. Die hypothetische Planung berücksichtigt auch
 spätere Kaffeeanpassungen. Die Proben sind unabhängig vom Zufallsgenerator
 des Spiels. Diese Variante ist zunächst ein Entwicklungsexperiment.
 
+Nach dieser Erweiterung bestanden alle 178 Tests. Ein lokaler Browser-Smoke-Test
+bestätigte Spielzüge mit beiden Rollennetzen. Die Neuwurfprüfung lief auch in
+Pyodide: Der gezielte Zwei-Würfel-Fall dauerte 22 ms, der hier geprüfte schlechte
+Vier-Würfel-Fall 765 ms auf diesem Rechner. Das ist keine Laufzeitgarantie für
+andere Geräte und kein Nachweis einer verbesserten Gewinnrate.
+
+Der fertige `role-league`-Kandidat war auf dem neuen Entwicklungsvergleich
+(Protokoll 2, 1.400 gepaarte Fälle, Seed 11.004.000) exakt gleichauf mit Crew 1:
+106 verbesserte und 106 verschlechterte Spielausgänge, Änderung 0,00 Punkte,
+Intervall −2,93 bis +2,93. Der Trainingshöchststand wird deshalb nicht freigegeben.
+Profil 8 isoliert als nächsten Versuch die Neuwurfänderung mit unveränderten
+Crew-1-Gewichten und Profil-3-Platzierungsplanung für beide Rollen.
+
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse
 und tatsächlich ausgeführten Trainingsläufe werden beim Release ergänzt.

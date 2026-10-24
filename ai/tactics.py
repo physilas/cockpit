@@ -12,7 +12,7 @@ import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 7
+ASSISTANCE_VERSION = 8
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -468,10 +468,10 @@ def _assisted_mask(view, mask, version):
     This profile is deliberately a hybrid player, not a claim that all pruned
     actions are rule-illegal. The neural policy ranks the remaining alternatives.
     """
-    if version in (6,7):
-        if version==7:
+    if version in (6,7,8):
+        if version in (7,8):
             view={**view,'_smart_reroll':True}
-        return _assisted_mask(view,mask,4 if view['role']=='pilot' else 3)
+        return _assisted_mask(view,mask,4 if version!=8 and view['role']=='pilot' else 3)
     base = capacity_mask(view, mask, include_traffic=version >= 3)
     planning_mask = list(base)
     for i, action in enumerate(ACTIONS):
