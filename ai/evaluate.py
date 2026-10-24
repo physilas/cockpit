@@ -27,7 +27,7 @@ def wilson_interval(wins, games):
 
 def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
              ai_role="both", round_reward=0.02, max_steps=256, sync_weight=0.0, sync_tolerance=1.0,
-             task_weight=0.0, replay=None, render=False, assistance_version=0,cpu_duty_cycle=1):
+             task_weight=0.0, replay=None, render=False, assistance_version=0,cpu_duty_cycle=1,policy_seed=None):
     from .throttle import CpuBudget
     cpu_budget=CpuBudget(cpu_duty_cycle)
     if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
@@ -41,6 +41,11 @@ def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
         env.assisted_roles = ('pilot', 'kopilot') if partner is None else (tested_role,)
         for game_index in range(games):
             game_seed = seed + game_index
+            if policy_seed is not None:
+                # Reset AFTER loading models, independently of architecture,
+                # worker assignment and the previous game's action count.
+                import torch
+                torch.manual_seed(policy_seed+game_index)
             _, info = env.reset(seed=game_seed)
             total_reward = 0.0
             while not env.done:
@@ -105,7 +110,7 @@ def main():
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--json", type=Path, help="Save summary and per-game results, readable by the notebook.")
     parser.add_argument("--render", action="store_true")
-    parser.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4, 5, 6), default=None,
+    parser.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4, 5, 6, 7), default=None,
                         help='Default from checkpoint; 0 evaluates the network without the optional planner.')
     args = parser.parse_args()
     import torch

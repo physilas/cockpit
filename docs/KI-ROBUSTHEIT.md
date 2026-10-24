@@ -23,8 +23,12 @@ parallelen schweren Läufe und bleibt bei unverändertem Zustand still.
 - Freigabe: zwei getrennte Seed-Sätze ab 12.000.000 und 13.000.000. Diese
   Ergebnisse werden nicht zum Abstimmen einzelner Planergewichte verwendet.
 - Paarweise Vergleiche verwenden pro Strecke, Partner und Rolle dieselben
-  Anfangs-Seeds für Referenz und Kandidat. Intervalle der Gesamtänderung fassen
-  wiederholte Rollen und Partner nach Strecke und Seed zu Clustern zusammen.
+  Anfangs-Seeds für Referenz und Kandidat. Protokoll 2 setzt auch den
+  Policy-Zufall pro Partie nach dem Laden der Modelle zurück. Intervalle der
+  Gesamtänderung fassen sämtliche Routen, Rollen und Partner mit demselben
+  Anfangs-Seed zu einem Cluster zusammen: Auch verschiedene Routen können
+  bei gleichem Seed korrelierte Würfe haben. Diese Korrektur erfolgte vor
+  Benutzung der finalen Testkohorten.
 - Partner: unabhängige einfache Heuristik, eingefrorene Crew 1 und deren
   stochastische Variante. Selbstspiel wird zusätzlich separat berichtet.
 - Ein neuer Standardspieler braucht einen positiven Fortschritt in beiden
@@ -99,6 +103,25 @@ Gradienten einer Rolle die Gewichte der anderen Rolle nicht mehr verändern.
 Checkpoints und Browser unterstützen beide Rollennetze; der bestehende
 Beobachtungs-/Aktionsvertrag bleibt erhalten. Vor dem Entwicklungsvergleich
 bestanden 174 Tests einschließlich Python/JavaScript-Parität beider Netze.
+
+Der Rollen-Kandidat erreichte auf einem weiteren Entwicklungsvergleich
+(1.400 gepaarte Fälle, bisheriges Vergleichsprotokoll) +0,86 Prozentpunkte,
+Intervall −1,74 bis +3,46. Das genügt weiterhin nicht. Beide unabhängigen
+Rollenköpfe wurden deshalb im getrennten Lauf `role-league` mit gemischter
+Routen-/Partnervalidierung bis 33.950.105 Entscheidungen weitertrainiert,
+also 100.037 weitere Entscheidungen. Der nach der Trainingsvalidierung beste
+Stand stammt von Entscheidung 33.913.446. Der unveränderte Kandidat bleibt
+als Kontrollstand erhalten. Stochastische Vergleichspartner werden künftig
+mit Protokoll 2 geprüft, damit Netzinitialisierung und Prozessverteilung den
+Zufallsstrom nicht verschieben.
+
+Profil 7 ergänzt Profil 6 um eine eigene Neuwurfauswahl. Es bewertet mögliche
+Teilmengen der sichtbaren eigenen Würfel, statt eine schlechte Hand vollständig
+neu zu würfeln. Einzelne Würfel und Hände mit höchstens zwei Würfeln werden
+exakt über alle möglichen Würfe geprüft; größere Teilmengen verwenden zwölf
+feste, ausgeglichene Proben. Die hypothetische Planung berücksichtigt auch
+spätere Kaffeeanpassungen. Die Proben sind unabhängig vom Zufallsgenerator
+des Spiels. Diese Variante ist zunächst ein Entwicklungsexperiment.
 
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse

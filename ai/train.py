@@ -262,7 +262,7 @@ def parser():
     result.add_argument("--device", default="cpu", help="cpu, cuda or mps; CPU is usually useful for this small sequential model.")
     result.add_argument("--threads", type=int, default=1)
     result.add_argument("--resume", type=Path)
-    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4, 5, 6), default=None,
+    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3, 4, 5, 6, 7), default=None,
                         help='Optional public own-hand planner; fresh runs 0, resume preserves saved profile.')
     result.add_argument('--discount-unit', choices=('action', 'placement'), default=None,
                         help='placement does not discount through coffee/reroll helper decisions.')
@@ -326,7 +326,8 @@ def train(args, *, on_validation=None):
     args.eval_partner_fraction=args.eval_partner_fraction if args.eval_partner_fraction is not None else previous_options.get('eval_partner_fraction') or 0
     if not math.isfinite(args.eval_partner_fraction) or not 0<=args.eval_partner_fraction<=1:
         arg_parser.error('--eval-partner-fraction must be in [0,1].')
-    validation_changed=payload is not None and (args.eval_airports!=(previous_options.get('eval_airports') or [])
+    validation_changed=payload is not None and (update>0 and previous_options.get('validation_protocol',1)!=2
+        or args.eval_airports!=(previous_options.get('eval_airports') or [])
         or args.eval_partner_fraction!=(previous_options.get('eval_partner_fraction') or 0))
     if validation_changed:
         best_score=(-1.0,)*5
@@ -445,6 +446,7 @@ def train(args, *, on_validation=None):
                    'curriculum_changed_on_resume': curriculum_changed,
                    'partner_manifest': partner_manifest, 'partner_changed_on_resume': partner_changed,
                    'validation_changed_on_resume':validation_changed,
+                   'validation_protocol':2,
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
@@ -516,11 +518,12 @@ def train(args, *, on_validation=None):
             validation_due = total_steps >= next_eval if next_eval is not None else update % args.eval_every == 0
             if validation_due or total_steps >= args.steps:
                 model.eval()
-                result = parallel.evaluate(model, games=args.eval_games, seed=args.eval_seed,
-                                  airports=args.eval_airports,partner_fraction=args.eval_partner_fraction) if parallel else evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
-                                  airport=args.airport, round_reward=args.round_reward, max_steps=args.max_steps,
-                                  sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance, task_weight=args.task_weight,
-                                  assistance_version=args.assistance_version)
+                with torch.random.fork_rng(devices=[]):
+                    result = parallel.evaluate(model, games=args.eval_games, seed=args.eval_seed,
+                                      airports=args.eval_airports,partner_fraction=args.eval_partner_fraction) if parallel else evaluate(ModelAgent(model), games=args.eval_games, seed=args.eval_seed,
+                                      airport=args.airport, round_reward=args.round_reward, max_steps=args.max_steps,
+                                      sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance, task_weight=args.task_weight,
+                                      assistance_version=args.assistance_version, policy_seed=args.eval_seed)
                 for key in (*PERFORMANCE_METRICS, "win_ci_low", "win_ci_high"):
                     row[f"eval_{key}"] = result[key]
                 append_rows(args.run_dir / "episodes.csv", EPISODE_FIELDS,

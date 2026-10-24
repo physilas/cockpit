@@ -27,7 +27,7 @@ class CrewEnv:
         self.sync_weight = float(sync_weight)
         self.sync_tolerance = float(sync_tolerance)
         self.task_weight = float(task_weight)
-        if assistance_version not in (0, 1, 2, 3, 4, 5, 6):
+        if assistance_version not in (0, 1, 2, 3, 4, 5, 6, 7):
             raise ValueError('Unbekanntes KI-Assistenzprofil.')
         self.assistance_version = assistance_version
         self.curriculum_airports = tuple(curriculum_airports)

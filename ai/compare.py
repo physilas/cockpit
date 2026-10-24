@@ -52,7 +52,7 @@ def _run(task):
                 probe_enabled=True
         partner.select=unprobed_partner
     records = evaluate(ModelAgent(model), airport=airport, assistance_version=profile,
-        partner=partner, ai_role=role, seed=seed, games=games, round_reward=0,cpu_duty_cycle=duty)['episodes']
+        partner=partner, ai_role=role, seed=seed, games=games, round_reward=0,cpu_duty_cycle=duty,policy_seed=seed)['episodes']
     if probing:
         tactics.plan_actions=original
         tactics._cached_mask.cache_clear()
@@ -60,14 +60,14 @@ def _run(task):
 
 
 def paired_summary(baseline, candidate):
-    """Normal interval with repeated roles/partners clustered by route + seed."""
+    """Cluster all correlated roles, routes and partners by initial seed."""
     groups, improved, regressed = {}, 0, 0
     for key, old in baseline.items():
         new = candidate[key]
         delta = int(new['status'] == 'gewonnen')-int(old['status'] == 'gewonnen')
         improved += delta > 0
         regressed += delta < 0
-        groups.setdefault((key[0], key[-1]), []).append(delta)
+        groups.setdefault(key[-1], []).append(delta)
     values = [sum(v)/len(v) for v in groups.values()]
     mean = sum(values)/len(values)
     se = math.sqrt(sum((v-mean)**2 for v in values)/(len(values)*(len(values)-1))) if len(values)>1 else 1
@@ -110,7 +110,7 @@ def main():
     results={label:{} for label in checkpoints}
     buckets={}
     args.output.parent.mkdir(parents=True,exist_ok=True)
-    manifest={'models':metadata,'planner_sha256':planner_fingerprint(),'seed':args.seed,
+    manifest={'protocol_version':2,'models':metadata,'planner_sha256':planner_fingerprint(),'seed':args.seed,
               'airports':args.airports,'partners':args.partners,'games':args.games,
               'margin':args.candidate_margin,'beam':args.candidate_beam}
     journal=args.output.with_suffix('.episodes.jsonl')
@@ -142,7 +142,7 @@ def main():
             label,airport,kind,role,records=output
             print(f"[{i}/{len(tasks)}] {label} {airport} {kind} {role}: "
                   f"{sum(r['status']=='gewonnen' for r in records)}/{len(records)}",flush=True)
-    report={'format':1,'seed':args.seed,'games_per_role':args.games,'models':metadata,
+    report={'format':1,'protocol_version':2,'seed':args.seed,'games_per_role':args.games,'models':metadata,
             'planner_sha256':planner_fingerprint(),'development_margin':args.candidate_margin,
             'development_beam':args.candidate_beam,'routes':{},'comparison':paired_summary(**results)}
     for airport in args.airports:

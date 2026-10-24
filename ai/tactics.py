@@ -7,12 +7,12 @@ demonstrations retain their meaning.
 """
 from math import ceil, factorial, prod
 from functools import lru_cache
-from itertools import combinations_with_replacement
+from itertools import combinations_with_replacement, product
 import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 6
+ASSISTANCE_VERSION = 7
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -410,6 +410,53 @@ def assisted_mask(view, mask, *, version=1):
     return list(_cached_mask(json.dumps(view, sort_keys=True, separators=(',', ':')), tuple(mask), version))
 
 
+# Balanced probes, deliberately independent of the engine and its future RNG.
+# Single-die rerolls and hands with at most two dice are enumerated exactly.
+_REROLL_PROBES=((1,2,6,3),(2,5,4,1),(3,1,2,6),(4,6,5,2),(5,3,1,4),(6,4,3,5),
+                (4,1,2,5),(1,3,6,4),(6,6,3,1),(2,4,1,6),(5,2,5,3),(3,5,4,2))
+
+
+def _future_action_mask(view,coffee=False):
+    from .public_rules import legal_placement_in_view
+    result=[]
+    for action in ACTIONS:
+        valid=action.kind=='place' and legal_placement_in_view(view,action)
+        if coffee and action.kind=='coffee':
+            face=view['own_dice'][action.die]
+            valid=bool(face) and abs(action.delta)<=view['coffee'] and 1<=face+action.delta<=6
+        result.append(valid)
+    return capacity_mask(view,result,include_traffic=True)
+
+
+def _choose_reroll(view,eligible,current_quality):
+    none=next((i for i in eligible if not ACTIONS[i].subset),None)
+    if none is not None and current_quality>=-100:
+        return none
+    available=sum(bool(d) for d in view['own_dice'])
+    scores={}
+    for action_id in eligible:
+        indices=[j for j in range(4) if ACTIONS[action_id].subset & (1<<j)]
+        if not indices:
+            qualities=[current_quality]
+        else:
+            rolls=(product(range(1,7),repeat=len(indices)) if available<=2 or len(indices)==1
+                   else (tuple(row[j] for j in indices) for row in _REROLL_PROBES))
+            qualities=[]
+            for faces in rolls:
+                dice=list(view['own_dice'])
+                for index,face in zip(indices,faces):
+                    dice[index]=face
+                changed={**view,'own_dice':dice,'reroll':None}
+                # An optimistic own-hand rescue test, rather than a prediction
+                # of the partner's private dice or their eventual decisions.
+                ranked,_=plan_actions(changed,_future_action_mask(changed,coffee=True),
+                                      version=3,beam=24 if available<=2 else 8)
+                qualities.append(max(ranked.values(),default=-10000))
+        scores[action_id]=(sum(q>=-100 for q in qualities)/len(qualities),
+            sum(max(-3000,min(500,q)) for q in qualities)/len(qualities),-len(indices))
+    return max(eligible,key=lambda i:(*scores[i],-i))
+
+
 @lru_cache(maxsize=512)
 def _cached_mask(serialized_view, mask, version):
     return tuple(_assisted_mask(json.loads(serialized_view), mask, version))
@@ -421,7 +468,9 @@ def _assisted_mask(view, mask, version):
     This profile is deliberately a hybrid player, not a claim that all pruned
     actions are rule-illegal. The neural policy ranks the remaining alternatives.
     """
-    if version==6:
+    if version in (6,7):
+        if version==7:
+            view={**view,'_smart_reroll':True}
         return _assisted_mask(view,mask,4 if view['role']=='pilot' else 3)
     base = capacity_mask(view, mask, include_traffic=version >= 3)
     planning_mask = list(base)
@@ -430,9 +479,12 @@ def _assisted_mask(view, mask, version):
             planning_mask[i] = False
     # During reroll selection use normal placements for hypothetical own plans.
     if view['reroll']:
-        from .public_rules import legal_placement_in_view
-        planning_mask = [a.kind == 'place' and legal_placement_in_view(view, a) for a in ACTIONS]
-        planning_mask = capacity_mask(view, planning_mask, include_traffic=version >= 3)
+        if view.get('_smart_reroll'):
+            planning_mask=_future_action_mask(view,coffee=True)
+        else:
+            from .public_rules import legal_placement_in_view
+            planning_mask = [a.kind == 'place' and legal_placement_in_view(view, a) for a in ACTIONS]
+            planning_mask = capacity_mask(view, planning_mask, include_traffic=version >= 3)
     ranked, sequences = plan_actions(view, planning_mask, version=version, beam=64 if version >= 3 else 24)
     best = max(ranked.values(), default=-10000)
     rescue_score = best
@@ -449,7 +501,8 @@ def _assisted_mask(view, mask, version):
             wanted = 0
         eligible = [i for i, a in enumerate(ACTIONS) if base[i] and a.kind == 'reroll_select']
         if eligible:
-            selected = min(eligible, key=lambda i: (ACTIONS[i].subset ^ wanted).bit_count())
+            selected = (_choose_reroll(view,eligible,rescue_score) if view.get('_smart_reroll') else
+                        min(eligible, key=lambda i: (ACTIONS[i].subset ^ wanted).bit_count()))
             result[selected] = True
     else:
         for i, quality in ranked.items():

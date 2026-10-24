@@ -72,7 +72,7 @@ def _evaluate(task):
     options = {k: v for k, v in _env_options.items() if k != 'curriculum_airports'}
     options['airport']=airport
     return evaluate(ModelAgent(_model), games=games, seed=seed,cpu_duty_cycle=_cpu_duty_cycle,
-        partner=_partners[partner_index] if partner_index is not None else None,ai_role=role,**options)['episodes']
+        partner=_partners[partner_index] if partner_index is not None else None,ai_role=role,policy_seed=seed,**options)['episodes']
 
 
 class ParallelGames:
