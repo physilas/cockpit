@@ -1,5 +1,19 @@
 # Partnertraining und Unsicherheit
 
+## Abschluss
+
+Die Untersuchung ist auf Wunsch des Nutzers nach dem letzten laufenden Vergleich
+beendet. Crew 1 bleibt Standard; die neuen Varianten werden nicht im Menü
+angeboten. Profil 9 erreichte auf 2.800 gepaarten Entwicklungsfällen nur +0,25
+Prozentpunkte (21 verbessert, 14 schlechter; 95-%-Intervall −0,37 bis +0,87).
+Damit ist kein verlässlicher Gesamtfortschritt belegt. Die beiden vorgesehenen
+Freigabekohorten wurden nicht benutzt; Zusatzmodule wurden nicht begonnen.
+Alle Trainings- und Vergleichsprozesse sind beendet, die automatische Fortsetzung
+ist pausiert. Die drei abschließenden Berichte stehen unter
+[`ai/experiments/robustness-2026-10-24`](../ai/experiments/robustness-2026-10-24/README.md).
+181 Tests bestanden; beide Rollennetze und die exakte Neuwurfplanung wurden
+zusätzlich im Browser geprüft.
+
 Crew 1 bleibt die eingefrorene Referenz. Assistenzprofil 3 wird unverändert
 ausgeführt; das neue Profil 4 ergänzt eine explizite Würfelprior-Verteilung.
 Die Partnerhand wird weder gelesen noch an den Planer übergeben.
@@ -13,8 +27,9 @@ Rechenanteil wird nach jedem Simulationsschritt durch proportional lange
 Pausen begrenzt. Das ist eine Lastbegrenzung, keine Temperaturmessung.
 
 Die automatische Fortsetzung alle 15 Minuten wurde ausdrücklich freigegeben
-und als „KI schonend weitertrainieren“ eingerichtet. Sie startet keine
-parallelen schweren Läufe und bleibt bei unverändertem Zustand still.
+und als „KI schonend weitertrainieren“ eingerichtet. Zum Abschluss der
+Untersuchung wurde sie auf Wunsch des Nutzers pausiert. Es folgen keine weiteren
+automatischen Trainings- oder Vergleichsläufe.
 
 ## Vorab festgelegtes Versuchsprotokoll
 
@@ -81,7 +96,7 @@ Der Lauf `league-cool-v4` wurde anschließend mit zwei Workern bei 50 Prozent
 Rechenanteil bis 33.850.068 absolute Entscheidungen abgeschlossen, also 166.239
 neue Entscheidungen. Beste und letzte Gewichte sind identisch. Die letzte
 HND-Selbstspielvalidierung betrug 34 Prozent; die getrennte Partnerauswertung
-folgt. Für Folgeversuche kann die Auswahl des besten Modells nun über mehrere
+ist weiter unten dokumentiert. Für Folgeversuche kann die Auswahl des besten Modells nun über mehrere
 Routen und eingefrorene Partner erfolgen (`--eval-airports` und
 `--eval-partner-fraction`), statt allein über HND-Selbstspiel. Nach dieser
 Erweiterung bestanden alle 170 Tests.
@@ -149,6 +164,6 @@ Die Ergebniswahrscheinlichkeiten werden exakt summiert; die Bewertung der
 jeweiligen eigenen Fortsetzung bleibt die begrenzte Rundenplanung.
 Alle 181 Tests bestanden vor dem Vergleich dieser Variante.
 
-`ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
-jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse
-und tatsächlich ausgeführten Trainingsläufe werden beim Release ergänzt.
+`ai.compare` erzeugte die abschließenden paarweisen Berichte. Bei einer späteren
+neuen Modellfreigabe muss `ai.route_eval` zusätzlich jede angebotene Route auf
+unabhängigen Seeds qualifizieren. In dieser Untersuchung erfolgte keine Freigabe.
