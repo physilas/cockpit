@@ -24,6 +24,7 @@ def _run(task):
 
 
 def main():
+    torch.set_num_threads(1)
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--checkpoint', type=Path, required=True)
     p.add_argument('--airports', nargs='+', default=None)

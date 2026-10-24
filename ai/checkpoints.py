@@ -7,7 +7,7 @@ import json
 import torch
 
 from .actions import ACTIONS, SLOTS, SCHEMA_VERSION
-from .nn_model import ActorCritic
+from .nn_model import build_model
 from .observation import feature_names
 
 
@@ -47,7 +47,7 @@ def load_checkpoint(path, device="cpu"):
     payload = torch.load(path, map_location=device, weights_only=True)
     if payload.get("schema") != schema():
         raise ValueError("Checkpoint und aktuelles Beobachtungs-/Aktionsformat passen nicht zusammen.")
-    model = ActorCritic(**payload["model_config"]).to(device)
+    model = build_model(payload["model_config"]).to(device)
     model.load_state_dict(payload["model_state"])
     model.eval()
     return model, payload

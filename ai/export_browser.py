@@ -15,6 +15,16 @@ from .checkpoints import load_checkpoint, schema
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _layers(model):
+    layers=[]
+    for layer in [*model.encoder,model.actor]:
+        if hasattr(layer,'weight'):
+            layers.append({'input':layer.in_features,'output':layer.out_features,
+                'weight':base64.b64encode(layer.weight.detach().cpu().numpy().astype('<f4').tobytes()).decode(),
+                'bias':base64.b64encode(layer.bias.detach().cpu().numpy().astype('<f4').tobytes()).decode()})
+    return layers
+
+
 def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
     output_dir = Path(output_dir)
     catalog_path = output_dir / 'js' / 'ai-models.js'
@@ -33,14 +43,9 @@ def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
         try:
             model, payload = load_checkpoint(path)
             config = payload.get("train_config", {})
-            weights = []
-            for layer in [*model.encoder, model.actor]:
-                if not hasattr(layer, "weight"):
-                    continue
-                weights.append({"input": layer.in_features, "output": layer.out_features,
-                                "weight": base64.b64encode(layer.weight.detach().cpu().numpy().astype("<f4").tobytes()).decode(),
-                                "bias": base64.b64encode(layer.bias.detach().cpu().numpy().astype("<f4").tobytes()).decode()})
-            data = {"format": 1, "schema": schema(), "layers": weights, "model_config": model.config}
+            data = ({'format':2,'schema':schema(),'roles':{r:_layers(m) for r,m in model.roles.items()},'model_config':model.config}
+                    if hasattr(model,'roles') else
+                    {"format": 1, "schema": schema(), "layers": _layers(model), "model_config": model.config})
             raw = json.dumps(data, separators=(",", ":")).encode()
             fingerprint = hashlib.sha256(raw).hexdigest()
             asset = assets / f"{fingerprint}.json"

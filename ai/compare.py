@@ -35,7 +35,7 @@ def _run(task):
                 return ranks,sequences
             best=max(ranks.values(),default=0)
             from .actions import ACTIONS
-            return {i:best-(best-v)*(3 if kw.get('version',1)>=4 and ACTIONS[i].kind=='place' else 1.5)/margin
+            return {i:best-(best-v)*(3 if kw.get('version',1)==4 and ACTIONS[i].kind=='place' else 1.5)/margin
                     for i,v in ranks.items()},sequences
         tactics.plan_actions=shortlist_probe
         tactics._cached_mask.cache_clear()
@@ -76,6 +76,7 @@ def paired_summary(baseline, candidate):
 
 
 def main():
+    torch.set_num_threads(1)
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--baseline', type=Path, required=True)
     p.add_argument('--candidate', type=Path, required=True)

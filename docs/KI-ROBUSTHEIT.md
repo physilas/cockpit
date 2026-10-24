@@ -90,6 +90,16 @@ Intervallen. Das ist ein Hinweis für getrennte Rollengewichte, kein
 Verbesserungsnachweis. Eine zusätzliche isolierte Kapazitätsvariante (Profil 5)
 veränderte auf 360 gepaarten Fällen keinen einzigen Spielausgang.
 
+Die nächste Variante trennt die Rollengewichte vollständig: Der neue
+Pilotinnen-Stand wird mit dem bisherigen Co-Piloten kombiniert. Assistenzprofil 6
+verwendet dafür Profil 4 bei der Pilotin und Profil 3 beim Co-Piloten. Beide
+Netze bekommen jeweils dieselbe erlaubte eigene Beobachtung; es werden keine
+Partnerwürfel geteilt. Bei einem späteren gemeinsamen Training können die
+Gradienten einer Rolle die Gewichte der anderen Rolle nicht mehr verändern.
+Checkpoints und Browser unterstützen beide Rollennetze; der bestehende
+Beobachtungs-/Aktionsvertrag bleibt erhalten. Vor dem Entwicklungsvergleich
+bestanden 174 Tests einschließlich Python/JavaScript-Parität beider Netze.
+
 `ai.compare` erzeugt die paarweisen Berichte. `ai.route_eval` prüft anschließend
 jede angebotene Route auf unabhängigen Seeds. Die vollständigen Ergebnisse
 und tatsächlich ausgeführten Trainingsläufe werden beim Release ergänzt.

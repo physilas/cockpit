@@ -8,7 +8,7 @@ from torch import nn
 from torch.distributions import Categorical
 
 from .actions import ACTION_COUNT
-from .observation import OBSERVATION_SIZE
+from .observation import OBSERVATION_SIZE, feature_names
 
 
 class ActorCritic(nn.Module):
@@ -59,3 +59,34 @@ class ActorCritic(nn.Module):
     def evaluate_actions(self, observation, action_mask, actions, uniform_mix=0.0):
         distribution, value = self.distribution(observation, action_mask, uniform_mix)
         return distribution.log_prob(actions), distribution.entropy(), value
+
+
+class RoleActorCritic(ActorCritic):
+    """Separate trainable role heads with the same permitted feature boundary."""
+    def __init__(self, pilot, kopilot):
+        nn.Module.__init__(self)
+        if any(pilot.config[k]!=kopilot.config[k] for k in ('observation_size','action_count')):
+            raise ValueError('Role models need the same observation and action schema.')
+        if any('kind' in model.config for model in (pilot,kopilot)):
+            raise ValueError('Nested role ensembles are not supported.')
+        self.roles=nn.ModuleDict({'pilot':pilot,'kopilot':kopilot})
+        self.config={**pilot.config,'kind':'role_ensemble',
+                     'roles':{role:model.config for role,model in self.roles.items()}}
+        self.pilot_feature=feature_names().index('role.pilot')
+
+    def forward(self, observation):
+        pilot_logits,pilot_value=self.roles['pilot'](observation)
+        copilot_logits,copilot_value=self.roles['kopilot'](observation)
+        pilot=observation[...,self.pilot_feature]>.5
+        return torch.where(pilot.unsqueeze(-1),pilot_logits,copilot_logits),torch.where(pilot,pilot_value,copilot_value)
+
+
+def build_model(config):
+    if config.get('kind')=='role_ensemble':
+        if set(config['roles'])!={'pilot','kopilot'}:
+            raise ValueError('Both role heads are required.')
+        model=RoleActorCritic(*(build_model(config['roles'][role]) for role in ('pilot','kopilot')))
+        if model.config!=config:
+            raise ValueError('Non-canonical role model configuration.')
+        return model
+    return ActorCritic(**config)

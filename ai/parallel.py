@@ -13,7 +13,7 @@ import torch
 from .agents import HeuristicAgent, ModelAgent
 from .environment import CrewEnv
 from .evaluate import evaluate, summarize_episodes
-from .nn_model import ActorCritic
+from .nn_model import build_model
 from .partners import make_partner
 
 _model = None
@@ -49,7 +49,7 @@ def evaluation_cases(airports, partners, fraction, games):
 def _initialize(model_config, env_options, specs, cpu_duty_cycle):
     global _model, _env_options, _partners, _cpu_duty_cycle
     torch.set_num_threads(1)
-    _model = ActorCritic(**model_config)
+    _model = build_model(model_config)
     _env_options = env_options
     _partners = [make_partner(spec) for spec in specs]
     _cpu_duty_cycle = cpu_duty_cycle

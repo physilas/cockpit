@@ -8,8 +8,18 @@ window.CockpitPolicy = (() => {
   }
 
   function create(data, catalog) {
-    if (data.format !== 1 || JSON.stringify(data.schema) !== JSON.stringify(catalog.schema)) {
+    if (![1, 2].includes(data.format) || JSON.stringify(data.schema) !== JSON.stringify(catalog.schema)) {
       throw new Error("Das Modell passt nicht zur aktuellen KI-Schnittstelle.");
+    }
+    if (data.format === 2) {
+      if (Object.keys(data.roles || {}).sort().join(",") !== "kopilot,pilot") throw new Error("Beide KI-Rollen werden benötigt.");
+      const roles = Object.fromEntries(Object.entries(data.roles).map(([role, layers]) =>
+        [role, create({format: 1, schema: data.schema, layers}, catalog)]));
+      const pilotFeature = catalog.schema.features.indexOf("role.pilot");
+      if (pilotFeature < 0) throw new Error("Die Rollenbeobachtung fehlt.");
+      const branch = observation => roles[observation[pilotFeature] > 0.5 ? "pilot" : "kopilot"];
+      return {logits: observation => branch(observation).logits(observation),
+              select: decision => branch(decision.observation).select(decision)};
     }
     let width = catalog.schema.features.length;
     const layers = data.layers.map(layer => {
