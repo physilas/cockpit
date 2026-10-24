@@ -1,0 +1,153 @@
+{
+  "hardware": {
+    "chip": "Apple M2 Pro",
+    "logical_cpu_cores": 12,
+    "gpu_backend": "Metal/MPS"
+  },
+  "stages": {
+    "train": {
+      "resumed_from_steps": 32993178,
+      "finished_at_steps": 33093308,
+      "new_decisions": 100130,
+      "elapsed_seconds": 90.38129525003023,
+      "steps_per_second": 1107.8619721370558,
+      "airport": "MUC",
+      "curriculum_airports": [],
+      "assistance_version": 1,
+      "device": "mps",
+      "workers": 6,
+      "best_validation_win_rate": 0.83,
+      "validation_games": 100,
+      "partner_fraction": 0.25,
+      "interrupted": false
+    },
+    "traffic1": {
+      "resumed_from_steps": 33012110,
+      "finished_at_steps": 33112230,
+      "new_decisions": 100120,
+      "elapsed_seconds": 87.20478800009005,
+      "steps_per_second": 1148.102097328608,
+      "airport": "MUC_T1",
+      "curriculum_airports": [
+        "MUC",
+        "MUC_T1",
+        "MUC_T1"
+      ],
+      "assistance_version": 2,
+      "device": "mps",
+      "workers": 6,
+      "best_validation_win_rate": 0.94,
+      "validation_games": 100,
+      "partner_fraction": 0.25,
+      "interrupted": false
+    },
+    "traffic2-lengths": {
+      "resumed_from_steps": 33037254,
+      "finished_at_steps": 33300089,
+      "new_decisions": 262835,
+      "elapsed_seconds": 222.50415441696532,
+      "steps_per_second": 1181.258842958303,
+      "airport": "MUC_T2",
+      "curriculum_airports": [
+        "MUC",
+        "MUC_T1",
+        "MUC_T2",
+        "MUC_T2",
+        "TRAIN_SHORT",
+        "TRAIN_LONG"
+      ],
+      "assistance_version": 2,
+      "device": "mps",
+      "workers": 6,
+      "best_validation_win_rate": 0.93,
+      "validation_games": 100,
+      "partner_fraction": 0.25,
+      "interrupted": false
+    },
+    "curves": {
+      "resumed_from_steps": 33213770,
+      "finished_at_steps": 33550120,
+      "new_decisions": 336350,
+      "elapsed_seconds": 639.2705066250637,
+      "steps_per_second": 526.1465944607882,
+      "airport": "TRAIN_CURVE",
+      "curriculum_airports": [
+        "MUC_T2",
+        "MUC_T3",
+        "TRAIN_SHORT",
+        "TRAIN_LONG",
+        "TRAIN_DENSE",
+        "TRAIN_CURVE",
+        "TRAIN_CURVE",
+        "TRAIN_CURVE"
+      ],
+      "assistance_version": 3,
+      "device": "mps",
+      "workers": 6,
+      "best_validation_win_rate": 0.97,
+      "validation_games": 100,
+      "partner_fraction": 0.25,
+      "interrupted": false
+    },
+    "basegame": {
+      "resumed_from_steps": 33414946,
+      "finished_at_steps": 33642150,
+      "new_decisions": 227204,
+      "elapsed_seconds": 360.8026724578813,
+      "steps_per_second": 629.718173793524,
+      "airport": "LOG_HND_GREEN",
+      "curriculum_airports": [
+        "MUC",
+        "MUC_T3",
+        "LHR",
+        "FRA",
+        "LOG_YUL_GREEN",
+        "LOG_LHR_GREEN",
+        "TRAIN_TRAFFIC",
+        "TRAIN_TRAFFIC",
+        "LOG_HND_GREEN",
+        "LOG_HND_GREEN",
+        "LOG_HND_GREEN",
+        "LOG_HND_GREEN"
+      ],
+      "assistance_version": 3,
+      "device": "mps",
+      "workers": 8,
+      "best_validation_win_rate": 0.35333333333333333,
+      "validation_games": 150,
+      "partner_fraction": 0.25,
+      "interrupted": true
+    },
+    "basegame-final": {
+      "resumed_from_steps": 33566378,
+      "finished_at_steps": 34000159,
+      "new_decisions": 433781,
+      "elapsed_seconds": 656.0354675829876,
+      "steps_per_second": 661.2157748088937,
+      "airport": "LOG_HND_GREEN",
+      "curriculum_airports": [
+        "MUC",
+        "MUC_T3",
+        "LHR",
+        "FRA",
+        "LOG_YUL_GREEN",
+        "LOG_LHR_GREEN",
+        "TRAIN_TRAFFIC",
+        "TRAIN_TRAFFIC",
+        "LOG_HND_GREEN",
+        "LOG_HND_GREEN",
+        "LOG_HND_GREEN",
+        "LOG_HND_GREEN"
+      ],
+      "assistance_version": 3,
+      "device": "mps",
+      "workers": 8,
+      "best_validation_win_rate": 0.38666666666666666,
+      "validation_games": 150,
+      "partner_fraction": 0.25,
+      "interrupted": false
+    }
+  },
+  "new_decisions_all_stages": 1460420,
+  "note": "Reported stage timers exclude implementation, independent evaluations and UI checks; counters are absolute and branches overlap."
+}

@@ -1,0 +1,16 @@
+code: TRAIN_SHORT
+bezeichnung: TRAIN_SHORT
+module: null
+faehigkeitskarten: 0
+schwierigkeit: 0
+laenge: 5
+neuwurf_hoehen:
+- 6000
+- 2000
+flugzeuge_wuerfel_kurven_min_max:
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+sichtbar: false

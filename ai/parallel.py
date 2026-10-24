@@ -39,7 +39,8 @@ def _collect(task):
 def _evaluate(task):
     state, games, seed = task
     _model.load_state_dict(state)
-    return evaluate(ModelAgent(_model), games=games, seed=seed, **_env_options)['episodes']
+    options = {k: v for k, v in _env_options.items() if k != 'curriculum_airports'}
+    return evaluate(ModelAgent(_model), games=games, seed=seed, **options)['episodes']
 
 
 class ParallelGames:

@@ -16,7 +16,7 @@ import time
 import torch
 from torch import nn
 
-from .checkpoints import load_checkpoint, save_checkpoint
+from .checkpoints import load_checkpoint, save_checkpoint, planner_fingerprint
 from .environment import CrewEnv
 from .evaluate import PERFORMANCE_METRICS, evaluate, summarize_episodes
 from .agents import ModelAgent
@@ -38,6 +38,7 @@ EPISODE_FIELDS += ["outcome_return", "round_return", "sync_return", "distance_re
                    "airport_reached", "landing_round_started", "sync_error", "gear_count", "flap_count", "brake_strength", "planes_remaining"]
 EPISODE_FIELDS += ["tasks_return", "tasks_undone", "gear_undone", "flaps_undone", "braking_undone", "traffic_undone"]
 EPISODE_FIELDS += ['coffee_actions', 'coffee_units', 'rerolls', 'coffee_reversals', 'first_action_reroll', 'capacity_impossible']
+EPISODE_FIELDS += ['scenario']
 BEST_SCORE_VERSION = 2
 
 
@@ -253,13 +254,17 @@ def parser():
     result.add_argument("--device", default="cpu", help="cpu, cuda or mps; CPU is usually useful for this small sequential model.")
     result.add_argument("--threads", type=int, default=1)
     result.add_argument("--resume", type=Path)
-    result.add_argument('--assistance-version', type=int, choices=(0, 1), default=None,
+    result.add_argument('--assistance-version', type=int, choices=(0, 1, 2, 3), default=None,
                         help='Optional public own-hand planner; fresh runs 0, resume preserves saved profile.')
     result.add_argument('--discount-unit', choices=('action', 'placement'), default=None,
                         help='placement does not discount through coffee/reroll helper decisions.')
     result.add_argument('--workers', type=int, default=1, help='Isolated CPU rollout processes; PPO runs on --device.')
     result.add_argument('--partner-fraction', type=float, default=0,
                         help='Fraction of parallel rollout batches paired with the independent heuristic (both roles).')
+    result.add_argument('--transfer-airport', default=None,
+                        help='Explicit curriculum transfer to another base-game route; needs resume and a new run directory.')
+    result.add_argument('--curriculum-airports', nargs='+', default=None,
+                        help='Training-only route mixture; repeat a route for more weight. Validation always uses --airport.')
     return result
 
 
@@ -297,11 +302,21 @@ def train(args, *, on_validation=None):
     else:
         model = ActorCritic(hidden_size=args.hidden_size, hidden_layers=args.hidden_layers).to(args.device)
     previous_config = payload["train_config"] if payload else None
+    if args.transfer_airport and not payload:
+        arg_parser.error('--transfer-airport requires an existing --resume checkpoint.')
+    airport_changed = bool(payload and args.transfer_airport and args.transfer_airport != args.airport)
+    if airport_changed:
+        args.airport = args.transfer_airport
     previous_options = previous_config or {}
-    args.assistance_version = args.assistance_version if args.assistance_version is not None else previous_options.get('assistance_version', 0)
-    args.discount_unit = args.discount_unit or previous_options.get('discount_unit', 'action')
-    planning_changed = payload is not None and any(getattr(args, k) != previous_options.get(k, d)
+    args.curriculum_airports = args.curriculum_airports if args.curriculum_airports is not None else (previous_options.get('curriculum_airports') or [])
+    curriculum_changed = payload is not None and args.curriculum_airports != (previous_options.get('curriculum_airports') or [])
+    args.assistance_version = args.assistance_version if args.assistance_version is not None else (previous_options.get('assistance_version') or 0)
+    args.discount_unit = args.discount_unit or previous_options.get('discount_unit') or 'action'
+    planning_changed = payload is not None and any(getattr(args, k) != (previous_options.get(k) or d)
         for k, d in (('assistance_version', 0), ('discount_unit', 'action')))
+    planner_hash = planner_fingerprint() if args.assistance_version else None
+    if payload and args.assistance_version and previous_options.get('planner_sha256') != planner_hash:
+        planning_changed = True
     previous_demo = previous_config or {}
     explicit_demo_paths = getattr(args, "demo_data", None)
     demo_paths = explicit_demo_paths if explicit_demo_paths is not None else previous_demo.get("demo_data", [])
@@ -346,7 +361,7 @@ def train(args, *, on_validation=None):
         "sync_weight": previous_config.get("sync_weight", 0.0),
         "sync_tolerance": previous_config.get("sync_tolerance", 1.0),
         "task_weight": previous_config.get("task_weight", 0.0)}
-    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed:
+    if reward_changed or exploration_changed or mask_changed or demo_changed or planning_changed or airport_changed or curriculum_changed:
         if args.run_dir.resolve() == args.resume.resolve().parent:
             arg_parser.error("Geänderte Rewards, Exploration, Aktionsmasken oder Demonstrationen brauchen ein neues --run-dir, damit die Lernkurven vergleichbar bleiben.")
         best_score = (-1.0,) * 5
@@ -367,7 +382,10 @@ def train(args, *, on_validation=None):
         if str(args.device) == "mps" and "mps_rng_state" in payload:
             torch.mps.set_rng_state(payload["mps_rng_state"].cpu())
     env = CrewEnv(args.airport, args.round_reward, args.max_steps, sync_weight=args.sync_weight,
-                  sync_tolerance=args.sync_tolerance, task_weight=args.task_weight, assistance_version=args.assistance_version)
+                  sync_tolerance=args.sync_tolerance, task_weight=args.task_weight, assistance_version=args.assistance_version,
+                  curriculum_airports=args.curriculum_airports)
+    for airport in set(args.curriculum_airports):
+        CrewEnv(airport, assistance_version=args.assistance_version).reset(seed=args.seed)
     env.reset(seed=args.seed)  # Validate the scenario before creating output files.
     demo_tensors = demos.tensors(args.device) if demos else None
     args.run_dir.mkdir(parents=True, exist_ok=True)
@@ -385,6 +403,9 @@ def train(args, *, on_validation=None):
                    "demo_manifest": demo_manifest, "demo_start_step": demo_start_step,
                    "demo_changed_on_resume": demo_changed,
                    'planning_changed_on_resume': planning_changed,
+                   'planner_sha256': planner_hash,
+                   'airport_changed_on_resume': airport_changed,
+                   'curriculum_changed_on_resume': curriculum_changed,
                    "action_mask_version": ACTION_MASK_VERSION, "mask_changed_on_resume": mask_changed})
     (args.run_dir / "config.json").write_text(json.dumps({**config, "torch_version": str(torch.__version__)}, indent=2), encoding="utf-8")
     start, starting_steps = time.monotonic(), total_steps
@@ -409,7 +430,8 @@ def train(args, *, on_validation=None):
         from .parallel import ParallelGames
         parallel = ParallelGames(args.workers, model.config, dict(airport=args.airport, round_reward=args.round_reward,
             max_steps=args.max_steps, sync_weight=args.sync_weight, sync_tolerance=args.sync_tolerance,
-            task_weight=args.task_weight, assistance_version=args.assistance_version))
+            task_weight=args.task_weight, assistance_version=args.assistance_version,
+            curriculum_airports=args.curriculum_airports))
     print(f"Self-play auf {args.airport}; {model.config}; Gerät {args.device}. Ziel: {args.steps:,} Schritte.", flush=True)
     print(f"Rewards: Rundenbonus {args.round_reward:g}, Synchronisationsgewicht {args.sync_weight:g}, "
           f"Toleranz {args.sync_tolerance:g} Feld(er), Aufgabengewicht {args.task_weight:g}.", flush=True)

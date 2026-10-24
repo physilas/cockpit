@@ -1170,6 +1170,84 @@ window.LANDING_CATALOG = {
         "0 0 -2 2"
       ],
       "route_verified": false
+    },
+    {
+      "id": "custom-MUC_T1",
+      "code": "MUC_T1",
+      "name": "München – Training mit 1 Flugzeug",
+      "city": "München – Training mit 1 Flugzeug",
+      "country": "Eigene Strecke",
+      "kind": "custom",
+      "difficulty": "custom",
+      "description": "Bisherige Strecke aus der App. Die Streckendaten sind eigene Vorgaben und keine verifizierte Logbuch-Landung.",
+      "image": null,
+      "modules": [],
+      "ability_count": 0,
+      "engine_code": "MUC_T1",
+      "mock": false,
+      "practice": false,
+      "track": [
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "route_verified": false
+    },
+    {
+      "id": "custom-MUC_T2",
+      "code": "MUC_T2",
+      "name": "München – Training mit 2 Flugzeugen",
+      "city": "München – Training mit 2 Flugzeugen",
+      "country": "Eigene Strecke",
+      "kind": "custom",
+      "difficulty": "custom",
+      "description": "Bisherige Strecke aus der App. Die Streckendaten sind eigene Vorgaben und keine verifizierte Logbuch-Landung.",
+      "image": null,
+      "modules": [],
+      "ability_count": 0,
+      "engine_code": "MUC_T2",
+      "mock": false,
+      "practice": false,
+      "track": [
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "route_verified": false
+    },
+    {
+      "id": "custom-MUC_T3",
+      "code": "MUC_T3",
+      "name": "München – Training mit 3 Flugzeugen",
+      "city": "München – Training mit 3 Flugzeugen",
+      "country": "Eigene Strecke",
+      "kind": "custom",
+      "difficulty": "custom",
+      "description": "Bisherige Strecke aus der App. Die Streckendaten sind eigene Vorgaben und keine verifizierte Logbuch-Landung.",
+      "image": null,
+      "modules": [],
+      "ability_count": 0,
+      "engine_code": "MUC_T3",
+      "mock": false,
+      "practice": false,
+      "track": [
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2",
+        "1 0 -2 2",
+        "0 0 -2 2"
+      ],
+      "route_verified": false
     }
   ],
   "photos": {

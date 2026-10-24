@@ -20,13 +20,22 @@ const rows = page => page.evaluate(async () => {
     const page=await context.newPage(); page.on('pageerror',e=>errors.push(e.message));
     await page.goto(`${base}/frontend/web/`);
     await page.getByRole('button',{name:/Singleplayer/}).click();
-    assert.ok(await page.locator('#solo-model option').count()>5);
+    assert.ok(await page.locator('#solo-model option').count()>=1);
+    const goodModel = await page.locator('#solo-model').inputValue();
+    assert.ok(await page.evaluate(() => [...document.querySelectorAll('#solo-model option')].every(o =>
+      COCKPIT_AI_CATALOG.models.find(m => m.id === o.value)?.quality?.approved === true)));
+    const availableRoutes = await page.locator('#solo-route option').evaluateAll(options => options.map(o => o.value).sort());
+    const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.modules.length && !s.ability_count).map(s => s.id).sort());
+    assert.deepEqual(availableRoutes, expectedRoutes);
     await page.locator('[data-mode="feedback"]').click();
     assert.equal(await page.locator('#solo-start').isDisabled(),true);
     assert.equal(uploads.length,0);
     await page.screenshot({path:'/tmp/flyteam-singleplayer-menu.png',fullPage:true});
     await page.locator('#solo-consent').check();
-    await page.locator('#solo-model').selectOption('muc5-1/latest.pt');
+    await page.locator('#solo-route').selectOption('HND-green');
+    assert.ok(await page.locator('#solo-model option').count()>=1);
+    await page.locator('#solo-route').selectOption('custom-MUC');
+    await page.locator('#solo-model').selectOption(goodModel);
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
     await page.evaluate(()=>{
@@ -107,7 +116,7 @@ const rows = page => page.evaluate(async () => {
     data=await rows(page); assert.equal(data.length,2);
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('[data-mode="feedback"]').click();
-    await page.locator('#solo-model').selectOption('muc5-1/latest.pt');
+    await page.locator('#solo-model').selectOption(goodModel);
     await page.locator('#solo-role').selectOption('kopilot');
     await page.locator('#solo-consent').check(); await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});

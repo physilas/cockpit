@@ -1,6 +1,8 @@
 """Versioned state_dict checkpoints, loaded with weights_only=True."""
 from dataclasses import asdict
 from pathlib import Path
+import hashlib
+import json
 
 import torch
 
@@ -12,6 +14,23 @@ from .observation import feature_names
 def schema():
     return {"version": SCHEMA_VERSION, "features": feature_names(),
             "actions": [asdict(a) for a in ACTIONS], "slots": [asdict(s) for s in SLOTS]}
+
+
+def weight_fingerprint(model):
+    """Stable across checkpoint metadata, devices and torch.save containers."""
+    digest = hashlib.sha256(json.dumps(model.config, sort_keys=True).encode())
+    for name, tensor in sorted(model.state_dict().items()):
+        digest.update(name.encode())
+        digest.update(tensor.detach().cpu().contiguous().numpy().tobytes())
+    return digest.hexdigest()
+
+
+def planner_fingerprint():
+    digest = hashlib.sha256()
+    for name in ('tactics.py', 'public_rules.py', 'environment.py', 'actions.py', 'observation.py'):
+        digest.update(name.encode())
+        digest.update(Path(__file__).with_name(name).read_bytes())
+    return digest.hexdigest()
 
 
 def save_checkpoint(path, model, **metadata):

@@ -11,7 +11,7 @@ import json
 
 from .actions import ACTIONS, ACTION_IDS, Action, SLOTS, ROLES
 
-ASSISTANCE_VERSION = 1
+ASSISTANCE_VERSION = 3
 _SLOT = {(s.target, s.owner, s.index, s.radio_index): i for i, s in enumerate(SLOTS)}
 
 
@@ -33,7 +33,21 @@ def capacity(view, role=None, *, extra_placements=0):
     return {'available': available, 'needed': needed, 'slack': available - needed}
 
 
-def capacity_mask(view, mask):
+def _traffic_budget(view):
+    future = 0 if view['last_round'] else max(0, int(view['height'] // 1000))
+    slack, radios = 0, 0
+    for role in ROLES:
+        budget = capacity(view, role)
+        slack += budget['slack']
+        free_radios = sum(s.target == 'funk' and s.owner == role and view['board'][i] is None
+                          for i, s in enumerate(SLOTS))
+        max_radios = free_radios + (1 if role == 'pilot' else 2) * future
+        radios += max(0, min(budget['slack'], max_radios))
+    traffic = sum(c['planes'] for c in view['track'])
+    return slack - traffic, radios - traffic
+
+
+def capacity_mask(view, mask, *, include_traffic=False):
     """Remove only moves that cross from feasible to provably insufficient.
 
     Already impossible states retain their ordinary actions, including rescue
@@ -41,7 +55,7 @@ def capacity_mask(view, mask):
     """
     result = list(mask)
     budget = capacity(view)
-    if budget['slack'] != 0:
+    if budget['slack'] != 0 and not include_traffic:
         return result
     for i, valid in enumerate(mask):
         if not valid or ACTIONS[i].kind != 'place':
@@ -51,8 +65,33 @@ def capacity_mask(view, mask):
                   or s.target == 'fahrwerk' and not view['gear'][s.index]
                   or s.target == 'landeklappe' and not view['flaps'][s.index]
                   or s.target == 'bremse' and view['brakes'] < 2 and not view['brake_progress'][s.index])
-        if not useful:
+        if budget['slack'] == 0 and not useful:
             result[i] = False
+    if include_traffic and min(_traffic_budget(view)) >= 0 and budget['slack'] >= 0:
+        for i, valid in enumerate(result):
+            action = ACTIONS[i]
+            if not valid or action.kind != 'place':
+                continue
+            s = SLOTS[action.slot]
+            changed = {**view, 'own_dice': list(view['own_dice']), 'board': list(view['board']),
+                       'gear': list(view['gear']), 'flaps': list(view['flaps']),
+                       'track': [dict(c) for c in view['track']]}
+            face = changed['own_dice'][action.die]
+            changed['own_dice'][action.die] = 0
+            changed['board'][action.slot] = {'value': face, 'owner': view['role']}
+            if s.target == 'fahrwerk':
+                changed['gear'][s.index] = True
+            elif s.target == 'landeklappe':
+                changed['flaps'][s.index] = True
+            elif s.target == 'bremse' and not view['brake_progress'][s.index]:
+                changed['brakes'] += 2
+            elif s.target == 'funk':
+                for cell in changed['track']:
+                    if cell['distance'] == view['distance'] - face + 1 and cell['planes']:
+                        cell['planes'] -= 1
+                        break
+            if min(_traffic_budget(changed)) < 0:
+                result[i] = False
     return result if any(result) else list(mask)
 
 
@@ -60,7 +99,7 @@ def _bits(values):
     return sum(1 << i for i, value in enumerate(values) if value)
 
 
-def plan_actions(view, mask, *, beam=24):
+def plan_actions(view, mask, *, beam=24, version=1):
     """Rank the first macro action of complete plans for the visible own hand.
 
     Coffee followed by placement is evaluated as one operation; only its first
@@ -84,26 +123,60 @@ def plan_actions(view, mask, *, beam=24):
              _bits(view['brake_progress']), view['coffee'], traffic0)
     rounds = max(1, int(view['height'] // 1000))
     future = 0 if view['last_round'] else int(view['height'] // 1000)
+    partner_required = sum(s.owner == partner and s.target in ('ruder', 'triebwerk') and view['board'][i] is None
+                           for i, s in enumerate(SLOTS))
+    partner_radios = sum(s.owner == partner and s.target == 'funk' and view['board'][i] is None
+                        for i, s in enumerate(SLOTS))
+    partner_clearance = max(0, min(partner_radios, view['partner_remaining'] - partner_required))
+    curve_soon = any(c['distance'] in (view['distance'], view['distance'] - 1)
+                     and not c['min'] <= 0 <= c['max'] for c in view['track'])
+    control_priority = 0 if version >= 3 and curve_soon and not partner_r and not view['last_round'] else (2.5 if version >= 3 else 1.0)
 
     def score(state, complete=False):
         dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic = state
         value = 13 * gear.bit_count() + 14 * flaps.bit_count()
         value += sum(w for i, w in enumerate((18, 16, 10)) if brakes & (1 << i))
-        value += 2.0 * coffee + 18 * (sum(traffic0) - sum(traffic))
+        value += 2.0 * coffee
+        if version >= 3:
+            value += sum((80 if cell['distance'] == view['distance'] else
+                          40 if cell['distance'] == view['distance'] - 1 else 18) * (before - after)
+                         for cell, before, after in zip(view['track'], traffic0, traffic))
+        else:
+            value += 18 * (sum(traffic0) - sum(traffic))
         required = int(not rudder) + int(not thrust)
         need = ((3 - gear.bit_count()) + int(not brakes) if role == 'pilot' else 4 - flaps.bit_count())
         spare = sum(bool(d) for d in dice) - required + 2 * future
         value -= 1000 * max(0, need - spare)
+        wanted = min(2, ceil((view['distance'] + int(version >= 2 and rounds > 1)) / rounds))
+        low, high = -2, 2
+        if version >= 3 and not view['last_round'] and not view['holding']:
+            # Prepare the next bend even if the currently intended speed is
+            # one: an unseen partner can still supply a larger thrust die.
+            lookahead = max(wanted, min(2, view['distance']))
+            cells = [c for c in view['track'] if view['distance'] - lookahead < c['distance'] <= view['distance']]
+            if cells:
+                low, high = max(c['min'] for c in cells), min(c['max'] for c in cells)
+                if low > high:
+                    wanted = 1
+                    cell = next(c for c in view['track'] if c['distance'] == view['distance'])
+                    low, high = cell['min'], cell['max']
+        desired_attitude = 0 if view['last_round'] else max(low, min(high, 0))
+        attitude = desired_attitude if version >= 3 else view['attitude']
         if rudder:
-            if original_r:
+            if original_r and (partner_r or version < 3):
                 attitude = view['attitude']
             elif partner_r:
                 attitude = view['attitude'] + (partner_r['value'] - rudder if role == 'pilot' else rudder - partner_r['value'])
             else:
                 target = rudder - view['attitude'] if role == 'pilot' else rudder + view['attitude']
+                if version >= 3:
+                    target += desired_attitude if role == 'pilot' else -desired_attitude
                 value -= 2 * abs(target - 3.5) + 150 * max(0, 1 - target, target - 6)
-                attitude = 0
-            value -= (1000 if view['last_round'] else 12) * abs(attitude)
+                attitude = desired_attitude if version >= 3 else 0
+            if version >= 3 and not view['last_round']:
+                value -= 60 * max(0, low - attitude, attitude - high) + 2 * abs(attitude - desired_attitude)
+            else:
+                value -= (1000 if view['last_round'] else 12) * abs(attitude)
             if abs(attitude) >= 3:
                 value -= 2000
         if thrust:
@@ -123,8 +196,27 @@ def plan_actions(view, mask, *, beam=24):
                 if rounds == 1 and move != view['distance']:
                     return -1200
                 remaining = view['distance'] - move
-                return (-30 * abs(move - min(2, ceil(view['distance'] / rounds)))
-                        - 500 * max(0, remaining - 2 * (rounds - 1)))
+                future_max = (int(12 >= blue) + int(12 >= orange)) if version >= 2 else 2
+                target = wanted
+                collision = any(count and view['distance'] - move < cell['distance'] <= view['distance']
+                                for cell, count in zip(view['track'], traffic))
+                pending_planes = sum(count for cell, count in zip(view['track'], traffic)
+                                     if view['distance'] - move < cell['distance'] <= view['distance'])
+                collision_cost = 2000 if collision else 0
+                if version >= 3:
+                    # The partner may still use PUBLIC spare radio slots. This
+                    # is an optimistic capacity estimate, never their hand.
+                    # Keeping a risk cost prevents both roles delegating every
+                    # radio task to one another while spending dice on upgrades.
+                    collision_cost = 2000 * max(0, pending_planes - partner_clearance) + 30 * pending_planes
+                bad_curve = any(not c['min'] <= attitude <= c['max']
+                                for c in view['track'] if view['distance'] - move < c['distance'] <= view['distance'])
+                destination = next((c for c in view['track'] if c['distance'] == remaining), None)
+                spawn_cost = 2 * destination['traffic'] if version >= 3 and destination and rounds > 1 else 0
+                return (-30 * abs(move - target) - spawn_cost
+                        - 500 * max(0, remaining - future_max * (rounds - 1))
+                        - (collision_cost if version >= 2 else 0)
+                        - (2000 if version >= 3 and bad_curve else 0))
 
             if partner_t:
                 value += speed_score(partner_t['value'])
@@ -202,7 +294,16 @@ def plan_actions(view, mask, *, beam=24):
                             expanded[key] = (next_state, head, sequence + ((die, index, actual, cost),))
         if not expanded:
             break
-        nodes = sorted(expanded.values(), key=lambda n: score(n[0], _ == depth - 1), reverse=True)[:beam]
+        def rank(node):
+            priority = 0
+            if version >= 3 and node[2]:
+                priority = control_priority if SLOTS[node[2][0][1]].target == 'ruder' else 0
+                die, index, actual, _cost = node[2][0]
+                if SLOTS[index].target == 'funk' and actual == 1 and any(
+                        c['distance'] == view['distance'] and c['planes'] for c in view['track']):
+                    priority = 20
+            return score(node[0], _ == depth - 1) + priority
+        nodes = sorted(expanded.values(), key=rank, reverse=True)[:beam]
     ranked, sequences = {}, {}
     for state, first, sequence in nodes:
         if first is None:
@@ -210,28 +311,31 @@ def plan_actions(view, mask, *, beam=24):
         quality = score(state, True)
         first_slot = SLOTS[sequence[0][1]]
         # Publish a control early so a partner can respond before spending dice.
-        quality += 1.0 if first_slot.target == 'ruder' else 0.2 if first_slot.target == 'triebwerk' else 0
+        quality += control_priority if first_slot.target == 'ruder' else 0.2 if first_slot.target == 'triebwerk' else 0
+        if version >= 3 and first_slot.target == 'funk' and sequence[0][2] == 1 and any(
+                c['distance'] == view['distance'] and c['planes'] for c in view['track']):
+            quality += 20
         if quality > ranked.get(first, float('-inf')):
             ranked[first], sequences[first] = quality, sequence
     return ranked, sequences
 
 
-def assisted_mask(view, mask):
-    return list(_cached_mask(json.dumps(view, sort_keys=True, separators=(',', ':')), tuple(mask)))
+def assisted_mask(view, mask, *, version=1):
+    return list(_cached_mask(json.dumps(view, sort_keys=True, separators=(',', ':')), tuple(mask), version))
 
 
 @lru_cache(maxsize=512)
-def _cached_mask(serialized_view, mask):
-    return tuple(_assisted_mask(json.loads(serialized_view), mask))
+def _cached_mask(serialized_view, mask, version):
+    return tuple(_assisted_mask(json.loads(serialized_view), mask, version))
 
 
-def _assisted_mask(view, mask):
+def _assisted_mask(view, mask, version):
     """Conservative capacity plus a practical own-hand planning shortlist.
 
     This profile is deliberately a hybrid player, not a claim that all pruned
     actions are rule-illegal. The neural policy ranks the remaining alternatives.
     """
-    base = capacity_mask(view, mask)
+    base = capacity_mask(view, mask, include_traffic=version >= 3)
     planning_mask = list(base)
     for i, action in enumerate(ACTIONS):
         if action.kind in ('reroll_start', 'reroll_select'):
@@ -240,8 +344,8 @@ def _assisted_mask(view, mask):
     if view['reroll']:
         from .public_rules import legal_placement_in_view
         planning_mask = [a.kind == 'place' and legal_placement_in_view(view, a) for a in ACTIONS]
-        planning_mask = capacity_mask(view, planning_mask)
-    ranked, sequences = plan_actions(view, planning_mask)
+        planning_mask = capacity_mask(view, planning_mask, include_traffic=version >= 3)
+    ranked, sequences = plan_actions(view, planning_mask, version=version, beam=64 if version >= 3 else 24)
     best = max(ranked.values(), default=-10000)
     result = [False] * len(mask)
     if view['reroll']:

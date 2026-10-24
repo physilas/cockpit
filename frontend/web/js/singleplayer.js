@@ -3,6 +3,8 @@ window.Singleplayer = (() => {
   const catalog = window.COCKPIT_AI_CATALOG;
   const names = {play: "Mit KI spielen", feedback: "KI-ndergartenbetreuung", examples: "KI-no"};
   const roleNames = {pilot: "Pilotin", kopilot: "Co-Pilot"};
+  const qualifiedModels = () => catalog.models.filter(m => m.quality?.approved === true);
+  const supports = (model, airport) => (model.supported_airports || [model.airport]).includes(airport);
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
   let api, setup = null, session = null, policy = null, reroll = null;
@@ -150,9 +152,9 @@ window.Singleplayer = (() => {
         <button data-mode="feedback" aria-pressed="false"><span>🧸</span><strong>KI-ndergartenbetreuung</strong><small>Spiele mit der KI und bewerte ihre Entscheidungen.</small></button>
         <button data-mode="examples" aria-pressed="false"><span>🎬</span><strong>KI-no</strong><small>Pass &amp; Play: Eure Partien werden zu Lernbeispielen.</small></button>
       </div><div class="solo-settings">
-        <label id="solo-model-label">Trainiertes Modell<select id="solo-model">${catalog.models.map(model => `<option value="${esc(model.id)}">${esc(model.name || model.run)} · ${model.checkpoint} · ${Number(model.steps).toLocaleString("de-DE")} Schritte · ${esc(model.airport)}</option>`).join("")}</select></label>
+        <label id="solo-model-label">KI<select id="solo-model">${qualifiedModels().map(model => `<option value="${esc(model.id)}">${esc(model.name || model.run)}</option>`).join("")}</select></label>
         <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
-        <label id="solo-route-label" hidden>Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
+        <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
       </div><p id="solo-description" class="solo-description"></p>
       <label id="solo-consent-label" class="solo-consent" hidden><input id="solo-consent" type="checkbox"><span>Ich bin einverstanden, dass meine Spielzüge, KI-Bewertungen und das Spielergebnis ohne Namen oder E-Mail-Adresse gespeichert und zur Verbesserung der KI an den Betreiber übermittelt werden.</span></label>
       <p class="solo-storage-note">Die KI lernt später aus den gesammelten Beispielen und Bewertungen.</p>
@@ -160,8 +162,8 @@ window.Singleplayer = (() => {
       <details class="solo-data"><summary>Eigene Aufzeichnungen</summary><div><button id="solo-export">Aufzeichnungen exportieren</button><span id="ai-export-status" role="status"></span></div>
       <p class="solo-storage-note" id="solo-storage-status"></p></details></div>`;
     setup = {mode: "play", humanRole: "pilot", model: null};
-    // Prefer the most recent MUC run without excluding any compatible checkpoint.
-    const preferred = [...catalog.models].filter(m => m.airport === "MUC").sort((a,b) =>
+    // Prefer a qualified release supporting the initially selected MUC route.
+    const preferred = [...qualifiedModels()].filter(m => supports(m, "MUC")).sort((a,b) =>
       Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)) ||
       Number(b.checkpoint === "latest") - Number(a.checkpoint === "latest") || b.steps - a.steps)[0];
     if (preferred) document.getElementById("solo-model").value = preferred.id;
@@ -170,6 +172,7 @@ window.Singleplayer = (() => {
       setup.mode = button.dataset.mode; document.getElementById("solo-consent").checked = false; updateMenu();
     });
     document.getElementById("solo-model").onchange = updateMenu;
+    document.getElementById("solo-route").onchange = updateMenu;
     document.getElementById("solo-consent").onchange = updateMenu;
     document.getElementById("solo-start").onclick = launch;
     document.getElementById("solo-export").onclick = exportData;
@@ -188,13 +191,20 @@ window.Singleplayer = (() => {
     for (const id of ["solo-model", "solo-role", "solo-route", "solo-consent"]) document.getElementById(id).disabled = starting;
     document.getElementById("solo-model-label").hidden = examples;
     document.getElementById("solo-role-label").hidden = examples;
-    document.getElementById("solo-route-label").hidden = !examples;
+    document.getElementById("solo-route-label").hidden = false;
     document.getElementById("solo-consent-label").hidden = setup.mode === "play";
-    setup.model = catalog.models.find(m => m.id === document.getElementById("solo-model").value) || null;
+    const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === document.getElementById("solo-route").value);
+    const selector = document.getElementById("solo-model"), previousModel = selector.value;
+    const choices = qualifiedModels().filter(m => supports(m, selectedRoute?.engine_code))
+      .sort((a,b) => Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
+    selector.innerHTML = choices.map(m => `<option value="${esc(m.id)}">${esc(m.name || m.run)}</option>`).join("");
+    if (choices.some(m => m.id === previousModel)) selector.value = previousModel;
+    setup.model = choices.find(m => m.id === selector.value) || null;
+    const successRate = setup.model?.quality?.route_results?.[selectedRoute?.engine_code]?.win_rate;
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
-      : !setup.model ? "Noch keine Modelle für die App bereitgestellt. KI-no ist bereits verfügbar."
-      : `${setup.model.airport} · ${setup.mode === "feedback" ? "Bewerte KI-Aktionen von −2 bis +2. Dein nächster gültiger Zug speichert das Feedback; ohne Änderung gilt 0." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}`;
+      : !setup.model ? "Für diese Strecke ist noch keine geprüfte KI verfügbar."
+      : `${selectedRoute?.code || ""} · ${setup.mode === "feedback" ? "Bewerte KI-Aktionen von −2 bis +2. Dein nächster gültiger Zug speichert das Feedback; ohne Änderung gilt 0." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` Getestet im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
     document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
       || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
     document.getElementById("solo-start").textContent = starting ? "Wird vorbereitet …" : examples ? "Beispielpartie starten →" : "Mit KI starten →";
@@ -205,9 +215,9 @@ window.Singleplayer = (() => {
     if (setup.mode !== "play" && !document.getElementById("solo-consent").checked) return;
     const version = ++generation;
     const config = {...setup, humanRole: document.getElementById("solo-role").value};
-    const scenario = window.LANDING_CATALOG.scenarios.find(s => config.mode === "examples"
-      ? s.id === document.getElementById("solo-route").value : s.engine_code === config.model.airport);
+    const scenario = window.LANDING_CATALOG.scenarios.find(s => s.id === document.getElementById("solo-route").value);
     if (!scenario) { document.getElementById("solo-error").textContent = "Die Strecke dieses Modells ist nicht verfügbar."; return; }
+    if (config.mode !== "examples" && (!config.model || !supports(config.model, scenario.engine_code))) return;
     starting = true; updateMenu();
     try {
       let loadedPolicy = null;

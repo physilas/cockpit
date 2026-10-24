@@ -15,7 +15,8 @@ from .observation import MAX_TRACK_LENGTH, encode, visible_state
 
 
 class CrewEnv:
-    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0, task_weight=0.0, assistance_version=0):
+    def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0, task_weight=0.0, assistance_version=0,
+                 curriculum_airports=()):
         if max_steps < 1 or not 0 <= round_reward <= 0.1:
             raise ValueError("max_steps muss positiv sein, round_reward zwischen 0 und 0.1.")
         if any(not math.isfinite(v) or v < 0 for v in (sync_weight, sync_tolerance, task_weight)):
@@ -26,9 +27,10 @@ class CrewEnv:
         self.sync_weight = float(sync_weight)
         self.sync_tolerance = float(sync_tolerance)
         self.task_weight = float(task_weight)
-        if assistance_version not in (0, 1):
+        if assistance_version not in (0, 1, 2, 3):
             raise ValueError('Unbekanntes KI-Assistenzprofil.')
         self.assistance_version = assistance_version
+        self.curriculum_airports = tuple(curriculum_airports)
         self.assisted_roles = ROLES
         self.rng = random.Random(0)
         self.game = None
@@ -88,7 +90,10 @@ class CrewEnv:
         self.reward_totals = self.reward_components.copy()
         self._reset_diagnostics()
         with self._engine_randomness():
-            self.game = Spielplan(self.airport)
+            # Use the engine RNG already isolated by this context, so restart
+            # and parallel worker seed namespaces remain reproducible.
+            airport = random.choice(self.curriculum_airports) if self.curriculum_airports else self.airport
+            self.game = Spielplan(airport)
             if self.game.cockpit.module or self.game.zusatz.karten:
                 raise ValueError("Dieser erste KI-Rahmen unterstützt nur das Grundspiel ohne Module/Karten.")
             if self.game.landung.get_laenge() > MAX_TRACK_LENGTH:
@@ -193,7 +198,7 @@ class CrewEnv:
         if self.game.cockpit.module or self.game.zusatz.karten:
             raise ValueError('Die Rundenplanung unterstützt noch keine Module oder Fähigkeitskarten/Zusatzwürfel.')
         from .tactics import assisted_mask
-        return assisted_mask(self.view(), mask)
+        return assisted_mask(self.view(), mask, version=self.assistance_version)
 
     def info(self):
         return {"role": self.current_role, "action_mask": self.action_mask(),
@@ -207,6 +212,7 @@ class CrewEnv:
         info, c, landing = self.info(), self.game.cockpit, self.game.landung
         tasks = self.unfinished_tasks()
         return {"seed": seed, "ai_role": ai_role, "status": info["status"], "reason": info["reason"] or "",
+                'scenario': self.game.landung.get_code(),
                 "round": info["round"], "steps": info["steps"], "return": total_return,
                 **{f"{name}_return": value for name, value in self.reward_totals.items()},
                 "distance_remaining": landing.entfernung, "height_remaining": landing.hoehe,

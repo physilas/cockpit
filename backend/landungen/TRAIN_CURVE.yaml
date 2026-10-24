@@ -1,0 +1,24 @@
+code: TRAIN_CURVE
+bezeichnung: TRAIN_CURVE
+sichtbar: false
+szenario_id: HND-green
+mock: false
+uebung: false
+verkehr_regel: offiziell
+geplante_module: &id001 []
+faehigkeitskarten: 0
+module: *id001
+schwierigkeit: 0
+laenge: 8
+neuwurf_hoehen:
+- 6000
+- 2000
+flugzeuge_wuerfel_kurven_min_max:
+- 0 0 -2 2
+- 0 0 -2 2
+- 1 0 -1 0
+- 0 0 -2 2
+- 0 0 -2 -1
+- 1 0 -2 0
+- 0 0 -2 2
+- 0 0 -2 2
