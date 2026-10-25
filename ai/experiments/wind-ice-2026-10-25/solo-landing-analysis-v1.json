@@ -1,0 +1,328 @@
+{
+  "format": 1,
+  "complete": true,
+  "source_report": "solo-landing-development-v1.json",
+  "source_report_sha256": "4d33ef63df1e7a9d82c86fac9e9c0556499ae0e029eb4181039222b349ea0e02",
+  "release_evidence": false,
+  "qualification_used": false,
+  "new_training_decisions": 0,
+  "ppo_updates": 0,
+  "elapsed_seconds": 107.11306133307517,
+  "cases": {
+    "LOG_GIG_YELLOW|adaptation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 11,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 18,
+        "search_nodes": 87,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1233,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 11,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 15,
+        "search_nodes": 60,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1179,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_GIG_YELLOW|control": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 10,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 11,
+        "search_nodes": 32,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1191,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 8,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 13,
+        "search_nodes": 46,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1103,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 9,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 13,
+        "search_nodes": 53,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1185,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 1,
+      "terminal_wins": 1,
+      "eligible_episodes": 10,
+      "episodes_with_proven_actions": 1,
+      "episodes_with_changed_actions": 1,
+      "counts": {
+        "eligible_decisions": 14,
+        "search_nodes": 56,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1045,
+        "reference_departures": 1,
+        "proven_decisions": 3,
+        "changed_policy_decisions": 1
+      },
+      "paired_prior": {
+        "both_win": 1,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 14,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 22,
+        "search_nodes": 67,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1287,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 16,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 23,
+        "search_nodes": 72,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1213,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_KEF_YELLOW|control": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 14,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 20,
+        "search_nodes": 74,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1200,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 13,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 20,
+        "search_nodes": 49,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1265,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 17,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 30,
+        "search_nodes": 191,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 7,
+        "decisions": 1333,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "terminal_wins": 0,
+      "eligible_episodes": 17,
+      "episodes_with_proven_actions": 0,
+      "episodes_with_changed_actions": 0,
+      "counts": {
+        "eligible_decisions": 24,
+        "search_nodes": 110,
+        "search_exhausted": 0,
+        "unknown_roll_abstentions": 0,
+        "decisions": 1324,
+        "reference_departures": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "all_status_reason_pairs_identical": true
+    }
+  },
+  "diagnostic_totals": {
+    "eligible_decisions": 223,
+    "search_nodes": 897,
+    "search_exhausted": 0,
+    "unknown_roll_abstentions": 7,
+    "decisions": 14558,
+    "reference_departures": 1,
+    "proven_decisions": 3,
+    "changed_policy_decisions": 1
+  },
+  "eligible_episodes": 150,
+  "episodes_with_proven_actions": 1,
+  "all_prior_status_reason_pairs_identical": true,
+  "conclusions": [
+    "No per-case win improvement from the final solo overlay in this cohort.",
+    "The three proof decisions occur in an episode already won by the prior control.",
+    "No search hit the node budget; seven searches encountered an unsupported unrolled-bonus branch.",
+    "Failure to find a path is not a general impossibility proof or a reason to train this weak whole-game teacher unchanged."
+  ],
+  "limitations": [
+    "The same_policy_all_arms field in the source report refers to identical frozen network tensors; terminal is explicitly a new search player.",
+    "Typical alternating final play leaves only one own regular die once partner_remaining is zero.",
+    "Proof exercises are technical synthetic fixtures, not whole-game win-rate evidence.",
+    "Unknown rerolls, intern and realtime are outside this simulation; no true private faces or future RNG are read."
+  ]
+}

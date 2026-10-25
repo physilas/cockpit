@@ -12,6 +12,104 @@ Auf erneuten Nutzerwunsch kommt Crew 5 · Leck (Test) mit dem tatsächlich zulet
 trainierten Profil-12-Stand hinzu: alle sechs Einzelkarten auf Atlanta gelb,
 0–20 % auf bereits verwendeter Entwicklung, weiterhin ohne Freigabe.**
 
+## Neue Forschung: enginegeprüfte letzte eigene Landefolge
+
+`ai.solo_landing` rekonstruiert einen **getrennten** Endrundenzustand ausschließlich
+aus eigener aktueller Hand, öffentlichen Feldern und überprüften Routendaten.
+Keine Kopie des laufenden Spiels, keine alte private Partnerhand, kein echter
+zukünftiger Spiel-RNG. Bereits verbrauchte private Würfel erhalten unverfügbare
+Platzhalter; veröffentlichte Feldwerte bleiben separate öffentliche Tokens.
+Schon aufgelöste Ruder-/Schubpaare werden nicht erneut bezahlt oder gedreht.
+Kerosinbelegung, Leck, Wind, Eis, Kaffee, Fahrwerk, Klappen, Bremsen und Funk
+werden durch **dieselbe native Spielengine** ausgewertet, nicht über unabhängig
+geschätzte Einzelwahrscheinlichkeiten.
+
+Die erste Stufe greift nur bei Höhe/Entfernung null ein, wenn der Partner keine
+regulären Würfel mehr hat. Im normalen abwechselnden Spiel verbleibt dann meist
+nur ein eigener regulärer Würfel: **keine allgemeine gemeinsame Planung einer
+ganzen Runde**. Ein schon ausgegebener und geworfener schwarzer Würfel darf
+einmal gemeinsam zugewiesen werden. Kartenbesitz erzeugt keinen, ein noch
+unbekannter Wurf führt zur Enthaltung auf diesem Zweig. Praktikant, Echtzeit,
+Tausch- und Neuwurfdialoge bleiben außerhalb dieses engen Simulationsumfangs.
+
+Die Suche prüft native Platzierungen, Kaffee und Adaptation mit festen Grenzen
+von 1.500 besuchten Zuständen und höchstens 32 Aktionen; CPU-Pacing prüft etwa
+alle 20 ms. Sie liefert genau eine tatsächliche Gewinnfolge oder enthält sich.
+Ein Fehlschlag oder Budgetabbruch beweist keine verlorene Partie. Der erste Zug
+muss zusätzlich durch die wirkliche aktuelle Maske erlaubt sein; nach jedem
+realen Schritt wird neu geprüft. Unter der alten weichen Referenz bleibt ein
+neuer Suchspieler `SoloLandingEnv` ausdrücklich separat: Der bewiesene Zug
+ersetzt gegebenenfalls die NN-Wahl, sonst exakt bisheriger Prior. Alte Referenzen,
+Gewichte, Browserprofile und frühere Fingerprints bleiben erhalten. Markierung
+`research_solo_landing=true`; Publisher sperrt diese nicht im Browser
+implementierte Suche auch für Vorschauen.
+
+**50 relevante Tests bestanden** (3,78 s): Rekonstruktion und native Übergänge
+für beide Rollen, sechs Karten auf Wind/Eis/Leck; tatsächliche Radio-/Fahrwerk-/
+Klappen-/Kerosin-/Adaptation-/Kaffee-/Eisfolgen, kein doppelt verwendeter Würfel,
+ein geteilter schwarzer Würfel, bereits bezahltes Leck und aktueller Control-
+Kaffee, Erhaltung privater Informationen und RNG, Pacing, Cache und feste
+Budgetenthaltung. Native und bisherige Prior-Kontrolle reproduzieren exakt
+die früheren Beobachtungen, Masken, tatsächlich gespielten Züge und Resultate.
+Dies sind technische Übungen, keine zusätzlichen Qualifikationspartien.
+Anschließend bestanden 26 weitere gezielte Prüfungen einschließlich zehn
+bereits gezählter Endrundentests: insgesamt **66 unterschiedliche relevante
+Tests**. Zusätzlich geprüft sind der Vorschau-Publisher und eine durch eigene
+Platzierung erst ausgelöste, noch nicht geworfene Synchronisation ohne Zugriff
+auf ihren zukünftigen Würfelwert.
+
+Der neue begrenzte Drei-Varianten-Vergleich `ai.solo_landing_compare` ist
+**regulär beendet, Exit 0, 107,11 Sekunden**:
+native Crew-5-Auswahl, bisheriger Prior und Prior mit Endrundensuche. Je 20
+frische Entwicklungspartien in zwölf offiziellen Wind-/Eis-Einzelkartenfällen,
+720 insgesamt, alle mit exakt gleichen Crew-5-Tensoren/Abstand 12. Keine PPO-
+Updates, null neue Trainingsentscheidungen, native Engine-Uhr. Bericht
+`ai/experiments/wind-ice-2026-10-25/solo-landing-development-v1.json`, Log
+`/tmp/cockpit-solo-landing-development-v1.log`. Bericht ist `complete=true`,
+abgeleitete Analyse `solo-landing-analysis-v1.json`. Entwicklung
+**14.990.000 + 100*i**, zwölf Fälle
+zu je 20 Seeds, zuletzt **14.991.100–14.991.119**. Technische Kontrolltests
+14.989.200/210/220, getrennt von der Entwicklung. Abschlusskohorte ab 15.400.000
+bleibt unbenutzt. Acht Worker .7, Torch 1, nice 15, nur ein verwalteter Lauf;
+aktive Worker bei der Kontrolle etwa 43–45 % CPU, alle Priorität 15.
+
+| Einzelkarte | GIG Wind: Quelle / Prior / Endrundensuche | KEF Eis: Quelle / Prior / Endrundensuche |
+| --- | ---: | ---: |
+| Adaptation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Anticipation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Control | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Mastery | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Synchronisation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Working-together | 0/20 / 1/20 / 1/20 | 0/20 / 0/20 / 0/20 |
+
+**Kein zusätzlicher Sieg durch die Endrundensuche, kein neuer Modellrelease.**
+Alle 240 gepaarten Status-/Verlustgrund-Ergebnisse stimmen mit der Prior-
+Kontrolle überein. Die Suche prüfte 223 geeignete Entscheidungen in 150 Partien,
+897 Zustände; kein Abbruch am Zustandsbudget. Drei bewiesene Entscheidungen,
+davon eine andere NN-Wahl, stammen aus derselben ohnehin von der Prior-Kontrolle
+gewonnenen Partie. Sieben Suchen begegneten einem noch ungeworfenen Bonuszweig
+und enthielten sich dort. Eine erfolglose Suche ist ausdrücklich kein allgemeiner
+Unmöglichkeitsbeweis. Das Berichtsfeld `same_policy_all_arms` meint identische
+eingefrorene NN-Tensoren; der Endrundenarm ist ausdrücklich ein neuer Suchspieler.
+Die 720 Spiele enthalten keine neuen Trainingsentscheidungen oder PPO-Updates.
+Frühere Kontrollen und technische Wiederholungen sind keine neue unabhängige
+Evidenz. Die bisherige Qualifikationskohorte ab 15.400.000 bleibt unangetastet.
+
+Nächster begründeter Schritt: **gemeinsame Endrundenbelegung bereits vor den
+ersten Bindungen der letzten Runde**, anstelle einer nur auf Ruder/Schub
+bewerteten Prognose oder Rettung des letzten eigenen Würfels. Offene Fahrwerk-/
+Klappen-/Eis-/Funkpflichten brauchen dieselben endlichen Würfel und dieselbe
+Kaffeereserve wie die Kontrollen. In einem ausdrücklich neuen Forschungsprofil
+die vorhandene Fair-Hand-Zuordnung um diese Pflichtaufgaben ergänzen, zunächst
+enginegeprüfte eigene/öffentliche Endrundenübungen. Die eigene Zuordnung muss
+vor der Erwartung über hypothetische Partnerhände feststehen. Keine realen
+Partneraugen, kein zukünftiger Spiel-RNG oder unverdienter Bonus. Erst einen
+begrenzten frischen Vergleich, dann gegebenenfalls Training auf tatsächlich
+erfolgreichen Übungen; diesen unveränderten schwachen Lehrer nicht einfach
+länger trainieren. Die enge Rekonstruktion ist keine allgemeine Simulation für
+unbekannte Partnerhände, Echtzeit oder Praktikant und darf nicht so verwendet
+werden. Aktuell kein schwerer Vergleichs-/Trainingsjob aktiv.
+
 ## Crew 5 und kompaktes Sofortfeedback
 
 Der Nutzer wollte eine neue Crew unabhängig von ihrer aktuellen Stärke und alle
