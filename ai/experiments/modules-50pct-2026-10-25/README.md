@@ -56,7 +56,17 @@ neue Aktionen behalten Wahrscheinlichkeit und Gradienten. Ein Residualzweig kann
 sie höher bewerten. Auf den 800 Anfangspartien bleiben die alten Einzelquoten
 34,5 / 34 / 65 / 80 % exakt erhalten. 219 lokale Tests und ein kurzer Metal-PPO-
 Integrationstest bestanden. Der neue Lauf ist auf 200.000 weitere PPO-Züge
-begrenzt; daraus folgt noch keine Gewinnverbesserung oder Modulfreigabe.
+begrenzt; daraus folgt noch keine Modulfreigabe.
+
+Diese erste Stufe endete nach 200.115 neuen Entscheidungen (86.357 auf Kerosin).
+`guided-stage1.json` zeigt eine Verbesserung auf den festen Entwicklungspartien
+auf 39,5 / 38,5 / 70,5 / 85 %. Die drei Berichte `guided-teacher-games-v1.json`,
+`guided-candidate-games-v1.json`, `guided-comparison-v1.json` vergleichen zusätzlich
+je 200 Partien auf frischen Entwicklungsseeds: Quelle 35 / 39,5 / 63,5 / 86,5 %,
+Kandidat 37 / 44 / 67 / 88 %. Alle Differenzen sind positiv, aber klein, die
+Intervalle überlappen. Das ist kein abschließender Signifikanz- oder Freigabebeleg.
+Die kontrollierte Fortsetzung zielt nun auf 500.000 kumulative Entscheidungen
+in dieser PPO-Phase, ungefähr 300.000 weitere; keine zusätzliche Modellschicht.
 
 Die aktuelle automatische Fortsetzung bleibt bei acht Workern zu je 70 %, einem
 schweren Job und niedriger Prozesspriorität. „Training und automatische

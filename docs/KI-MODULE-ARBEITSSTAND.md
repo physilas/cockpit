@@ -158,7 +158,7 @@ Stand und keine Freigabe. Berichte `planner-dagger-v1.json`,
 `dagger-teacher-games-v1.json`, `dagger-student-games-v1.json`. Nicht beliebig
 mehr Epochen auf dieselben Daten verwenden.
 
-## Aktueller schwerer Lauf: lernbare Abweichungen von öffentlicher Planung
+## Geführte PPO-Stufe 1: erstmals positive Lernkurve
 
 `runs/guided-residual-stage1/`, Log `/tmp/cockpit-guided-residual-stage1.log`.
 Vor jedem Folgelauf `runs/ai-job.json`, Prozesse und STOP-Datei prüfen.
@@ -189,14 +189,41 @@ realem PPO samt Nachahmungs-Referenzen und JS-/PyTorch-Parität. Der Metal-Smoke
 `runs/guided-smoke-v1/` absolvierte 311 neue Entscheidungen mit zwei Workern.
 Seine acht Validierungspartien sind nur ein Integrationstest, kein Qualitätsbeleg.
 
-Der neue begrenzte PPO-Lauf startet vom besseren bisherigen Lehrer, nicht vom
-schwächeren Nachahmungsmodell: 200.000 neue Entscheidungen, Seed 251031,
+Der begrenzte PPO-Lauf startete vom besseren bisherigen Lehrer, nicht vom
+schwächeren Nachahmungsmodell: Ziel 200.000 neue Entscheidungen, Seed 251031,
 OSL/OSL/OSL/HND/HND/LHR/YUL, 200 Entwicklungsvalidierungen je Route ab
 14.000.000, Auswahl zuerst nach schwächster Route. Ausgangsmodell bleibt als
 Fallback im Modellvergleich. 316.034 geerbte Modulzüge, neue PPO-Züge und die
 früheren Regel-/Nachahmungsübungen bleiben getrennt gezählt.
 Die 800 Anfangspartien bestätigten exakt die bisherigen Quoten
 **34,5 / 34 / 65 / 80 %**, einschließlich identischer Verlustzählungen.
+
+Der Lauf endete regulär nach **200.115 neuen Entscheidungen** in 19,6 Minuten.
+Davon waren 86.357 Kerosinzüge auf OSL und 113.758 Grundspielzüge. Mit der
+eingefrorenen Quellenhistorie sind es 402.391 kumulative Modulzüge in dieser
+Modelllinie. Neue Entscheidungen nach Route: OSL 86.357, HND 52.622,
+LHR 31.253, YUL 29.883. Bericht `guided-stage1.json` enthält die gesamte
+Entwicklungsvalidierung und die tatsächlichen Zähler.
+
+| Feste Entwicklungsvalidierung, je 200 Partien | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Anfang | 34,5 % | 34 % | 65 % | 80 % |
+| Ende | 39,5 % | 38,5 % | 70,5 % | 85 % |
+
+Zusätzlicher Vergleich auf denselben **frischen Entwicklungsseeds ab 14.300.000**,
+200 Partien pro Route und Modell:
+
+| Modell | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Quelle, Profil 7 | 35 % | 39,5 % | 63,5 % | 86,5 % |
+| Geführt, Profil 9 | 37 % | 44 % | 67 % | 88 % |
+
+Alle Differenzen sind positiv, aber klein und die Intervalle überlappen.
+Dies ist ein Entwicklungssignal, kein abschließender Signifikanznachweis und
+keine Freigabe. Einzelergebnisse wurden nicht für einen gepaarten Test behalten;
+keine scheinbar präzisere gepaarte Statistik daraus ableiten. Berichte
+`guided-teacher-games-v1.json`, `guided-candidate-games-v1.json` und
+`guided-comparison-v1.json`. Oslo und Haneda bleiben deutlich unter dem Ziel.
 
 ```sh
 nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
@@ -209,17 +236,39 @@ nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.trai
   --self-imitation-coef .03
 ```
 
+## Aktueller schwerer Lauf: geführte PPO-Fortsetzung
+
+`runs/guided-residual-stage2/`, Log `/tmp/cockpit-guided-residual-stage2.log`.
+Vor jedem Folgelauf `runs/ai-job.json`, Prozesse und STOP-Datei prüfen.
+Wegen der positiven Lernkurve und durchgängig positiven frischen Vergleiche
+wird begrenzt weitertrainiert: **500.000 kumulative PPO-Entscheidungen in dieser
+Phase**, also ungefähr 300.000 weitere nach den vorhandenen 200.115.
+Kein neues Residualnetz, keine neuen Beobachtungen oder geänderten Planer.
+Optimizer, RNG, Gewinnzugpuffer, Referenzmasken, Seed 251031 und Routen-Curriculum
+werden aus `latest.pt` übernommen. Weitere Module/Karten sind noch nicht Teil
+dieses Laufs. Die alten Quellen- und Regelübungsschritte bleiben separat.
+Die 800 Partien unmittelbar nach Resume reproduzierten exakt die letzten
+Quoten 39,5 / 38,5 / 70,5 / 85 % und Verlustzählungen des ersten Abschnitts.
+
+```sh
+nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
+  --resume runs/guided-residual-stage1/latest.pt \
+  --run-dir runs/guided-residual-stage2 --steps 500000 \
+  --workers 8 --cpu-duty-cycle .7 --device mps \
+  --eval-games 800 --eval-every 20 --self-imitation-coef .03
+```
+
 Der unabhängige Kerosinvergleich ab 15.000.000 wurde noch NICHT gestartet.
 Auch 12.000.000 und 13.000.000 bleiben unbenutzt. Keine neue Modul-KI ist
 freigegeben; das Menü zeigt weiter die bisherigen Modelle.
 
 ## Nächste Arbeit
 
-1. Aktuellen geführten PPO-Lauf/Logs prüfen; niemals einen zweiten schweren Lauf
-   starten. Anfangsvalidierung entspricht den Lehrerquoten 34,5 / 34 / 65 / 80 %.
-   Nach Ende `best.pt` unter Profil 9 mit öffentlicher Referenzmaske
-   und den Lehrer unter Profil 7 auf identischen weiteren Entwicklungsseeds
-   (z. B. 14.300.000, 100 je Route) vergleichen. `ai.planner_probe` berücksichtigt
+1. Aktuelle geführte PPO-Fortsetzung/Logs prüfen; niemals einen zweiten schweren
+   Lauf starten. Die erste Messung nach Resume reproduzierte
+   39,5 / 38,5 / 70,5 / 85 %. Nach Ende `best.pt` unter Profil 9 mit öffentlicher Referenzmaske
+   gegen den bisherigen Stand auf identischen weiteren Entwicklungsseeds
+   (z. B. 14.400.000, 200 je Route) vergleichen. `ai.planner_probe` berücksichtigt
    den neuen Politiktyp. Kein Nachahmungsfehler ersetzt die Gewinnprüfung.
    Bei Plateau tatsächliche neu gewählte Platzierungen (`reference_departure_rate`),
    Wert-/Politikinterferenz und stärkere öffentliche Suchlehrer untersuchen,

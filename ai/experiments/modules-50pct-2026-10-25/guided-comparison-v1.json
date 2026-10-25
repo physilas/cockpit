@@ -1,0 +1,76 @@
+{
+  "format": 1,
+  "phase": "fresh_development_comparison_only",
+  "goal_achieved": false,
+  "independent_test_used": false,
+  "seed": 14300000,
+  "source_weights_sha256": "3a7c3bcb985d11bff39d59f4ddda964ad9eaa64540b0754791c8be934cd3c507",
+  "candidate_weights_sha256": "da87d110c0e9fe26d2d9d9c33392207ca35b75af90d19a15fc3a28f5eeb7309f",
+  "by_route": {
+    "LOG_OSL_GREEN": {
+      "games_each": 200,
+      "source_wins": 70,
+      "candidate_wins": 74,
+      "source_rate": 0.35,
+      "candidate_rate": 0.37,
+      "difference": 0.020000000000000018,
+      "source_ci": [
+        0.28728715939415395,
+        0.41836664238134236
+      ],
+      "candidate_ci": [
+        0.3061249750375241,
+        0.43877498650123936
+      ]
+    },
+    "LOG_HND_GREEN": {
+      "games_each": 200,
+      "source_wins": 79,
+      "candidate_wins": 88,
+      "source_rate": 0.395,
+      "candidate_rate": 0.44,
+      "difference": 0.044999999999999984,
+      "source_ci": [
+        0.3298398699878317,
+        0.4641177912550158
+      ],
+      "candidate_ci": [
+        0.3729770042058236,
+        0.509284516504375
+      ]
+    },
+    "LOG_LHR_GREEN": {
+      "games_each": 200,
+      "source_wins": 127,
+      "candidate_wins": 134,
+      "source_rate": 0.635,
+      "candidate_rate": 0.67,
+      "difference": 0.03500000000000003,
+      "source_ci": [
+        0.5663157405897017,
+        0.6985958378123518
+      ],
+      "candidate_ci": [
+        0.602165564130804,
+        0.7314267938569671
+      ]
+    },
+    "LOG_YUL_GREEN": {
+      "games_each": 200,
+      "source_wins": 173,
+      "candidate_wins": 176,
+      "source_rate": 0.865,
+      "candidate_rate": 0.88,
+      "difference": 0.015000000000000013,
+      "source_ci": [
+        0.8107074954488287,
+        0.9055349202307972
+      ],
+      "candidate_ci": [
+        0.8276563857409517,
+        0.9180206497611246
+      ]
+    }
+  },
+  "interpretation": "Positive differences on every route, small samples and overlapping intervals; no conclusive significance claim or qualification. Common initial seeds; episode-level paired outcomes were not retained."
+}
