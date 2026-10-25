@@ -2,6 +2,7 @@
  * synthetic catalogue entries, uploads, training or qualification evidence. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
+const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 
 const web=path.resolve(__dirname,'../frontend/web');
@@ -107,9 +108,9 @@ async function waitForRating(page,humanRole,predicate) {
     assert.deepEqual(await page.evaluate(()=>COCKPIT_AI_CATALOG.models),catalog.models,
       'Browser must retain the real full catalogue, including every older model');
     await page.locator('[data-mode="feedback"]').click();
-    await page.locator('#solo-route').selectOption('ATL-yellow');
-    await page.locator('#solo-model').selectOption(modelId);
-    assert.match(await page.locator('#solo-model option:checked').innerText(),/Crew 5.*Test.*Entwicklung/);
+    await chooseModel(page,modelId);
+    await chooseRoute(page,'ATL-yellow');
+    assert.match(await page.locator('#solo-model option:checked').innerText(),/Crew 3.*Entwicklung/);
     assert.equal(await page.locator('#solo-abilities option').count(),6);
     await page.locator('#solo-consent').check();
     for(const [card,percent] of Object.entries(rates)) {
@@ -124,10 +125,9 @@ async function waitForRating(page,humanRole,predicate) {
     await page.screenshot({path:'/tmp/cockpit-crew5-menu.png',fullPage:true});
 
     for(const humanRole of ['pilot','kopilot']) {
-      await page.locator('#solo-route').selectOption('ATL-yellow');
-      await page.locator('#solo-model').selectOption(modelId);
+      await chooseModel(page,modelId,humanRole);
+      await chooseRoute(page,'ATL-yellow');
       await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|adaptation');
-      await page.locator('#solo-role').selectOption(humanRole);
       await page.locator('#solo-consent').check();
       await page.locator('#solo-start').click();
       await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});

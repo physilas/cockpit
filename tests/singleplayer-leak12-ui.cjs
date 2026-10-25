@@ -3,6 +3,7 @@
  */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
+const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const web=path.resolve(__dirname,'../frontend/web');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
@@ -45,9 +46,8 @@ const sessions=page=>page.evaluate(async()=>{
     assert.deepEqual(unchanged,catalog.models,'The fixture must preserve all real model declarations');
     assert.equal(unchanged.find(model=>model.id==='crew4-leak-preview-v1/best.pt').assistance_version,11);
     await page.locator('[data-mode="feedback"]').click();
-    await page.locator('#solo-route').selectOption('ATL-yellow');
-    await page.locator('#solo-model').selectOption(fixtureId);
-    await page.locator('#solo-role').selectOption('pilot');
+    await chooseModel(page,fixtureId,'pilot');
+    await chooseRoute(page,'ATL-yellow');
     assert.equal(await page.locator('#solo-abilities option').count(),1);
     assert.equal(await page.locator('#solo-abilities').inputValue(),'LOG_ATL_YELLOW|adaptation');
     assert.match(await page.locator('#solo-description').innerText(),/noch nicht unabhängig qualifiziert/);

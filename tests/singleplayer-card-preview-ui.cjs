@@ -1,5 +1,6 @@
 /* Isolated schema-3 card fixtures; no release evidence and no real uploads. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');
 const cards=['control','mastery','synchronisation','adaptation','anticipation','working-together'];
@@ -25,22 +26,14 @@ const rows=page=>page.evaluate(async()=>{
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     await page.goto(pageUrl);await page.getByRole('button',{name:/Singleplayer/}).click();
     assert.equal(await page.locator('#solo-model').inputValue(),'crew-basegame-v1/best.pt');
-    if(await page.locator('#solo-route option[value="PRG-green"]').count()) {
-      // Another explicit release may now legitimately expose PRG. The invalid
-      // one-card fixture must remain unavailable on this two-card route.
-      await page.locator('#solo-route').selectOption('PRG-green');
-      assert.equal(await page.locator('#solo-model option[value="fixture-cards/best.pt"]').count(),0,
-        'A route-level hint cannot enable an invalid card count');
-      await page.locator('#solo-route').selectOption('custom-MUC');
-    }
     await page.locator('[data-mode="feedback"]').click();
     // The actual exported weak specialist is visible without a fake approval.
     const actual=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(model=>model.id==='crew4-leak-preview-v1/best.pt'));
     assert.ok(actual?.preview.enabled && actual.quality.approved===false);
     assert.equal(actual.assistance_version,11);
     assert.equal(actual.preview.supported_cases.length,6);
-    await page.locator('#solo-route').selectOption('ATL-yellow');
-    await page.locator('#solo-model').selectOption(actual.id);
+    await chooseModel(page,actual.id);
+    await chooseRoute(page,'ATL-yellow');
     await page.locator('#solo-consent').check();
     for(const card of cards) {
       await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|'+card);
@@ -73,8 +66,10 @@ const rows=page=>page.evaluate(async()=>{
     await page.evaluate(()=>Singleplayer.showMenu());
     await page.locator('[data-mode="feedback"]').click();
     for(const card of cards) {
-      await page.locator('#solo-route').selectOption('ATL-yellow');
-      await page.locator('#solo-model').selectOption('fixture-cards/best.pt');
+      await chooseModel(page,'fixture-cards/best.pt');
+      await chooseRoute(page,'ATL-yellow');
+      assert.equal(await page.locator('#solo-route option[value="PRG-green"]').count(),0,
+        'A route-level hint cannot enable an invalid card count');
       assert.match(await page.locator('#solo-route option:checked').innerText(),/Kerosinleck.*1 Karte/);
       assert.equal(await page.locator('#solo-abilities option').count(),6);
       await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|'+card);

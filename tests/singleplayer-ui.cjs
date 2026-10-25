@@ -1,6 +1,7 @@
 /* Real engine + exported model; optional cloud endpoint is intercepted. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
+const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const base = process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000';
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${base}/frontend/web/`;
 const rows = page => page.evaluate(async () => {
@@ -45,26 +46,18 @@ const assertFeedbackVisible = async page => {
       return model.quality?.approved === true && model.preview?.enabled !== true;
     },goodModel));
     const availableRoutes = await page.locator('#solo-route option').evaluateAll(options => options.map(o => o.value).sort());
-    const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.ability_count && !s.modules.length
-      || COCKPIT_AI_CATALOG.models.some(model => (model.quality?.approved === true || model.preview?.enabled === true)
-        && (model.supported_airports || [model.airport]).includes(s.engine_code)
-        && ((!s.ability_count && !(model.preview?.enabled === true && Object.prototype.hasOwnProperty.call(model.preview,'supported_cases')))
-          || model.schema?.version === 3 && model.preview?.enabled === true
-          && model.preview.supported_cases?.some(row => row.airport === s.engine_code && row.abilities.length === s.ability_count
-            && new Set(row.abilities).size === row.abilities.length && row.abilities.every(id => LANDING_CATALOG.abilities.some(card => card.id === id))
-            && model.preview.case_results?.[`${row.airport}|${[...row.abilities].sort().join(',')}`]?.games > 0
-            && (model.preview.positive_only !== true || model.preview.case_results[`${row.airport}|${[...row.abilities].sort().join(',')}`].win_rate > 0)))))
-      .map(s => s.id).sort());
+    const expectedRoutes = await page.evaluate(id => {
+      const model=COCKPIT_AI_CATALOG.models.find(m=>m.id===id);
+      return LANDING_CATALOG.scenarios.filter(s=>(model.supported_airports || [model.airport]).includes(s.engine_code)).map(s=>s.id).sort();
+    },goodModel);
     assert.deepEqual(availableRoutes, expectedRoutes);
-    await page.locator('[data-mode="feedback"]').click();
+    await chooseMode(page,'feedback');
+    await chooseModel(page,goodModel);
+    await chooseRoute(page,'custom-MUC');
     assert.equal(await page.locator('#solo-start').isDisabled(),true);
     assert.equal(uploads.length,0);
     await page.screenshot({path:'/tmp/flyteam-singleplayer-menu.png',fullPage:true});
     await page.locator('#solo-consent').check();
-    await page.locator('#solo-route').selectOption('HND-green');
-    assert.ok(await page.locator('#solo-model option').count()>=1);
-    await page.locator('#solo-route').selectOption('custom-MUC');
-    await page.locator('#solo-model').selectOption(goodModel);
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
     assert.equal(await page.locator('#ai-feedback').isVisible(),true);
@@ -199,8 +192,8 @@ const assertFeedbackVisible = async page => {
     data=await rows(page); assert.equal(data.length,2);
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('[data-mode="feedback"]').click();
-    await page.locator('#solo-model').selectOption(goodModel);
-    await page.locator('#solo-role').selectOption('kopilot');
+    await chooseModel(page,goodModel,'kopilot');
+    await chooseRoute(page,'custom-MUC');
     await page.locator('#solo-consent').check(); await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
     await page.evaluate(()=>{

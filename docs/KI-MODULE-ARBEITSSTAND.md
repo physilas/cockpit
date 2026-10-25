@@ -1,5 +1,31 @@
 # Arbeitsstand: Modul-KI, auf Nutzerwunsch pausiert
 
+## Einzelspieler-Auswahl in getrennten Schritten
+
+Auf neuen Nutzerwunsch folgt die Auswahl jetzt **Modus → KI und eigene Rolle →
+Landung und gegebenenfalls Karten**. Jede Stufe hat eine eigene Ansicht mit
+Fortschritt und Zurück-Navigation. Modus und KI passen ohne Seitenscrollen auf
+kleine Handybildschirme; die Landungsansicht darf scrollen. Die bereits gewählte
+KI bestimmt die verfügbaren Landungen, statt durch eine andere Landung still
+ausgetauscht zu werden. Nur passende, exakt deklarierte Kartenfälle bleiben
+auswählbar. Freigegebene Crew bleibt voreingestellt. KI-no überspringt die
+unnötige KI-Auswahl und hat zwei Schritte. Rolle, Karten und Einwilligung
+bleiben bei Rücknavigation erhalten; ein Moduswechsel setzt Einwilligung zurück.
+
+Neuer echter Browsertest prüft Desktop, 390×844, 320×568 und 568×320, Fokus,
+Rücknavigation, sechs Crew-3-Kartenfälle einschließlich 0 %, gefilterte Strecken,
+den zweistufigen KI-no-Weg und einen fehlgeschlagenen Modellabruf mit erneutem
+erfolgreichen Spielstart. Screenshots der drei Handyansichten visuell geprüft.
+Die bestehenden UI-Prüfungen folgen ebenfalls den neuen sichtbaren Schritten.
+**Alle neun Browserprüfungen bestanden:** neue Schrittauswahl sowie bisherige
+allgemeine Feedback-/Undo-/Cloudretry-, Vorschau-, Crew-3-/Karten-, gemischte
+Routen-, Kerosin-, Praktikanten- und Profil-12-Prüfungen. Zwei alte Tests
+erwarteten noch das Speichern beim nächsten menschlichen Zug; sie prüfen jetzt
+korrekt das bereits geltende sofortige Speichern mit `trigger=thumb` und
+`explicit=true`. Der Node-Fallvertrag und die JavaScript-Syntaxprüfung bestehen.
+Build/Cache-Version aktualisiert. Diese UI-Arbeit hebt die Trainingspause oder
+den persistenten STOP-Schalter nicht auf; keine neuen Trainingsentscheidungen.
+
 **Neueste Nutzeranweisung vom 25.10.2026:** Niedrige Gewinnquoten auf sehr
 schweren Strecken sind akzeptabel. Die frühere Forderung von zunächst 30–40 %
 auf jedem schwierigen Fall ist damit kein starres Abschlusskriterium mehr.

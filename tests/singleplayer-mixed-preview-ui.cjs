@@ -1,5 +1,6 @@
 /* Explicit mixed zero-card/card preview fixture, no release or win evidence. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');
 const fixtureId='fixture-mixed-preview/best.pt';
@@ -51,8 +52,8 @@ const rows=page=>page.evaluate(async()=>{
       await page.locator('[data-mode="feedback"]').click();
       for(const selected of [noCards,withCards]) {
         const actualRoute=actualRoutes.find(route=>route.engine_code===selected.airport);
-        await page.locator('#solo-route').selectOption(actualRoute.id);
-        await page.locator('#solo-model').selectOption(currentId);
+        await chooseModel(page,currentId);
+        await chooseRoute(page,actualRoute.id);
         if(selected.abilities.length) {
           const expected=current.preview.supported_cases.filter(row=>row.airport===selected.airport)
             .map(row=>row.airport+'|'+[...row.abilities].sort().join(',')).sort();
@@ -107,17 +108,19 @@ const rows=page=>page.evaluate(async()=>{
         await page.locator('[data-mode="feedback"]').click();
       }
       console.log('Actual current Crew 3 runtime cases:',JSON.stringify(realCases));
-      await page.locator('[data-mode="play"]').click();
+      await chooseMode(page,'play');
     }
+    await chooseMode(page,'play');
+    await chooseModel(page,fixtureId);
+    await chooseRoute(page,'custom-MUC');
     for(const route of ['YUL-green','ATL-green']) {
-      await page.locator('#solo-route').selectOption(route);
-      assert.equal(await page.locator(`#solo-model option[value="${fixtureId}"]`).count(),0,
+      assert.equal(await page.locator(`#solo-route option[value="${route}"]`).count(),0,
         'Zero-result and unlisted no-card cases stay hidden despite route hints');
     }
-    await page.locator('[data-mode="feedback"]').click();
+    await chooseMode(page,'feedback');
     for(const [route,cards,rate] of [['custom-MUC',[],5],['GIG-yellow',['control'],10]]) {
-      await page.locator('#solo-route').selectOption(route);
-      await page.locator('#solo-model').selectOption(fixtureId);
+      await chooseModel(page,fixtureId);
+      await chooseRoute(page,route);
       assert.match(await page.locator('#solo-description').innerText(),new RegExp(`Entwicklungstest im KI-Selbstspiel: ${rate} %`));
       assert.doesNotMatch(await page.locator('#solo-description').innerText(),/99 %/);
       assert.match(await page.locator('#solo-description').innerText(),/noch nicht unabhängig qualifiziert/);

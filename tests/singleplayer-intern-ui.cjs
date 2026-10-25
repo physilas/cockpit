@@ -2,6 +2,7 @@
  * Its explicit unqualified preview is not release evidence or a production change. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
+const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');
@@ -38,8 +39,8 @@ const waitForAIBonus=async(page,previous)=>{
     await page.goto(pageUrl);
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('[data-mode="feedback"]').click();
-    await page.locator('#solo-route').selectOption('ATL-green');
-    await page.locator('#solo-model').selectOption('fixture-intern/best.pt');
+    await chooseModel(page,'fixture-intern/best.pt');
+    await chooseRoute(page,'ATL-green');
     assert.equal(await page.locator('#solo-route option[value="ATL-green"]').evaluate(option=>option.disabled),false);
     assert.match(await page.locator('#solo-description').innerText(),/Entwicklungsstand, noch nicht unabhängig qualifiziert/);
     assert.match(await page.locator('#solo-description').innerText(),/Entwicklungstest im KI-Selbstspiel: 5 %/);
@@ -102,7 +103,7 @@ const waitForAIBonus=async(page,previous)=>{
     assert.ok(human[0].training_compatible && Number.isInteger(human[0].action_id));
     assert.equal(human[0].decision.role,'pilot');
     assert.equal(human[0].decision.observation.length,489);
-    assert.ok(data.events.some(e=>e.actor==='ai' && e.feedback?.value===1 && e.feedback.committed && e.feedback.trigger==='human_action'));
+    assert.ok(data.events.some(e=>e.actor==='ai' && e.feedback?.value===1 && e.feedback.committed && e.feedback.explicit && e.feedback.trigger==='thumb'));
     assert.ok(data.events.every(e=>!e.decision?.public_state || !('own_dice' in e.decision.public_state)));
     assert.deepEqual(errors,[]);
     console.log('✓ Intern profile-10 runtime: real NN bonus actions, pending role, empty regular hands, blocked human AI-token clicks, private partner invariance, one recorded human bonus and committed thumbs');

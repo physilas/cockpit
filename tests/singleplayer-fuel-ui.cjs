@@ -1,6 +1,7 @@
 /* Actual qualified OSL model. This never uploads technical fixture games to D1. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
+const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const records = page => page.evaluate(async () => {
   const db = await new Promise((resolve,reject) => {const r=indexedDB.open('flyteam-learning-v1',2);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
@@ -18,16 +19,17 @@ const records = page => page.evaluate(async () => {
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     await page.goto(pageUrl);
     await page.getByRole('button',{name:/Singleplayer/}).click();
-    await page.locator('#solo-route').selectOption('OSL-green');
     const modelId=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(m=>m.quality?.approved && m.schema?.version===3 && m.supported_airports?.includes('LOG_OSL_GREEN')).id);
-    await page.locator('#solo-model').selectOption(modelId);
-    await page.locator('[data-mode="feedback"]').click();
+    await chooseMode(page,'feedback');
+    await chooseModel(page,modelId);
+    await chooseRoute(page,'OSL-green');
     assert.equal(await page.locator('#solo-route option[value="OSL-green"]').evaluate(option=>option.disabled),false);
     assert.equal(await page.locator('#solo-model').inputValue(),modelId);
-    await page.locator('[data-mode="examples"]').click();
-    assert.equal(await page.locator('#solo-route option[value="OSL-green"]').evaluate(option=>option.disabled),true);
-    await page.locator('[data-mode="feedback"]').click();
-    await page.locator('#solo-route').selectOption('OSL-green');
+    await chooseMode(page,'examples');
+    assert.equal(await page.locator('#solo-route option[value="OSL-green"]').count(),0);
+    await chooseMode(page,'feedback');
+    await chooseModel(page,modelId);
+    await chooseRoute(page,'OSL-green');
     await page.locator('#solo-consent').check();
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
@@ -77,7 +79,7 @@ const records = page => page.evaluate(async () => {
     assert.ok(fuel.training_compatible);
     assert.equal(fuel.decision.observation.length,489);
     assert.equal(fuel.decision.action_mask.length,217);
-    assert.ok(data.events.some(event=>event.actor==='ai' && event.feedback?.value===1 && event.feedback.committed && event.feedback.trigger==='human_action'));
+    assert.ok(data.events.some(event=>event.actor==='ai' && event.feedback?.value===1 && event.feedback.committed && event.feedback.explicit && event.feedback.trigger==='thumb'));
     assert.ok(data.events.every(event=>!event.decision?.public_state || !('own_dice' in event.decision.public_state)));
     assert.ok(data.events.every(event=>!event.public_after || !('kopilot_wuerfel' in event.public_after)));
     await page.waitForFunction(()=>LearningCloud.enabled());

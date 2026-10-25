@@ -38,6 +38,7 @@ window.Singleplayer = (() => {
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
   let api, setup = null, session = null, policy = null, reroll = null;
+  let menuStep = "mode";
   let timer = null, generation = 0, paused = "", starting = false, storageError = "";
   let feedbackIndex = null, saveQueue = Promise.resolve(), memory = new Map();
   let feedbackHeaderObserver = null;
@@ -207,75 +208,105 @@ window.Singleplayer = (() => {
     if (!api) return;
     stop(); api.hideGame();
     document.getElementById("start-menu").classList.add("versteckt");
-    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.ability_count && !s.modules.length
-      || selectableModels().some(m => supportsRoute(m, s)));
     root().innerHTML = `<div class="solo-shell"><button class="landing-back" id="solo-back">← Menü</button>
-      <span class="landing-eyebrow">DEINE CREW</span><h1>Singleplayer</h1>
-      <p class="solo-intro">Zusammen fliegen. Entscheidungen bewerten. Erfahrungen weitergeben.</p>
-      <div class="solo-modes" role="group" aria-label="Spielmodus">
+      <span class="landing-eyebrow" id="solo-step-count"></span><h1 id="solo-heading" tabindex="-1">Modus auswählen</h1>
+      <ol class="solo-progress" aria-label="Einzelspieler-Auswahl"><li data-progress="mode">Modus</li><li data-progress="model">KI</li><li data-progress="route">Landung</li></ol>
+      <section class="solo-step" data-step="mode" aria-label="Modus auswählen"><div class="solo-modes" role="group" aria-label="Spielmodus">
         <button data-mode="play" aria-pressed="true"><span>🤖</span><strong>Mit KI spielen</strong><small>Du und ein trainiertes Modell im Cockpit.</small></button>
         <button data-mode="feedback" aria-pressed="false"><span>🧸</span><strong>KI-ndergartenbetreuung</strong><small>Spiele mit der KI und bewerte ihre Entscheidungen.</small></button>
         <button data-mode="examples" aria-pressed="false"><span>🎬</span><strong>KI-no</strong><small>Pass &amp; Play: Eure Partien werden zu Lernbeispielen.</small></button>
-      </div><div class="solo-settings">
+      </div></section>
+      <section class="solo-step" data-step="model" aria-label="KI auswählen" hidden><div class="solo-settings">
         <label id="solo-model-label">KI<select id="solo-model">${selectableModels().map(model => `<option value="${esc(model.id)}">${esc(modelLabel(model))}</option>`).join("")}</select></label>
         <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
-        <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.modules.map(module => ` · ${esc(window.LANDING_CATALOG.modules[module]?.name || module)}`).join("")}${s.ability_count ? ` · ${s.ability_count} ${s.ability_count === 1 ? "Karte" : "Karten"}` : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
+      </div><p id="solo-model-description" class="solo-model-description"></p>
+      <button id="solo-next" class="landing-start">Landung auswählen →</button></section>
+      <section class="solo-step" data-step="route" aria-label="Landung auswählen" hidden><div class="solo-settings">
+        <label id="solo-route-label">Landung<select id="solo-route"></select></label>
         <label id="solo-abilities-label" hidden>Fähigkeitskarten<select id="solo-abilities"></select></label>
       </div><p id="solo-description" class="solo-description"></p>
       <label id="solo-consent-label" class="solo-consent" hidden><input id="solo-consent" type="checkbox"><span>Ich bin einverstanden, dass meine Spielzüge, KI-Bewertungen und das Spielergebnis ohne Namen oder E-Mail-Adresse gespeichert und zur Verbesserung der KI an den Betreiber übermittelt werden.</span></label>
-      <p class="solo-storage-note">Die KI lernt später aus den gesammelten Beispielen und Bewertungen.</p>
+      <p id="solo-learning-note" class="solo-storage-note">Die KI lernt später aus den gesammelten Beispielen und Bewertungen.</p>
       <button id="solo-start" class="landing-start">Mit KI starten →</button><p id="solo-error" role="alert"></p>
       <details class="solo-data"><summary>Eigene Aufzeichnungen</summary><div><button id="solo-export">Aufzeichnungen exportieren</button><span id="ai-export-status" role="status"></span></div>
-      <p class="solo-storage-note" id="solo-storage-status"></p></details></div>`;
+      <p class="solo-storage-note" id="solo-storage-status"></p></details></section></div>`;
     setup = {mode: "play", humanRole: "pilot", model: null};
     // Prefer a qualified release supporting the initially selected MUC route.
     const preferred = [...qualifiedModels()].filter(m => !isPreview(m) && supports(m, "MUC")).sort((a,b) =>
       Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)) ||
       Number(b.checkpoint === "latest") - Number(a.checkpoint === "latest") || b.steps - a.steps)[0];
     if (preferred) document.getElementById("solo-model").value = preferred.id;
-    document.getElementById("solo-back").onclick = () => { root().classList.add("versteckt"); api.mainMenu(); };
+    document.getElementById("solo-back").onclick = () => {
+      if (starting) return;
+      if (menuStep === "route") setMenuStep(setup.mode === "examples" ? "mode" : "model");
+      else if (menuStep === "model") setMenuStep("mode");
+      else { root().classList.add("versteckt"); api.mainMenu(); }
+    };
     root().querySelectorAll("[data-mode]").forEach(button => button.onclick = () => {
-      setup.mode = button.dataset.mode; document.getElementById("solo-consent").checked = false; updateMenu();
+      if (starting) return;
+      if (setup.mode !== button.dataset.mode) document.getElementById("solo-consent").checked = false;
+      setup.mode = button.dataset.mode;
+      setMenuStep(setup.mode === "examples" ? "route" : "model");
     });
+    document.getElementById("solo-next").onclick = () => { if (!starting && setup.model) setMenuStep("route"); };
     document.getElementById("solo-model").onchange = updateMenu;
     document.getElementById("solo-route").onchange = updateMenu;
     document.getElementById("solo-abilities").onchange = updateMenu;
     document.getElementById("solo-consent").onchange = updateMenu;
     document.getElementById("solo-start").onclick = launch;
     document.getElementById("solo-export").onclick = exportData;
-    root().classList.remove("versteckt"); updateMenu(); window.scrollTo(0,0);
+    root().classList.remove("versteckt"); setMenuStep("mode");
     storedSessions().then(rows => {
       const label = document.getElementById("solo-storage-status");
       if (label) label.textContent = storageError || `${rows.length} aufgezeichnete Partien auf diesem Gerät.`;
     });
   }
 
+  function setMenuStep(step) {
+    menuStep = step;
+    updateMenu();
+    document.getElementById("solo-heading").focus({preventScroll:true});
+    window.scrollTo(0,0);
+  }
+
   function updateMenu() {
     const examples = setup.mode === "examples";
+    const steps = examples ? ["mode", "route"] : ["mode", "model", "route"];
+    root().dataset.step = menuStep;
+    root().querySelectorAll("[data-step]").forEach(panel => { panel.hidden = panel.dataset.step !== menuStep; });
+    root().querySelectorAll("[data-progress]").forEach(item => {
+      item.hidden = !steps.includes(item.dataset.progress);
+      if (item.dataset.progress === menuStep) item.setAttribute("aria-current", "step");
+      else item.removeAttribute("aria-current");
+    });
+    document.getElementById("solo-step-count").textContent = `SINGLEPLAYER · SCHRITT ${steps.indexOf(menuStep) + 1} VON ${steps.length}`;
+    document.getElementById("solo-heading").textContent = {mode:"Modus auswählen",model:"KI auswählen",route:"Landung auswählen"}[menuStep];
+    document.getElementById("solo-back").textContent = menuStep === "mode" ? "← Menü" : "← Zurück";
+    document.getElementById("solo-back").disabled = starting;
     root().querySelectorAll("[data-mode]").forEach(b => {
       b.setAttribute("aria-pressed", String(b.dataset.mode === setup.mode)); b.disabled = starting;
     });
     for (const id of ["solo-model", "solo-role", "solo-route", "solo-abilities", "solo-consent"]) document.getElementById(id).disabled = starting;
-    document.getElementById("solo-model-label").hidden = examples;
-    document.getElementById("solo-role-label").hidden = examples;
-    document.getElementById("solo-route-label").hidden = false;
     document.getElementById("solo-consent-label").hidden = setup.mode === "play";
-    const routeSelector = document.getElementById("solo-route");
-    for (const option of routeSelector.options) {
-      const route = window.LANDING_CATALOG.scenarios.find(s => s.id === option.value);
-      option.disabled = setup.mode === "examples" && Boolean(route?.modules.length || route?.ability_count)
-        || setup.mode === "feedback" && !selectableModels().some(model => supportsFeedback(model, route));
-    }
-    if (routeSelector.selectedOptions[0]?.disabled) routeSelector.value = [...routeSelector.options].find(o => !o.disabled)?.value;
-    const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === routeSelector.value);
+    document.getElementById("solo-learning-note").hidden = setup.mode === "play";
     const selector = document.getElementById("solo-model"), previousModel = selector.value;
-    const choices = selectableModels().filter(m => supportsRoute(m, selectedRoute)
-      && (setup.mode !== "feedback" || supportsFeedback(m, selectedRoute)))
+    const scenarios = window.LANDING_CATALOG.scenarios;
+    const choices = selectableModels().filter(m => scenarios.some(route => supportsRoute(m, route)
+      && (setup.mode !== "feedback" || supportsFeedback(m, route))))
       .sort((a,b) => Number(b.quality?.approved === true) - Number(a.quality?.approved === true)
         || Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
     selector.innerHTML = choices.map(m => `<option value="${esc(m.id)}">${esc(modelLabel(m))}</option>`).join("");
     if (choices.some(m => m.id === previousModel)) selector.value = previousModel;
-    setup.model = choices.find(m => m.id === selector.value) || null;
+    setup.model = examples ? null : choices.find(m => m.id === selector.value) || null;
+    const routes = scenarios.filter(route => examples ? !route.modules.length && !route.ability_count
+      : supportsRoute(setup.model, route) && (setup.mode !== "feedback" || supportsFeedback(setup.model, route)));
+    const routeSelector = document.getElementById("solo-route"), previousRoute = routeSelector.value;
+    routeSelector.innerHTML = routes.map(s => `<option value="${esc(s.id)}">${esc(s.code)} · ${esc(s.name)}${s.modules.map(module => ` · ${esc(window.LANDING_CATALOG.modules[module]?.name || module)}`).join("")}${s.ability_count ? ` · ${s.ability_count} ${s.ability_count === 1 ? "Karte" : "Karten"}` : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("");
+    routeSelector.value = routes.find(s => s.id === previousRoute)?.id || routes.find(s => s.engine_code === "MUC")?.id || routes[0]?.id || "";
+    const selectedRoute = routes.find(s => s.id === routeSelector.value);
+    document.getElementById("solo-model-description").textContent = !setup.model ? "Keine KI verfügbar."
+      : `${isPreview(setup.model) ? "Testmodell · noch nicht unabhängig qualifiziert. " : ""}${routes.length} ${routes.length === 1 ? "Landung verfügbar" : "Landungen verfügbar"}.`;
+    document.getElementById("solo-next").disabled = starting || !setup.model || !routes.length;
     const cardSelector = document.getElementById("solo-abilities"), previousCase = cardSelector.value;
     const cases = setup.model && selectedRoute?.ability_count ? supportedCases(setup.model, selectedRoute) : [];
     cardSelector.innerHTML = cases.map(row => `<option value="${esc(caseKey(row.airport,row.abilities))}">${row.abilities.map(id => esc(window.LANDING_CATALOG.abilities.find(card => card.id === id).name)).join(" + ")}</option>`).join("");
@@ -291,14 +322,14 @@ window.Singleplayer = (() => {
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
       : !setup.model ? "Für diese Strecke ist noch keine KI verfügbar."
       : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Dein Klick speichert sofort; Rückgängig nimmt die letzte Bewertung zurück. Keine Auswahl ist neutral." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
-    document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
+    document.getElementById("solo-start").disabled = starting || !selectedRoute || (!examples && !setup.model)
       || (!examples && !supportsCase(setup.model,selectedRoute,setup.abilities))
       || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
     document.getElementById("solo-start").textContent = starting ? "Wird vorbereitet …" : examples ? "Beispielpartie starten →" : "Mit KI starten →";
   }
 
   async function launch() {
-    if (starting) return;
+    if (starting || menuStep !== "route") return;
     if (setup.mode !== "play" && !document.getElementById("solo-consent").checked) return;
     const version = ++generation;
     const config = {...setup, abilities:[...(setup.abilities || [])], humanRole: document.getElementById("solo-role").value};
