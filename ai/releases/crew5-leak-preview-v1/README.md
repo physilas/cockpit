@@ -1,4 +1,6 @@
-# Crew 5 · Leck (Test)
+# Crew 3
+
+Am 25.10.2026 auf Nutzerwunsch in der Modellauswahl zu **Crew 3** umbenannt. Bisheriger Anzeigename: Crew 5 · Leck (Test). Release-ID, Checkpoint, Browsergewichte, Entwicklungsdaten und alle sechs Kartenfälle bleiben identisch. Der historische Trainingsname im Checkpoint bleibt für die Nachvollziehbarkeit erhalten.
 
 Ausdrücklich gewünschte Vorschau des letzten tatsächlich trainierten Profil-12-Stands mit 80.139 neuen Leck-Entscheidungen. Veröffentlichung enthält alle sechs Einzelkarten auf Atlanta gelb, einschließlich 0%-Fall.
 

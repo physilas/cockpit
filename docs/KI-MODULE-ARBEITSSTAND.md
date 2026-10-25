@@ -1,4 +1,107 @@
-# Laufendes Ziel: alle Module, zunächst 30–40 % je Fall
+# Arbeitsstand: Modul-KI, auf Nutzerwunsch pausiert
+
+**Neueste Nutzeranweisung vom 25.10.2026:** Niedrige Gewinnquoten auf sehr
+schweren Strecken sind akzeptabel. Die frühere Forderung von zunächst 30–40 %
+auf jedem schwierigen Fall ist damit kein starres Abschlusskriterium mehr.
+Nachvollziehbares Spiel und verlässliche Modulbedienung sind wichtiger;
+Einzelquoten, Vorschaukennzeichnung und unabhängige Nachweise bleiben ehrlich.
+Die Matrix mit 21 Routen/186 Fällen bleibt die Abdeckungsliste, kein Mittelwert
+ersetzt ihre Einzelwerte.
+
+Der letzte Vergleich ist abgeschlossen. Auf „danach darfst du erstmal aufhören“
+ist die automatische Fortsetzung **PAUSED** und der persistente Schalter
+`runs/STOP_AI_TRAINING` gesetzt. Kein weiterer Trainings-/Vergleichslauf.
+Fortsetzung erst nach ausdrücklichem Nutzerauftrag; dann erst `clear-stop`
+und gegebenenfalls Reaktivierung der Automation. Code und abgeschlossene
+Forschungsergebnisse gehören zum abschließenden Push.
+
+Auf „Nenne es Crew 3“ heißt der **zuletzt spielbare Modellstand jetzt genau
+Crew 3** in der Auswahl, bisher Crew 5 · Leck (Test). Die Release-ID
+`crew5-leak-preview-v1/best.pt`, historischen Trainingsmetadaten, Tensoren,
+Browserasset und sechs getesteten Atlanta-gelb-Kartenfälle bleiben erhalten.
+Nur Anzeigename und Release-README ändern sich; `quality.approved=false` und
+die sichtbare Testkennzeichnung bleiben bestehen. Die anderen Crew-3-Varianten
+und alle übrigen Einträge bleiben unverändert. Kein neu trainiertes Netz und
+keine Übernahme der folgenden noch nicht im Browser implementierten Forschung.
+Die vollständige Katalogprüfung bestätigt genau eine Anzeigenamenänderung bei
+75 Einträgen, sechs unveränderte Kartenfälle und den identischen Browserasset-
+Hash. Der Node-Fallvertrag besteht; Build/Service-Worker-Version aktualisiert.
+
+## Abgeschlossene Forschung: notwendige Aufgaben-Kapazität erhalten
+
+`ai.task_deadline_guard` / `TaskDeadlineEnv` bilden eine ausdrücklich getrennte
+Forschungsphase über den erhaltenen Prior-/Endrundenreferenzen. Nur wenn die
+öffentliche optimistische Zählgrenze aktuell besteht, werden native eigene
+Platzierungen entfernt, deren öffentlicher projizierter Zustand innerhalb
+derselben Runde die Grenze verletzt. Hilfsaktionen bleiben vorhanden; bereits
+verletzte, unbekannte oder offene Dialogzustände fallen unverändert zurück.
+Noch möglicher Synchronisationsbonus führt zur Enthaltung, ein tatsächlich
+ausgegebener schwarzer Würfel zählt einmal. Ein leeres Ergebnis fällt auf die
+vorige Maske zurück, ohne künstlichen Verlustzustand. Keine echte private
+Partnerhand und kein zukünftiger Spiel-RNG.
+
+Alte Masken und ihre Referenzen werden als `pre_guard_*` separat bewahrt.
+Die aktuelle Referenz wird unter der neuen Maske neu berechnet und muss deren
+Teilmenge sein; alte Referenzen gehören ausdrücklich zu ihren alten Masken.
+Native Beobachtung/Uhr bleiben erhalten. `research_task_deadline=true` sperrt
+die nicht im Browser unterstützte Umgebung auch für Vorschauveröffentlichungen.
+Bestehende Profile, Gewichte und vorherige Forschungsfingerprints unverändert.
+
+**46 relevante Tests bestanden in 5,15 s.** Darunter über 100 Vergleiche
+projizierter öffentlicher Platzierungsfolgen mit der nativen Engine,
+unveränderte tatsächlich erfolgreiche Eis-/Brems-/Gegenwindfolgen, Rollen,
+Bonus, Privacy/RNG, Pacing/Cache, Masken-/Referenzzuordnung, exakte alte
+Kontrollpartien und STOP-/Berichts-/Publikationsschutz. Ein Gegenbeispiel zeigt
+die Grenze der optimistischen Zählung: Ein halbes Eispaar kann beim Rundenwechsel
+verfallen und erst dann zu fehlender Kapazität führen. Technische Übungen sind
+keine Gewinnquoten.
+
+`ai.task_deadline_compare` ist **regulär beendet, Exit 0, 154,70 s**:
+Prior, erhaltene gemeinsame Endrundenplanung und zusätzliche Kapazitätsmaske,
+je 20 Spiele in zwölf offiziellen GIG-/KEF-gelben Einzelkartenfällen,
+**720 frische Entwicklungspartien**. Identische tatsächliche Crew-5-Tensoren
+mit Referenzabstand 12, keine PPO-Updates, null neue Trainingsentscheidungen.
+Acht Worker zu .7, Torch 1, nice 15; beobachtete aktive Worker etwa 45–46 %.
+Bericht `ai/experiments/wind-ice-2026-10-25/task-deadline-development-v1.json`,
+abgeleitete `task-deadline-analysis-v1.json`, beide `complete=true`.
+Log `/tmp/cockpit-task-deadline-development-v1.log`.
+
+| Einzelkarte | GIG Wind: Prior / gemeinsam / Kapazitätsmaske | KEF Eis: Prior / gemeinsam / Kapazitätsmaske |
+| --- | ---: | ---: |
+| Adaptation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Anticipation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Control | 0/20 / 0/20 / 0/20 | 0/20 / 1/20 / 1/20 |
+| Mastery | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Synchronisation | 0/20 / 1/20 / 1/20 | 1/20 / 1/20 / 1/20 |
+| Working-together | 0/20 / 1/20 / 1/20 | 0/20 / 0/20 / 0/20 |
+
+**Kein zusätzlicher Sieg durch die neue Maske:** Alle 240 gepaarten Gewinn-/
+Verluststatus stimmen mit der erhaltenen gemeinsamen Planung überein, davon
+vier gemeinsame Siege. Die drei zusätzlichen Siege gegenüber dem reinen Prior
+bestehen schon in der gemeinsamen Kontrolle. Gleiche Tensoren mit anderer
+Maske/Referenz sind keine unabhängig trainierten Modelle.
+
+Die Maske wird in 980 Zuständen enger, entfernt 11.383 Platzierungsoptionen und
+verhindert 282 alte NN-Wahlen, darunter 243 Konzentrationszüge. Übergänge von
+bestandener zu verletzter notwendiger Zählgrenze innerhalb derselben Runde
+sinken von 85 auf 63; am Rundenwechsel steigen sie von 52 auf 72. Das sind
+Pfaddiagnosen, kein Gewinnnachweis. 70 leere Ergebnisse fallen nativ zurück.
+Nicht jedes Übergangsereignis enthält seine ursprüngliche Eignungs-/Fallback-
+Markierung; die verbleibenden Verluste dürfen deshalb nicht pauschal einer
+einzigen Ursache zugeordnet werden. Die Grenze ignoriert weiterhin Augen,
+Kaffeekosten, Reihenfolge, halbe Eispaare und zukünftigen Verkehr. Bestehen
+beweist keine gewinnbare Fortsetzung.
+
+Verwendete Entwicklung **14.994.000 + 100*i**, zwölf Fälle zu je 20 Seeds,
+zuletzt **14.995.100–14.995.119**; technische Tests 14.989.400/410/420/430/440
+separat. Die nächste unabhängige Abschlusskohorte ab 15.400.000 bleibt unbenutzt.
+Kein neues Modell und keine Wind-/Eisfreigabe aus diesem Vergleich.
+
+**Bei später ausdrücklich gewünschter Fortsetzung:** Rundenwechsel und
+verfallende Eispaare sowie Funk-/Kontrollpflichten an konkreten öffentlichen
+Zuständen untersuchen. Die neue Maske nicht unverändert endlos trainieren;
+geringe Quoten auf sehr schweren Routen sind nach Nutzerwunsch akzeptabel.
+Weitere Forschung beginnt erst nach Aufhebung der Pause.
 
 Stand: 25. Oktober 2026. **Crew 2 ist für acht Grundspielstrecken zusätzlich
 freigegeben. Zusätzlich besteht Crew 2 · Kerosin für Oslo mit 39,8 % unter dem

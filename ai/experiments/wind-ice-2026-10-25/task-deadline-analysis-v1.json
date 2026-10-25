@@ -1,0 +1,561 @@
+{
+  "format": 1,
+  "complete": true,
+  "source_report": "task-deadline-development-v1.json",
+  "source_report_sha256": "a6ef2df052954bae984e70004852fc8f1d5d7ef466f8a0aa5b381ebc41947134",
+  "release_evidence": false,
+  "qualification_used": false,
+  "new_training_decisions": 0,
+  "ppo_updates": 0,
+  "elapsed_seconds": 154.6984242501203,
+  "cases": {
+    "LOG_GIG_YELLOW|adaptation": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 1018,
+        "budget_fail_states": 102,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 958,
+        "guard_fallbacks": 6,
+        "narrowed_mask_states": 97,
+        "removed_placement_options": 808,
+        "decisions": 1120,
+        "reference_departures": 0,
+        "changed_policy_choices": 16,
+        "prevented_old_placement_choices": 16,
+        "prevented_target_konzentration": 14,
+        "round_boundary_count_losses": 4,
+        "same_round_count_losses": 6,
+        "prevented_target_bremse": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 4,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 4
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 873,
+        "budget_fail_states": 78,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 823,
+        "guard_fallbacks": 4,
+        "narrowed_mask_states": 48,
+        "removed_placement_options": 601,
+        "decisions": 951,
+        "reference_departures": 0,
+        "changed_policy_choices": 20,
+        "prevented_old_placement_choices": 20,
+        "prevented_target_konzentration": 18,
+        "round_boundary_count_losses": 3,
+        "prevented_target_triebwerk": 2,
+        "same_round_count_losses": 5,
+        "same_round_losses_fixed_nonlevel_rudder": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 1,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 1
+    },
+    "LOG_GIG_YELLOW|control": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 1061,
+        "budget_fail_states": 106,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 993,
+        "guard_fallbacks": 7,
+        "narrowed_mask_states": 104,
+        "removed_placement_options": 1263,
+        "decisions": 1167,
+        "reference_departures": 0,
+        "changed_policy_choices": 47,
+        "prevented_old_placement_choices": 47,
+        "round_boundary_count_losses": 5,
+        "prevented_target_konzentration": 31,
+        "prevented_target_bremse": 7,
+        "same_round_count_losses": 6,
+        "prevented_target_triebwerk": 3,
+        "prevented_target_fahrwerk": 1,
+        "prevented_target_funk": 5
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 5,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 5
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 1005,
+        "budget_fail_states": 142,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 927,
+        "guard_fallbacks": 4,
+        "narrowed_mask_states": 60,
+        "removed_placement_options": 504,
+        "decisions": 1147,
+        "reference_departures": 0,
+        "changed_policy_choices": 21,
+        "prevented_old_placement_choices": 21,
+        "prevented_target_konzentration": 19,
+        "same_round_count_losses": 4,
+        "same_round_losses_fixed_nonlevel_rudder": 1,
+        "round_boundary_count_losses": 7,
+        "prevented_target_bremse": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 3,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 3
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 1,
+      "joint_win_rate": 0.05,
+      "deadline_wins": 1,
+      "deadline_win_rate": 0.05,
+      "deadline_counts": {
+        "budget_pass_states": 5,
+        "budget_fail_states": 4,
+        "budget_abstain_states": 967,
+        "guard_eligible_states": 3,
+        "guard_fallbacks": 0,
+        "narrowed_mask_states": 1,
+        "removed_placement_options": 3,
+        "decisions": 976,
+        "reference_departures": 0,
+        "changed_policy_choices": 0,
+        "prevented_old_placement_choices": 0
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 1,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 1,
+      "paired_joint": {
+        "both_win": 1,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 0
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 1,
+      "joint_win_rate": 0.05,
+      "deadline_wins": 1,
+      "deadline_win_rate": 0.05,
+      "deadline_counts": {
+        "budget_pass_states": 965,
+        "budget_fail_states": 130,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 903,
+        "guard_fallbacks": 5,
+        "narrowed_mask_states": 90,
+        "removed_placement_options": 838,
+        "decisions": 1095,
+        "reference_departures": 0,
+        "changed_policy_choices": 35,
+        "prevented_old_placement_choices": 35,
+        "round_boundary_count_losses": 6,
+        "prevented_target_fahrwerk": 1,
+        "prevented_target_konzentration": 29,
+        "same_round_count_losses": 5,
+        "prevented_target_bremse": 5,
+        "same_round_losses_fixed_nonlevel_rudder": 1
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 1,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 4,
+      "paired_joint": {
+        "both_win": 1,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 3
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 1018,
+        "budget_fail_states": 387,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 964,
+        "guard_fallbacks": 11,
+        "narrowed_mask_states": 116,
+        "removed_placement_options": 1404,
+        "decisions": 1405,
+        "reference_departures": 0,
+        "changed_policy_choices": 27,
+        "prevented_old_placement_choices": 27,
+        "same_round_count_losses": 11,
+        "round_boundary_count_losses": 8,
+        "prevented_target_konzentration": 25,
+        "same_round_losses_fixed_nonlevel_rudder": 1,
+        "prevented_target_fahrwerk": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 2,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 2
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 931,
+        "budget_fail_states": 259,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 881,
+        "guard_fallbacks": 7,
+        "narrowed_mask_states": 113,
+        "removed_placement_options": 1434,
+        "decisions": 1190,
+        "reference_departures": 0,
+        "changed_policy_choices": 18,
+        "prevented_old_placement_choices": 18,
+        "same_round_count_losses": 6,
+        "round_boundary_count_losses": 9,
+        "prevented_target_konzentration": 16,
+        "prevented_target_eisbremse": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 3,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 3
+    },
+    "LOG_KEF_YELLOW|control": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 1,
+      "joint_win_rate": 0.05,
+      "deadline_wins": 1,
+      "deadline_win_rate": 0.05,
+      "deadline_counts": {
+        "budget_pass_states": 937,
+        "budget_fail_states": 365,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 881,
+        "guard_fallbacks": 8,
+        "narrowed_mask_states": 122,
+        "removed_placement_options": 1537,
+        "decisions": 1302,
+        "reference_departures": 0,
+        "changed_policy_choices": 25,
+        "prevented_old_placement_choices": 25,
+        "round_boundary_count_losses": 11,
+        "prevented_target_konzentration": 23,
+        "same_round_count_losses": 6,
+        "prevented_target_fahrwerk": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 1,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 3,
+      "paired_joint": {
+        "both_win": 1,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 2
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 908,
+        "budget_fail_states": 289,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 840,
+        "guard_fallbacks": 11,
+        "narrowed_mask_states": 115,
+        "removed_placement_options": 1515,
+        "decisions": 1197,
+        "reference_departures": 0,
+        "changed_policy_choices": 43,
+        "prevented_old_placement_choices": 43,
+        "prevented_target_konzentration": 40,
+        "same_round_count_losses": 7,
+        "round_boundary_count_losses": 9,
+        "prevented_target_landeklappe": 2,
+        "prevented_target_fahrwerk": 1
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 6,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 6
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "games": 20,
+      "prior_wins": 1,
+      "prior_win_rate": 0.05,
+      "joint_wins": 1,
+      "joint_win_rate": 0.05,
+      "deadline_wins": 1,
+      "deadline_win_rate": 0.05,
+      "deadline_counts": {
+        "budget_pass_states": 7,
+        "budget_fail_states": 12,
+        "budget_abstain_states": 1290,
+        "guard_eligible_states": 5,
+        "guard_fallbacks": 0,
+        "narrowed_mask_states": 4,
+        "removed_placement_options": 23,
+        "decisions": 1309,
+        "reference_departures": 0,
+        "changed_policy_choices": 0,
+        "prevented_old_placement_choices": 0
+      },
+      "paired_prior": {
+        "both_win": 1,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 1,
+      "paired_joint": {
+        "both_win": 1,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 0
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "games": 20,
+      "prior_wins": 0,
+      "prior_win_rate": 0.0,
+      "joint_wins": 0,
+      "joint_win_rate": 0.0,
+      "deadline_wins": 0,
+      "deadline_win_rate": 0.0,
+      "deadline_counts": {
+        "budget_pass_states": 922,
+        "budget_fail_states": 335,
+        "budget_abstain_states": 0,
+        "guard_eligible_states": 864,
+        "guard_fallbacks": 7,
+        "narrowed_mask_states": 110,
+        "removed_placement_options": 1453,
+        "decisions": 1257,
+        "reference_departures": 0,
+        "changed_policy_choices": 30,
+        "prevented_old_placement_choices": 30,
+        "prevented_target_konzentration": 28,
+        "round_boundary_count_losses": 10,
+        "same_round_count_losses": 7,
+        "same_round_losses_fixed_nonlevel_rudder": 1,
+        "prevented_target_fahrwerk": 2
+      },
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_prior": 5,
+      "paired_joint": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs_joint": 5
+    }
+  },
+  "diagnostic_totals": {
+    "prior": {
+      "budget_pass_states": 9030,
+      "budget_fail_states": 2704,
+      "budget_abstain_states": 2262,
+      "decisions": 13996,
+      "reference_departures": 0,
+      "same_round_count_losses": 87,
+      "round_boundary_count_losses": 52
+    },
+    "joint": {
+      "budget_pass_states": 9036,
+      "budget_fail_states": 2693,
+      "budget_abstain_states": 2257,
+      "decisions": 13986,
+      "reference_departures": 0,
+      "same_round_count_losses": 85,
+      "round_boundary_count_losses": 52
+    },
+    "deadline": {
+      "budget_pass_states": 9650,
+      "budget_fail_states": 2209,
+      "budget_abstain_states": 2257,
+      "guard_eligible_states": 9042,
+      "guard_fallbacks": 70,
+      "narrowed_mask_states": 980,
+      "removed_placement_options": 11383,
+      "decisions": 14116,
+      "reference_departures": 0,
+      "changed_policy_choices": 282,
+      "prevented_old_placement_choices": 282,
+      "prevented_target_konzentration": 243,
+      "round_boundary_count_losses": 72,
+      "same_round_count_losses": 63,
+      "prevented_target_bremse": 16,
+      "prevented_target_triebwerk": 5,
+      "same_round_losses_fixed_nonlevel_rudder": 6,
+      "prevented_target_fahrwerk": 9,
+      "prevented_target_funk": 5,
+      "prevented_target_eisbremse": 2,
+      "prevented_target_landeklappe": 2
+    }
+  },
+  "paired_outcomes": {
+    "prior": {
+      "both_win": 1,
+      "both_lose": 236,
+      "candidate_only": 3,
+      "baseline_only": 0
+    },
+    "joint": {
+      "both_win": 4,
+      "both_lose": 236,
+      "candidate_only": 0,
+      "baseline_only": 0
+    }
+  },
+  "interpretation": [
+    "The necessary-count guard changes behavior but adds no wins against the preserved joint control in any tested case.",
+    "All240 paired win/loss statuses match joint, including four shared wins. Loss reasons can differ.",
+    "Same-round count-loss transitions decrease85 to63; round-boundary transitions increase52 to72. These are path diagnostics, not causal win-rate evidence.",
+    "There are70 empty-result fallbacks. Remaining losses cannot all be attributed to a single mechanism because source eligibility/fallback is not recorded on every transition event.",
+    "The bound ignores faces, coffee costs, sequencing, lost half-ice pairs and future traffic; passing is not a proof of a playable winning continuation.",
+    "Privacy and successful engine exercises are technical checks, not qualification games. No new weights or browser search implementation were released.",
+    "The user accepts low win rates on very difficult routes; per-case development results remain explicit and unqualified."
+  ]
+}
