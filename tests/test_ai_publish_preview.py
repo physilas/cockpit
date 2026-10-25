@@ -151,7 +151,7 @@ class PublishPreviewTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     publish_preview(checkpoint, evaluation, 'bad-profile', 'Preview', root=root)
         for flag in ('research_all_modules', 'research_open_risk', 'research_capacity_guard',
-                     'research_leak_donation'):
+                     'research_leak_donation', 'research_wind_ice'):
             with self.subTest(flag=flag), tempfile.TemporaryDirectory() as folder:
                 root = Path(folder)
                 checkpoint, evaluation, _ = fixture(root)

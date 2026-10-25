@@ -1,0 +1,317 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "qualification_used": false,
+  "new_training_decisions": 0,
+  "comparison_report_sha256": "77fc343f000041352acd036c2f0cc149bc92ebc62002fbb40eb3123d9e18877e",
+  "training_probe_report_sha256": "c16835a7a6e3d3ff78f84b25a2ead1dfdb7e02ee3d3707042a8e359b6b283fd3",
+  "individual_cases": {
+    "LOG_GIG_YELLOW|adaptation": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 786,
+        "changed_reference_decisions": 708,
+        "reference_departures": 0,
+        "changed_native_preferences": 675,
+        "changed_kind_adaptation": 33,
+        "changed_kind_place": 618,
+        "changed_kind_coffee": 23,
+        "changed_kind_reroll_start": 1
+      }
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 771,
+        "changed_reference_decisions": 645,
+        "reference_departures": 0,
+        "changed_native_preferences": 612,
+        "changed_kind_place": 575,
+        "changed_kind_reroll_start": 0,
+        "changed_kind_coffee": 37
+      }
+    },
+    "LOG_GIG_YELLOW|control": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 682,
+        "changed_reference_decisions": 568,
+        "reference_departures": 0,
+        "changed_native_preferences": 533,
+        "changed_kind_place": 500,
+        "changed_kind_coffee": 33,
+        "changed_kind_reroll_start": 0
+      }
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 604,
+        "changed_reference_decisions": 491,
+        "reference_departures": 0,
+        "changed_native_preferences": 457,
+        "changed_kind_place": 449,
+        "changed_kind_coffee": 8,
+        "changed_kind_reroll_start": 0
+      }
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 701,
+        "changed_reference_decisions": 615,
+        "reference_departures": 0,
+        "changed_native_preferences": 589,
+        "changed_kind_place": 558,
+        "changed_kind_coffee": 30,
+        "changed_kind_reroll_start": 1
+      }
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 778,
+        "changed_reference_decisions": 683,
+        "reference_departures": 0,
+        "changed_native_preferences": 612,
+        "changed_kind_place": 588,
+        "changed_kind_reroll_start": 0,
+        "changed_kind_coffee": 24
+      }
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 1,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 1,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 1051,
+        "changed_reference_decisions": 941,
+        "reference_departures": 0,
+        "changed_native_preferences": 885,
+        "changed_kind_place": 794,
+        "changed_kind_adaptation": 38,
+        "changed_kind_coffee": 49,
+        "changed_kind_reroll_start": 4
+      }
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 923,
+        "changed_reference_decisions": 787,
+        "reference_departures": 0,
+        "changed_native_preferences": 740,
+        "changed_kind_place": 696,
+        "changed_kind_coffee": 44,
+        "changed_kind_reroll_start": 0
+      }
+    },
+    "LOG_KEF_YELLOW|control": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 814,
+        "changed_reference_decisions": 664,
+        "reference_departures": 0,
+        "changed_native_preferences": 617,
+        "changed_kind_place": 560,
+        "changed_kind_coffee": 56,
+        "changed_kind_reroll_start": 1
+      }
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 843,
+        "changed_reference_decisions": 677,
+        "reference_departures": 0,
+        "changed_native_preferences": 631,
+        "changed_kind_place": 589,
+        "changed_kind_coffee": 39,
+        "changed_kind_reroll_start": 3
+      }
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 1,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 1,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 881,
+        "changed_reference_decisions": 723,
+        "reference_departures": 0,
+        "changed_native_preferences": 670,
+        "changed_kind_place": 619,
+        "changed_kind_coffee": 50,
+        "changed_kind_reroll_start": 1
+      }
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "games_per_arm": 20,
+      "native_wins": 0,
+      "microplans_wins": 0,
+      "paired": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "microplan_counts": {
+        "decisions": 950,
+        "changed_reference_decisions": 837,
+        "reference_departures": 0,
+        "changed_native_preferences": 719,
+        "changed_kind_place": 666,
+        "changed_kind_coffee": 53,
+        "changed_kind_reroll_start": 0
+      }
+    }
+  },
+  "diagnostic_route_totals": {
+    "LOG_GIG_YELLOW": {
+      "native": {
+        "episodes": 120,
+        "landing_round_started": 0,
+        "loss_reasons": {
+          "kollision": 91,
+          "trudeln": 12,
+          "pflichtfelder_nicht_erfuellt": 17
+        }
+      },
+      "microplans": {
+        "episodes": 120,
+        "landing_round_started": 23,
+        "loss_reasons": {
+          "trudeln": 30,
+          "notlandung": 5,
+          "uebers_ziel_hinaus": 10,
+          "zu_schnell_gelandet": 14,
+          "kollision": 50,
+          "flugzeuge_uebrig": 8,
+          "pflichtfelder_nicht_erfuellt": 3
+        }
+      }
+    },
+    "LOG_KEF_YELLOW": {
+      "native": {
+        "episodes": 120,
+        "landing_round_started": 0,
+        "loss_reasons": {
+          "trudeln": 18,
+          "kollision": 88,
+          "pflichtfelder_nicht_erfuellt": 14
+        }
+      },
+      "microplans": {
+        "episodes": 120,
+        "landing_round_started": 38,
+        "loss_reasons": {
+          "zu_schnell_gelandet": 23,
+          "trudeln": 43,
+          "notlandung": 17,
+          "eisbremsen_unvollstaendig": 4,
+          "kollision": 13,
+          "eisbremsen_unvollstaendig,nicht_waagerecht": 2,
+          "eisbremsen_unvollstaendig,landeklappen_unvollstaendig": 2,
+          "uebers_ziel_hinaus": 6,
+          "eisbremsen_unvollstaendig,flugzeuge_uebrig": 2,
+          "pflichtfelder_nicht_erfuellt": 4,
+          "landeklappen_unvollstaendig,nicht_waagerecht": 2
+        }
+      }
+    }
+  },
+  "conclusion": "Both isolated ice wins remain far below30%; all wind cases still0/20. More landing rounds is not a winning-policy qualification. Do not train unchanged against this weak fixed teacher.",
+  "next_hypothesis": "Unknown partner controls currently receive no physical ranking. Investigate earlier public rudder/thrust commitments and preservation of shared coffee, using a separate fair-hand prior with distinct dice; never actual unseen faces or future game RNG.",
+  "training_probe": {
+    "games": 40,
+    "fatal_rudders": 13,
+    "empty_plans_with_legal_reroll": 0,
+    "pending_bonus": 0,
+    "all_fatal_rudders_have_empty_microplans": true,
+    "zero_coffee_at_fatal_rudder": 12,
+    "interpretation": "All13 sampled fatal rudders are already beyond the local proposal: no legal reroll remained (12 have no coffee). No evidence that a forgotten available reroll explains these losses. Diagnose earlier commitments;40 training games are not a universal proof."
+  }
+}

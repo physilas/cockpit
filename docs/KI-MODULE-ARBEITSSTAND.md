@@ -131,7 +131,84 @@ einer ersten automatischen Ablehnung ausdrücklich vom Nutzer bestätigt.
 Keine E-Mail. Nur aussagekräftigen Fortschritt, Fehler, Abschluss oder benötigten
 Input melden.
 
-## Aktuelle Forschung nach Crew 3: konkrete Modulfehler statt mehr desselben PPO
+## Aktuelle Forschung: öffentliche Wind-/Eisplanung nach Crew 5
+
+Die neue, getrennte Forschungsumgebung `ai.wind_ice_environment.WindIceEnv`
+ändert ausschließlich die weiche Referenz, bewahrt Engine-Legalität, Schema,
+native Uhr und ursprüngliche Referenz. Profil 12 und alle Veröffentlichungen
+bleiben unverändert. `ai.wind_ice_advice` bewertet eine eigene Platzierung samt
+Kaffee-/Adaptation-Vorschritten und einer gemeinsamen Zuordnung der verbleibenden
+eigenen Ruder-/Schubwürfel. Jeder Würfel und das gemeinsame Kaffeebudget zählen
+genau einmal. Physikalisch bewertet werden nur bereits bekannte Partnerkontrollen,
+unbekannte Augen werden weder gelesen noch geraten. Wind wird einmal nach der
+Ruderauflösung berücksichtigt; Eisfortschritt bleibt beim Rundenwechsel erhalten,
+auch wenn die alten Felder geleert wurden. Zukünftige Bonuswürfel werden nicht
+gutgeschrieben. Aktueller Anwendungsbereich nur reine Wind-/Eisrouten; offene
+Bonus-/Tausch-/Neuwurfdialoge und gemischte weitere Module behalten die native
+Referenz. Ein privater Würfel oder echter zukünftiger RNG ist kein Planungsinput.
+
+**35 relevante Tests bestanden**: Engine-Gewinn des letzten Eispaares,
+Kartenanpassung als echter Vorschritt, Windschub gegen Überschießen,
+372 virtuelle Feld-/Augenchecks gegen die Engine, echte Fortschritts-/Kaffee-
+Effekte, gemeinsame Würfel-/Kaffeebelegung, unveränderte Masken, Beobachtungen,
+Uhr und RNG sowie technische Vergleichs-/STOP-/Ressourcen-/Berichtsschutztests.
+`ai.publish` lehnt `research_wind_ice` für Vorschau und Freigabe ab, solange kein
+passender Browseradapter existiert. Ein Sichtbarkeitswunsch für schwache Modelle
+ersetzt diese technische Übereinstimmung nicht. Kein Browserrelease wurde geändert.
+
+Der vorab begrenzte Vergleich `ai.wind_ice_compare` ist regulär beendet,
+Exit 0, **8,72 Sekunden** Auswertungszeit: zwölf offizielle Fälle, je 20 Partien
+pro Variante, insgesamt **480 Entwicklungspartien**. Gleiche tatsächliche
+Crew-5-Tensoren und Referenzabstand 12 in beiden Armen, native Referenz gegen
+Microplans. Keine PPO-Updates, null neue Trainingsentscheidungen, keine
+Qualifikation. Native Engine-Uhr, acht Worker zu .7, Torch 1, nice 15,
+`ai.job_control`. Bericht
+`ai/experiments/wind-ice-2026-10-25/microplans-development-v1.json`,
+Log `/tmp/cockpit-wind-ice-microplans-v1.log`; getrennte abgeleitete Analyse
+`microplans-analysis-v1.json`. Alle Quoten und gepaarten Episoden bleiben einzeln:
+
+| Einzelkarte | GIG Wind, Quelle → Microplans | KEF Eis, Quelle → Microplans |
+| --- | ---: | ---: |
+| Adaptation | 0/20 → 0/20 | 0/20 → 1/20 |
+| Anticipation | 0/20 → 0/20 | 0/20 → 0/20 |
+| Control | 0/20 → 0/20 | 0/20 → 0/20 |
+| Mastery | 0/20 → 0/20 | 0/20 → 0/20 |
+| Synchronisation | 0/20 → 0/20 | 0/20 → 1/20 |
+| Working-together | 0/20 → 0/20 | 0/20 → 0/20 |
+
+Kein belastbarer Gewinnquotennachweis, Ziel nicht erreicht, kein neuer Spieler
+veröffentlicht. Die Planung verändert tatsächlich die Auswahl: 8.339 Zustände
+mit anderer Referenz, 7.740 Abweichungen von der nativen NN-Präferenz auf denselben
+öffentlichen Zuständen, kein Verlassen der neuen Referenz. Diagnose, nicht
+Routequalifikation: Landerunden bei Wind 0 → 23 und Eis 0 → 38 unter den je 120
+Fällen pro Variante. Häufigeres Erreichen der Landung ersetzt keine Siege je
+Karte. Bei Wind bleiben 30 Trudel-, 50 Kollisions- und 14 zu schnelle Landungen;
+bei Eis 43 Trudel- und 23 zu schnelle Landungen. Diesen festen Lehrer nicht
+unverändert länger imitieren oder trainieren.
+
+Die anschließende passive Diagnose `ai.wind_ice_rescue_probe` ist ebenfalls
+regulär beendet, Exit 0, **7,10 Sekunden**, ein Worker .7/Torch 1/nice 15.
+40 getrennte Trainingspartien im Namensraum
+`train:wind-ice-rescue-probe:251066:0..39`, Wind+Adaptation und Eis+Control;
+Bericht `fatal-rudder-training-probe-v1.json`,
+Log `/tmp/cockpit-wind-ice-rescue-probe-v1.log`. 13 gewählte tödliche Ruder,
+alle bereits ohne lokale Microplans; bei keinem war noch ein Neuwurf legal,
+zwölf ohne Kaffee. Somit erklärt ein vergessener noch verfügbarer Neuwurf diese
+beobachteten Fälle nicht. Kein allgemeiner Unmöglichkeitsbeweis aus 40 Partien.
+Der nächste begründete Schritt sind **frühere Ruder-/Schubbindungen bei noch
+unbekannten Partnerkontrollen und die gemeinsame Kaffeereserve**: separaten
+öffentlichen Fair-Hand-Prior mit verschiedenen Würfeln untersuchen, statt erst
+den bereits nicht mehr rettbaren letzten Zug zu korrigieren. Die bisherige
+Microplanung enthält bewusst noch keine solche Prognose. Gute isolierte
+Physikgegenfälle oder spätere Landerunden machen sie nicht zu einem starken Lehrer.
+
+Verbrauchte frische Entwicklung: ab **14.985.000**, Abstand 100 je lexikalisch
+sortiertem Fall, 20 Seeds je Fall, zuletzt **14.986.100–14.986.119**.
+Technische Vergleichstests benutzen getrennt 14.989.000/010; keine Qualifikations-
+kohorte wurde verwendet. Die nächste Abschlusskohorte ab 15.400.000 bleibt
+unbenutzt. Aktuell kein schwerer Job; zuletzt zwei bestandene Diagnosetests.
+
+## Abgeschlossene Diagnose nach Crew 3: Leck und Karten
 
 Der Crew-3-Veröffentlichungsauftrag ist abgeschlossen. Neues Ziel dieser Runde:
 die belegten Leck-/Kartenfehler und fehlende Wind-/Eisreferenz untersuchen,
@@ -207,9 +284,9 @@ Fortschritt behandeln. Nächster begründeter Ausbau ist breitere öffentliche
 Modulplanung, insbesondere Wind/Eis anhand der oben belegten Gegenbeispiele;
 für Tausch größere öffentlich begründete Fälle erst nach neuer Hypothese.
 
-**Aktuell kein schwerer Job aktiv.** Der Nutzer bat, alle bisherigen Änderungen
-zu pushen und den letzten Versuch zuvor zu beenden; beides wird jetzt mit den
-abgeschlossenen Berichten, Tests und isolierten Forschungsquellen erledigt.
+Der Nutzer bat, alle bisherigen Änderungen zu pushen und den letzten Versuch
+zuvor zu beenden; beides wurde mit `050e85f` und den nachfolgenden
+Crew-5-/Feedback-Veröffentlichungen erledigt.
 Fremde Notebook-/Transferänderungen bleiben entsprechend der Vereinbarung
 unangetastet. Alle veröffentlichten Crews und ihre Gewichte bleiben erhalten.
 
