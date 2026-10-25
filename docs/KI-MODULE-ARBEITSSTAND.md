@@ -122,6 +122,63 @@ Die Kosten `abs(Pilotschub-Kopilotschub)+1` müssen direkt mit dem hypothetische
 Schubpaar und seinen Bewegungsfolgen bewertet werden. Neue Planung separat
 entwickeln, engineprüfen und ausdrücklich neue Phase/Profile deklarieren.
 
+### Laufende Leck-Diagnose nach dem Preview-Push
+
+Crew 4 und alle sechs Kartenfälle sind mit
+`7d60ffa921cafb9cd321a93426ca0133667bf78d` nach main gepusht und live bytegenau
+geprüft (Katalog, Cacheversion, Singleplayer, Enginebundle, tatsächliche Gewichte).
+
+Der Leckvergleich `ai.leak_strength_compare` ist regulär beendet, Exit 0,
+199,24 Sekunden. Log `/tmp/cockpit-leak-strength-v1.log`, vollständiger Bericht
+`ai/experiments/leak-2026-10-25/leak-strength-v1.json`. Sechs Varianten:
+ursprüngliche Phasenquelle und vorab gewähltes Leckmodell, jeweils endlicher
+Referenzabstand 4/8/12. Identische Tensoren innerhalb einer Herkunft; keine
+zusätzlichen unabhängigen Trainingslinien. Beide Kontrollen (Quelle 4 und
+Kandidat 4) sind je Fall gepaart gespeichert.
+
+Genau sechs Einzelkarten, je 20 frische Entwicklungspartien ab 14.920.000 mit
+Abstand 100. 720 simulierte Partien, ein gemeinsamer Satz von 120 Fall/Seed-Paaren
+unter sechs Konfigurationen, acht Worker zu .7, Torch 1, nice 15, kein Training.
+
+| Karte | Quelle 4 / 8 / 12 | Trainierter Kandidat 4 / 8 / 12 |
+| --- | ---: | ---: |
+| Adaptation | 1 / 2 / 3 | 0 / 2 / 3 |
+| Anticipation | 0 / 1 / 1 | 0 / 1 / 1 |
+| Control | 0 / 1 / 2 | 0 / 3 / 4 |
+| Mastery | 0 / 1 / 1 | 0 / 0 / 0 |
+| Synchronisation | 0 / 2 / 4 | 0 / 2 / 3 |
+| Working-together | 0 / 2 / 2 | 0 / 1 / 0 |
+
+Alle Werte Siege aus je 20. Abstand 12 weicht in diesen Spielen nie von der
+Referenz ab; das ist keine generelle Garantie. Stärkere Vorgabe hilft mehreren
+Fällen, doch das trainierte Modell bleibt bei zwei Karten sieglos. Die Quelle
+mit Abstand 12 erreicht 5–20 % je Karte; der kleine Entwicklungsvergleich ist
+keine Qualifikation. **Keine bestehende Crew geändert oder Konfiguration heimlich
+umgestellt.** Kein schwerer Job mehr aktiv. Sieben gezielte Tests bestehen.
+
+Nächster begründeter Schritt: getrenntes neues öffentliches Profil für das
+belegte Anpassungsmanöver; dann neue Phase aus den ursprünglichen Gewichten mit
+explizit stärkerem endlichem Planungsabstand und frischem Adam. Neue Hashes,
+Anfangsgewichte und Konfigurationsänderung ehrlich festhalten. Keine 80.206
+Entscheidungen der schwächeren Linie als geerbtes Lernen ausgeben.
+
+Zusätzlicher enginegeprüfter öffentlicher Gegenfall (keine NN-Präferenzprobe):
+`public-card-rescue-v1.py` und abgeschlossener Bericht `public-card-rescue-v1.json`.
+Pilot hat als letzten freien Würfel 1, Partner-Ruder 4 liegt, Fluglage 0,
+Kaffee/Neuwurf 0. Profil 11 empfiehlt ausschließlich Ruder 1 und trudelt sofort
+mit +3. Die legale Anpassung dreht 1→6, danach Ruder 6 überlebt mit −2.
+Die Quelle ist eine legale öffentliche Platzierungsfolge; kein Partnerblick,
+kein zukünftiger Spiel-RNG. Das belegt ein fehlendes Kartenmakro der Referenz,
+keine Verbesserung einer Modellquote. Adaptation ist einmal je Person pro Flug,
+nicht jede Runde. Weitere Erweiterung separat entwickeln und engineprüfen;
+Profil 11 und bestehende Releases nicht still verändern.
+
+Der beobachtete Unterschied „Verkehr auf jedem überflogenen Feld“ gegenüber
+„sofortige Kollision nur am Abflugfeld“ rechtfertigt keine pauschale Entfernung
+des Strafterms: übersprungene Flugzeuge bleiben unerreichbar und verhindern
+später die Landung. Kein belegter nutzbarer Regelvorteil. Ruderauflösung,
+einmalige Leckzahlung und eigene Aerodynamikänderungen wurden korrekt gefunden.
+
 ### Abgeschlossene neue Phase: Leck auf Atlanta gelb
 
 Implementiert und gezielt geprüft: öffentliches Modulprofil **11**, getrennt von 10. Die bestehende

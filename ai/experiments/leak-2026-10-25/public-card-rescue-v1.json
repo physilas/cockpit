@@ -1,0 +1,313 @@
+{
+  "complete": true,
+  "kind": "deterministic_public_engine_counterexample",
+  "release_evidence": false,
+  "nn_policy_evaluated": false,
+  "claim": "Profile 11 recommends a placement that immediately stalls, while legal adaptation followed by that placement avoids the immediate stall. This proves neither a win nor actual NN preference for the failing move.",
+  "reproduce": ".venv/bin/python ai/experiments/leak-2026-10-25/public-card-rescue-v1.py",
+  "source_sha256": {
+    "ai/leak_advice.py": "bf72df4cb60aef917d077d8e4c1741b4c4fca24a9f261390c14e6cdc52112522",
+    "ai/tactics.py": "e9fb7e5f1835b1bb9a060c32ef67567e6198f1372ddd8984eae021b830319564",
+    "ai/module_physics.py": "3ce4bbb97ab1eacb5dedbb913fb06c569423f500be4a7740f5b669d56a0ccce7",
+    "ai/modules.py": "a00c0b2f3d3e09d01ea5823019041b43e29e46ed1eb58ac0a0ec11609679451d",
+    "ai/module_guidance.py": "d4a6076d2e91c62351ec0c52caa189b4954fc285b6b331ad1dd3592f57471cc9",
+    "ai/module_capacity.py": "60a02a45ddf00baad2be897df0630b510693d238a32ab9dbebc3eab906d7fa7d",
+    "backend/cockpit.py": "da495a84f1cdb74661b23dcbb08f0ba2d403a6cdccdf353e004579f6fa266b64",
+    "backend/spielplan.py": "b81febf4672ee38f350791bcec9ac5a431c9b7f51d4d4250c566d08fca629c71",
+    "backend/zusatzregeln.py": "d1c17c969930ec3df4f150d36786c8770c65c00ce85c020749e9b0739775027f"
+  },
+  "fixture": {
+    "airport": "LOG_ATL_YELLOW",
+    "abilities": [
+      "adaptation"
+    ],
+    "assistance_version": 11,
+    "all_traffic_cleared": true,
+    "reroll_tokens": 0,
+    "initial_explicit_faces": {
+      "pilot": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "unused_partner_faces_consumed_by_planner": false
+  },
+  "public_placement_sequence": [
+    {
+      "role": "pilot",
+      "die": 1,
+      "target": "triebwerk",
+      "index": null,
+      "published_face": 3
+    },
+    {
+      "role": "kopilot",
+      "die": 0,
+      "target": "ruder",
+      "index": null,
+      "published_face": 4
+    },
+    {
+      "role": "pilot",
+      "die": 2,
+      "target": "funk",
+      "index": null,
+      "published_face": 1
+    },
+    {
+      "role": "kopilot",
+      "die": 1,
+      "target": "triebwerk",
+      "index": null,
+      "published_face": 3
+    },
+    {
+      "role": "pilot",
+      "die": 3,
+      "target": "fahrwerk",
+      "index": 0,
+      "published_face": 1
+    },
+    {
+      "role": "kopilot",
+      "die": 2,
+      "target": "landeklappe",
+      "index": 0,
+      "published_face": 1
+    }
+  ],
+  "own_hand_and_public_decision_view": {
+    "role": "pilot",
+    "regular_turn": "pilot",
+    "round_starter": "pilot",
+    "round": 1,
+    "height": 6000,
+    "distance": 7,
+    "last_round": false,
+    "holding": false,
+    "attitude": 0,
+    "aero_blue": 5.5,
+    "aero_orange": 9.5,
+    "brakes": 0,
+    "coffee": 0,
+    "reroll_tokens": 0,
+    "reroll_heights": [
+      6000,
+      2000
+    ],
+    "gear": [
+      true,
+      false,
+      false
+    ],
+    "flaps": [
+      true,
+      false,
+      false,
+      false
+    ],
+    "brake_progress": [
+      false,
+      false,
+      false
+    ],
+    "own_dice": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "partner_remaining": 1,
+    "board": [
+      null,
+      {
+        "value": 4,
+        "owner": "kopilot"
+      },
+      {
+        "value": 3,
+        "owner": "pilot"
+      },
+      {
+        "value": 3,
+        "owner": "kopilot"
+      },
+      {
+        "value": 1,
+        "owner": "pilot"
+      },
+      null,
+      null,
+      {
+        "value": 1,
+        "owner": "pilot"
+      },
+      null,
+      null,
+      {
+        "value": 1,
+        "owner": "kopilot"
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "track": [
+      {
+        "distance": 7,
+        "planes": 0,
+        "traffic": 1,
+        "min": -2,
+        "max": 2
+      },
+      {
+        "distance": 6,
+        "planes": 0,
+        "traffic": 1,
+        "min": -2,
+        "max": 2
+      },
+      {
+        "distance": 5,
+        "planes": 0,
+        "traffic": 0,
+        "min": -1,
+        "max": 1
+      },
+      {
+        "distance": 4,
+        "planes": 0,
+        "traffic": 2,
+        "min": -2,
+        "max": 2
+      },
+      {
+        "distance": 3,
+        "planes": 0,
+        "traffic": 1,
+        "min": -2,
+        "max": 2
+      },
+      {
+        "distance": 2,
+        "planes": 0,
+        "traffic": 0,
+        "min": -2,
+        "max": 2
+      },
+      {
+        "distance": 1,
+        "planes": 0,
+        "traffic": 0,
+        "min": 1,
+        "max": 2
+      },
+      {
+        "distance": 0,
+        "planes": 0,
+        "traffic": 0,
+        "min": -2,
+        "max": 2
+      }
+    ],
+    "reroll": null,
+    "steps_remaining": 1.0,
+    "fuel": {
+      "present": false,
+      "remaining": 19,
+      "occupied": false
+    },
+    "modules_state": {
+      "modules": [
+        "leak"
+      ],
+      "cards": [
+        "adaptation"
+      ],
+      "wind_position": 0,
+      "wind_value": 0,
+      "ice_progress": 0,
+      "intern": [],
+      "extra_fields": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pending": null,
+      "sync_triggered": false,
+      "swap": null,
+      "swap_available": false,
+      "adaptation": {
+        "pilot": true,
+        "kopilot": true
+      },
+      "anticipation": false,
+      "placements": 6,
+      "time_remaining": 0
+    }
+  },
+  "allowed_actions": [
+    {
+      "id": 0,
+      "action": {
+        "kind": "place",
+        "die": 0,
+        "slot": 0,
+        "delta": 0,
+        "subset": 0
+      }
+    },
+    {
+      "id": 203,
+      "action": {
+        "kind": "adaptation",
+        "die": 0,
+        "slot": -1,
+        "delta": 0,
+        "subset": 0
+      }
+    }
+  ],
+  "reference_actions": [
+    {
+      "id": 0,
+      "action": {
+        "kind": "place",
+        "die": 0,
+        "slot": 0,
+        "delta": 0,
+        "subset": 0
+      }
+    }
+  ],
+  "direct_rudder": {
+    "success": true,
+    "lost": true,
+    "reason": "trudeln",
+    "attitude": 3
+  },
+  "adaptation_then_rudder": {
+    "adaptation_success": true,
+    "published_face": 6,
+    "placement_success": true,
+    "lost": false,
+    "reason": "",
+    "attitude": -2,
+    "game_status": "laeuft"
+  }
+}
