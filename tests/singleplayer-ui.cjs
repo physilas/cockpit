@@ -71,6 +71,18 @@ const assertFeedbackVisible = async page => {
     assert.equal(await page.locator('#ai-rating-up').isDisabled(),true);
     assert.equal(await page.locator('#ai-rating-down').isDisabled(),true);
     assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
+    assert.equal(await page.locator('#ai-feedback-save').count(),0);
+    assert.equal(await page.locator('#ai-feedback-info-toggle').getAttribute('aria-expanded'),'false');
+    assert.equal(await page.locator('#ai-feedback-info').isVisible(),false);
+    await page.locator('#ai-feedback-info-toggle').click();
+    assert.equal(await page.locator('#ai-feedback-info').isVisible(),true);
+    assert.match(await page.locator('#ai-feedback-info').innerText(),/sofort|direkt/i);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#ai-feedback-info').isVisible(),false);
+    assert.equal(await page.locator('#ai-feedback-info-toggle').evaluate(button=>document.activeElement===button),true);
+    await page.locator('#ai-feedback-info-toggle').click();
+    await page.locator('#ai-feedback-info-close').click();
+    assert.equal(await page.locator('#ai-feedback-info').isVisible(),false);
     await page.evaluate(()=>{
       pyodide.runPython('import backend.bridge as b\nfor d in b._spiel.pilot_wuerfel + b._spiel.kopilot_wuerfel: d.augenzahl = 3');
       render(pyToJs(bridge.zustand()));
@@ -103,14 +115,26 @@ const assertFeedbackVisible = async page => {
     assert.equal(await page.locator('#ai-rating-value').innerText(),'−1');
     assert.equal(await page.locator('#ai-rating-down').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'false');
+    let savedNow=await rows(page);
+    assert.ok(savedNow.some(r=>r.events.some(e=>e.feedback?.value===-1 && e.feedback.committed && e.feedback.trigger==='thumb')),
+      'A thumb must persist immediately, without a human move or Save');
+    const engineBeforeFeedbackUndo=await page.evaluate(()=>({revision:aktuellerZustand.rueckgaengig_version,undo:aktuellerZustand.rueckgaengig_id,
+      board:JSON.stringify(aktuellerZustand.cockpit)}));
     await page.keyboard.press('Space');
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'−1','The same saved thumb is a no-op');
+    await page.locator('#rueckgaengig-btn').click();
     assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
     assert.equal(await page.locator('#ai-rating-down').getAttribute('aria-pressed'),'false');
     assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'false');
+    assert.deepEqual(await page.evaluate(()=>({revision:aktuellerZustand.rueckgaengig_version,undo:aktuellerZustand.rueckgaengig_id,
+      board:JSON.stringify(aktuellerZustand.cockpit)})),engineBeforeFeedbackUndo,
+      'Feedback undo must preserve the game and its engine revision');
     await page.locator('#ai-rating-up').click();
     assert.equal(await page.locator('#ai-rating-value').innerText(),'+1');
     assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'true');
     await page.locator('#ai-rating-up').click();
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'+1');
+    await page.locator('#rueckgaengig-btn').click();
     assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
     await page.locator('#ai-rating-up').click();
     await page.setViewportSize({width:390,height:844});
@@ -127,7 +151,7 @@ const assertFeedbackVisible = async page => {
         if(!answer.ergebnis.erfolg) throw new Error('Human fixture action failed');
         nachAktion(answer);
       });
-    } else await page.locator('#ai-feedback-save').click();
+    }
     await page.waitForTimeout(100);
     let data=await rows(page), feedback=data.find(r=>r.mode==='feedback');
     assert.ok(feedback.consent.accepted_at);
@@ -186,14 +210,13 @@ const assertFeedbackVisible = async page => {
     assert.equal(await page.evaluate(()=>aktuellerZustand.status),'verloren');
     assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
     assert.ok(await page.locator('#wuerfel-pilot .wuerfel:not(.platziert)').evaluateAll(els=>els.every(e=>e.textContent==='?')));
-    await page.locator('#ai-feedback-save').click();
-    assert.equal(await page.locator('#ai-rating-up').isDisabled(),true);
-    assert.equal(await page.locator('#ai-rating-down').isDisabled(),true);
+    await page.locator('#menue-btn').click();
+    assert.equal(await page.locator('#ai-feedback').isVisible(),false);
     await page.waitForTimeout(100);
     data=await rows(page);
     assert.ok(data.some(r=>r.human_role==='kopilot' && r.events.some(e=>e.feedback?.committed && !e.feedback.explicit && e.feedback.value===0)));
     assert.equal(await page.locator('#ai-resume').count(),0);
     assert.deepEqual(errors,[]);
-    console.log('✓ Model selector, mobile menu, consent, real model turns, sticky mobile/keyboard thumbs and neutral toggle, feedback/invalid-move/default-zero/terminal commit, both roles and privacy, examples, reroll/undo, IndexedDB persistence, cloud retry and quiet upload');
+    console.log('✓ Model selector, compact transparent mobile thumbs, closable info, immediate persisted ratings and feedback-only undo, default neutral on exit, both roles/privacy, examples, game undo, cloud retry');
   } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

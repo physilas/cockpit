@@ -41,6 +41,8 @@ window.Singleplayer = (() => {
   let timer = null, generation = 0, paused = "", starting = false, storageError = "";
   let feedbackIndex = null, saveQueue = Promise.resolve(), memory = new Map();
   let feedbackHeaderObserver = null;
+  let feedbackInfoOpen = false;
+  let feedbackUndoStack = [];
   let cloudTimer = null, cloudBusy = false, retryDelay = 5000;
   const root = () => document.getElementById("singleplayer-menu");
   const active = () => Boolean(session);
@@ -48,6 +50,16 @@ window.Singleplayer = (() => {
   const hasAI = () => active() && setup.mode !== "examples";
   const activeSchema = () => setup?.mode === "examples" ? catalog.schema : setup?.model?.schema || catalog.schema;
   const pending = () => session?.events.filter(e => e.feedback && !e.feedback.committed && !e.voided) || [];
+  const feedbackEvents = () => {
+    const events = pending();
+    const reviewedIds = new Set(feedbackUndoStack.map(previous => previous.eventId));
+    reviewedIds.add(feedbackIndex);
+    for (const event of session?.events || []) {
+      if (event.feedback && !event.voided && reviewedIds.has(event.id)
+          && !events.some(item => item.id === event.id)) events.push(event);
+    }
+    return events.sort((left, right) => left.id - right.id);
+  };
 
   const dbPromise = new Promise((resolve, reject) => {
     if (!window.indexedDB) { reject(new Error("Lokaler Speicher nicht verfügbar")); return; }
@@ -135,17 +147,35 @@ window.Singleplayer = (() => {
     } catch { return [...memory.values()]; }
   }
 
-  function commitFeedback(trigger) {
+  function commitFeedback(trigger, clearSelection = true) {
     for (const event of pending()) {
       event.feedback.committed = true;
       event.feedback.committed_at = new Date().toISOString();
       event.feedback.trigger = trigger;
     }
-    feedbackIndex = null;
+    if (clearSelection) feedbackIndex = null;
+  }
+
+  function canUndoFeedback() {
+    if (!session || setup.mode !== "feedback" || !feedbackUndoStack.length) return false;
+    const previous = feedbackUndoStack.at(-1);
+    const event = session.events.find(item => item.id === previous.eventId);
+    return Boolean(event?.feedback && !event.voided && Number.isInteger(previous.engineRevision)
+      && previous.engineRevision === api.state()?.rueckgaengig_version);
+  }
+
+  function undoFeedback() {
+    if (!canUndoFeedback()) return false;
+    const previous = feedbackUndoStack.pop();
+    const event = session.events.find(item => item.id === previous.eventId);
+    event.feedback = clone(previous.feedback);
+    feedbackIndex = event.id;
+    persist(); renderFeedback(); api.refresh();
+    return true;
   }
 
   async function exportData() {
-    commitFeedback("export"); persist();
+    commitFeedback("export", false); persist();
     const sessions = await storedSessions();
     const data = {format: "flyteam-learning-data", version: 1, exported_at: new Date().toISOString(),
                   schema: catalog.schema, action_mask_version: catalog.action_mask_version, sessions};
@@ -167,6 +197,8 @@ window.Singleplayer = (() => {
       session.finished_at = new Date().toISOString(); persist();
     }
     session = null; policy = null; reroll = null; paused = "";
+    feedbackInfoOpen = false;
+    feedbackUndoStack = [];
     document.getElementById("ai-feedback").classList.add("versteckt");
     document.getElementById("ai-session-bar").classList.add("versteckt");
   }
@@ -258,7 +290,7 @@ window.Singleplayer = (() => {
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
       : !setup.model ? "Für diese Strecke ist noch keine KI verfügbar."
-      : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Keine Auswahl ist neutral. Dein nächster gültiger Zug speichert das Feedback." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
+      : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Dein Klick speichert sofort; Rückgängig nimmt die letzte Bewertung zurück. Keine Auswahl ist neutral." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
     document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
       || (!examples && !supportsCase(setup.model,selectedRoute,setup.abilities))
       || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
@@ -336,7 +368,8 @@ window.Singleplayer = (() => {
 
   function afterAction(context, answer) {
     if (!context || !session || !answer.ergebnis.erfolg) return;
-    if (context.actor === "human" && ["place", "bonus_place", "round_end"].includes(context.action.kind)) commitFeedback("human_action");
+    feedbackUndoStack = [];
+    if (context.actor === "human") commitFeedback("human_action");
     const e = {id: session.events.length, timestamp: new Date().toISOString(),
                ...context, engine_after: answer.zustand.rueckgaengig_version,
                outcome: {status: answer.zustand.status, reason: answer.zustand.verlust_grund || "", round: answer.zustand.runde},
@@ -380,22 +413,54 @@ window.Singleplayer = (() => {
   }
 
   function renderFeedback() {
-    const panel = document.getElementById("ai-feedback"), events = pending();
+    const panel = document.getElementById("ai-feedback"), events = feedbackEvents();
     const visible = active() && setup.mode === "feedback";
     panel.classList.toggle("versteckt", !visible);
-    if (!visible) { panel.replaceChildren(); return; }
+    if (!visible) {
+      feedbackInfoOpen = false;
+      panel.classList.remove("ai-feedback-expanded");
+      panel.onkeydown = null;
+      panel.replaceChildren(); return;
+    }
+    const focusedId = panel.contains(document.activeElement) ? document.activeElement.id : null;
     positionFeedback(panel);
     const selected = events.find(e => e.id === feedbackIndex) || events.at(-1);
     feedbackIndex = selected?.id ?? null;
     const value = selected?.feedback.value || 0;
-    panel.innerHTML = `<div class="ai-feedback-copy"><div class="ai-feedback-heading"><strong>KI-Aktion</strong><output id="ai-rating-value" aria-live="polite">${ratingText(value)}</output></div>
-      ${events.length > 1 ? `<select id="ai-feedback-action" aria-label="KI-Aktion auswählen">${events.map(e => `<option value="${e.id}" ${e.id === selected.id ? "selected" : ""}>${esc(label(e.action))} · ${ratingText(e.feedback.value)}</option>`).join("")}</select>` : `<p class="ai-feedback-current" title="${esc(selected ? label(selected.action) : "")}">${selected ? esc(label(selected.action)) : "Warte auf die nächste KI-Aktion."}</p>`}</div>
-      <div class="ai-feedback-thumbs" role="group" aria-label="KI-Aktion bewerten" aria-describedby="ai-feedback-hint">
+    panel.innerHTML = `<output id="ai-rating-value" class="ai-feedback-sr-only" aria-live="polite" aria-atomic="true">${ratingText(value)}</output>
+      <div class="ai-feedback-toolbar">
+      <div class="ai-feedback-thumbs" role="group" aria-label="${esc(selected ? `KI-Aktion bewerten: ${label(selected.action)}` : "KI-Aktion bewerten")}" aria-describedby="ai-feedback-hint">
         <button id="ai-rating-down" type="button" data-feedback-value="-1" aria-label="Daumen runter" aria-pressed="${value < 0}" ${selected ? "" : "disabled"}><span aria-hidden="true">👎</span></button>
         <button id="ai-rating-up" type="button" data-feedback-value="1" aria-label="Daumen hoch" aria-pressed="${value > 0}" ${selected ? "" : "disabled"}><span aria-hidden="true">👍</span></button>
       </div>
-      <div class="ai-feedback-footer"><small id="ai-feedback-hint">${selected ? "Keine Auswahl = neutral. Nächster gültiger Zug speichert." : "Mit 👎 oder 👍 bewerten; erneut tippen = neutral."}</small>
-        ${selected ? '<button id="ai-feedback-save" type="button">Speichern</button>' : ""}</div>`;
+      <button id="ai-feedback-info-toggle" type="button" aria-label="Informationen zur KI-Bewertung" aria-expanded="${feedbackInfoOpen}" aria-controls="ai-feedback-info" title="Informationen zur KI-Bewertung"><span class="ai-feedback-info-mark" aria-hidden="true">i</span></button>
+      </div>
+      <div id="ai-feedback-info" class="ai-feedback-info" role="region" aria-labelledby="ai-feedback-info-title" ${feedbackInfoOpen ? "" : "hidden"}>
+        <div class="ai-feedback-info-heading"><strong id="ai-feedback-info-title">KI-Aktion bewerten</strong><button id="ai-feedback-info-close" type="button">Schließen</button></div>
+        <p id="ai-feedback-hint">Mit 👎 oder 👍 bewerten: Dein Klick speichert sofort. Der andere Daumen ändert die Bewertung. Rückgängig nimmt die letzte Bewertung zurück; keine Auswahl ist neutral.</p>
+        <div class="ai-feedback-copy"><div class="ai-feedback-heading"><strong>KI-Aktion</strong><span id="ai-feedback-info-rating">${ratingText(value)}</span></div>
+        ${events.length > 1 ? `<select id="ai-feedback-action" aria-label="KI-Aktion auswählen">${events.map(e => `<option value="${e.id}" ${e.id === selected.id ? "selected" : ""}>${esc(label(e.action))} · ${ratingText(e.feedback.value)}</option>`).join("")}</select>` : `<p class="ai-feedback-current">${selected ? esc(label(selected.action)) : "Warte auf die nächste KI-Aktion."}</p>`}</div>
+      </div>`;
+    const infoToggle = document.getElementById("ai-feedback-info-toggle");
+    const setInfoOpen = open => {
+      feedbackInfoOpen = open;
+      panel.classList.toggle("ai-feedback-expanded", open);
+      document.getElementById("ai-feedback-info").hidden = !open;
+      infoToggle.setAttribute("aria-expanded", String(open));
+    };
+    const closeInfo = () => { setInfoOpen(false); infoToggle.focus({preventScroll: true}); };
+    setInfoOpen(feedbackInfoOpen);
+    infoToggle.addEventListener("click", () => {
+      const opening = !feedbackInfoOpen;
+      setInfoOpen(opening);
+      if (opening) document.getElementById("ai-feedback-info-close").focus({preventScroll: true});
+    });
+    document.getElementById("ai-feedback-info-close").addEventListener("click", closeInfo);
+    panel.onkeydown = event => {
+      if (event.key === "Escape" && feedbackInfoOpen) {
+        event.preventDefault(); event.stopPropagation(); closeInfo();
+      }
+    };
     document.getElementById("ai-feedback-action")?.addEventListener("change", event => {
       feedbackIndex = Number(event.target.value); renderFeedback();
       document.getElementById("ai-feedback-action")?.focus();
@@ -403,16 +468,23 @@ window.Singleplayer = (() => {
     panel.querySelectorAll("[data-feedback-value]").forEach(button => button.addEventListener("click", () => {
       if (!selected) return;
       const sign = Number(button.dataset.feedbackValue);
-      // Historical records can contain −2/+2; do not rewrite them just to render.
-      selected.feedback.value = Math.sign(selected.feedback.value) === sign ? 0 : sign;
-      selected.feedback.explicit = selected.feedback.value !== 0;
+      if (selected.feedback.committed && selected.feedback.explicit && Math.sign(selected.feedback.value) === sign) return;
+      feedbackUndoStack.push({eventId: selected.id, feedback: clone(selected.feedback),
+        engineRevision: api.state()?.rueckgaengig_version});
+      selected.feedback = {value: sign, explicit: true, committed: true,
+        committed_at: new Date().toISOString(), trigger: "thumb"};
+      feedbackIndex = selected.id;
       document.getElementById("ai-rating-value").textContent = ratingText(selected.feedback.value);
+      document.getElementById("ai-feedback-info-rating").textContent = ratingText(selected.feedback.value);
       panel.querySelectorAll("[data-feedback-value]").forEach(other => other.setAttribute("aria-pressed", String(Math.sign(selected.feedback.value) === Number(other.dataset.feedbackValue))));
       const option = document.getElementById("ai-feedback-action")?.selectedOptions[0];
       if (option) option.textContent = `${label(selected.action)} · ${ratingText(selected.feedback.value)}`;
-      persist();
+      persist(); api.refresh();
     }));
-    document.getElementById("ai-feedback-save")?.addEventListener("click", () => { commitFeedback("manual"); persist(); renderFeedback(); });
+    if (focusedId) {
+      const target = document.getElementById(focusedId);
+      (target && !target.disabled && !target.closest("[hidden]") ? target : infoToggle).focus({preventScroll: true});
+    }
   }
 
   function updateStatus() {
@@ -514,6 +586,7 @@ window.Singleplayer = (() => {
 
   function cancelReroll() {
     if (!reroll) return;
+    feedbackUndoStack = [];
     for (const id of reroll.event_ids) session.events[id].voided = true;
     reroll = null;
     if (hasAI() && api.state().am_zug === aiRole()) {
@@ -525,6 +598,8 @@ window.Singleplayer = (() => {
 
   function undo(answer) {
     if (!session || !answer.ergebnis.erfolg) return;
+    feedbackUndoStack = [];
+    feedbackIndex = null;
     const id = session.engine_stack.pop();
     if (id !== undefined) {
       const event = session.events[id]; event.voided = true;
@@ -539,6 +614,7 @@ window.Singleplayer = (() => {
 
   return {
     connect(adapter) { api = adapter; }, active, hasAI, aiRole, showMenu, stop, beforeAction, afterAction, afterRender, undo,
+    canUndoFeedback, undoFeedback,
     hideMenu() { root().classList.add("versteckt"); },
     canControl(role) { return !hasAI() || role === setup.humanRole; },
     visibleRole() { return hasAI() ? setup.humanRole : null; },

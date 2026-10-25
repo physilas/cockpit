@@ -92,7 +92,7 @@ const rows=page=>page.evaluate(async()=>{
         await page.evaluate(()=>{
           const up=document.getElementById('ai-rating-up');
           if(!up || up.disabled) throw new Error('The actual model action has no pending feedback');
-          up.click();document.getElementById('ai-feedback-save').click();
+          up.click();
         });
         let rated=false;
         for(let attempt=0;attempt<40;attempt++) {

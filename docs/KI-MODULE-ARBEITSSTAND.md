@@ -7,7 +7,76 @@ abgeschlossen. Crew 1 bleibt verfügbar und vorausgewählt. Ein ausdrücklich
 gewünschter Zwischenstand heißt jetzt Crew 3 · Praktikant (Test), mit Atlanta
 grün und Heathrow gelb; er ist als Entwicklungsmodell sichtbar, ohne Freigabe.
 Zusätzlich wird Crew 4 · Leck (Test) für Atlanta gelb mit allen sechs Einzelkarten
-bereitgestellt: erst 0–5 % auf Entwicklung, ausdrücklich noch sehr schwach.**
+bereitgestellt: erst 0–5 % auf Entwicklung, ausdrücklich noch sehr schwach.
+Auf erneuten Nutzerwunsch kommt Crew 5 · Leck (Test) mit dem tatsächlich zuletzt
+trainierten Profil-12-Stand hinzu: alle sechs Einzelkarten auf Atlanta gelb,
+0–20 % auf bereits verwendeter Entwicklung, weiterhin ohne Freigabe.**
+
+## Crew 5 und kompaktes Sofortfeedback
+
+Der Nutzer wollte eine neue Crew unabhängig von ihrer aktuellen Stärke und alle
+vorhandenen eigenen Änderungen gepusht haben. Abgeschlossene Forschungsberichte
+und Tests sind mit `050e85f` auf main. Die geschützten fremden Dateien bleiben
+unangetastet. Crew 5 veröffentlicht anschließend ausdrücklich den tatsächlichen
+`runs/leak-profile12-stage1/latest.pt`-Stand unter
+`ai/releases/crew5-leak-preview-v1/best.pt`. Der Release-Dateiname ist eine
+Konvention: Die ursprüngliche Auswahl nach schwächster Entwicklungskarte hatte
+weiterhin den Warmstand mit null neuen Entscheidungen als `best.pt` behalten.
+Die Vorschau ist daher kein nachträglich umgedeuteter Auswahlsieg.
+
+Tatsächliches Training: **80.139 neue Entscheidungen**, 1.425 Trainingspartien,
+35 Updates, vorhandener Detailzweig trainiert, ursprüngliche Grundlage exakt
+eingefroren. Profil 12, Referenzabstand 12, Schema 3, Browserformat 4.
+Gewichts-SHA:
+`e59d9f7bee62b12ed0faf094c80945cc2b1d984544eb619547940c752238bb83`.
+Browserasset: `19e7a04826a9fb327cae2e1c8ac6d8d760c9ad0d46604e7f28a902d1dc41168d`.
+
+| Atlanta gelb, Einzelkarte | Siege aus 20 | Entwicklungsquote |
+| --- | ---: | ---: |
+| Adaptation | 1 | 5 % |
+| Anticipation | 3 | 15 % |
+| Control | 3 | 15 % |
+| Mastery | 2 | 10 % |
+| Synchronisation | 4 | 20 % |
+| Working-together | 0 | 0 % |
+
+Alle sechs Fälle werden auf ausdrücklichen Wunsch gezeigt, einschließlich null
+Siegen. `preview.enabled=true`, `quality.approved=false`, exakte Fallliste und
+ganzzahlige Siege. Die bekannte Entwicklungsstichprobe wurde in der passiven
+Diagnose exakt reproduziert; sie ist keine zusätzliche unabhängige Evidenz.
+Bericht: `ai/experiments/leak-2026-10-25/profile12-preview-development-v1.json`,
+identisch mit dem Release-Entwicklungsbericht. Alle 74 vorherigen Katalogeinträge
+bleiben exakt erhalten; genehmigte Crew bleibt vorausgewählt. Die neue enge
+Tauschforschung ist nicht Teil der Crew. Wind/Eis werden nicht als unterstützt
+oder spielstark ausgegeben.
+
+Das Feedbackpanel zeigt auf Nutzerwunsch nur 👎, 👍 und ein weißes eingekreistes i
+auf leicht transparentem Hintergrund. Das i öffnet die Erklärung und die Auswahl
+mehrerer KI-Aktionen; Schließen oder Escape klappt sie wieder zu. Jeder
+Daumenklick speichert sofort explizit ±1 mit `committed=true`, Zeitstempel und
+`trigger=thumb`. Derselbe Daumen erneut verändert nichts, der andere ändert die
+gespeicherte Bewertung. Der separate Speichernknopf entfällt vollständig.
+Die vorhandene Rückgängig-Taste nimmt zuerst die letzte Bewertung zurück,
+einschließlich mehrerer Änderungen, ohne Engineaktion, Zugrücknahme, Pause oder
+Voiding. Nach dem nächsten erfolgreichen Spielschritt gilt wieder die normale
+Zugrücknahme; ungültige Aktionen erhalten den Bewertungs-Undo. Neutral bleibt
+ohne Daumenauswahl die Voreinstellung. Datenrevisionen und Cloud-Outbox werden
+auch beim Bewertungs-Undo regulär aktualisiert. Das ist aufgezeichnetes Feedback,
+keine automatische Gewichtsänderung während der Partie.
+
+Vier reale Chrome-Prüfungen bestanden: allgemeines mobiles Feedback mit
+Sofortspeichern, mehrfacher Bewertungsrücknahme, unverändertem Enginezustand,
+ungültigem Zug, neutralem Abschluss, Cloudretry und beiden Rollen; tatsächliche
+Crew 5 mit sechs ehrlichen Fallquoten und geladenen Originalgewichten,
+Referenzmasken, nativen Karten und verdeckten Partnerwürfeln; bisherige Crew 4
+und alle sechs Karten; Crew 3 auf MUC sowie Kerosin/Echtzeit mit Control+Mastery
+und exakter Fallbegrenzung. Der neue Test berücksichtigt das bestehende Format
+legaler menschlicher Kartenaktionen außerhalb des eigenen Zuges: administrative
+Aufzeichnung ohne erfundenes Policylabel. JavaScript-Syntax und Diffprüfung
+bestanden, Build/Cacheversion aktualisiert. Die Ansichten bei 320/390 Pixeln
+und geöffnete Info wurden visuell geprüft. Dies sind technische Nachweise,
+keine zusätzlichen Qualifikationspartien. Browser und begrenzter lokaler
+Webserver sind beendet; kein Trainingsjob aktiv.
 
 ## Verbindlicher Auftrag
 

@@ -320,7 +320,11 @@ function render(zustand) {
   }
   aktuellerZustand = zustand;
   if (Singleplayer.hasAI()) diceVisible = Singleplayer.visibleRole();
-  document.getElementById("rueckgaengig-btn").disabled = !zustand.rueckgaengig_moeglich || neuwurfUi.phase !== 0;
+  const feedbackUndo = Singleplayer.canUndoFeedback();
+  document.getElementById("rueckgaengig-btn").disabled =
+    !(feedbackUndo || zustand.rueckgaengig_moeglich) || neuwurfUi.phase !== 0;
+  document.getElementById("rueckgaengig-btn").title = feedbackUndo
+    ? "Letzte Bewertung rückgängig machen" : "Letzten Spielschritt rückgängig machen";
   Landings.updateFlight(zustand);
 
   document.getElementById("s-runde").textContent = zustand.letzte_runde
@@ -853,7 +857,9 @@ document.getElementById("neues-spiel-btn").addEventListener("click", () => Singl
 document.getElementById("rundenende-btn").addEventListener("click", rundenendeKlick);
 document.getElementById("rueckgaengig-btn").addEventListener("click", () => document.dispatchEvent(new Event("cockpit-undo")));
 document.addEventListener("cockpit-undo", () => {
-  if (!bridge || neuwurfUi.phase !== 0 || !aktuellerZustand?.rueckgaengig_moeglich) return;
+  if (!bridge || neuwurfUi.phase !== 0) return;
+  if (Singleplayer.undoFeedback()) return;
+  if (!aktuellerZustand?.rueckgaengig_moeglich) return;
   const answer = pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version));
   Singleplayer.undo(answer);
   nachAktion(answer);
