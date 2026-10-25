@@ -45,9 +45,10 @@ def main():
                                                 if not s['modules'] and not s['ability_count']))
     report = {'format': 1, 'checkpoint_sha256': hashlib.sha256(args.checkpoint.read_bytes()).hexdigest(),
               'weights_sha256': weight_fingerprint(model),
-              'planner_sha256': planner_fingerprint() if profile else None,
+              'planner_sha256': planner_fingerprint(model_schema(model)['version']) if profile else None,
               'assistance_version': profile, 'schema_version': model_schema(model)['version'], 'seed': args.seed, 'minimum_win_rate': args.minimum_win_rate,
-              'routes': {}, 'qualified_routes': [],
+              'workers': args.workers, 'cpu_duty_cycle': args.cpu_duty_cycle, 'threads': 1,
+              'complete': False, 'routes': {}, 'qualified_routes': [],
               'note': 'Self-play qualification; heuristic partner results are separate and do not predict human win rates.'}
     with ProcessPoolExecutor(args.workers, mp_context=multiprocessing.get_context('spawn')) as pool:
         for airport in routes:
@@ -74,6 +75,8 @@ def main():
                   f"partner {route['heuristic_partner']['win_rate']:.1%}", flush=True)
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
+    report['complete'] = True
+    args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
 
 
 if __name__ == '__main__':

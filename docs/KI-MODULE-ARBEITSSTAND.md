@@ -1,6 +1,8 @@
 # Laufendes Ziel: alle Module, mindestens 50 % je Fall
 
-Stand: 25. Oktober 2026. **Nicht abgeschlossen. Keine neue Modul-KI freigegeben.**
+Stand: 25. Oktober 2026. **Crew 2 ist für acht Grundspielstrecken zusätzlich
+freigegeben. Das Ziel aller Module/Karten ist nicht abgeschlossen; keine neue
+Modulstrecke freigegeben. Crew 1 bleibt verfügbar und vorausgewählt.**
 
 ## Verbindlicher Auftrag
 
@@ -743,6 +745,94 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.open_
 
 ## Nächste Arbeit
 
+### Nutzerauftrag: Crew 2 mit unabhängig bestandenen Routen
+
+Der Nutzer hat ausdrücklich gebeten, das bisher beste verfügbare Modell mit
+seinen bestandenen Routen als **Crew 2** hochzuladen. Das hebt das Ziel aller
+186 Fälle nicht auf und ist kein Auftrag, schwache Modulrouten freizuschalten.
+Vorab ausgewählt ist `runs/guided-residual-stage2/latest.pt`, Profil 9 mit
+Referenzmaske 7, 500.347 Phasenentscheidungen, Gewichts-SHA
+`1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb`.
+Die Auswahl erfolgte vor dem unabhängigen Test. Keine OpenRisk-Zusatzmaske
+und keine Veränderung der veröffentlichten Planungsregeln für diesen Export.
+
+Der frische OpenRisk-Vergleich ist vollständig und regulär abgeschlossen:
+
+| Je 200 Entwicklungspartien | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Ursprüngliche Quelle | 42,5 % | 38,5 % | 70,5 % | 89,5 % |
+| Gleiche Gewichte mit Zusatzmaske | 42 % | 38 % | 71 % | 89 % |
+| Trainierter Kandidat | 38,5 % | 39 % | 72 % | 87 % |
+
+Kein konsistenter Vorteil des letzten PPO-Versuchs. Der Kandidat wählt nur
+7/14/11/13 echte Zusatzaktionen bei 11.705/10.540/12.164/12.115 Entscheidungen
+(OSL/HND/LHR/YUL). Bericht `open-risk-ppo-stage1-fresh-v1.json` bewahrt alle
+gepaarten Einzelresultate gegen beide Kontrollen. Die Anfangsgewichte sind
+identisch und zählen nicht als zwei unabhängig trainierte Modelle. Die kleine
+Erweiterung bietet hier selten andere Aktionen; Auswahl- und Routenkonflikte
+sind weiter zu untersuchen, statt ungeprüft dasselbe PPO fortzusetzen.
+
+**Regulär beendet nach 20,81 Minuten, Exit 0:** `ai.route_eval`, Bericht
+`ai/experiments/modules-50pct-2026-10-25/crew2-qualification-v1.json`, Log
+`/tmp/cockpit-crew2-qualification-v1.log`. Je 500 unabhängige Selbstspielpartien
+auf den neun bisherigen Grundspielrouten und OSL/Kerosin, zusätzlich je
+100 Partien pro Rolle mit Heuristikpartner: 7.000 Spiele insgesamt. Acht
+Worker zu 70 %, Torch-Threads 1, `nice -n15`, über `ai.job_control`.
+Nur Routen mit unterer 95-%-Wilson-Grenze mindestens 50 % werden übernommen;
+Crew 1 bleibt auswählbar. Alle zehn Strecken sind vollständig geprüft:
+
+| Strecke | Siege / 500 | Selbstspiel | Crew 2 |
+| --- | ---: | ---: | --- |
+| Montréal, LOG_YUL_GREEN | 433 | 86,6 % | freigegeben |
+| Heathrow, LOG_LHR_GREEN | 340 | 68 % | freigegeben |
+| Haneda, LOG_HND_GREEN | 179 | 35,8 % | nicht freigegeben |
+| Frankfurt, FRA | 404 | 80,8 % | freigegeben |
+| Eigene London-Strecke, LHR | 433 | 86,6 % | freigegeben |
+| München, MUC | 494 | 98,8 % | freigegeben |
+| München Verkehr 1, MUC_T1 | 495 | 99 % | freigegeben |
+| München Verkehr 2, MUC_T2 | 495 | 99 % | freigegeben |
+| München Verkehr 3, MUC_T3 | 478 | 95,6 % | freigegeben |
+| Oslo/Kerosin, LOG_OSL_GREEN | 202 | 40,4 % | nicht freigegeben |
+
+Crew 2 liegt unter `ai/releases/crew2-v1/`, Browserformat 4 mit exakt denselben
+Gewichten wie der vorab gewählte Stand. Der Export vereinigt den Katalog mit
+den bisherigen Modellen; Crew 1 bleibt die Vorauswahl. Neue Build-Version
+für den Service-Worker-Cache. Keine neue Modul-/Kartenstrecke wird dadurch
+freigeschaltet. Alle Intervalle und Partnerproben stehen in `evaluation.json`
+und der README des Releases; Selbstspiel ist keine menschliche Partnerquote.
+
+**Die unabhängigen Seeds 15.000.000–15.000.499 und die separate Partnerprobe
+15.100.000–15.100.099 sind damit erstmals benutzt.** Sie gelten danach als
+verbrauchte Qualifikation dieses vorab ausgewählten Standes, nicht als neue
+Entwicklungs- oder Modellauswahlseeds. Dies ist noch keine Prüfung aller
+Module/Karten; spätere geänderte Kandidaten erhalten gesonderte neue Kohorten.
+Ab 15.200.000 ist eine neue abschließende Kohorte reserviert und noch unbenutzt;
+auch sie darf nicht zur Modellauswahl oder Lernsteuerung dienen.
+
+`ai.route_eval` dokumentiert jetzt den zur tatsächlichen Schema-Version
+gehörenden Planer-Fingerprint, Ressourcen und einen Abschlussmarker.
+`ai.publish` lehnt ausdrücklich laufende Berichte ab. **252 lokale Tests
+bestanden** (42,8 s, einschließlich der geschützten fremden Tests).
+`tests/crew2-ui.cjs` prüfte den echten Browserexport und die Pyodide-Engine:
+acht richtige Routen, Crew 1 erhalten, beide menschlichen Rollen, echte
+geführte KI-Züge, passende Referenzmasken und verdeckte Partnerwürfel.
+Menü und Spiel wurden zusätzlich visuell geprüft. Die tatsächlich exportierten
+Gewichte behalten den oben genannten Fingerprint; auf **96 technischen
+Spielzuständen** stimmen alle JavaScript-/PyTorch-Entscheidungen überein,
+maximaler Logitfehler 0,00000668. Dies sind technische Zustände, keine
+zusätzlichen unabhängigen Testpartien.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.route_eval \
+  --checkpoint runs/guided-residual-stage2/latest.pt \
+  --airports LOG_YUL_GREEN LOG_LHR_GREEN LOG_HND_GREEN FRA LHR MUC MUC_T1 MUC_T2 MUC_T3 LOG_OSL_GREEN \
+  --games 500 --partner-games 100 --seed 15000000 --workers 8 --cpu-duty-cycle .7 \
+  --minimum-win-rate .5 \
+  --output ai/experiments/modules-50pct-2026-10-25/crew2-qualification-v1.json
+```
+
+### Weitere Forschung nach der Veröffentlichung
+
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
    keinen zweiten schweren Job. `joint-finish` erreichte nur 45 statt 48
    Netzsiege auf Haneda; keine weitere große Bestätigungsserie dieses Ansatzes.
@@ -754,13 +844,17 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.open_
    brachte noch keinen Vorteil. Auch Round-Open (45) und das unverändert
    unter der Zusatzmaske spielende Netz (45) blieben unter dem ursprünglichen
    Netz (48). Die neue PPO-Phase hat 100.214 neue Züge regulär abgeschlossen;
-   jetzt zuerst den oben dokumentierten frischen Vergleich gegen beide
-   Kontrollen auswerten. Erst echte Einzelverbesserungen auf frischer Entwicklung
-   rechtfertigen die nächste Stufe. Nicht unterstellen, alle Fehler entstehen
-   kurz vor Landung.
+   der frische Vergleich zeigt keinen konsistenten Vorteil gegen beide
+   Kontrollen. Echte Zusatzaktionen werden nur selten gewählt. Als nächste
+   Diagnose die veränderten alten Entscheidungen und mögliche Konflikte der
+   Routen im gemeinsamen Detailzweig auf Entwicklungs-/Trainingszuständen
+   untersuchen, bevor weitere unveränderte PPO-Schritte laufen. Keine
+   Qualifikationsseeds dafür verwenden. Nicht unterstellen, alle Fehler
+   entstehen kurz vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
    Planung für Oslo braucht außerdem eine begründete Laufzeitbegrenzung.
-   Kein unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
+   Die ausdrückliche Crew-2-Veröffentlichung oben ist abgeschlossen; weitere
+   neue Modulqualifikationen erst bei ausreichenden Entwicklungsquoten.
 2. Assistenzprofil 7 im allgemeinen Adapter und Forschungsprofil 9 unterstützen
    taktisch nur Grundspiel/Kerosin ohne Karten. Für weitere Module/Karten sind
    Modultaktik und Planung noch zu entwickeln; rohe legale Aktionen funktionieren

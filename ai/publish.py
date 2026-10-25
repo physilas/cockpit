@@ -27,6 +27,8 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
     if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', release_id):
         raise ValueError('Release ID must contain lowercase letters, digits and hyphens.')
     report = json.loads(Path(evaluation).read_text())
+    if report.get('complete') is False:
+        raise ValueError('Qualification is still running; publish only a completed report.')
     model, payload = load_checkpoint(checkpoint)
     if report.get('weights_sha256') != weight_fingerprint(model):
         raise ValueError('Evaluation does not match these model weights.')

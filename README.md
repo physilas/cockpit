@@ -359,14 +359,20 @@ Informationen wie beim Training. Die beiden Lernmodi fragen vor dem Start nach
 Zustimmung zur Datennutzung. Aufzeichnungen werden lokal gesichert und bei
 konfiguriertem Cloudflare-Endpunkt automatisch zentral hochgeladen.
 
+**Crew 1** bleibt als bisheriger Spieler verfügbar. **Crew 2** ergänzt ein
+geführtes Modell mit trainiertem Detailzweig und erscheint nur auf seinen
+unabhängig bestandenen Strecken. Die Auswahl zeigt die jeweilige Selbstspielquote;
+sie ist keine Vorhersage der Gewinnquote mit Menschen. Prüfprotokoll und
+Ergebnisse stehen unter [Crew 2](ai/releases/crew2-v1/README.md).
+
 Modelle für die statische Webseite bereitstellen:
 
 ```bash
-.venv/bin/python -m ai.export_browser
+.venv/bin/python -m ai.export_browser --runs-dir ai/releases
 .venv/bin/python build.py
 ```
 
-Der Export erfasst kompatible `best.pt` und `latest.pt` aus `runs/`. Die generierten
+Dieser Export erfasst die veröffentlichten Checkpoints aus `ai/releases/`. Die generierten
 Dateien unter `frontend/web/models/` sowie der Modellkatalog müssen mit GitHub Pages
 veröffentlicht werden. Modelle werden bei Auswahl geladen und im Browser ausgeführt.
 Feedback und Demonstrationen sind zunächst Trainingsdaten; sie verändern die

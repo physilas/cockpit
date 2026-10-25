@@ -1,0 +1,51 @@
+{
+  "name": "Crew 2",
+  "selected_before_qualification": true,
+  "source_checkpoint": "runs/guided-residual-stage2/latest.pt",
+  "weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "guided_phase_decisions": 500347,
+  "cumulative_module_decisions_including_ancestors": 536183,
+  "rule_pretraining_examples": 37016,
+  "schema_version": 3,
+  "browser_model_format": 4,
+  "assistance_version": 9,
+  "reference_mask_version": 7,
+  "open_risk_environment": false,
+  "selection_note": "Selected from completed development comparisons before held-out evaluation. The subsequent open-risk PPO candidate had no consistent fresh route advantage. No universal superiority over Crew 1 is claimed.",
+  "training_reports": [
+    "ai/experiments/modules-50pct-2026-10-25/guided-stage1.json",
+    "ai/experiments/modules-50pct-2026-10-25/guided-stage2.json"
+  ],
+  "development_comparisons": [
+    "ai/experiments/modules-50pct-2026-10-25/guided-stage2-comparison-v1.json",
+    "ai/experiments/modules-50pct-2026-10-25/open-risk-ppo-stage1-fresh-v1.json"
+  ],
+  "qualification": {
+    "evaluation": "ai/releases/crew2-v1/evaluation.json",
+    "self_seed_start": 15000000,
+    "self_games_per_route": 500,
+    "heuristic_partner_seed_start": 15100000,
+    "heuristic_games_per_role_per_route": 100,
+    "routes_tested": 10,
+    "minimum_wilson_lower_bound": 0.5,
+    "workers": 8,
+    "cpu_duty_cycle": 0.7,
+    "torch_threads": 1,
+    "nice": 15,
+    "all_modules_cards_goal_achieved": false,
+    "complete": true,
+    "elapsed_seconds": 1248.7805709838867,
+    "qualified_routes": [
+      "LOG_YUL_GREEN",
+      "LOG_LHR_GREEN",
+      "FRA",
+      "LHR",
+      "MUC",
+      "MUC_T1",
+      "MUC_T2",
+      "MUC_T3"
+    ],
+    "self_games": 5000,
+    "heuristic_partner_games": 2000
+  }
+}

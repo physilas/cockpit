@@ -25,6 +25,10 @@ class PublishTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 publish(checkpoint,evaluation,'crew-test','Test',root=root,require_all=False)
             self.assertFalse((root/'ai/releases/crew-test').exists())
+            evaluation.write_text(json.dumps({**report, 'complete': False}))
+            with self.assertRaisesRegex(ValueError, 'still running'):
+                publish(checkpoint,evaluation,'crew-test','Test',root=root,require_all=False)
+            self.assertFalse((root/'ai/releases/crew-test').exists())
             evaluation.write_text(json.dumps(report))
             with self.assertRaises(ValueError):
                 publish(checkpoint,evaluation,'crew-test','Test',root=root)
