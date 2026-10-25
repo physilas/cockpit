@@ -56,6 +56,28 @@ def card_fixture(root):
     return checkpoint, evaluation, report
 
 
+def mixed_fixture(root):
+    checkpoint, evaluation, report = fixture(root, supported_modules=('intern', 'wind'))
+    model, payload = load_checkpoint(checkpoint)
+    payload['train_config'].update(supported_cards=['control'], ability_count='case_specific')
+    save_checkpoint(checkpoint, model, train_config=payload['train_config'], total_steps=120000,
+                    module_training_steps=120000)
+    report.pop('routes')
+    rows = [('MUC', [], [], 2), ('LOG_ATL_GREEN', ['intern'], [], 1),
+            ('LOG_GIG_YELLOW', ['wind'], ['control'], 1),
+            # Known zero-win cases need no exposure claim and stay in the
+            # original report, while being absent from the new selectable set.
+            ('LOG_ATL_YELLOW', ['leak'], ['adaptation'], 0),
+            ('LOG_HND_GREEN', [], [], 0)]
+    report['cases'] = {}
+    for airport, modules, cards, wins in rows:
+        case = {'airport': airport, 'modules': modules, 'abilities': cards,
+                'games': 40, 'wins': wins, 'win_rate': wins/40}
+        report['cases'][case_key(case)] = case
+    evaluation.write_text(json.dumps(report))
+    return checkpoint, evaluation, report
+
+
 class PublishPreviewTests(unittest.TestCase):
     def setUp(self):
         torch.set_num_threads(1)
@@ -275,6 +297,104 @@ class PublishPreviewTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Duplicate'):
                 publish_preview(checkpoint, evaluation, 'duplicate-report', 'Cards Test', root=root)
             self.assertFalse((root/'ai'/'releases'/'duplicate-report').exists())
+
+    def test_mixed_positive_preview_preserves_tensors_all_73_old_entries_and_complete_report(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            old_path = root/'ai'/'releases'/'old-crew'/'best.pt'
+            save_checkpoint(old_path, ActorCritic(hidden_size=8, hidden_layers=1),
+                            train_config={'airport': 'MUC', 'quality': {'approved': True},
+                                          'recommended': True}, total_steps=10)
+            previous = export_models(root/'ai'/'releases', root/'frontend'/'web', checkpoints=[old_path])
+            old = [{**deepcopy(previous['models'][0]), 'id': f'preserve-{i}/best.pt',
+                    'recommended': i == 0} for i in range(73)]
+            previous['models'] = old
+            catalog_path = root/'frontend'/'web'/'js'/'ai-models.js'
+            catalog_path.write_text('window.COCKPIT_AI_CATALOG = '+json.dumps(previous)+';\n')
+            checkpoint, evaluation, report = mixed_fixture(root)
+            source_bytes, report_bytes = checkpoint.read_bytes(), evaluation.read_bytes()
+            original, _ = load_checkpoint(checkpoint)
+            path, catalog = publish_preview(checkpoint, evaluation, 'mixed-preview', 'Crew 3 Current Test',
+                                            root=root, positive_only=True)
+            entry = next(row for row in catalog['models'] if row['id'] == 'mixed-preview/best.pt')
+            self.assertEqual([row for row in catalog['models'] if row['id'] != entry['id']], old)
+            self.assertEqual(len(catalog['models']), 74)
+            self.assertFalse(entry['quality']['approved'])
+            self.assertFalse(entry['recommended'])
+            self.assertIs(entry['preview']['positive_only'], True)
+            expected = {key: value for key, value in report['cases'].items() if value['wins'] > 0}
+            self.assertEqual(set(entry['preview']['case_results']), set(expected))
+            self.assertEqual(entry['preview']['supported_cases'],
+                             [{'airport': row['airport'], 'abilities': row['abilities']}
+                              for key, row in sorted(expected.items())])
+            self.assertEqual(entry['supported_airports'], ['LOG_ATL_GREEN', 'LOG_GIG_YELLOW', 'MUC'])
+            self.assertNotIn('route_results', entry['preview'])
+            saved, _ = load_checkpoint(path)
+            self.assertEqual(weight_fingerprint(saved), weight_fingerprint(original))
+            self.assertEqual(checkpoint.read_bytes(), source_bytes)
+            self.assertEqual((path.parent/'development.json').read_bytes(), report_bytes)
+            self.assertFalse(catalog['skipped'])
+
+    def test_positive_selection_validates_even_hidden_zero_cases_before_creating_release(self):
+        mutations = [
+            lambda r: r['cases']['LOG_ATL_YELLOW|adaptation'].__setitem__('modules', ['wind']),
+            lambda r: r['cases']['LOG_ATL_YELLOW|adaptation'].__setitem__('games', 0),
+            lambda r: r['cases'].__setitem__('UNKNOWN|',
+                {'airport': 'UNKNOWN', 'abilities': [], 'modules': [], 'games': 1, 'wins': 0, 'win_rate': 0.}),
+            lambda r: r['cases']['LOG_GIG_YELLOW|control'].__setitem__('modules', ['leak']),
+        ]
+        for index, mutate in enumerate(mutations):
+            with self.subTest(index=index), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                checkpoint, evaluation, report = mixed_fixture(root)
+                mutate(report); evaluation.write_text(json.dumps(report))
+                with self.assertRaises(ValueError):
+                    publish_preview(checkpoint, evaluation, 'invalid-mixed', 'Invalid', root=root, positive_only=True)
+                self.assertFalse((root/'ai'/'releases'/'invalid-mixed').exists())
+
+    def test_positive_selection_rejects_no_winner_unclaimed_selected_cases_and_implicit_flags(self):
+        for variant in ('no_winner', 'unclaimed', 'not_bool'):
+            with self.subTest(variant=variant), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                checkpoint, evaluation, report = mixed_fixture(root)
+                if variant == 'no_winner':
+                    for row in report['cases'].values():
+                        row.update(wins=0, win_rate=0.)
+                elif variant == 'unclaimed':
+                    report['cases']['LOG_ATL_YELLOW|adaptation'].update(wins=1, win_rate=.025)
+                evaluation.write_text(json.dumps(report))
+                with self.assertRaises(ValueError):
+                    publish_preview(checkpoint, evaluation, 'empty-mixed', 'Empty', root=root,
+                                    positive_only='true' if variant == 'not_bool' else True)
+                self.assertFalse((root/'ai'/'releases'/'empty-mixed').exists())
+
+    def test_all_six_legacy_empty_card_cases_are_known_without_expanding_official_matrix(self):
+        from ai.module_training_eval import _official_cases
+        self.assertEqual(len(_official_cases()), 186)
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            checkpoint, evaluation, report = mixed_fixture(root)
+            codes = ('FRA', 'LHR', 'MUC', 'MUC_T1', 'MUC_T2', 'MUC_T3')
+            report['cases'] = {code+'|': {'airport': code, 'abilities': [], 'modules': [],
+                                        'games': 40, 'wins': 1, 'win_rate': .025} for code in codes}
+            evaluation.write_text(json.dumps(report))
+            _, catalog = publish_preview(checkpoint, evaluation, 'legacy-mixed', 'Legacy', root=root, positive_only=True)
+            self.assertEqual(catalog['models'][0]['supported_airports'], sorted(codes))
+            self.assertEqual(len(_official_cases()), 186)
+
+    def test_positive_case_cli_is_explicitly_preview_only(self):
+        arguments = ['ai.publish', '--checkpoint', 'source.pt', '--evaluation', 'report.json',
+                     '--release-id', 'requested-current', '--name', 'Current', '--positive-cases-only']
+        with patch('sys.argv', arguments+['--experimental-preview']), \
+                patch('ai.publish.publish_preview', return_value=(Path('preview.pt'), {})) as preview:
+            main()
+            self.assertIs(preview.call_args.kwargs['positive_only'], True)
+        with patch('sys.argv', arguments), patch('sys.stderr'), \
+                patch('ai.publish.publish_preview') as preview, patch('ai.publish.publish') as qualified:
+            with self.assertRaises(SystemExit) as error:
+                main()
+            self.assertEqual(error.exception.code, 2)
+            preview.assert_not_called(); qualified.assert_not_called()
 
 
 if __name__ == '__main__': unittest.main()

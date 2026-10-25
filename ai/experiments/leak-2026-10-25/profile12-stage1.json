@@ -1,0 +1,1226 @@
+{
+  "format": 1,
+  "complete": true,
+  "release_evidence": false,
+  "goal_achieved": false,
+  "new_training_decisions": 80139,
+  "episodes": 1425,
+  "updates": 35,
+  "training_elapsed_seconds": 386.3465882919263,
+  "total_wall_seconds": 547.1730023331475,
+  "best_steps": 0,
+  "config": {
+    "airport": "LOG_ATL_YELLOW",
+    "assistance_version": 12,
+    "max_steps": 256,
+    "curriculum_cases": [
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3
+      }
+    ],
+    "round_reward": 0.0,
+    "sync_weight": 0.05,
+    "sync_tolerance": 1.0,
+    "task_weight": 0.02,
+    "planning_cpu_duty_cycle": 0.7,
+    "schema_version": 3,
+    "supported_modules": [
+      "leak"
+    ],
+    "supported_cards": [
+      "adaptation",
+      "anticipation",
+      "control",
+      "mastery",
+      "synchronisation",
+      "working-together"
+    ],
+    "ability_count": 1,
+    "supported_cases": [
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3
+      }
+    ],
+    "source_checkpoint": "ai/releases/crew2-v1/best.pt",
+    "source_checkpoint_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+    "source_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+    "initial_weights_sha256": "9f798af5a5049450effd4b76bd6c436c2b1db17a7fc682af2ea488288ffb76bc",
+    "source_tensor_sha256": "81e145df8902c053c475ce223b959670f3a60397172a31f8bffda19870faece8",
+    "initial_tensor_sha256": "81e145df8902c053c475ce223b959670f3a60397172a31f8bffda19870faece8",
+    "frozen_source_weights_sha256": "3a7c3bcb985d11bff39d59f4ddda964ad9eaa64540b0754791c8be934cd3c507",
+    "frozen_source_tensor_sha256": "01c38ed33542c42f5500eed46187f75d0fa1e58aa3a0ae33c57407482af947d3",
+    "source_model_config": {
+      "kind": "guided_residual",
+      "observation_size": 489,
+      "action_count": 217,
+      "hidden_size": 256,
+      "hidden_layers": 2,
+      "source": {
+        "kind": "residual",
+        "observation_size": 489,
+        "action_count": 217,
+        "hidden_size": 256,
+        "hidden_layers": 2,
+        "source": {
+          "observation_size": 352,
+          "action_count": 125,
+          "hidden_size": 128,
+          "hidden_layers": 2
+        }
+      },
+      "guide_margin": 4.0
+    },
+    "initial_model_config": {
+      "kind": "guided_residual",
+      "observation_size": 489,
+      "action_count": 217,
+      "hidden_size": 256,
+      "hidden_layers": 2,
+      "source": {
+        "kind": "residual",
+        "observation_size": 489,
+        "action_count": 217,
+        "hidden_size": 256,
+        "hidden_layers": 2,
+        "source": {
+          "observation_size": 352,
+          "action_count": 125,
+          "hidden_size": 128,
+          "hidden_layers": 2
+        }
+      },
+      "guide_margin": 12.0
+    },
+    "source_phase_steps": 500347,
+    "source_guide_margin": 4.0,
+    "guide_margin": 12.0,
+    "guide_margin_overridden": true,
+    "phase_kind": "new_public_module_profile_12_leak_cards",
+    "source_planner_sha256": "5914675e76dce67b59f5dfecbb6c5e71c04ca079143bdfc14bb3f295e7a4dafc",
+    "phase_sha256": "3e5972168f6d882a86744b464994e27563375b9a11bd34fd0bc43528ac34ab64",
+    "planner_sha256": "513170cc4f9cb4c716f75bc913c3b5c29f47c158c9b4b6c320065b532d1a962b",
+    "action_mask_version": 2,
+    "workers": 8,
+    "cpu_duty_cycle": 0.7,
+    "threads": 1,
+    "device": "mps",
+    "seed": 251057,
+    "eval_seed": 14930000,
+    "eval_seed_stride": 100,
+    "eval_games_per_case": 20,
+    "eval_every": 20,
+    "steps_limit": 80000,
+    "training_seconds_limit": 600.0,
+    "learning_rate": 5e-05,
+    "uniform_mix": 0.03,
+    "self_imitation_coef": 0.03,
+    "discount_unit": "placement",
+    "publication_status": "development_only_not_published",
+    "independent_qualification_used": false
+  },
+  "decisions_by_case": {
+    "LOG_ATL_YELLOW|control": 13227,
+    "LOG_ATL_YELLOW|anticipation": 12018,
+    "LOG_ATL_YELLOW|working-together": 14103,
+    "LOG_ATL_YELLOW|synchronisation": 12428,
+    "LOG_ATL_YELLOW|adaptation": 14322,
+    "LOG_ATL_YELLOW|mastery": 14041
+  },
+  "frozen_source_unchanged": true,
+  "initial_weights_sha256": "9f798af5a5049450effd4b76bd6c436c2b1db17a7fc682af2ea488288ffb76bc",
+  "latest_weights_sha256": "e59d9f7bee62b12ed0faf094c80945cc2b1d984544eb619547940c752238bb83",
+  "validations": [
+    {
+      "steps": 0,
+      "update": 0,
+      "cases": {
+        "LOG_ATL_YELLOW|adaptation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "adaptation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|adaptation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1239,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 2,
+          "win_rate": 0.1,
+          "win_ci_low": 0.027865893984153206,
+          "win_ci_high": 0.30103820641179335,
+          "mean_round": 6.2,
+          "mean_return": -0.8,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.8,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.35,
+          "mean_distance_remaining": 0.7,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.45,
+          "landing_round_rate": 0.45,
+          "mean_coffee_actions": 6.3,
+          "mean_coffee_units": 6.85,
+          "mean_rerolls": 1.8,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.1,
+          "truncated": 0,
+          "loss_reasons": {
+            "notlandung": 3,
+            "flugzeuge_uebrig": 1,
+            "nicht_waagerecht": 1,
+            "zu_schnell_gelandet": 5,
+            "kollision": 4,
+            "trudeln": 2,
+            "kerosin_leer": 1,
+            "ruder_verbotene_stellung": 1,
+            "uebers_ziel_hinaus": 1
+          }
+        },
+        "LOG_ATL_YELLOW|anticipation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "anticipation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|anticipation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1143,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 1,
+          "win_rate": 0.05,
+          "win_ci_low": 0.008881219432873136,
+          "win_ci_high": 0.23613589351256675,
+          "mean_round": 5.85,
+          "mean_return": -0.9,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.9,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 5.15,
+          "mean_distance_remaining": 1.05,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.5,
+          "landing_round_rate": 0.45,
+          "mean_coffee_actions": 6.05,
+          "mean_coffee_units": 6.6,
+          "mean_rerolls": 1.7,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.15,
+          "truncated": 0,
+          "loss_reasons": {
+            "kollision": 6,
+            "landeklappen_unvollstaendig": 1,
+            "trudeln": 4,
+            "zu_schnell_gelandet": 3,
+            "flugzeuge_uebrig": 1,
+            "nicht_waagerecht": 3,
+            "fahrwerk_unvollstaendig": 1,
+            "notlandung": 1,
+            "uebers_ziel_hinaus": 1
+          }
+        },
+        "LOG_ATL_YELLOW|control": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "control"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|control",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1213,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 4,
+          "win_rate": 0.2,
+          "win_ci_low": 0.0806563532712,
+          "win_ci_high": 0.41602172202575993,
+          "mean_round": 6.3,
+          "mean_return": -0.6,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.6,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 3.9,
+          "mean_distance_remaining": 0.9,
+          "mean_sync_error": 0.1,
+          "airport_reached_rate": 0.5,
+          "landing_round_rate": 0.5,
+          "mean_coffee_actions": 6.9,
+          "mean_coffee_units": 7.85,
+          "mean_rerolls": 1.65,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.2,
+          "truncated": 0,
+          "loss_reasons": {
+            "ruder_verbotene_stellung": 1,
+            "zu_schnell_gelandet": 5,
+            "notlandung": 4,
+            "uebers_ziel_hinaus": 1,
+            "kollision": 3,
+            "trudeln": 1,
+            "flugzeuge_uebrig": 1
+          }
+        },
+        "LOG_ATL_YELLOW|mastery": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "mastery"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|mastery",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1327,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 2,
+          "win_rate": 0.1,
+          "win_ci_low": 0.027865893984153206,
+          "win_ci_high": 0.30103820641179335,
+          "mean_round": 6.45,
+          "mean_return": -0.8,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.8,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.05,
+          "mean_distance_remaining": 0.85,
+          "mean_sync_error": 0.05,
+          "airport_reached_rate": 0.4,
+          "landing_round_rate": 0.4,
+          "mean_coffee_actions": 6.25,
+          "mean_coffee_units": 7.2,
+          "mean_rerolls": 3.4,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.3,
+          "truncated": 0,
+          "loss_reasons": {
+            "zu_schnell_gelandet": 4,
+            "ruder_verbotene_stellung": 1,
+            "trudeln": 2,
+            "notlandung": 4,
+            "kollision": 3,
+            "fahrwerk_unvollstaendig": 1,
+            "uebers_ziel_hinaus": 2,
+            "nicht_waagerecht": 1
+          }
+        },
+        "LOG_ATL_YELLOW|synchronisation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "synchronisation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|synchronisation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1162,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 1,
+          "win_rate": 0.05,
+          "win_ci_low": 0.008881219432873136,
+          "win_ci_high": 0.23613589351256675,
+          "mean_round": 5.75,
+          "mean_return": -0.9,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.9,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 5.55,
+          "mean_distance_remaining": 1.05,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.4,
+          "landing_round_rate": 0.4,
+          "mean_coffee_actions": 6.4,
+          "mean_coffee_units": 7,
+          "mean_rerolls": 1.7,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.25,
+          "truncated": 0,
+          "loss_reasons": {
+            "fahrwerk_unvollstaendig": 1,
+            "nicht_waagerecht": 2,
+            "kollision": 4,
+            "zu_schnell_gelandet": 1,
+            "landeklappen_unvollstaendig": 2,
+            "flugzeuge_uebrig": 2,
+            "uebers_ziel_hinaus": 1,
+            "ruder_verbotene_stellung": 3,
+            "trudeln": 2,
+            "kerosin_leer": 1,
+            "notlandung": 2
+          }
+        },
+        "LOG_ATL_YELLOW|working-together": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "working-together"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|working-together",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1123,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 1,
+          "win_rate": 0.05,
+          "win_ci_low": 0.008881219432873136,
+          "win_ci_high": 0.23613589351256675,
+          "mean_round": 5.85,
+          "mean_return": -0.9,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.9,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 5.95,
+          "mean_distance_remaining": 1.3,
+          "mean_sync_error": 0.1,
+          "airport_reached_rate": 0.3,
+          "landing_round_rate": 0.3,
+          "mean_coffee_actions": 6.4,
+          "mean_coffee_units": 6.9,
+          "mean_rerolls": 1.7,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.3,
+          "truncated": 0,
+          "loss_reasons": {
+            "notlandung": 5,
+            "zu_schnell_gelandet": 2,
+            "trudeln": 2,
+            "kerosin_leer": 1,
+            "kollision": 5,
+            "uebers_ziel_hinaus": 2,
+            "fahrwerk_unvollstaendig": 2,
+            "nicht_waagerecht": 2,
+            "landeklappen_unvollstaendig": 1
+          }
+        }
+      },
+      "score": [
+        0.05,
+        0.09166666666666667
+      ],
+      "release_evidence": false
+    },
+    {
+      "steps": 45694,
+      "update": 20,
+      "cases": {
+        "LOG_ATL_YELLOW|adaptation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "adaptation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|adaptation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1194,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 1,
+          "win_rate": 0.05,
+          "win_ci_low": 0.008881219432873136,
+          "win_ci_high": 0.23613589351256675,
+          "mean_round": 5.95,
+          "mean_return": -0.9,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.9,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 5.4,
+          "mean_distance_remaining": 1,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.4,
+          "landing_round_rate": 0.4,
+          "mean_coffee_actions": 6.2,
+          "mean_coffee_units": 6.9,
+          "mean_rerolls": 1.75,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.15,
+          "truncated": 0,
+          "loss_reasons": {
+            "notlandung": 3,
+            "trudeln": 2,
+            "zu_schnell_gelandet": 5,
+            "kollision": 5,
+            "kerosin_leer": 2,
+            "ruder_verbotene_stellung": 1,
+            "uebers_ziel_hinaus": 1
+          }
+        },
+        "LOG_ATL_YELLOW|anticipation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "anticipation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|anticipation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1192,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 2,
+          "win_rate": 0.1,
+          "win_ci_low": 0.027865893984153206,
+          "win_ci_high": 0.30103820641179335,
+          "mean_round": 6.05,
+          "mean_return": -0.8,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.8,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.45,
+          "mean_distance_remaining": 0.85,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.6,
+          "landing_round_rate": 0.55,
+          "mean_coffee_actions": 6.4,
+          "mean_coffee_units": 6.95,
+          "mean_rerolls": 1.65,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.25,
+          "truncated": 0,
+          "loss_reasons": {
+            "kollision": 6,
+            "landeklappen_unvollstaendig": 2,
+            "kerosin_leer": 1,
+            "flugzeuge_uebrig": 2,
+            "zu_schnell_gelandet": 3,
+            "fahrwerk_unvollstaendig": 1,
+            "nicht_waagerecht": 1,
+            "trudeln": 2,
+            "uebers_ziel_hinaus": 1
+          }
+        },
+        "LOG_ATL_YELLOW|control": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "control"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|control",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1201,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 4,
+          "win_rate": 0.2,
+          "win_ci_low": 0.0806563532712,
+          "win_ci_high": 0.41602172202575993,
+          "mean_round": 6.1,
+          "mean_return": -0.6,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.6,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 3.95,
+          "mean_distance_remaining": 0.95,
+          "mean_sync_error": 0.1,
+          "airport_reached_rate": 0.45,
+          "landing_round_rate": 0.45,
+          "mean_coffee_actions": 6.85,
+          "mean_coffee_units": 7.65,
+          "mean_rerolls": 1.75,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.1,
+          "truncated": 0,
+          "loss_reasons": {
+            "uebers_ziel_hinaus": 2,
+            "ruder_verbotene_stellung": 1,
+            "notlandung": 2,
+            "trudeln": 4,
+            "zu_schnell_gelandet": 4,
+            "kerosin_leer": 2,
+            "kollision": 1
+          }
+        },
+        "LOG_ATL_YELLOW|mastery": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "mastery"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|mastery",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1286,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 2,
+          "win_rate": 0.1,
+          "win_ci_low": 0.027865893984153206,
+          "win_ci_high": 0.30103820641179335,
+          "mean_round": 6.25,
+          "mean_return": -0.8,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.8,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4,
+          "mean_distance_remaining": 0.8,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.4,
+          "landing_round_rate": 0.4,
+          "mean_coffee_actions": 6.05,
+          "mean_coffee_units": 6.75,
+          "mean_rerolls": 3.15,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.2,
+          "truncated": 0,
+          "loss_reasons": {
+            "trudeln": 2,
+            "ruder_verbotene_stellung": 1,
+            "notlandung": 3,
+            "zu_schnell_gelandet": 3,
+            "kollision": 4,
+            "flugzeuge_uebrig": 1,
+            "uebers_ziel_hinaus": 3,
+            "nicht_waagerecht": 1
+          }
+        },
+        "LOG_ATL_YELLOW|synchronisation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "synchronisation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|synchronisation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1221,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 3,
+          "win_rate": 0.15,
+          "win_ci_low": 0.05236779195949584,
+          "win_ci_high": 0.36042329588695743,
+          "mean_round": 6.05,
+          "mean_return": -0.7,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.7,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.7,
+          "mean_distance_remaining": 1,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.45,
+          "landing_round_rate": 0.45,
+          "mean_coffee_actions": 6.9,
+          "mean_coffee_units": 7.6,
+          "mean_rerolls": 1.65,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.3,
+          "truncated": 0,
+          "loss_reasons": {
+            "fahrwerk_unvollstaendig": 2,
+            "zu_schnell_gelandet": 2,
+            "kollision": 3,
+            "notlandung": 3,
+            "trudeln": 2,
+            "flugzeuge_uebrig": 3,
+            "kerosin_leer": 1,
+            "ruder_verbotene_stellung": 2
+          }
+        },
+        "LOG_ATL_YELLOW|working-together": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "working-together"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|working-together",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1094,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 0,
+          "win_rate": 0.0,
+          "win_ci_low": 0.0,
+          "win_ci_high": 0.16113012549493322,
+          "mean_round": 5.65,
+          "mean_return": -1.0,
+          "truncated_rate": 0,
+          "mean_outcome_return": -1.0,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 6.1,
+          "mean_distance_remaining": 1.5,
+          "mean_sync_error": 0.2,
+          "airport_reached_rate": 0.3,
+          "landing_round_rate": 0.3,
+          "mean_coffee_actions": 6,
+          "mean_coffee_units": 6.55,
+          "mean_rerolls": 1.75,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.3,
+          "truncated": 0,
+          "loss_reasons": {
+            "notlandung": 4,
+            "landeklappen_unvollstaendig": 2,
+            "trudeln": 3,
+            "kollision": 6,
+            "kerosin_leer": 1,
+            "zu_schnell_gelandet": 2,
+            "fahrwerk_unvollstaendig": 2,
+            "nicht_waagerecht": 2,
+            "uebers_ziel_hinaus": 1
+          }
+        }
+      },
+      "score": [
+        0.0,
+        0.09999999999999999
+      ],
+      "release_evidence": false
+    },
+    {
+      "steps": 80139,
+      "update": 35,
+      "cases": {
+        "LOG_ATL_YELLOW|adaptation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "adaptation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|adaptation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1266,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 1,
+          "win_rate": 0.05,
+          "win_ci_low": 0.008881219432873136,
+          "win_ci_high": 0.23613589351256675,
+          "mean_round": 6.3,
+          "mean_return": -0.9,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.9,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.1,
+          "mean_distance_remaining": 0.75,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.55,
+          "landing_round_rate": 0.55,
+          "mean_coffee_actions": 6.65,
+          "mean_coffee_units": 7.35,
+          "mean_rerolls": 1.85,
+          "mean_coffee_reversals": 0.05,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.25,
+          "truncated": 0,
+          "loss_reasons": {
+            "notlandung": 3,
+            "trudeln": 4,
+            "zu_schnell_gelandet": 4,
+            "kerosin_leer": 2,
+            "ruder_verbotene_stellung": 1,
+            "kollision": 2,
+            "flugzeuge_uebrig": 2,
+            "landeklappen_unvollstaendig": 1,
+            "uebers_ziel_hinaus": 1,
+            "fahrwerk_unvollstaendig": 1
+          }
+        },
+        "LOG_ATL_YELLOW|anticipation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "anticipation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|anticipation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1169,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 3,
+          "win_rate": 0.15,
+          "win_ci_low": 0.05236779195949584,
+          "win_ci_high": 0.36042329588695743,
+          "mean_round": 6.1,
+          "mean_return": -0.7,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.7,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.5,
+          "mean_distance_remaining": 0.9,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.5,
+          "landing_round_rate": 0.5,
+          "mean_coffee_actions": 5.9,
+          "mean_coffee_units": 6.45,
+          "mean_rerolls": 1.7,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.15,
+          "truncated": 0,
+          "loss_reasons": {
+            "kollision": 5,
+            "notlandung": 3,
+            "flugzeuge_uebrig": 3,
+            "zu_schnell_gelandet": 2,
+            "fahrwerk_unvollstaendig": 1,
+            "nicht_waagerecht": 2,
+            "trudeln": 1,
+            "uebers_ziel_hinaus": 1
+          }
+        },
+        "LOG_ATL_YELLOW|control": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "control"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|control",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1175,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 3,
+          "win_rate": 0.15,
+          "win_ci_low": 0.05236779195949584,
+          "win_ci_high": 0.36042329588695743,
+          "mean_round": 5.95,
+          "mean_return": -0.7,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.7,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.7,
+          "mean_distance_remaining": 1.1,
+          "mean_sync_error": 0.1,
+          "airport_reached_rate": 0.45,
+          "landing_round_rate": 0.45,
+          "mean_coffee_actions": 6.75,
+          "mean_coffee_units": 7.6,
+          "mean_rerolls": 1.75,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.2,
+          "truncated": 0,
+          "loss_reasons": {
+            "uebers_ziel_hinaus": 2,
+            "ruder_verbotene_stellung": 1,
+            "notlandung": 2,
+            "trudeln": 5,
+            "zu_schnell_gelandet": 3,
+            "kerosin_leer": 1,
+            "flugzeuge_uebrig": 1,
+            "kollision": 2
+          }
+        },
+        "LOG_ATL_YELLOW|mastery": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "mastery"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|mastery",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1360,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 2,
+          "win_rate": 0.1,
+          "win_ci_low": 0.027865893984153206,
+          "win_ci_high": 0.30103820641179335,
+          "mean_round": 6.6,
+          "mean_return": -0.8,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.8,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 3.25,
+          "mean_distance_remaining": 0.5,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.5,
+          "landing_round_rate": 0.5,
+          "mean_coffee_actions": 6.5,
+          "mean_coffee_units": 7.4,
+          "mean_rerolls": 3.45,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.4,
+          "truncated": 0,
+          "loss_reasons": {
+            "fahrwerk_unvollstaendig": 3,
+            "landeklappen_unvollstaendig": 3,
+            "uebers_ziel_hinaus": 2,
+            "notlandung": 4,
+            "zu_schnell_gelandet": 3,
+            "kollision": 2,
+            "flugzeuge_uebrig": 1,
+            "nicht_waagerecht": 1,
+            "trudeln": 2
+          }
+        },
+        "LOG_ATL_YELLOW|synchronisation": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "synchronisation"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|synchronisation",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1281,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 4,
+          "win_rate": 0.2,
+          "win_ci_low": 0.0806563532712,
+          "win_ci_high": 0.41602172202575993,
+          "mean_round": 6.4,
+          "mean_return": -0.6,
+          "truncated_rate": 0,
+          "mean_outcome_return": -0.6,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4,
+          "mean_distance_remaining": 0.7,
+          "mean_sync_error": 0.0,
+          "airport_reached_rate": 0.55,
+          "landing_round_rate": 0.55,
+          "mean_coffee_actions": 6.8,
+          "mean_coffee_units": 7.8,
+          "mean_rerolls": 1.75,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.3,
+          "truncated": 0,
+          "loss_reasons": {
+            "fahrwerk_unvollstaendig": 2,
+            "zu_schnell_gelandet": 3,
+            "kollision": 2,
+            "notlandung": 4,
+            "ruder_verbotene_stellung": 2,
+            "flugzeuge_uebrig": 2,
+            "kerosin_leer": 1,
+            "trudeln": 1
+          }
+        },
+        "LOG_ATL_YELLOW|working-together": {
+          "complete": true,
+          "airport": "LOG_ATL_YELLOW",
+          "abilities": [
+            "working-together"
+          ],
+          "modules": [
+            "leak"
+          ],
+          "case_key": "LOG_ATL_YELLOW|working-together",
+          "assistance_version": 12,
+          "clock_model": "engine_wall_clock",
+          "release_evidence": false,
+          "qualification_used": false,
+          "reference_departures": 0,
+          "decisions": 1176,
+          "reference_departure_rate": 0.0,
+          "games": 20,
+          "wins": 0,
+          "win_rate": 0.0,
+          "win_ci_low": 0.0,
+          "win_ci_high": 0.16113012549493322,
+          "mean_round": 6.1,
+          "mean_return": -1.0,
+          "truncated_rate": 0,
+          "mean_outcome_return": -1.0,
+          "mean_round_return": 0.0,
+          "mean_sync_return": 0.0,
+          "mean_tasks_return": 0.0,
+          "mean_tasks_undone": 4.95,
+          "mean_distance_remaining": 1.2,
+          "mean_sync_error": 0.1,
+          "airport_reached_rate": 0.35,
+          "landing_round_rate": 0.35,
+          "mean_coffee_actions": 6.55,
+          "mean_coffee_units": 6.9,
+          "mean_rerolls": 1.85,
+          "mean_coffee_reversals": 0,
+          "first_action_reroll_rate": 0,
+          "capacity_impossible_rate": 0.4,
+          "truncated": 0,
+          "loss_reasons": {
+            "kollision": 5,
+            "notlandung": 5,
+            "landeklappen_unvollstaendig": 2,
+            "kerosin_leer": 2,
+            "trudeln": 2,
+            "zu_schnell_gelandet": 3,
+            "fahrwerk_unvollstaendig": 1,
+            "nicht_waagerecht": 1,
+            "uebers_ziel_hinaus": 1
+          }
+        }
+      },
+      "score": [
+        0.0,
+        0.10833333333333334
+      ],
+      "release_evidence": false
+    }
+  ]
+}

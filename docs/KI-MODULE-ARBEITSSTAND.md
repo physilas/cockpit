@@ -55,6 +55,66 @@ einer ersten automatischen Ablehnung ausdrücklich vom Nutzer bestätigt.
 Keine E-Mail. Nur aussagekräftigen Fortschritt, Fehler, Abschluss oder benötigten
 Input melden.
 
+## Neuer Veröffentlichungsauftrag: Crew 3 mit allen positiv getesteten Fällen
+
+Der Nutzer verlangt erneut Crew 3 mit allen Routen, auf denen sie mehr als 0 %
+gewinnt. Gemeint und im Chat angekündigt ist der **aktuelle vorhandene Crew-3-
+Stand**, `ai/releases/crew3-intern-preview-v1/best.pt`, Profil 10 und Abstand 4:
+keine still übernommenen Leckgewichte, keine neue Trainingsbehauptung.
+Vorgesehen ist eine neue Veröffentlichung `crew3-current-preview-v2` namens
+**Crew 3 · Aktuell (Test)**; vorhandene Veröffentlichungen bleiben erhalten.
+
+Alle 186 offiziellen Fälle plus sechs vorhandene Grundspielrouten
+FRA/LHR/MUC/MUC_T1/MUC_T2/MUC_T3 werden einzeln mit je 20 frischen
+Entwicklungspartien geprüft (192 Fälle, 3.840 Spiele). Seedfolge ab 14.960.000,
+Abstand 100 je Fall, vollständig unter 15.000.000. Nur tatsächlich positive
+Einzelfälle (`wins > 0`) werden angeboten; 0/20 beweist keine Unmöglichkeit.
+Explizite Falllisten gelten auch für Strecken ohne Karten. Anzeige nennt
+Entwicklungsquote, keine unabhängige Freigabe (`quality.approved=false`).
+
+Neue Module/Karten werden hier zunächst **getestet, nicht nachtrainiert**.
+Eine spätere Metadatenkopie für die Veröffentlichung bewahrt alle Tensoren,
+ursprünglichen Trainingsfelder und Zähler. Zusätzliche Laufzeitangaben und
+getestete Fälle werden als reine Preview-Erweiterung getrennt dokumentiert.
+Das neue `ai.preview_matrix_eval` und gemischte Falllisten sind implementiert.
+30 relevante Python-Tests in 8,58 Sekunden und der strikte Node-Fallvertrag
+bestehen. Read-only-Review ohne Befund. Das Frontend prüft ganzzahlige Siege,
+konsistente Quote und exakte Fallzugehörigkeit auch ohne Karten. Neue Module
+werden nicht pauschal aus `supported_airports` freigeschaltet.
+
+Die vollständige Auswertung `ai.preview_matrix_eval` ist regulär beendet,
+Exit 0, 167,22 Sekunden. Log `/tmp/cockpit-crew3-current-matrix-v1.log`,
+abgeschlossener Bericht `ai/experiments/crew3-current-2026-10-25/matrix-development-v1.json`.
+Alle **192 Fälle / 3.840 Partien**, keine Trunkierungen, echte Engine-Uhr auch bei
+Echtzeit. 51 positive Fälle auf **18 Routen** (zwölf offizielle plus sechs alte
+Grundspielrouten). Alle 141 Nullfälle bleiben vollständig im Bericht. Kein
+unabhängiger Test, keine neuen Trainingsentscheidungen und keine neue Policy.
+Modell-, Tensor-, Planer-, Engine- und Matrixhashes vor/nach dem Lauf geprüft.
+
+Der neue Release `ai/releases/crew3-current-preview-v2/best.pt` ist lokal
+zusammengestellt, **Crew 3 · Aktuell (Test)**. Exakt dieselben Tensoren und dasselbe
+Browserasset wie bisheriges Crew 3, SHA
+`d68bf9e86a7c2b514cb503f6e3aea12ef703f56f7b559c13b2649ab5acba7a8c`.
+Keine zusätzlichen gelernten Modulkenntnisse behauptet. Reine Metadaten-Erweiterung
+samt vollständiger ursprünglicher Trainingskonfiguration ist unter
+`source-lineage.json` dokumentiert; Profil 10/Abstand 4 und 120.272 Phasenentscheidungen
+bleiben unverändert. Testbare Erweiterung: Praktikant/Kerosin/Echtzeit und genau
+die 39 positiv getesteten Kartenkombinationen, dazu zwölf kartenlose Fälle.
+Wind/Eis/Leck haben mit diesem Modell auf den geprüften Fällen 0/20 und sind
+in dieser neuen Crew daher nicht auswählbar. Andere ausdrücklich gewünschte
+schwache Previews, insbesondere Crew 4, bleiben unverändert verfügbar.
+
+`preview.positive_only=true`, `preview.enabled=true`, `quality.approved=false`.
+Alle 73 vorherigen Katalogeinträge exakt erhalten, genehmigte Crew bleibt
+vorausgewählt. Der komplette Auswertungsbericht wurde bytegenau ins Release
+kopiert; Quoten je Fall, keine Durchschnittsfreigabe. Drei abschließende echte
+Browserprüfungen bestehen: neue Crew 3 auf MUC ohne Karten und PBH Schwarz mit
+Control+Mastery (Kerosin/Echtzeit), tatsächliche NN-Platzierungen und gespeichertes
+Feedback; technische Wind-/NoCard- und 0%-Sperrprüfungen; unverändertes Crew 4/
+Profil 11 mit allen sechs Karten; Daumen-/Mobil-/Privacy-/Speicher-/Cloudretry-
+Regression. Chrome und Scoped-Server geschlossen, letzter Job regulär Exit 0.
+Kein schwerer Job aktiv. Geprüfter Stand bereit für Push und Pages-Byteprüfung.
+
 ## Aktueller Auftrag: weitere Module, zunächst Praktikant
 
 Der Nutzer hat nach der Veröffentlichung ausdrücklich weitere Module beauftragt.
@@ -227,16 +287,32 @@ Anpassung 1→6 und anschließend Ruder 6 des KI-Kopiloten; Fluglage +2, Flug l�
 weiter. Dies ist ein technischer öffentlicher Gegenfall, keine neue Spielquote.
 Unverändertes Crew 4/Profil 11 mit allen sechs Karten sowie Daumen-/Mobil-/
 Speicher-/Cloudretry-Verhalten sind ebenfalls geprüft. Chrome und scoped Server
-sind geschlossen, letzter Job regulär beendet, kein schwerer Lauf aktiv.
+sind geschlossen; danach wurde nur der unten genannte Lauf gestartet.
 Unabhängiger Read-only-Review ohne konkreten Befund; bestehende Modellkataloge
 und Releasegewichte bleiben exakt erhalten.
 
-Nächste ausdrücklich neue begrenzte Phase: `runs/leak-profile12-stage1/`,
-Seed 251057, Entwicklung je 20 Partien/Karte ab 14.930.000 mit Abstand 100,
-80.000 neue Entscheidungen oder 600 Trainingssekunden plus letzte Charge,
-acht Worker zu .7, Torch 1, nice 15, Metal. Auswahl nach schwächster Karte,
-Mittel nur bei Gleichstand, Warmstand bleibt auswählbar. Kein neuer unabhängiger
-Test und bisher kein Profil-12-Modell veröffentlicht.
+**Profil 12 ist regulär beendet, Exit 0**: `runs/leak-profile12-stage1/`,
+Log `/tmp/cockpit-leak-profile12-stage1.log`, abgeschlossener Bericht
+`ai/experiments/leak-2026-10-25/profile12-stage1.json`. 80.139 neue Entscheidungen,
+1.425 Trainingspartien, 35 Updates, 386,35 Trainingssekunden und 547,17 Sekunden
+Gesamtwandzeit. Grundlage exakt eingefroren; 57 Trainingssiege, erfolgreiche
+Selbstnachahmung erstmals aktiv (35 von 35 Updates mit positiver demo_loss).
+Alle sechs Fallzähler summieren exakt auf 80.139. Quelle erneut originales Crew 2;
+keine vorherige schwache Linie geerbt. Geprüfter Code mit `f6948ad` nach main
+gepusht und Pages deployed; Enginebundle und Cacheversion live bytegenau.
+
+Entwicklung je 20 Partien/Karte, Seed 251057 und Evaluationsbasis 14.930.000,
+Abstand 100. Reihenfolge Adaptation/Anticipation/Control/Mastery/Synchronisation/
+Working-together: **Anfang 2/1/4/2/1/1**, bei 45.694 Zügen **1/2/4/2/3/0**,
+letzter Stand **1/3/3/2/4/0** Siege aus je 20. Nach vorab festgelegtem Minimum-
+Kriterium bleibt **best.pt tatsächlich der Warmstand bei 0 neuen Zügen**.
+57 erfolgreiche Trainingspartien sind ein Fortschritt gegenüber der sieglosen
+Profil-11-Trainingslinie, aber keine Verbesserung der schwächsten Entwicklungs-
+karte. Kein unabhängiger Test und kein Profil-12-Modell veröffentlicht. Nicht
+unverändert weitertrainieren oder den warmen Stand als neu gelernten Erfolg
+verkaufen. Zuerst der neue Crew-3-Veröffentlichungsauftrag, danach konkrete
+Working-together-Fehler bzw. erfolgreiche enginegeprüfte Kartenübungen untersuchen.
+Kein schwerer Job nach Abschluss aktiv; nächste Auswertung separat prüfen.
 
 ### Abgeschlossene neue Phase: Leck auf Atlanta gelb
 

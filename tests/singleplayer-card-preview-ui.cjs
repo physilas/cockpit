@@ -19,13 +19,20 @@ const rows=page=>page.evaluate(async()=>{
            supported_cases:[...cards.map(card=>({airport:'LOG_ATL_YELLOW',abilities:[card]})),
              {airport:'LOG_ATL_YELLOW',abilities:['control','mastery']},{airport:'LOG_ATL_YELLOW',abilities:['unknown']},
              {airport:'LOG_PRG_GREEN',abilities:['control']}],
-           case_results:Object.fromEntries(cards.map((card,i)=>['LOG_ATL_YELLOW|'+card,{games:10,win_rate:(i+1)/10}]))}});}
+           case_results:Object.fromEntries(cards.map((card,i)=>['LOG_ATL_YELLOW|'+card,{games:10,wins:i+1,win_rate:(i+1)/10}]))}});}
     `}));
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     await page.goto(pageUrl);await page.getByRole('button',{name:/Singleplayer/}).click();
     assert.equal(await page.locator('#solo-model').inputValue(),'crew-basegame-v1/best.pt');
-    assert.equal(await page.locator('#solo-route option[value="PRG-green"]').count(),0,'A route-level hint cannot enable an invalid card count');
+    if(await page.locator('#solo-route option[value="PRG-green"]').count()) {
+      // Another explicit release may now legitimately expose PRG. The invalid
+      // one-card fixture must remain unavailable on this two-card route.
+      await page.locator('#solo-route').selectOption('PRG-green');
+      assert.equal(await page.locator('#solo-model option[value="fixture-cards/best.pt"]').count(),0,
+        'A route-level hint cannot enable an invalid card count');
+      await page.locator('#solo-route').selectOption('custom-MUC');
+    }
     await page.locator('[data-mode="feedback"]').click();
     // The actual exported weak specialist is visible without a fake approval.
     const actual=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(model=>model.id==='crew4-leak-preview-v1/best.pt'));

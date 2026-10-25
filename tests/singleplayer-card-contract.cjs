@@ -15,7 +15,7 @@ const model={schema:moduleSchema,supported_airports:['LOG_ATL_YELLOW'],preview:{
   {airport:route.engine_code,abilities:['control']},{airport:route.engine_code,abilities:['control']},
   {airport:route.engine_code,abilities:['working-together']},{airport:route.engine_code,abilities:['unknown']},
   {airport:route.engine_code,abilities:['control','mastery']},{airport:'LOG_GIG_YELLOW',abilities:['adaptation']},
-],case_results:{'LOG_ATL_YELLOW|control':{games:10,win_rate:0},'LOG_ATL_YELLOW|working-together':{games:10,win_rate:.2}}}};
+],case_results:{'LOG_ATL_YELLOW|control':{games:10,wins:0,win_rate:0},'LOG_ATL_YELLOW|working-together':{games:10,wins:2,win_rate:.2}}}};
 assert.equal(api.supportedCases(model,route).length,2);
 assert.equal(api.supportsCase(model,route,['control']),true);
 assert.equal(api.supportsFeedback(model,route,['control']),true);
@@ -30,6 +30,32 @@ assert.equal(api.supportsRoute(null,route),false);
 const base=routes.find(row=>row.engine_code==='MUC');
 assert.equal(api.supportsCase({supported_airports:['MUC']},base,[]),true);
 assert.equal(api.supportsCase({supported_airports:['MUC']},base,['control']),false);
+const wind=routes.find(row=>row.engine_code==='LOG_GIG_YELLOW');
+const zeroBase=routes.find(row=>row.engine_code==='LOG_YUL_GREEN');
+const unlisted=routes.find(row=>row.engine_code==='LOG_ATL_GREEN');
+const mixed={schema:moduleSchema,supported_airports:['MUC','LOG_GIG_YELLOW','LOG_YUL_GREEN','LOG_ATL_GREEN'],
+  preview:{enabled:true,positive_only:true,supported_cases:[{airport:'MUC',abilities:[]},
+    {airport:'LOG_GIG_YELLOW',abilities:['control']},{airport:'LOG_GIG_YELLOW',abilities:['adaptation']},
+    {airport:'LOG_YUL_GREEN',abilities:[]}],case_results:{'MUC|':{games:20,wins:1,win_rate:.05},
+      'LOG_GIG_YELLOW|control':{games:20,wins:2,win_rate:.1},'LOG_GIG_YELLOW|adaptation':{games:20,wins:0,win_rate:0},
+      'LOG_YUL_GREEN|':{games:20,wins:0,win_rate:0}}}};
+assert.equal(api.supportsCase(mixed,base,[]),true);
+assert.equal(api.supportsCase(mixed,base,['control']),false);
+assert.equal(api.supportsFeedback(mixed,base,[]),true);
+assert.equal(api.supportsFeedback(mixed,wind,['control']),true);
+assert.equal(api.supportsCase(mixed,wind,['adaptation']),false);
+assert.equal(api.supportsRoute(mixed,zeroBase),false);
+assert.equal(api.supportsRoute(mixed,unlisted),false,'No-card route hints cannot bypass an explicit case manifest');
+assert.equal(api.supportsRoute({...mixed,preview:{...mixed.preview,supported_cases:[]}},base),false);
+assert.equal(api.supportsRoute({...mixed,preview:{...mixed.preview,supported_cases:null}},base),false);
+assert.equal(api.supportsRoute({...mixed,preview:{...mixed.preview,positive_only:'true'}},base),false);
+assert.equal(api.supportsRoute({...mixed,preview:{...mixed.preview,positive_only:false}},zeroBase),true,
+  'Legacy explicit weak previews keep intentionally allowed zero-win cases');
+for(const bad of [{games:20,wins:0,win_rate:.05},{games:20,wins:21,win_rate:1.05},
+                  {games:20,wins:1.5,win_rate:.075},{games:20,win_rate:.05}])
+  assert.equal(api.supportsCase({...mixed,preview:{...mixed.preview,
+    case_results:{...mixed.preview.case_results,'MUC|':bad}}},base,[]),false,
+    'Corrupt counts cannot manufacture a positive case');
 api.setSetup({mode:'play',model:{schema:moduleSchema}});
 for(let die=0;die<4;die++) for(const kind of ['adaptation','anticipation','swap_choose'])
   assert.equal(api.actionId({kind,role:'pilot',die}),moduleSchema.actions.findIndex(action=>action.kind===kind && action.die===die));

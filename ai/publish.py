@@ -44,7 +44,7 @@ def portable_config(value,root):
     return value
 
 
-def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__file__).resolve().parents[1]):
+def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__file__).resolve().parents[1], positive_only=False):
     """Explicit opt-in experimental listing; never grants quality approval.
 
     The user requested visible interim models, including weak routes. Keep
@@ -54,10 +54,13 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         raise ValueError('Release ID must contain lowercase letters, digits and hyphens.')
     if not isinstance(name, str) or not name.strip():
         raise ValueError('A preview needs an explicit display name.')
+    if type(positive_only) is not bool:
+        raise ValueError('Positive-case selection must be an explicit Boolean.')
     folder = root/'ai'/'releases'/release_id
     if folder.exists() or folder.is_symlink():
         raise ValueError('Preview release already exists; preserve existing models and use a new release ID.')
-    report = json.loads(Path(evaluation).read_text(), object_pairs_hook=_preview_object)
+    report_bytes = Path(evaluation).read_bytes()
+    report = json.loads(report_bytes, object_pairs_hook=_preview_object)
     if (not isinstance(report, dict) or report.get('complete') is not True
             or report.get('release_evidence') is not False):
         raise ValueError('A preview needs a complete, explicitly developmental report.')
@@ -77,12 +80,14 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         raise ValueError('Development evidence does not match these weights and public planner.')
     preview = {'enabled': True, 'user_requested': True, 'evaluation_kind': 'development',
                'evaluation': f'ai/releases/{release_id}/development.json'}
+    if positive_only:
+        preview['positive_only'] = True
     if 'cases' in report:
         from .module_training_eval import _official_cases, case_key
         from .modules import CARDS, MODULES
         cases = report['cases']
         if not isinstance(cases, dict) or not cases or report.get('routes'):
-            raise ValueError('Use explicit nonempty card cases without mixed route aggregates.')
+            raise ValueError('Use explicit nonempty cases without mixed route aggregates.')
         if model_schema(model)['version'] != 3 or profile not in (0, 10, 11, 12):
             raise ValueError('Card previews require schema 3 and a public module/card profile.')
         claims = {}
@@ -93,6 +98,12 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
                 raise ValueError(f'Card previews require explicit registered {field}.')
             claims[field] = set(values)
         official = _official_cases()
+        # Keep the official 186-case matrix unchanged. The app also retains
+        # six catalogue base routes, which can be listed as explicit empty-card
+        # cases without pretending they belong to that official matrix.
+        registered = {**official, **{
+            (scenario['engine_code'], ()): [] for scenario in landekatalog()['scenarios']
+            if scenario['kind'] == 'custom' and not scenario['modules'] and not scenario['ability_count']}}
         supported_cases, case_results, seen = [], {}, set()
         for identity, result in cases.items():
             if not isinstance(result, dict):
@@ -100,24 +111,36 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
             key = case_key(result)
             pair = (result['airport'], tuple(sorted(result['abilities'])))
             if (identity != key or key in seen or result.get('case_key', key) != key
-                    or pair not in official or not result['abilities']):
-                raise ValueError(f'Unknown, duplicate or inconsistent official card case: {identity}.')
+                    or pair not in registered):
+                raise ValueError(f'Unknown, duplicate or inconsistent registered case: {identity}.')
             modules = result.get('modules')
             if (not isinstance(modules, (list, tuple)) or any(type(module) is not str for module in modules)
-                    or sorted(modules) != official[pair]
-                    or set(modules) - claims['supported_modules']
-                    or set(result['abilities']) - claims['supported_cards']):
-                raise ValueError(f'Unclaimed or mismatched preview modules/cards: {identity}.')
+                    or sorted(modules) != registered[pair]):
+                raise ValueError(f'Mismatched preview modules/cards: {identity}.')
             count = config.get('ability_count')
             if count is not None and count != 'case_specific' and (type(count) is not int or count != len(result['abilities'])):
                 raise ValueError('The tested card count differs from the model configuration.')
-            case_results[key] = _preview_counts(result)
-            supported_cases.append({'airport': result['airport'], 'abilities': sorted(result['abilities'])})
+            counts = _preview_counts(result)
             seen.add(key)
+            # Validate zero-win rows too, before selecting visible positives.
+            # Older user-requested previews retain their zero-win cases.
+            if positive_only and not counts['wins']:
+                continue
+            # Claims describe selectable exposure, not unselected zero-win
+            # rows retained in the complete original development report.
+            if (set(modules) - claims['supported_modules']
+                    or set(result['abilities']) - claims['supported_cards']):
+                raise ValueError(f'Unclaimed preview modules/cards: {identity}.')
+            case_results[key] = counts
+            supported_cases.append({'airport': result['airport'], 'abilities': sorted(result['abilities'])})
+        if not supported_cases:
+            raise ValueError('No positive tested cases are available for this preview.')
         supported_cases.sort(key=case_key)
         supported_airports = sorted({case['airport'] for case in supported_cases})
         preview.update(supported_cases=supported_cases, case_results=case_results)
     else:
+        if positive_only:
+            raise ValueError('Positive-case previews require an explicit cases report.')
         routes = report.get('routes', {})
         if not isinstance(routes, dict) or not routes:
             raise ValueError('A preview needs explicit tested routes.')
@@ -145,7 +168,7 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         preview=preview)
     target = folder/'best.pt'
     torch.save(payload, target)
-    (folder/'development.json').write_text(json.dumps(report, indent=2, ensure_ascii=False)+'\n')
+    (folder/'development.json').write_bytes(report_bytes)
     return target, export_models(root/'ai'/'releases', root/'frontend'/'web', checkpoints=[target], merge=True)
 
 
@@ -210,9 +233,13 @@ def main():
     p.add_argument('--name', required=True)
     p.add_argument('--qualified-routes-only', action='store_true', help='Publish only independently qualified routes, e.g. a kerosene specialist.')
     p.add_argument('--experimental-preview', action='store_true', help='Explicitly list a developmental test model without granting approval.')
+    p.add_argument('--positive-cases-only', action='store_true', help='For an experimental preview, list only explicit tested cases with at least one win.')
     args = p.parse_args()
+    if args.positive_cases_only and not args.experimental_preview:
+        p.error('--positive-cases-only requires --experimental-preview.')
     if args.experimental_preview:
-        path, _ = publish_preview(args.checkpoint, args.evaluation, args.release_id, args.name)
+        path, _ = publish_preview(args.checkpoint, args.evaluation, args.release_id, args.name,
+                                  positive_only=args.positive_cases_only)
     else:
         path, _ = publish(args.checkpoint, args.evaluation, args.release_id, args.name, require_all=not args.qualified_routes_only)
     print(path)

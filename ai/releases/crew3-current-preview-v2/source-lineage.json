@@ -1,0 +1,90 @@
+{
+  "kind": "development_evaluation_only",
+  "new_training_decisions": 0,
+  "source_checkpoint": "ai/releases/crew3-intern-preview-v1/best.pt",
+  "source_file_sha256": "b231ef7f1d0062053b128e450520b3de3a7f767ac07f3eb7f62e5b3ee0867a52",
+  "source_weights_sha256": "d68bf9e86a7c2b514cb503f6e3aea12ef703f56f7b559c13b2649ab5acba7a8c",
+  "source_tensor_sha256": "92d3dfff620953aeea90ae60e88f00dd713c6bbf87ebcf82b589e1d6f98a8b0d",
+  "original_training_config": {
+    "airport": "LOG_ATL_GREEN",
+    "assistance_version": 10,
+    "max_steps": 256,
+    "curriculum_airports": [
+      "LOG_ATL_GREEN",
+      "LOG_LHR_YELLOW"
+    ],
+    "abilities": [],
+    "round_reward": 0.0,
+    "sync_weight": 0.05,
+    "sync_tolerance": 1.0,
+    "task_weight": 0.02,
+    "schema_version": 3,
+    "supported_modules": [
+      "intern"
+    ],
+    "supported_cards": [],
+    "ability_count": 0,
+    "source_checkpoint": "ai/releases/crew2-v1/best.pt",
+    "source_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+    "source_phase_steps": 500347,
+    "source_planner_sha256": "5914675e76dce67b59f5dfecbb6c5e71c04ca079143bdfc14bb3f295e7a4dafc",
+    "phase_kind": "new_public_module_profile_10",
+    "seed": 251050,
+    "eval_seed": 14940000,
+    "eval_games_per_route": 80,
+    "eval_every": 10,
+    "eval_airports": [
+      "LOG_ATL_GREEN",
+      "LOG_LHR_YELLOW"
+    ],
+    "planner_sha256": "0470b10b04863e6a7c9a9c841dbd552ca48b3963a30e458343e5f74f7de1fe7a",
+    "action_mask_version": 2,
+    "workers": 8,
+    "cpu_duty_cycle": 0.7,
+    "threads": 1,
+    "device": "mps",
+    "steps_limit": 120000,
+    "training_seconds_limit": 900.0,
+    "learning_rate": 5e-05,
+    "uniform_mix": 0.03,
+    "self_imitation_coef": 0.03,
+    "discount_unit": "placement",
+    "publication_status": "experimental_preview",
+    "display_name": "Crew 3 · Praktikant (Test)",
+    "recommended": false,
+    "supported_airports": [
+      "LOG_ATL_GREEN",
+      "LOG_LHR_YELLOW"
+    ],
+    "quality": {
+      "approved": false,
+      "reason": "Experimental user-requested preview; development evidence only."
+    },
+    "preview": {
+      "enabled": true,
+      "user_requested": true,
+      "evaluation_kind": "development",
+      "evaluation": "ai/releases/crew3-intern-preview-v1/development.json",
+      "route_results": {
+        "LOG_ATL_GREEN": {
+          "games": 80,
+          "wins": 21,
+          "win_rate": 0.2625
+        },
+        "LOG_LHR_YELLOW": {
+          "games": 80,
+          "wins": 19,
+          "win_rate": 0.2375
+        }
+      }
+    }
+  },
+  "evaluated_report": "ai/experiments/crew3-current-2026-10-25/matrix-development-v1.json",
+  "evaluation_sha256": "6ee00446873fd58dd64c2e7bc81afe63482f04e71cceee587a845f72c22b1f15",
+  "evaluation_planner_sha256": "513170cc4f9cb4c716f75bc913c3b5c29f47c158c9b4b6c320065b532d1a962b",
+  "exposure_rule": "Only exact cases with wins>0 in the completed 20-game development probe; not quality approved.",
+  "tested_cases": 192,
+  "positive_cases": 51,
+  "positive_routes": 18,
+  "additional_module_training_performed": false
+}

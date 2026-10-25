@@ -8,10 +8,12 @@ window.Singleplayer = (() => {
   const selectableModels = () => catalog.models.filter(m => m.quality?.approved === true || isPreview(m));
   const modelLabel = model => `${model.name || model.run}${isPreview(model) ? " · Entwicklung" : ""}`;
   const supports = (model, airport) => Boolean(model && (model.supported_airports || [model.airport]).includes(airport));
+  const hasCaseManifest = model => isPreview(model) && Object.prototype.hasOwnProperty.call(model.preview, "supported_cases");
   const caseKey = (airport, cards) => `${airport}|${[...cards].sort().join(",")}`;
   const supportedCases = (model, route) => {
     if (!route || !isPreview(model) || model.schema?.version !== 3 || !supports(model, route.engine_code)
-        || !Array.isArray(model.preview.supported_cases)) return [];
+        || !Array.isArray(model.preview.supported_cases)
+        || (model.preview.positive_only !== undefined && typeof model.preview.positive_only !== "boolean")) return [];
     const known = new Set(window.LANDING_CATALOG.abilities.map(card => card.id)), seen = new Set();
     return model.preview.supported_cases.filter(row => {
       if (row?.airport !== route.engine_code || !Array.isArray(row.abilities) || row.abilities.length !== route.ability_count
@@ -19,17 +21,19 @@ window.Singleplayer = (() => {
       const key = caseKey(row.airport, row.abilities);
       const result = model.preview.case_results?.[key];
       if (!result || !Number.isInteger(result.games) || result.games < 1
-          || !Number.isFinite(result.win_rate) || result.win_rate < 0 || result.win_rate > 1) return false;
+          || !Number.isInteger(result.wins) || result.wins < 0 || result.wins > result.games
+          || !Number.isFinite(result.win_rate) || result.win_rate !== result.wins / result.games
+          || model.preview.positive_only === true && result.wins === 0) return false;
       if (seen.has(key)) return false;
       seen.add(key); return true;
     }).map(row => ({airport:row.airport,abilities:[...row.abilities].sort()}));
   };
   const supportsRoute = (model, route) => Boolean(route && supports(model, route.engine_code)
-    && (!route.ability_count || supportedCases(model, route).length));
+    && ((route.ability_count || hasCaseManifest(model)) ? supportedCases(model, route).length : true));
   const supportsCase = (model, route, cards) => Boolean(route && Array.isArray(cards) && supportsRoute(model, route)
-    && (route.ability_count ? supportedCases(model, route).some(row => caseKey(row.airport,row.abilities) === caseKey(route.engine_code,cards)) : cards.length === 0));
+    && ((route.ability_count || hasCaseManifest(model)) ? supportedCases(model, route).some(row => caseKey(row.airport,row.abilities) === caseKey(route.engine_code,cards)) : cards.length === 0));
   const supportsFeedback = (model, route, cards = null) => Boolean(route && supportsRoute(model, route)
-    && (route.ability_count ? model.schema?.version === 3 && (cards === null || supportsCase(model,route,cards))
+    && ((route.ability_count || hasCaseManifest(model)) ? model.schema?.version === 3 && (cards === null || supportsCase(model,route,cards))
       : !route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && ["kerosene", "intern"].includes(route.modules[0]))));
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -249,7 +253,7 @@ window.Singleplayer = (() => {
     setup.caseKey = selectedRoute ? caseKey(selectedRoute.engine_code,setup.abilities) : "";
     document.getElementById("solo-abilities-label").hidden = examples || !selectedRoute?.ability_count;
     const preview = isPreview(setup.model);
-    const successRate = selectedRoute?.ability_count ? setup.model?.preview?.case_results?.[setup.caseKey]?.win_rate
+    const successRate = selectedRoute?.ability_count || hasCaseManifest(setup.model) ? setup.model?.preview?.case_results?.[setup.caseKey]?.win_rate
       : (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code]?.win_rate;
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
