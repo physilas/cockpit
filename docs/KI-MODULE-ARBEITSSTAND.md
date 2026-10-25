@@ -236,19 +236,38 @@ nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.trai
   --self-imitation-coef .03
 ```
 
-## Aktueller schwerer Lauf: geführte PPO-Fortsetzung
+## Geführte PPO-Fortsetzung abgeschlossen
 
 `runs/guided-residual-stage2/`, Log `/tmp/cockpit-guided-residual-stage2.log`.
 Vor jedem Folgelauf `runs/ai-job.json`, Prozesse und STOP-Datei prüfen.
 Wegen der positiven Lernkurve und durchgängig positiven frischen Vergleiche
-wird begrenzt weitertrainiert: **500.000 kumulative PPO-Entscheidungen in dieser
-Phase**, also ungefähr 300.000 weitere nach den vorhandenen 200.115.
+wurde bis zum Ziel von **500.000 kumulativen PPO-Entscheidungen in dieser
+Phase** weitertrainiert, also ungefähr 300.000 weitere nach den vorhandenen 200.115.
 Kein neues Residualnetz, keine neuen Beobachtungen oder geänderten Planer.
 Optimizer, RNG, Gewinnzugpuffer, Referenzmasken, Seed 251031 und Routen-Curriculum
-werden aus `latest.pt` übernommen. Weitere Module/Karten sind noch nicht Teil
+wurden aus `latest.pt` übernommen. Weitere Module/Karten waren noch nicht Teil
 dieses Laufs. Die alten Quellen- und Regelübungsschritte bleiben separat.
 Die 800 Partien unmittelbar nach Resume reproduzierten exakt die letzten
 Quoten 39,5 / 38,5 / 70,5 / 85 % und Verlustzählungen des ersten Abschnitts.
+
+Die Fortsetzung endete regulär nach 31,3 Minuten bei **500.347 kumulativen
+Phasenentscheidungen**, also **300.232 weiteren** Entscheidungen. Davon waren
+133.792 Oslo/Kerosin, 75.561 Haneda, 44.382 London und 46.497 Montréal.
+Inklusive der Quellenhistorie sind es 536.183 Modulentscheidungen. Bericht
+`guided-stage2.json` enthält tatsächliche Zähler und alle Entwicklungsprüfungen.
+
+| Feste Entwicklungsvalidierung, je 200 Partien | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Vor Fortsetzung, 200.115 Schritte | 39,5 % | 38,5 % | 70,5 % | 85 % |
+| Letzter Stand, 500.347 Schritte | 38 % | 35,5 % | 80,5 % | 86 % |
+
+Auf diesen festen Seeds verbessert sich die schwächste Route nicht; der bessere Mittelwert ersetzt das
+Einzelfallziel nicht. `stage2/best.pt` ist nach Gewichts-Fingerprint weiterhin
+**exakt identisch** mit `stage1/best.pt` bei 200.115 Schritten. Keine doppelte
+Messung identischer Gewichte als zusätzliche unabhängige Evidenz ausgeben.
+Der letzte Stand weicht bei rund 8,8 % der gesampelten Trainingszüge von der
+alten Planerempfehlung ab; das ist weder die deterministische Spielquote noch
+ein Nachweis besserer alternativer Züge. Kein weiterer unveränderter PPO-Lauf.
 
 ```sh
 nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
@@ -258,21 +277,74 @@ nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.trai
   --eval-games 800 --eval-every 20 --self-imitation-coef .03
 ```
 
+## Frischer Entwicklungsvergleich und aktuelle Lernanalyse
+
+Der Entwicklungsvergleich lief über `ai.planner_probe` auf **200 frischen
+Partien pro Route und Modell ab 14.400.000**, Profil 9, acht Worker zu 70 %.
+Er vergleicht `runs/guided-residual-stage1/best.pt` mit dem tatsächlich letzten
+Stand `runs/guided-residual-stage2/latest.pt`. Bericht
+`guided-stage2-comparison-v1.json`, Log
+`/tmp/cockpit-guided-stage2-comparison-v1.log`. Er ist regulär abgeschlossen.
+
+| Frische Entwicklungsseeds ab 14.400.000 | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Bisher bestes Modell, 200.115 Schritte | 38,5 % | 37 % | 76,5 % | 84,5 % |
+| Letzter Stand, 500.347 Schritte | 46,5 % | 42 % | 72,5 % | 87 % |
+
+Die beiden schwächeren Routen verbessern sich hier, London verschlechtert sich.
+Das widerspricht einer pauschalen Aussage, längeres Training helfe überhaupt
+nicht. Die feste Auswahl auf nur 200 Partien je Route reagiert offenbar anders
+als diese frischen 200 Partien. Keine dieser kleinen Entwicklungsstichproben
+ersetzt die unabhängige Qualifikation; Oslo/Haneda bleiben unter 50 %.
+
+`ai.gradient_probe` misst auf frischen **Trainingszuständen** die
+Gradienten der Zugwahl, der mit 0,5 gewichteten Wertschätzung und der bisherigen
+Gewinnzug-Nachahmung im gemeinsamen trainierbaren Encoder. Gewichte und bereits
+vorhandene Gradienten bleiben erhalten; keine Optimierung, kein Gewinnnachweis.
+Negative Skalarprodukte können Interferenz zeigen, beweisen allein aber nicht,
+dass eine kleinere Kritikergewichtung mehr Spiele gewinnt. Der Entropieterm
+wird in dieser Diagnose ausdrücklich nicht mitgemessen. Kein privater
+Partnerwürfel und kein zukünftiger echter Spielzufall wird gelesen.
+
+Die Diagnose ist abgeschlossen: **8.412 Entscheidungen aus 150 frischen
+Trainingspartien**, Seed 251033, 33 Minibatches. Bericht
+`guided-gradient-probe-v1.json`, Log `/tmp/cockpit-guided-gradient-probe-v1.log`.
+Der gewichtete Wertgradient erreicht im Mittel nur das **0,42-Fache** des
+Politikgradienten; der mittlere Kosinus beträgt 0,031. In 16/33 Minibatches ist
+das Skalarprodukt negativ, aber in **0/33** kehrt der gemeinsame Gradient die
+Politikrichtung um. Kein klarer Beleg für dominierende Kritikerinterferenz;
+deshalb keine unbegründete Architekturänderung oder kleinere Kritikergewichtung.
+Die Messung beschreibt rohe Gradienten am Anfang eines PPO-Updates; sie
+berücksichtigt weder Adam-Momente noch spätere PPO-Schritte, Clipping oder den
+Entropieterm. Der maximale Unterschied der Rollout-Wahrscheinlichkeitsverhältnisse
+zu 1 war 0,00000883. Der Gewichts-Fingerprint blieb unverändert.
+
+Alle drei neuen Diagnosetests und die vollständige **lokale Suite mit 222 Tests**
+bestanden (38,6 s). Die lokale Suite enthält auch die geschützten fremden Tests;
+das ist keine Aussage über deren Verfügbarkeit im Remote-Repository.
+**Aktuell läuft kein schwerer Job.** Vor jedem neuen Start Status und STOP-Datei prüfen.
+
 Der unabhängige Kerosinvergleich ab 15.000.000 wurde noch NICHT gestartet.
 Auch 12.000.000 und 13.000.000 bleiben unbenutzt. Keine neue Modul-KI ist
 freigegeben; das Menü zeigt weiter die bisherigen Modelle.
 
 ## Nächste Arbeit
 
-1. Aktuelle geführte PPO-Fortsetzung/Logs prüfen; niemals einen zweiten schweren
-   Lauf starten. Die erste Messung nach Resume reproduzierte
-   39,5 / 38,5 / 70,5 / 85 %. Nach Ende `best.pt` unter Profil 9 mit öffentlicher Referenzmaske
-   gegen den bisherigen Stand auf identischen weiteren Entwicklungsseeds
-   (z. B. 14.400.000, 200 je Route) vergleichen. `ai.planner_probe` berücksichtigt
-   den neuen Politiktyp. Kein Nachahmungsfehler ersetzt die Gewinnprüfung.
-   Bei Plateau tatsächliche neu gewählte Platzierungen (`reference_departure_rate`),
-   Wert-/Politikinterferenz und stärkere öffentliche Suchlehrer untersuchen,
-   nicht bloß dieselben schwachen Lehrerlabels länger trainieren.
+1. Zuerst Prozessstatus/STOP-Datei prüfen; zuletzt wurden Training, frischer
+   Modellvergleich und Gradientenanalyse regulär abgeschlossen. Der letzte
+   500k-Stand verbessert die frische schwächste Route auf 42 %, ist aber unter
+   50 %. Der feste 200-Partien-Auswahlstand bleibt bei 200.115 Schritten.
+   Stärkere öffentliche Suchlehrer bearbeiten, statt unverändert weiterzutrainieren.
+   Konkret: Steuerung und Aufgaben gemeinsam auf dieselben vier Würfel pro Rolle
+   zuordnen. `horizon.py` multipliziert bisher getrennte Steuerungs- und
+   Aufgabenwahrscheinlichkeiten; diese Näherung bildet ihre Würfelkonkurrenz nicht
+   exakt ab. Aktuelles Profil 9 nutzt diese Mehr-Runden-Prognose noch nicht.
+   Einen stärkeren Suchlehrer bzw. ein ausdrücklich neues Forschungsprofil zuerst
+   mit enginegeprüften Belegungsfällen und begrenzten Entwicklungspartien prüfen;
+   bestehende Profile nicht still ändern. Der gemeinsame schwarze Würfel darf
+   die gemeinsame Kapazität nur einmal erhöhen. Simulationszufall ausschließlich
+   unabhängig erzeugen, keine echten verdeckten Würfel oder RNG-Zukunft lesen.
+   Neue Planung benötigt gemessene Gewinnquoten, nicht nur bessere Nachahmung.
 2. Assistenzprofil 7 im allgemeinen Adapter und Forschungsprofil 9 unterstützen
    taktisch nur Grundspiel/Kerosin ohne Karten. Für weitere Module/Karten sind
    Modultaktik und Planung noch zu entwickeln; rohe legale Aktionen funktionieren

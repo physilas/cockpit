@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "phase": "development_gradient_diagnosis_only",
+  "checkpoint": "runs/guided-residual-stage2/latest.pt",
+  "weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "training_steps_at_checkpoint": 500347,
+  "seed": 251033,
+  "workers": 8,
+  "cpu_duty_cycle": 0.7,
+  "threads": 1,
+  "weights_changed": false,
+  "independent_test_used": false,
+  "decisions_by_route": {
+    "LOG_HND_GREEN": 2302,
+    "LOG_LHR_GREEN": 968,
+    "LOG_OSL_GREEN": 4062,
+    "LOG_YUL_GREEN": 1080
+  },
+  "episodes": 150,
+  "shared_encoder": {
+    "minibatches": 33,
+    "decisions": 8412,
+    "value_coefficient": 0.5,
+    "demo_coefficient": 0.03,
+    "entropy_gradient_included": false,
+    "policy_value_conflict_fraction": 0.48484848484848486,
+    "joint_gradient_opposes_policy_fraction": 0,
+    "policy_norm": {
+      "mean": 0.07731506420355855,
+      "median": 0.07620421051979065,
+      "min": 0.05751706287264824,
+      "max": 0.11450842022895813
+    },
+    "weighted_value_norm": {
+      "mean": 0.031874238710963364,
+      "median": 0.02942044660449028,
+      "min": 0.020709235221147537,
+      "max": 0.07069116830825806
+    },
+    "weighted_demo_norm": {
+      "mean": 0.005157856750443127,
+      "median": 0.005234698299318552,
+      "min": 0.0031307612080127,
+      "max": 0.007589544635266066
+    },
+    "value_policy_norm_ratio": {
+      "mean": 0.42327927132865106,
+      "median": 0.3849385655709794,
+      "min": 0.21850684690500585,
+      "max": 0.7865174177836645
+    },
+    "policy_value_cosine": {
+      "mean": 0.03138924207631273,
+      "median": 0.0010764219014192434,
+      "min": -0.13181194524896575,
+      "max": 0.30341291063943027
+    },
+    "max_rollout_ratio_error": {
+      "mean": 3.7713484330610796e-06,
+      "median": 3.5762786865234375e-06,
+      "min": 1.5497207641601562e-06,
+      "max": 8.821487426757812e-06
+    }
+  }
+}
