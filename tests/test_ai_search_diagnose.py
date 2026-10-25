@@ -4,7 +4,7 @@ import unittest
 
 from ai import search_teacher
 from ai.environment import CrewEnv
-from ai.search_diagnose import capture_plan, public_context
+from ai.search_diagnose import capture_plan, public_context, select_seeds
 
 
 class SearchDiagnosisTests(unittest.TestCase):
@@ -29,6 +29,20 @@ class SearchDiagnosisTests(unittest.TestCase):
         self.assertEqual(result['own_remaining'], 4)
         self.assertNotIn('own_dice', result)
         self.assertNotIn('unregistered_private_field', result)
+
+    def test_selects_all_requested_loss_types_without_requiring_teacher_failures(self):
+        rows = {1: {'status': 'gewonnen', 'reason': ''},
+                2: {'status': 'verloren', 'reason': 'kollision'},
+                3: {'status': 'verloren', 'reason': 'ruder_verbotene_stellung'},
+                4: {'status': 'verloren', 'reason': 'flugzeuge_uebrig,nicht_waagerecht'}}
+        self.assertEqual(select_seeds({'model': rows}, selection='model-losses',
+                         reasons=['kollision', 'ruder_verbotene_stellung']), [2, 3])
+        self.assertEqual(select_seeds({'model': rows}, selection='model-losses',
+                         reasons=['nicht_waagerecht']), [4])
+        self.assertEqual(select_seeds({'model': rows}, selection='model-losses', seeds=[3, 4], limit=1), [3])
+        with self.assertRaises(ValueError):select_seeds({'model': rows})
+        teacher = {**rows, 1: {'status': 'verloren', 'reason': 'trudeln'}}
+        self.assertEqual(select_seeds({'model': rows, 'joint-finish': teacher}), [1])
 
 
 if __name__ == '__main__':
