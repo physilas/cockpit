@@ -152,6 +152,25 @@ class JointForecastTests(unittest.TestCase):
         self.assertEqual(view, before)
         self.assertEqual(random.getstate(), rng)
 
+    def test_round_research_variants_consider_early_rounds_without_private_inputs(self):
+        model = ActorCritic(489, 217, 8, 1)
+        env = ModuleEnv('LOG_HND_GREEN', assistance_version=9);env.reset(seed=251036)
+        view, mask = env.view(), env.action_mask()
+        before, rng = deepcopy(view), env.rng.getstate()
+        for mode in ('round-plain', 'round-risk'):
+            teacher = SearchTeacher(model, mode=mode, beam=16)
+            action = teacher.select(view, mask)
+            self.assertTrue(mask[action])
+            self.assertEqual(teacher.considered, 1)
+            for die in env.game._wuerfel_liste(env.other_role(env.current_role)):
+                die.augenzahl = 7 - die.augenzahl
+            self.assertEqual(env.view(), before)
+            self.assertEqual(teacher.select(env.view(), mask), action)
+            landing = {**view, 'height': 0, 'last_round': True}
+            self.assertEqual(teacher.select(landing, mask), ModelAgent(model).select(landing, mask))
+        self.assertEqual(view, before)
+        self.assertEqual(env.rng.getstate(), rng)
+
 
 if __name__ == '__main__':
     unittest.main()

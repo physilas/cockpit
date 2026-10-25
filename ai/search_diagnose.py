@@ -144,7 +144,7 @@ def main():
     p.add_argument('--routes', nargs='+', default=['LOG_HND_GREEN'])
     p.add_argument('--limit', type=int, default=6, help='At most this many selected counterexamples per route.')
     p.add_argument('--seeds', type=int, nargs='+', help='Restrict selected counterexamples to these development seeds.')
-    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish'))
+    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk'))
     p.add_argument('--selection', choices=('teacher-regressions', 'model-losses'), default='teacher-regressions')
     p.add_argument('--reasons', nargs='+', default=[], help='Match exact comma-separated source loss reasons.')
     p.add_argument('--trace-tail', type=int, default=0, help='Keep only the last N decisions; zero keeps all.')

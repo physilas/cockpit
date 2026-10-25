@@ -502,6 +502,72 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
   --output ai/experiments/modules-50pct-2026-10-25/joint-finish-haneda-development-v1.json
 ```
 
+## Frühe Verkehrs- und Kurvenverluste auf Haneda
+
+`haneda-traffic-curves-diagnosis-v1.json` reproduziert **alle 28** entsprechenden
+Netzverluste aus denselben 100 HND-Entwicklungspartien. Die Ausgänge und Gründe
+stimmen exakt überein; ausgewählte Wiederholungen sind keine neue Quotenstichprobe.
+Log `/tmp/cockpit-haneda-traffic-curves-diagnosis-v1.log`, zwei Worker zu 70 %,
+reguläres Ende nach 9,2 s, keine Trainingsentscheidungen. Pro Spiel werden die
+letzten acht Entscheidungen mit ausschließlich öffentlichem Kontext, eigener
+Hand und erlaubter Aktionsauswahl gespeichert. Der Diagnoseadapter kann jetzt
+auch gezielt Netzverluste und bestimmte Gründe auswählen, ohne Suchverluste
+oder drei feste Vergleichsmodi vorauszusetzen.
+
+| Verlusthöhe | Kollision | Kurvenkorridor | Summe |
+| --- | ---: | ---: | ---: |
+| 5.000 Fuß, Runde 2 | 4 | 1 | 5 |
+| 4.000 Fuß, Runde 3 | 11 | 5 | 16 |
+| 3.000 Fuß, Runde 4 | 1 | 4 | 5 |
+| 2.000 Fuß, Runde 5 | 1 | 1 | 2 |
+
+**26/28 entstehen vor dem bisherigen Suchfenster.** Einzelbeispiele zeigen,
+dass eine Rolle optionale Aufgaben ausführt, während beide Seiten auf die
+Funkarbeit des Partners hoffen. In Fall 14.510.029 verbraucht die Pilotin den
+restlichen Kaffee für Schub, während das noch offene Partner-Ruder den Kaffee
+für die aktuelle Linkskurve braucht. Dies ist eine nachträgliche Erklärung aus
+jeweils erlaubten Eingängen, kein Zugriff des Spielers auf die verdeckte Hand.
+Die Beispiele beweisen nicht, dass jede der 28 Partien zu retten gewesen wäre.
+
+**Regulär abgeschlossener Vergleich:** `early-round-haneda-development-v1.json`,
+Log `/tmp/cockpit-early-round-haneda-development-v1.log`, 100 HND-Partien ab
+14.510.000, dasselbe Netz und dieselbe Assistenzmaske 9. Neue, ausdrücklich
+experimentelle Varianten `round-plain` und `round-risk` suchen in **jeder
+Nicht-Landerunde**, weiterhin nicht bei offenen Neuwürfen oder weniger als
+zwei eigenen Würfeln. Beide verzichten in diesem Vergleich auf eine weitere
+Zukunftsprognose. `round-plain` verwendet Planerversion 3; `round-risk` die
+bereits vorhandene Version 4 mit gemeinsamem Ruder-/Schubprior über verschiedene
+Partnerwürfel, einem Kaffeebudget und zusätzlicher Funk-Kapazitätsstrafe.
+Diese Version ist weiterhin **keine vollständige gemeinsame Zuordnung von
+Funk, Kontrollen und allen Aufgaben**. Der Versuch trennt die Wirkung früher
+Suche von dieser bestehenden Risikoabschätzung. Alle alten Varianten behalten
+ihre Semantik; keine Änderung bestehender Produktprofile oder Gewichte.
+
+14 gezielte Tests einschließlich der neuen Varianten und der Diagnoseauswahl
+bestanden. Acht Worker zu höchstens 70 %, Torch-Threads 1, `nice -n15`, über
+`ai.job_control`. Nach 59,3 s regulär beendet: **Netz 48, frühe einfache Suche 42,
+frühe Risiko-Suche 47 Siege**. Gegen das Netz gewinnt Round-Plain 14 andere
+Partien und verliert 20 Netzsiege; Round-Risk gewinnt 17 und verliert 18.
+Keine Verbesserung gegenüber dem Netz, keine neue Freigabeevidenz.
+
+Ein wichtiger verbleibender Engpass ist in Fall 14.510.029 konkret sichtbar:
+bei Schritt 27 lässt Assistenzmaske 9 ausschließlich Kaffee −2 auf den letzten
+eigenen Schubwürfel zu. Einfaches Platzieren und Kaffee −1 sind ausgeschlossen.
+Der Suchlehrer kann solche Alternativen trotz abweichender Risikobewertung
+nicht auswählen. Die breitere Maske 9 erweiterte bisher nur Platzierungsabstände,
+nicht alle Kaffee-/Neuwurfentscheidungen. Ein begründeter nächster Versuch
+muss gezielt zusätzliche, enginegeprüfte Risiko-Vorschläge zulassen und die
+Netzentscheidung weiterhin auf ihrer ursprünglichen Maske berechnen; die rohe
+Politik unter einer beliebig weiten Maske war schon früher stark schlechter.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.search_evaluate \
+  --checkpoint runs/guided-residual-stage2/latest.pt --routes LOG_HND_GREEN \
+  --modes model round-plain round-risk --games 100 --seed 14510000 \
+  --workers 8 --cpu-duty-cycle .7 --beam 64 \
+  --output ai/experiments/modules-50pct-2026-10-25/early-round-haneda-development-v1.json
+```
+
 ## Nächste Arbeit
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
@@ -510,9 +576,11 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
    Bei schwachem Lehrer nicht wieder dessen Labels endlos imitieren: aktuelle
    gemeinsame Kontrollzuordnung, Annahmen über nachfolgende Partnerzüge,
    Kaffee-/Neuwurfreserven und kalibrierte Fortsetzungswerte bearbeiten.
-   Die 17 Kollisionen und elf Kurvenverluste des Netzes im HND-Vergleich außerdem
-   nach Runde/öffentlichem Zustand lokalisieren; die Suche greift bisher erst
-   bei 2.000 Fuß ein. Nicht unterstellen, alle Fehler entstehen kurz vor Landung.
+   Die 17 Kollisionen und elf Kurvenverluste sind inzwischen lokalisiert:
+   26/28 entstehen vor 2.000 Fuß. Den oben dokumentierten frühen Suchvergleich
+   zuerst auswerten; bei Vorteil frische Entwicklung, sonst konkrete gekoppelte
+   Aufgaben-/Kaffeeannahmen bearbeiten. Nicht unterstellen, alle Fehler entstehen
+   kurz vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
    Planung für Oslo braucht außerdem eine begründete Laufzeitbegrenzung.
    Kein unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
