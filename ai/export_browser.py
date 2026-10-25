@@ -72,6 +72,7 @@ def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
                            'name': config.get('display_name'), 'recommended': config.get('recommended', False),
                            'supported_airports': config.get('supported_airports', [config.get('airport', 'MUC')]),
                            'quality': config.get('quality'),
+                           'preview': config.get('preview'),
                            "trained_action_mask_version": config.get("action_mask_version", 1),
                            "schema": current_schema, "fingerprint": fingerprint, "url": f"models/{asset.name}"})
         except (ValueError, KeyError, RuntimeError, OSError) as error:

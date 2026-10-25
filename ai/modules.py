@@ -195,6 +195,10 @@ class ModuleEnv(CrewEnv):
 
     def _assist(self,mask):
         if not self.assistance_version or self.current_role not in self.assisted_roles:return mask
+        if self.assistance_version == 10:
+            from .module_guidance import module_guidance
+            allowed, self._reference_mask = module_guidance(self.view(), mask)
+            return allowed
         if self.game.cockpit.module <= {'kerosene'} and not self.game.zusatz.karten and self.assistance_version in (3,4,5,6,7,8,9):
             # Exact compatibility for the first PPO curriculum stage. Other
             # modules already expose legal actions but need their own planner.
@@ -214,7 +218,7 @@ class ModuleEnv(CrewEnv):
 
     def info(self):
         result=super().info()
-        if self.assistance_version==9:
+        if self.assistance_version in (9,10):
             # Pure public/own-hand advice, not another legality constraint.
             result['reference_action_mask']=(list(self._reference_mask)
                 if any(result['action_mask']) and self.current_role in self.assisted_roles

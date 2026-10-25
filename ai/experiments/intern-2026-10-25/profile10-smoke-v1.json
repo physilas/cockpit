@@ -1,0 +1,263 @@
+{
+  "format": 1,
+  "complete": true,
+  "release_evidence": false,
+  "goal_achieved": false,
+  "new_training_decisions": 79,
+  "episodes": 3,
+  "updates": 1,
+  "training_elapsed_seconds": 2.215850417036563,
+  "total_wall_seconds": 5.734435083111748,
+  "best_steps": 0,
+  "config": {
+    "airport": "LOG_ATL_GREEN",
+    "assistance_version": 10,
+    "max_steps": 256,
+    "curriculum_airports": [
+      "LOG_ATL_GREEN",
+      "LOG_LHR_YELLOW"
+    ],
+    "abilities": [],
+    "round_reward": 0.0,
+    "sync_weight": 0.05,
+    "sync_tolerance": 1.0,
+    "task_weight": 0.02,
+    "schema_version": 3,
+    "supported_modules": [
+      "intern"
+    ],
+    "supported_cards": [],
+    "ability_count": 0,
+    "source_checkpoint": "ai/releases/crew2-v1/best.pt",
+    "source_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+    "source_phase_steps": 500347,
+    "source_planner_sha256": "5914675e76dce67b59f5dfecbb6c5e71c04ca079143bdfc14bb3f295e7a4dafc",
+    "phase_kind": "new_public_module_profile_10",
+    "seed": 251049,
+    "eval_seed": 14940000,
+    "eval_games_per_route": 1,
+    "eval_every": 25,
+    "eval_airports": [
+      "LOG_ATL_GREEN",
+      "LOG_LHR_YELLOW"
+    ],
+    "planner_sha256": "0470b10b04863e6a7c9a9c841dbd552ca48b3963a30e458343e5f74f7de1fe7a",
+    "action_mask_version": 2,
+    "workers": 2,
+    "cpu_duty_cycle": 0.7,
+    "threads": 1,
+    "device": "mps",
+    "steps_limit": 64,
+    "training_seconds_limit": 1.0,
+    "learning_rate": 5e-05,
+    "uniform_mix": 0.03,
+    "self_imitation_coef": 0.03,
+    "discount_unit": "placement",
+    "publication_status": "requires_independent_route_qualification"
+  },
+  "validations": [
+    {
+      "steps": 0,
+      "update": 0,
+      "release_evidence": false,
+      "result": {
+        "games": 2,
+        "wins": 0,
+        "win_rate": 0.0,
+        "win_ci_low": 0.0,
+        "win_ci_high": 0.6576280471103807,
+        "mean_round": 3,
+        "mean_return": -1.2579591836734694,
+        "truncated_rate": 0,
+        "mean_outcome_return": -1.0,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": -0.25795918367346937,
+        "mean_tasks_undone": 12.5,
+        "mean_distance_remaining": 3.5,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0,
+        "landing_round_rate": 0,
+        "mean_coffee_actions": 0.5,
+        "mean_coffee_units": 1.5,
+        "mean_rerolls": 1,
+        "mean_coffee_reversals": 0,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0,
+        "truncated": 0,
+        "loss_reasons": {
+          "kollision": 2
+        },
+        "by_route": {
+          "LOG_ATL_GREEN": {
+            "games": 1,
+            "wins": 0,
+            "win_rate": 0.0,
+            "win_ci_low": 0.0,
+            "win_ci_high": 0.7934567085261071,
+            "mean_round": 3,
+            "mean_return": -1.2285714285714286,
+            "truncated_rate": 0,
+            "mean_outcome_return": -1.0,
+            "mean_round_return": 0.0,
+            "mean_sync_return": 0.0,
+            "mean_tasks_return": -0.2285714285714286,
+            "mean_tasks_undone": 11,
+            "mean_distance_remaining": 4,
+            "mean_sync_error": 0.0,
+            "airport_reached_rate": 0,
+            "landing_round_rate": 0,
+            "mean_coffee_actions": 0,
+            "mean_coffee_units": 0,
+            "mean_rerolls": 1,
+            "mean_coffee_reversals": 0,
+            "first_action_reroll_rate": 0,
+            "capacity_impossible_rate": 0,
+            "truncated": 0,
+            "loss_reasons": {
+              "kollision": 1
+            }
+          },
+          "LOG_LHR_YELLOW": {
+            "games": 1,
+            "wins": 0,
+            "win_rate": 0.0,
+            "win_ci_low": 0.0,
+            "win_ci_high": 0.7934567085261071,
+            "mean_round": 3,
+            "mean_return": -1.28734693877551,
+            "truncated_rate": 0,
+            "mean_outcome_return": -1.0,
+            "mean_round_return": 0.0,
+            "mean_sync_return": 0.0,
+            "mean_tasks_return": -0.2873469387755102,
+            "mean_tasks_undone": 14,
+            "mean_distance_remaining": 3,
+            "mean_sync_error": 0.0,
+            "airport_reached_rate": 0,
+            "landing_round_rate": 0,
+            "mean_coffee_actions": 1,
+            "mean_coffee_units": 3,
+            "mean_rerolls": 1,
+            "mean_coffee_reversals": 0,
+            "first_action_reroll_rate": 0,
+            "capacity_impossible_rate": 0,
+            "truncated": 0,
+            "loss_reasons": {
+              "kollision": 1
+            }
+          }
+        }
+      },
+      "score": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "steps": 79,
+      "update": 1,
+      "release_evidence": false,
+      "result": {
+        "games": 2,
+        "wins": 0,
+        "win_rate": 0.0,
+        "win_ci_low": 0.0,
+        "win_ci_high": 0.6576280471103807,
+        "mean_round": 3,
+        "mean_return": -1.2383673469387755,
+        "truncated_rate": 0,
+        "mean_outcome_return": -1.0,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": -0.2383673469387755,
+        "mean_tasks_undone": 11.5,
+        "mean_distance_remaining": 3.5,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0,
+        "landing_round_rate": 0,
+        "mean_coffee_actions": 0.5,
+        "mean_coffee_units": 1.5,
+        "mean_rerolls": 1,
+        "mean_coffee_reversals": 0,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0,
+        "truncated": 0,
+        "loss_reasons": {
+          "kollision": 2
+        },
+        "by_route": {
+          "LOG_ATL_GREEN": {
+            "games": 1,
+            "wins": 0,
+            "win_rate": 0.0,
+            "win_ci_low": 0.0,
+            "win_ci_high": 0.7934567085261071,
+            "mean_round": 3,
+            "mean_return": -1.2089795918367348,
+            "truncated_rate": 0,
+            "mean_outcome_return": -1.0,
+            "mean_round_return": 0.0,
+            "mean_sync_return": 0.0,
+            "mean_tasks_return": -0.2089795918367347,
+            "mean_tasks_undone": 10,
+            "mean_distance_remaining": 4,
+            "mean_sync_error": 0.0,
+            "airport_reached_rate": 0,
+            "landing_round_rate": 0,
+            "mean_coffee_actions": 0,
+            "mean_coffee_units": 0,
+            "mean_rerolls": 1,
+            "mean_coffee_reversals": 0,
+            "first_action_reroll_rate": 0,
+            "capacity_impossible_rate": 0,
+            "truncated": 0,
+            "loss_reasons": {
+              "kollision": 1
+            }
+          },
+          "LOG_LHR_YELLOW": {
+            "games": 1,
+            "wins": 0,
+            "win_rate": 0.0,
+            "win_ci_low": 0.0,
+            "win_ci_high": 0.7934567085261071,
+            "mean_round": 3,
+            "mean_return": -1.2677551020408162,
+            "truncated_rate": 0,
+            "mean_outcome_return": -1.0,
+            "mean_round_return": 0.0,
+            "mean_sync_return": 0.0,
+            "mean_tasks_return": -0.2677551020408163,
+            "mean_tasks_undone": 13,
+            "mean_distance_remaining": 3,
+            "mean_sync_error": 0.0,
+            "airport_reached_rate": 0,
+            "landing_round_rate": 0,
+            "mean_coffee_actions": 1,
+            "mean_coffee_units": 3,
+            "mean_rerolls": 1,
+            "mean_coffee_reversals": 0,
+            "first_action_reroll_rate": 0,
+            "capacity_impossible_rate": 0,
+            "truncated": 0,
+            "loss_reasons": {
+              "kollision": 1
+            }
+          }
+        }
+      },
+      "score": [
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "decisions_by_route": {
+    "LOG_LHR_YELLOW": 12,
+    "LOG_ATL_GREEN": 67
+  },
+  "frozen_source_unchanged": true,
+  "initial_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "latest_weights_sha256": "f483082c8bf07bc1ab80898658b1a1fb60931d45560eb98906d7627d0a778289"
+}

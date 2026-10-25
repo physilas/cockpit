@@ -61,11 +61,30 @@ function spielAktion(action, actor = "human", suppliedDecision = null) {
   let result;
   if (action.kind === "place") result = bridge.platziere(action.role, action.die, action.target, action.index ?? null, action.radio_index || 0);
   else if (action.kind === "coffee") result = bridge.trinke_kaffee(action.role, action.die, action.delta);
+  else if (action.kind === "bonus_place") result = bridge.modul_aktion(action.role, "zusatz_platzieren", JSON.stringify({
+    ziel:action.target,index:action.index ?? null,funk_feld:action.radio_index || 0,ziel_besitzer:action.target_owner || action.role}));
+  else if (action.kind === "bonus_roll") result = bridge.modul_aktion(action.role, "synchronisation_wuerfeln", "{}");
+  else if (action.kind === "bonus_coffee") result = bridge.modul_aktion(action.role, "bonus_kaffee", JSON.stringify({delta:action.delta}));
+  else if (["adaptation", "anticipation"].includes(action.kind)) result = bridge.modul_aktion(action.role, action.kind, JSON.stringify({wuerfel_index:action.die}));
+  else if (action.kind === "module_action") result = bridge.modul_aktion(action.role, action.module_action, JSON.stringify(action.parameters));
   else if (action.kind === "round_end") result = bridge.rundenende();
   else throw new Error("Unbekannte Spielaktion.");
   const answer = pyToJs(result);
   Singleplayer.afterAction(context, answer);
   return answer;
+}
+
+function spielModulAktion(role, type, params) {
+  let action;
+  if (type === "zusatz_platzieren") action = {kind:"bonus_place",role,target:params.ziel,index:params.index,
+    radio_index:params.funk_feld,target_owner:params.ziel_besitzer};
+  else if (type === "synchronisation_wuerfeln") action = {kind:"bonus_roll",role};
+  else if (type === "bonus_kaffee") action = {kind:"bonus_coffee",role,delta:params.delta};
+  else if (["adaptation", "anticipation"].includes(type)) action = {kind:type,role,die:params.wuerfel_index};
+  // Card dialogs can contain several engine steps for one training action.
+  // Record those administrative steps without inventing a policy action ID.
+  else action = {kind:"module_action",role,module_action:type,parameters:params};
+  return spielAktion(action);
 }
 
 function grundText(code) {
@@ -314,10 +333,10 @@ function render(zustand) {
   renderWuerfel("kopilot", zustand);
   renderNeuwurfPanel(zustand);
   FlightModules.render(zustand, {
-    role:null, selected:diceVisible ? ausgewaehlterWuerfel : null, reroll:neuwurfUi.phase !== 0,
+    role:Singleplayer.hasAI() ? Singleplayer.visibleRole() : null, selected:diceVisible ? ausgewaehlterWuerfel : null, reroll:neuwurfUi.phase !== 0,
     conceal() {diceVisible = null; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
     onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; nachAktion(spielAktion({kind:"place",role,die,target,index}));},
-    onAction(role, action, params) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.modul_aktion(role, action, JSON.stringify(params))));},
+    onAction(role, action, params) {ausgewaehlterWuerfel = null; nachAktion(spielModulAktion(role, action, params));},
     onTick() {const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {ausgewaehlterWuerfel = null; neuwurfReset(); nachAktion(r);}},
   });
 

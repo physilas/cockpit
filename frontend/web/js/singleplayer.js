@@ -4,9 +4,12 @@ window.Singleplayer = (() => {
   const names = {play: "Mit KI spielen", feedback: "KI-ndergartenbetreuung", examples: "KI-no"};
   const roleNames = {pilot: "Pilotin", kopilot: "Co-Pilot"};
   const qualifiedModels = () => catalog.models.filter(m => m.quality?.approved === true);
+  const isPreview = model => model?.preview?.enabled === true;
+  const selectableModels = () => catalog.models.filter(m => m.quality?.approved === true || isPreview(m));
+  const modelLabel = model => `${model.name || model.run}${isPreview(model) ? " · Entwicklung" : ""}`;
   const supports = (model, airport) => (model.supported_airports || [model.airport]).includes(airport);
   const supportsFeedback = (model, route) => Boolean(route && !route.ability_count && supports(model, route.engine_code)
-    && (!route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && route.modules[0] === "kerosene")));
+    && (!route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && ["kerosene", "intern"].includes(route.modules[0]))));
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
   let api, setup = null, session = null, policy = null, reroll = null;
@@ -147,7 +150,7 @@ window.Singleplayer = (() => {
     if (!api) return;
     stop(); api.hideGame();
     document.getElementById("start-menu").classList.add("versteckt");
-    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length || qualifiedModels().some(m => supports(m, s.engine_code))));
+    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length || selectableModels().some(m => supports(m, s.engine_code))));
     root().innerHTML = `<div class="solo-shell"><button class="landing-back" id="solo-back">← Menü</button>
       <span class="landing-eyebrow">DEINE CREW</span><h1>Singleplayer</h1>
       <p class="solo-intro">Zusammen fliegen. Entscheidungen bewerten. Erfahrungen weitergeben.</p>
@@ -156,7 +159,7 @@ window.Singleplayer = (() => {
         <button data-mode="feedback" aria-pressed="false"><span>🧸</span><strong>KI-ndergartenbetreuung</strong><small>Spiele mit der KI und bewerte ihre Entscheidungen.</small></button>
         <button data-mode="examples" aria-pressed="false"><span>🎬</span><strong>KI-no</strong><small>Pass &amp; Play: Eure Partien werden zu Lernbeispielen.</small></button>
       </div><div class="solo-settings">
-        <label id="solo-model-label">KI<select id="solo-model">${qualifiedModels().map(model => `<option value="${esc(model.id)}">${esc(model.name || model.run)}</option>`).join("")}</select></label>
+        <label id="solo-model-label">KI<select id="solo-model">${selectableModels().map(model => `<option value="${esc(model.id)}">${esc(modelLabel(model))}</option>`).join("")}</select></label>
         <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
         <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.modules.includes("kerosene") ? " · Kerosin" : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
       </div><p id="solo-description" class="solo-description"></p>
@@ -167,7 +170,7 @@ window.Singleplayer = (() => {
       <p class="solo-storage-note" id="solo-storage-status"></p></details></div>`;
     setup = {mode: "play", humanRole: "pilot", model: null};
     // Prefer a qualified release supporting the initially selected MUC route.
-    const preferred = [...qualifiedModels()].filter(m => supports(m, "MUC")).sort((a,b) =>
+    const preferred = [...qualifiedModels()].filter(m => !isPreview(m) && supports(m, "MUC")).sort((a,b) =>
       Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)) ||
       Number(b.checkpoint === "latest") - Number(a.checkpoint === "latest") || b.steps - a.steps)[0];
     if (preferred) document.getElementById("solo-model").value = preferred.id;
@@ -201,22 +204,24 @@ window.Singleplayer = (() => {
     for (const option of routeSelector.options) {
       const route = window.LANDING_CATALOG.scenarios.find(s => s.id === option.value);
       option.disabled = setup.mode === "examples" && Boolean(route?.modules.length)
-        || setup.mode === "feedback" && !qualifiedModels().some(model => supportsFeedback(model, route));
+        || setup.mode === "feedback" && !selectableModels().some(model => supportsFeedback(model, route));
     }
     if (routeSelector.selectedOptions[0]?.disabled) routeSelector.value = [...routeSelector.options].find(o => !o.disabled)?.value;
     const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === routeSelector.value);
     const selector = document.getElementById("solo-model"), previousModel = selector.value;
-    const choices = qualifiedModels().filter(m => supports(m, selectedRoute?.engine_code)
+    const choices = selectableModels().filter(m => supports(m, selectedRoute?.engine_code)
       && (setup.mode !== "feedback" || supportsFeedback(m, selectedRoute)))
-      .sort((a,b) => Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
-    selector.innerHTML = choices.map(m => `<option value="${esc(m.id)}">${esc(m.name || m.run)}</option>`).join("");
+      .sort((a,b) => Number(b.quality?.approved === true) - Number(a.quality?.approved === true)
+        || Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
+    selector.innerHTML = choices.map(m => `<option value="${esc(m.id)}">${esc(modelLabel(m))}</option>`).join("");
     if (choices.some(m => m.id === previousModel)) selector.value = previousModel;
     setup.model = choices.find(m => m.id === selector.value) || null;
-    const successRate = setup.model?.quality?.route_results?.[selectedRoute?.engine_code]?.win_rate;
+    const preview = isPreview(setup.model);
+    const successRate = (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code]?.win_rate;
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
-      : !setup.model ? "Für diese Strecke ist noch keine geprüfte KI verfügbar."
-      : `${selectedRoute?.code || ""} · ${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Keine Auswahl ist neutral. Dein nächster gültiger Zug speichert das Feedback." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` Getestet im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
+      : !setup.model ? "Für diese Strecke ist noch keine KI verfügbar."
+      : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Keine Auswahl ist neutral. Dein nächster gültiger Zug speichert das Feedback." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
     document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
       || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
     document.getElementById("solo-start").textContent = starting ? "Wird vorbereitet …" : examples ? "Beispielpartie starten →" : "Mit KI starten →";
@@ -261,12 +266,15 @@ window.Singleplayer = (() => {
   function actionId(action) {
     return activeSchema().actions.findIndex(a => {
       if (a.kind !== action.kind) return false;
-      if (a.kind === "place") {
+      if (["place", "bonus_place"].includes(a.kind)) {
         const s = activeSchema().slots[a.slot];
-        return a.die === action.die && s.target === action.target && (s.owner === null || s.owner === action.role)
+        return (a.kind === "bonus_place" || a.die === action.die) && s.target === action.target
+          && (s.owner === null || s.owner === (action.target_owner || action.role))
           && s.index === (action.index ?? null) && (s.target !== "funk" || s.radio_index === (action.radio_index || 0));
       }
       if (a.kind === "coffee") return a.die === action.die && a.delta === action.delta;
+      if (a.kind === "bonus_coffee") return a.delta === action.delta;
+      if (["adaptation", "anticipation"].includes(a.kind)) return a.die === action.die;
       if (a.kind === "reroll_select") return a.subset === action.subset;
       return true;
     });
@@ -289,7 +297,7 @@ window.Singleplayer = (() => {
 
   function afterAction(context, answer) {
     if (!context || !session || !answer.ergebnis.erfolg) return;
-    if (context.actor === "human" && ["place", "round_end"].includes(context.action.kind)) commitFeedback("human_action");
+    if (context.actor === "human" && ["place", "bonus_place", "round_end"].includes(context.action.kind)) commitFeedback("human_action");
     const e = {id: session.events.length, timestamp: new Date().toISOString(),
                ...context, engine_after: answer.zustand.rueckgaengig_version,
                outcome: {status: answer.zustand.status, reason: answer.zustand.verlust_grund || "", round: answer.zustand.runde},
@@ -310,6 +318,9 @@ window.Singleplayer = (() => {
 
   function label(action) {
     if (action.kind === "place") return `Würfel ${action.die + 1} → ${COCKPIT_SCHEMA.feld_layout.find(f => f.ziel === action.target)?.label || action.target}${action.index != null ? ` ${action.index + 1}` : ""}`;
+    if (action.kind === "bonus_place") return `Zusatzwürfel → ${COCKPIT_SCHEMA.feld_layout.find(f => f.ziel === action.target)?.label || action.target}${action.index != null ? ` ${action.index + 1}` : ""}`;
+    if (action.kind === "bonus_roll") return "Schwarzen Zusatzwürfel werfen";
+    if (action.kind === "bonus_coffee") return `Kaffee: Zusatzwürfel ${action.delta > 0 ? "+" : ""}${action.delta}`;
     if (action.kind === "coffee") return `Kaffee: Würfel ${action.die + 1} ${action.delta > 0 ? "+" : ""}${action.delta}`;
     return action.kind === "reroll_start" ? "Gemeinsamen Neuwurf starten" : "Würfel für den Neuwurf auswählen";
   }
@@ -376,14 +387,16 @@ window.Singleplayer = (() => {
     if (!active()) return;
     renderFeedback();
     if (state.status !== "laeuft") { clearTimeout(timer); timer = null; }
-    bar.innerHTML = `<div><strong>${names[setup.mode]}</strong><span>${hasAI() ? `Du: ${roleNames[setup.humanRole]} · KI: ${esc(setup.model.name || setup.model.run)} / ${setup.model.checkpoint}` : "Beide Rollen werden als Beispiele aufgezeichnet"}</span><small id="ai-storage-status" role="status"></small></div>
+    bar.innerHTML = `<div><strong>${names[setup.mode]}</strong><span>${hasAI() ? `Du: ${roleNames[setup.humanRole]} · KI: ${esc(setup.model.name || setup.model.run)} / ${setup.model.checkpoint}` : "Beide Rollen werden als Beispiele aufgezeichnet"}</span>${hasAI() && isPreview(setup.model) ? '<small>Testversion · noch nicht unabhängig qualifiziert</small>' : ""}<small id="ai-storage-status" role="status"></small></div>
       ${storageError ? '<button id="ai-game-export">Aufzeichnungen sichern</button>' : ""}${paused ? '<button id="ai-resume">KI fortsetzen</button>' : ""}<p class="ai-paused" role="alert">${esc(paused)}</p>`;
     document.getElementById("ai-game-export")?.addEventListener("click", exportData);
     document.getElementById("ai-resume")?.addEventListener("click", () => { paused = ""; afterRender(api.state()); });
     updateStatus();
+    const activeRole = reroll ? nextRerollRole() : state.zusatzaktion?.rolle || state.kooperation?.wartet_auf || state.am_zug;
+    const pendingAI = state.zusatzaktion?.rolle === aiRole();
     if (hasAI() && !paused && state.status === "laeuft" && state.phase === "platzieren"
-        && !api.rerollAnimating() && !api.roundComplete() && (!reroll || nextRerollRole() === aiRole())
-        && (reroll || state.am_zug === aiRole()) && !timer) {
+        && !api.rerollAnimating() && (!api.roundComplete() || pendingAI)
+        && activeRole === aiRole() && !timer) {
       const version = generation;
       timer = setTimeout(() => {
         timer = null;
@@ -402,6 +415,13 @@ window.Singleplayer = (() => {
     if (action.kind === "place") {
       const slot = activeSchema().slots[action.slot];
       a.target = slot.target; a.index = slot.index; a.radio_index = slot.radio_index;
+    }
+    if (action.kind === "bonus_place") {
+      const slot = activeSchema().slots[action.slot];
+      const target = api.state().zusatzaktion?.ziele.find(t => t.ziel === slot.target && (t.index ?? null) === slot.index
+        && t.funk_feld === slot.radio_index && (slot.owner === null || t.ziel_besitzer === slot.owner));
+      if (!target) throw new Error("Das Ziel für den KI-Zusatzwürfel ist nicht mehr verfügbar.");
+      a.target = target.ziel; a.index = target.index; a.radio_index = target.funk_feld; a.target_owner = target.ziel_besitzer;
     }
     if (action.kind === "reroll_start") { beginReroll(aiRole(), "ai", d); return; }
     if (action.kind === "reroll_select") { confirmReroll(aiRole(), action.subset, "ai", d); return; }

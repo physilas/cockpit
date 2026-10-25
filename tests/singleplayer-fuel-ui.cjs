@@ -1,10 +1,7 @@
-/* Actual qualified OSL model. An unsupported ATL entry is injected only to test
- * the feedback gate. This never uploads technical fixture games to D1. */
+/* Actual qualified OSL model. This never uploads technical fixture games to D1. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
-const catalogSource = fs.readFileSync(new URL('../frontend/web/js/ai-models.js', `file://${__filename}`), 'utf8');
 const records = page => page.evaluate(async () => {
   const db = await new Promise((resolve,reject) => {const r=indexedDB.open('flyteam-learning-v1',2);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
   return new Promise(resolve=>{const r=db.transaction('sessions').objectStore('sessions').getAll();r.onsuccess=()=>resolve(r.result);});
@@ -13,11 +10,6 @@ const records = page => page.evaluate(async () => {
   const browser=await chromium.launch({headless:true,executablePath:process.env.COCKPIT_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
   try {
     const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}), errors=[], uploads=[];
-    await context.route('**/js/ai-models.js',route=>route.fulfill({contentType:'application/javascript',body:catalogSource+`
-      {const model=window.COCKPIT_AI_CATALOG.models.find(m=>m.quality?.approved && m.schema?.version===3 && m.supported_airports?.includes('LOG_OSL_GREEN'));
-       if(!model) throw new Error('Qualified Crew-2 OSL model missing');
-       model.supported_airports=[...new Set([...model.supported_airports,'LOG_ATL_GREEN'])];}
-    `}));
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={endpoint:"https://collector.invalid/logs"};'}));
     await context.route('https://collector.invalid/logs',route=>{
       if(route.request().method()==='POST') uploads.push(route.request().postDataJSON());
@@ -31,8 +23,6 @@ const records = page => page.evaluate(async () => {
     await page.locator('#solo-model').selectOption(modelId);
     await page.locator('[data-mode="feedback"]').click();
     assert.equal(await page.locator('#solo-route option[value="OSL-green"]').evaluate(option=>option.disabled),false);
-    assert.equal(await page.locator('#solo-route option[value="ATL-green"]').evaluate(option=>option.disabled),true,
-      await page.locator('#solo-route').innerHTML());
     assert.equal(await page.locator('#solo-model').inputValue(),modelId);
     await page.locator('[data-mode="examples"]').click();
     assert.equal(await page.locator('#solo-route option[value="OSL-green"]').evaluate(option=>option.disabled),true);

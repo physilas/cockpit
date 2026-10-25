@@ -36,11 +36,18 @@ const assertFeedbackVisible = async page => {
     await page.getByRole('button',{name:/Singleplayer/}).click();
     assert.ok(await page.locator('#solo-model option').count()>=1);
     const goodModel = await page.locator('#solo-model').inputValue();
-    assert.ok(await page.evaluate(() => [...document.querySelectorAll('#solo-model option')].every(o =>
-      COCKPIT_AI_CATALOG.models.find(m => m.id === o.value)?.quality?.approved === true)));
+    assert.ok(await page.evaluate(() => [...document.querySelectorAll('#solo-model option')].every(o => {
+      const model=COCKPIT_AI_CATALOG.models.find(m => m.id === o.value);
+      return model?.quality?.approved === true || model?.preview?.enabled === true;
+    })));
+    assert.ok(await page.evaluate(id => {
+      const model=COCKPIT_AI_CATALOG.models.find(m => m.id === id);
+      return model.quality?.approved === true && model.preview?.enabled !== true;
+    },goodModel));
     const availableRoutes = await page.locator('#solo-route option').evaluateAll(options => options.map(o => o.value).sort());
     const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length
-      || COCKPIT_AI_CATALOG.models.some(model => model.quality?.approved === true && (model.supported_airports || [model.airport]).includes(s.engine_code))))
+      || COCKPIT_AI_CATALOG.models.some(model => (model.quality?.approved === true || model.preview?.enabled === true)
+        && (model.supported_airports || [model.airport]).includes(s.engine_code))))
       .map(s => s.id).sort());
     assert.deepEqual(availableRoutes, expectedRoutes);
     await page.locator('[data-mode="feedback"]').click();

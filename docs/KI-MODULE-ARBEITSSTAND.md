@@ -1,9 +1,11 @@
 # Laufendes Ziel: alle Module, zunächst 30–40 % je Fall
 
 Stand: 25. Oktober 2026. **Crew 2 ist für acht Grundspielstrecken zusätzlich
-freigegeben. Zusätzlich besteht **Crew 2 · Kerosin** Oslo mit 39,8 % unter dem
+freigegeben. Zusätzlich besteht Crew 2 · Kerosin für Oslo mit 39,8 % unter dem
 neu akzeptierten 30-%-Kriterium. Das Ziel aller Module/Karten ist nicht
-abgeschlossen. Crew 1 bleibt verfügbar und vorausgewählt.**
+abgeschlossen. Crew 1 bleibt verfügbar und vorausgewählt. Ein ausdrücklich
+gewünschter Zwischenstand heißt jetzt Crew 3 · Praktikant (Test), mit Atlanta
+grün und Heathrow gelb; er ist als Entwicklungsmodell sichtbar, ohne Freigabe.**
 
 ## Verbindlicher Auftrag
 
@@ -16,10 +18,17 @@ verlangt unabhängige Einzeltests mit unterer Wilson-Grenze >=30 %. Die alte
 50-%-Matrix und damalige Ergebnisse bleiben unverändert als Historie erhalten.
 Es darf nicht über einfache und schwere Fälle gemittelt werden.
 
+**Neueste ausdrückliche Nutzeranweisung:** Zwischenmodelle samt schwachen Routen
+sollen schon vor Freigabe spielbar sein. Deshalb dürfen zusätzlich zu genehmigten
+Modellen explizit markierte Vorschauen (`preview.enabled === true`) erscheinen.
+`quality.approved` bleibt dabei `false`; Entwicklungsquoten sind separat beschriftet
+und ersetzen keine unabhängige Qualifikation. Alte unqualifizierte Modelle ohne
+dieses ausdrückliche Flag bleiben verborgen. Vorauswahl bleibt eine genehmigte Crew.
+
 ## Ressourcen, Stoppen und automatische Fortsetzung
 
-Für den ausdrücklich beauftragten **einen 20-Minuten-Lauf** erlaubt der Nutzer
-vorübergehend **acht Worker zu je 80 %**. Anschließend gilt wieder **acht/70 %**.
+Der frühere 20-Minuten-Lauf mit vorübergehend acht Workern zu 80 % ist beendet.
+Für neue ausdrücklich beauftragte Modulversuche gilt wieder **acht/70 %**.
 Ein Torch-Thread, `nice -n 15`, ein schwerer Lauf gleichzeitig; Metal darf
 PPO-Minibatches rechnen. Die genaue Zuordnung zu Performance-Kernen steuert macOS.
 
@@ -44,7 +53,98 @@ einer ersten automatischen Ablehnung ausdrücklich vom Nutzer bestätigt.
 Keine E-Mail. Nur aussagekräftigen Fortschritt, Fehler, Abschluss oder benötigten
 Input melden.
 
-## Aktueller Allmodul-Lauf und Daumenfeedback
+## Aktueller Auftrag: weitere Module, zunächst Praktikant
+
+Der Nutzer hat nach der Veröffentlichung ausdrücklich weitere Module beauftragt.
+Nächste reale offizielle Fälle sind Atlanta-grün (`LOG_ATL_GREEN`) und
+Heathrow-gelb (`LOG_LHR_YELLOW`), jeweils Praktikant ohne Karten. Die offiziellen
+Wind-/Eisstrecken benötigen bereits Karten; solche Karten nicht für eine
+scheinbare offizielle Freigabe entfernen.
+
+**Der Praktikantenlauf ist regulär beendet**, Exit 0: `runs/intern-profile10-stage1/`,
+Log `/tmp/cockpit-intern-profile10-stage1.log`, Bericht
+`ai/experiments/intern-2026-10-25/profile10-stage1.json`.
+120.272 **neue** Entscheidungen in 54 Updates und 2.935 Partien, davon Atlanta
+64.428 und Heathrow 55.844. 579,17 Sekunden Rollout/PPO-Zeit, 903,78 Sekunden
+Wandzeit einschließlich Entwicklungsbewertungen. Acht Worker zu .7, Torch 1,
+nice 15, Metal-Minibatches. Quelle exakt `ai/releases/crew2-v1/best.pt`, Seed
+251050, frischer Adam und ausdrücklich neue Phase. Nur der bestehende Detailzweig
+lernte; die ursprüngliche Grundlage blieb exakt eingefroren.
+
+Feste Entwicklung, je 80 Partien: ATL ab 14.940.000, LHR ab 14.950.000.
+Vorher 0/80 und 1/80 Siege; ausgewähltes `best.pt` bei 120.272 neuen Zügen:
+**Atlanta 21/80 = 26,25 %, Heathrow 19/80 = 23,75 %**. Auswahl vorab nach schwächerer
+Route, dann Mittel; der letzte Stand wurde so tatsächlich ausgewählt. Diese
+Partien wurden zur Auswahl benutzt und sind **keine unabhängige Qualifikation**.
+Die nächste unabhängige Kohorte ab 15.400.000 bleibt unbenutzt.
+
+Auf ausdrücklichen Wunsch wird dieser Stand bereits als
+**Crew 3 · Praktikant (Test)** (`ai/releases/crew3-intern-preview-v1/best.pt`)
+mit beiden Routen angeboten. Tatsächlicher Gewichts-SHA:
+`d68bf9e86a7c2b514cb503f6e3aea12ef703f56f7b559c13b2649ab5acba7a8c`.
+Browserasset `b101798fc398d46a28ba3c323399ae1ebe9ec85a2ff77bd5760b591b25677707.json`.
+`quality.approved=false`, `preview.enabled=true`, ausdrücklich Entwicklungsdaten;
+keine automatische Auswahl anstelle genehmigter Crews. Kein Karten-/Wind-/Eis-
+oder weiterer Modulnachweis. Der Bericht
+`profile10-preview-development-v1.json` und `development.json` im Release
+enthalten dieselben tatsächlichen Einzelquoten.
+
+Vor jedem neuen schweren Job Prozesse, `runs/ai-job.json` und STOP prüfen.
+Nicht während eines aktiven Vergleichs dessen Planungs-/Trainingsquellen ändern.
+Eine begrenzte nächste Diagnose ist vorbereitet: `ai.intern_strength_compare`
+vergleicht frische Entwicklung mit ursprünglicher Quelle und dem gewählten
+Praktikantenmodell unter endlichen Referenzabständen 4/8/12. Dieselben trainierten
+Tensoren sind dabei keine unabhängig trainierten Modelle. Noch kein Ergebnis:
+`intern-strength-v1.json` nur nach regulärem Abschluss auswerten. Nicht ungeprüft
+mehr Training oder eine stärkere Vorgabe als Erfolg ausgeben.
+
+Neues **öffentliches Modulprofil 10** in `ModuleEnv`: separate, weiche
+Planungsreferenz, gemeinsame Kapazitätsregel, weiterhin lernbare Alternativen.
+Grundspiel/Kerosin ohne Karten ist exakt Profil 9 mit Referenz 7 gleich.
+Kompatible Kerosin-/Kartenfälle erhalten wieder öffentliche Kerosinplanung.
+Praktikant erhält eine Rundenquote und eine Planung für den tatsächlich
+ausgegebenen Ersatzwürfel. Er ersetzt einen regulären Würfel und zählt nicht
+als zusätzlicher fünfter Handwürfel. Ziele für Ruder, Schub, Funk und Kerosin
+werden mit öffentlichen Informationen bewertet. Keine Partneraugen oder echter
+zukünftiger Spiel-RNG. Die bisherigen Profile/Releases bleiben semantisch
+unverändert; geänderte Quelldateien ergeben ehrlich einen neuen Fingerprint,
+alte Hashes werden nicht nachträglich angepasst. Der neue Lauf verwendet die
+tatsächlich im Browser verfügbare `ModuleEnv`-Umgebung und keine heimlich
+umbenannte Allmodul-Forschungsmaske.
+
+Zusätzliche reine Physikfunktionen in `ai.module_physics` sind enginegeprüft:
+Wind nach vollständigem Ruder, echte Schubgeschwindigkeit, strenge Eisbremsgrenze,
+Leckverbrauch und notwendige Kerosinreserve. Wind-/Leckeffekte bereits öffentlicher
+Kontrollpaare werden nicht zweimal berechnet. Diese Funktionen sind noch kein
+Wind-/Eis-Gewinnnachweis und steuern das neue Praktikantenprofil nicht.
+
+Neun Physiktests, sieben Praktikantenplanungstests, sechs Integrations-/Privacytests
+über alle 186 Startfälle und drei echte Rollout→PPO-Tests bestanden. Letztere
+zeigen korrekte Referenzmasken, exakte Logwahrscheinlichkeiten vor dem Update,
+veränderten Detailzweig und unveränderte Grundlage. Technischer Metal-Probelauf
+`runs/intern-profile10-smoke-v1/`: 79 Entscheidungen, ein Update, exakte Crew-2-
+Anfangsgewichte, eingefrorene Grundlage bestätigt. Probelaufgewichte verworfen.
+
+Der Browser führt jetzt echte Bonusaktionen aus, auch wenn der reguläre Zug
+gewechselt hat oder keine regulären Würfel mehr übrig sind. Menschliche
+Bonusaktionen werden aufgezeichnet und bestätigen Daumenfeedback; fremde
+KI-Bonusziele sind nicht anklickbar. Technischer Browserfall mit echten
+Gewichten und Profil 10 besteht. Dabei wurden eine fehlende Bundle-Abhängigkeit
+(`ai.throttle`) und die Pyodide-`None`/JavaScript-`undefined`-Zuordnung zu
+Modell-`null` behoben. Profil 10 ist gebündelt, alte Profile bleiben erhalten.
+Vier abschließende echte Browserprüfungen bestehen: tatsächlicher Crew-3-Katalog
+mit ehrlichem Previewstatus und beiden Routen, Praktikanten-Bonusablauf samt
+Feedback, bestehende Kerosin-KI und Crew 2 mit acht Routen/beiden Rollen. Kein
+JavaScript-Seitenfehler; Chrome und Scoped-Server danach beendet. Die Vorschau
+zeigt die Entwicklungsquoten im Singleplayer und erlaubt Daumenfeedback.
+Die vollständige lokale Testsuite besteht: **331 Tests in 87,31 Sekunden**,
+einschließlich echter Rollout-/PPO-Tests, Privacy, aller 186 Adapter-Startfälle
+und der unberührten fremden Transfer-Tests. Alle 71 bisherigen Katalogeinträge
+blieben exakt erhalten; hinzu kommt nur das explizite Praktikanten-Preview.
+Der Preview-Publisher verweigert das Überschreiben bestehender Releaseordner.
+Der anschließende Push enthält keine Änderungen an fremden Notebooks/Transferdateien.
+
+## Abgeschlossener Allmodul-Lauf und Daumenfeedback
 
 Das 20-Minuten-Budget wird nach einer erfolglosen Halbzeitprüfung in zwei
 ausdrücklich getrennte Forschungsphasen aufgeteilt. `runs/allmodules-20min-v1/`,
