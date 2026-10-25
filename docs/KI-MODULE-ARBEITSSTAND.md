@@ -473,7 +473,7 @@ Konkrete Grenzen:
   Platzierungen, bleibt ebenfalls die Netzauswahl. `model`, `legacy` und
   `joint` behalten ihre bisherige Semantik.
 
-**Aktueller einziger schwerer Lauf:** 100 Haneda-Entwicklungspartien ab 14.510.000,
+**Ebenfalls regulär abgeschlossener Versuch:** 100 Haneda-Entwicklungspartien ab 14.510.000,
 gleiche Gewichte, Varianten `model`, `joint`, `joint-finish`. Wiederholte
 Kontrollen zuerst auf exakte Übereinstimmung mit v2 prüfen. Ein Erfolg auf
 diesen bereits untersuchten Seeds erfordert anschließend frische Entwicklung;
@@ -481,10 +481,17 @@ die unabhängigen Prüfseeds ab 15.000.000 bleiben unbenutzt. Kein neues Modell
 und kein Suchprofil wurde für den Singleplayer freigegeben.
 
 Bericht `joint-finish-haneda-development-v1.json`, Log
-`/tmp/cockpit-joint-finish-haneda-development-v1.log`. Die Modellkontrolle ist
-bereits mit 48/100 abgeschlossen. Acht Worker zu höchstens 70 %, Torch-Threads 1,
-`nice -n15`, verwaltet über `ai.job_control`. Während des Laufs Such-/Spielquellen
-nicht ändern. Nach dieser Änderung bestanden **241 lokale Tests** (26,3 s),
+`/tmp/cockpit-joint-finish-haneda-development-v1.log`. Alle 300 Partien sind
+abgeschlossen: **Netz 48, Joint 44, Joint-Finish 45 Siege**. Modell- und
+Joint-Kontrolle stimmen bei allen 200 Einzelresultaten exakt mit v2 überein.
+Die letzte-Würfel-Erweiterung liegt weiterhin unter dem Netz: vier neu gewonnene
+gegen sieben verlorene Netzsiege. Das begründet weder eine Freigabe noch eine
+große frische Bestätigungsserie. Gegenüber Joint sind es vier Gewinne/drei
+Verluste. Fall 14.510.008 wird gewonnen, 14.510.047 bleibt verloren und auch
+14.510.068 endet weiterhin im Trudeln: die vermutete Ausführungskorrektur
+behebt das konkrete Ruder-Gegenbeispiel nicht. Acht Worker zu höchstens 70 %, Torch-Threads 1,
+`nice -n15`, verwaltet über `ai.job_control`; reguläres Ende nach 216 s, Exit 0.
+**Aktuell kein schwerer Lauf aktiv.** Nach dieser Änderung bestanden **241 lokale Tests** (26,3 s),
 einschließlich der geschützten fremden Tests. Keine neuen PPO-Entscheidungen.
 
 ```sh
@@ -498,10 +505,14 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
 ## Nächste Arbeit
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
-   keinen zweiten schweren Job. Den separaten `joint-finish`-Versuch gegen beide
-   Kontrollen auswerten. Bei schwachem Lehrer nicht wieder dessen Labels endlos
-   imitieren: aktuelle gemeinsame Kontrollzuordnung, Annahmen über nachfolgende
-   Partnerzüge, Kaffeeverbrauch und kalibrierte Fortsetzungswerte bearbeiten.
+   keinen zweiten schweren Job. `joint-finish` erreichte nur 45 statt 48
+   Netzsiege auf Haneda; keine weitere große Bestätigungsserie dieses Ansatzes.
+   Bei schwachem Lehrer nicht wieder dessen Labels endlos imitieren: aktuelle
+   gemeinsame Kontrollzuordnung, Annahmen über nachfolgende Partnerzüge,
+   Kaffee-/Neuwurfreserven und kalibrierte Fortsetzungswerte bearbeiten.
+   Die 17 Kollisionen und elf Kurvenverluste des Netzes im HND-Vergleich außerdem
+   nach Runde/öffentlichem Zustand lokalisieren; die Suche greift bisher erst
+   bei 2.000 Fuß ein. Nicht unterstellen, alle Fehler entstehen kurz vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
    Planung für Oslo braucht außerdem eine begründete Laufzeitbegrenzung.
    Kein unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
