@@ -55,6 +55,88 @@ einer ersten automatischen Ablehnung ausdrücklich vom Nutzer bestätigt.
 Keine E-Mail. Nur aussagekräftigen Fortschritt, Fehler, Abschluss oder benötigten
 Input melden.
 
+## Aktuelle Forschung nach Crew 3: konkrete Modulfehler statt mehr desselben PPO
+
+Der Crew-3-Veröffentlichungsauftrag ist abgeschlossen. Neues Ziel dieser Runde:
+die belegten Leck-/Kartenfehler und fehlende Wind-/Eisreferenz untersuchen,
+bestehende Crews/Profile nicht verändern.
+
+Drei neue Engine-Gegenbeispiele bestehen (`tests/test_ai_wind_ice_counterexamples.py`,
+0,013 Sekunden): KEF gelb + Adaptation, letzte eigene 5 auf das vierte Eispaar
+gewinnt saubere Landung, Konzentration verliert `eisbremsen_unvollstaendig`.
+GIG gelb + Adaptation, öffentlich aufgelöstes Ruder/Wind +3 und Distanz 1:
+eigener Schub 2 mit öffentlichem Partnerschub 2 fährt ein Feld; eigener Schub 6
+fährt übers Ziel. P10/P11/P12 beraten beide Alternativen gleichberechtigt.
+Die Fixtures sind ausdrücklich technische öffentliche Zustände mit geskripteten
+Werten, keine gesampelten Partien oder neue Quoten. Verdeckte Partnerwerte und
+RNG beeinflussen die Referenzen nicht. Die physikalischen Projektionen sind
+vorhanden, aber Wind/Eis fallen bisher auf `reference=allowed` zurück.
+
+Acht neue Tests des passiven Werkzeugs `ai.leak_failure_probe` bestehen in 4,42 s:
+exakt unveränderte native Auswahlfolge/Inputs/Ergebnisse, beide RNGs und Gewichte;
+öffentliche Allowlist, höchstens letzte drei Ereignisse pro Verlust; bekannte
+Entwicklungsseeds und Linien-/Hash-/STOP-/Ausgabeschutz.
+
+Die passive Wiederholung der bekannten Profil-12-Validierung ist regulär
+beendet, Exit 0, **80,93 Sekunden**. Log `/tmp/cockpit-leak-failure-probe-v1.log`,
+abgeschlossener Bericht `ai/experiments/leak-2026-10-25/profile12-failure-probe-v1.json`
+und getrennte Auswertung `profile12-failure-probe-analysis-v1.json`.
+Warm0 und letzter Stand, je 20 Partien auf allen sechs ATL-gelb-Einzelkarten,
+240 Wiederholungen ab 14.930.000 mit Abstand 100. Alle zwölf gespeicherten
+Einzelauswertungen reproduzieren Siege, Entscheidungen, Referenzabweichungen
+und Verlustgründe exakt. Keine zusätzliche unabhängige Evidenz, kein PPO.
+Working-together: 911/946 legale Tauschstart-Angebote, **kein einziges in der
+Referenz und kein gewählter Tausch**. Quelle verliert 10/19 Partien auf Höhe 0,
+letzter Stand 12/20; einschließlich 1.000 Fuß sind es 12/19 und 16/20. Diese
+Leckfehler sind überwiegend spät; die frühere Haneda-Diagnose darf nicht pauschal
+übertragen werden. In den auf drei Ereignisse begrenzten Verlustspuren tauchte
+kein passender sicherer Spendenfall auf; das ist kein vollständiger Pfadnachweis.
+
+Isolierte neue Spendenprimitive `ai.leak_donation_advice`: Empfänger hat einen
+Würfel und ein fehlendes Ruder, Geber beide Pflichtfelder öffentlich fertig.
+Sicherer eigener Spendenwert folgt aus öffentlicher Ruder-/Schubphysik. Rückgabe
+bleibt unbekannt, zählt nicht als bekannter Aufgabenwürfel und muss auf freier
+Konzentration nutzbar sein. Eigene einzigartige Aufgabenwerte werden geschützt.
+Acht gezielte Engine-/Privacy-/Fallbacktests bestehen (0,052 s), unabhängiger
+lesender Review ohne belegten Fehler. Der echte aktuelle Crew-2-Spieler mit
+Abstand 12 wählt im technischen Gegenfall selbst den neuen Tauschstart;
+ursprüngliche Gewichte und Torch-/Engine-RNG bleiben exakt erhalten. Das ist
+keine neue Spielquote und kein geänderter veröffentlichter Spieler.
+
+`ai.leak_donation_environment.DonationEnv` ist ein **separater Forschungswrapper**
+mit unverändertem nativen Profil 12, Engine-Maske, Schema und Uhr. Er ändert nur
+im engen Fall die weiche Referenz, bewahrt `source_reference_action_mask` und
+markiert `research_leak_donation=true`. Keine Änderung bestehender Profile,
+Planerfingerprints oder Browsermodelle. `ai.publish` lehnt den Forschungswrapper
+für Freigaben und Vorschauen ausdrücklich ab; es gibt keinen Browseradapter dafür.
+29 weitere gezielte Tests bestehen (9,84 s), einschließlich unveränderter anderer
+Karten/Wind/Praktikant, Rollen, nativer Auswahl/RNG/Tensoren, exakter Paarung,
+STOP-/Datei-/Ressourcengrenzen und Veröffentlichungssperre. Zusammen mit den
+vorigen Prüfungen **48 relevante Tests bestanden**. Eine anfängliche Testannahme
+über die absichtlich feste Fixture-Uhr wurde berichtigt, keine Produktionslogik.
+
+**Der letzte beauftragte Vergleich ist abgeschlossen**, Exit 0, 29,44 Sekunden:
+`ai.leak_donation_compare`, Log `/tmp/cockpit-leak-donation-working-fresh-v1.log`,
+Bericht `ai/experiments/leak-2026-10-25/donation-working-fresh-v1.json`.
+Vorab festgelegtes Warm0-Netz mit Abstand 12, identische Tensoren in beiden Armen;
+natives Profil 12 gegen Forschungsreferenz. Je **50 frische Entwicklungspartien**
+auf ATL gelb + Working-together ab **14.984.000**, acht Worker .7, Torch 1,
+nice 15, ein Lauf. Ergebnis: **5/50 gegen 5/50**, alle 50 vollständigen
+Episodenrecords identisch; Paarung fünf gemeinsame Siege und 45 gemeinsame
+Niederlagen, null abweichende Siege. Die neue Spendenbedingung bot auf diesen
+Pfaden **keine einzige zusätzliche Aktion** an. Kein Spielstärkengewinn,
+kein PPO-Update, keine Qualifikation, keine neue Modellveröffentlichung.
+Nicht denselben zu selten ausgelösten Vorschlag mit mehr Spielen oder PPO als
+Fortschritt behandeln. Nächster begründeter Ausbau ist breitere öffentliche
+Modulplanung, insbesondere Wind/Eis anhand der oben belegten Gegenbeispiele;
+für Tausch größere öffentlich begründete Fälle erst nach neuer Hypothese.
+
+**Aktuell kein schwerer Job aktiv.** Der Nutzer bat, alle bisherigen Änderungen
+zu pushen und den letzten Versuch zuvor zu beenden; beides wird jetzt mit den
+abgeschlossenen Berichten, Tests und isolierten Forschungsquellen erledigt.
+Fremde Notebook-/Transferänderungen bleiben entsprechend der Vereinbarung
+unangetastet. Alle veröffentlichten Crews und ihre Gewichte bleiben erhalten.
+
 ## Neuer Veröffentlichungsauftrag: Crew 3 mit allen positiv getesteten Fällen
 
 Der Nutzer verlangt erneut Crew 3 mit allen Routen, auf denen sie mehr als 0 %

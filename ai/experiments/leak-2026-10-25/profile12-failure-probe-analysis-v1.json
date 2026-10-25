@@ -1,0 +1,34 @@
+{
+  "format": 1,
+  "complete": true,
+  "release_evidence": false,
+  "fresh_evidence": false,
+  "new_training_decisions": 0,
+  "source_report": "ai/experiments/leak-2026-10-25/profile12-failure-probe-v1.json",
+  "reproduced_old_cases": 12,
+  "note": "Known validation replay, no new independent episodes. Donation eligibility is checked only on retained last-three public/own snapshots, not on full trajectories.",
+  "working_together": {
+    "source": {
+      "wins": 1,
+      "games": 20,
+      "losses": 19,
+      "losses_at_height0": 10,
+      "losses_at_height1000_or_less": 12,
+      "swap_offered_decisions": 911,
+      "swap_advised_decisions": 0,
+      "swap_actions_selected": {},
+      "retained_tail_donation_candidates": []
+    },
+    "candidate": {
+      "wins": 0,
+      "games": 20,
+      "losses": 20,
+      "losses_at_height0": 12,
+      "losses_at_height1000_or_less": 16,
+      "swap_offered_decisions": 946,
+      "swap_advised_decisions": 0,
+      "swap_actions_selected": {},
+      "retained_tail_donation_candidates": []
+    }
+  }
+}
