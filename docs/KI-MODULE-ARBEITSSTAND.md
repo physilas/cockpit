@@ -12,6 +12,137 @@ Auf erneuten Nutzerwunsch kommt Crew 5 · Leck (Test) mit dem tatsächlich zulet
 trainierten Profil-12-Stand hinzu: alle sechs Einzelkarten auf Atlanta gelb,
 0–20 % auf bereits verwendeter Entwicklung, weiterhin ohne Freigabe.**
 
+## Neue Forschung: gemeinsame Pflichtaufgaben vor der letzten Bindung
+
+`ai.joint_landing_prior` erweitert den öffentlichen Fair-Hand-Ansatz um
+**rollenbezogene Aufgaben im selben Würfel-/Kaffeebudget wie Ruder und Schub**.
+Die bekannte eigene Fortsetzung und die Rollenverteilung gemeinsamer Aufgaben
+stehen vor der Erwartung über hypothetische Partnerhände fest. Pro Hand werden
+erfolgreiche Zuordnungen vereinigt, bevor ihre Multiplizität gezählt wird.
+Die Erwartung ist exakt unter der ausdrücklich angenommenen IID-Fair-Hand-
+Verteilung und den statischen Anforderungen; kein kalibrierter Posterior
+wirklicher Resthände und keine Spielgewinnwahrscheinlichkeit.
+
+`ai.joint_landing_advice` berücksichtigt offene Fahrwerk-/Klappenfelder, obere
+Pilotinnen- und gemeinsame untere Eisfelder, tatsächliche Funkaugen und freie
+Funkplätze. In der letzten Runde kann nur Funkwert 1 das aktuelle Zielfeld
+räumen; Flugzeuge außerhalb davon sind dann nicht mehr erreichbar. Gewählte
+zusätzliche reguläre Bremsstufen reservieren ihre tatsächlichen Würfelwerte
+2/4/6, statt höhere Bremskraft ohne Aufgabenbudget anzunehmen. Alle Varianten
+benutzen verschiedene Würfel und dieselbe Kaffeereserve. Ein aktueller
+Konzentrationszug oder der aktuelle zweite gleiche Control-Ruderzug kann
+Kaffee erzeugen; spätere Kaffeegeneration, Adaptation und Bonuswürfel werden
+nicht vorweggenommen. Eine unmittelbar beratene Adaptation wird berücksichtigt.
+
+Die Vorgabe greift schon während der gesamten letzten Runde, zunächst nur auf
+reinen Wind-/Eisstrecken ohne offenen Dialog. Sie bewertet vollständige
+**statische Belegungen**, keinen sequenziellen Engine-Gewinnbeweis: Reihenfolge,
+Zusammenarbeit und zukünftige Karteneffekte bleiben Grenzen. Bei keiner positiv
+bewerteten Belegung fällt sie auf den bisherigen Prior zurück. Der neue
+`JointLandingEnv` verändert nur die weiche Referenz, bewahrt native Legalität,
+Beobachtung, Uhr und die ursprüngliche Priorreferenz. Markierung
+`research_joint_landing=true`; Publisher sperrt diese nicht im Browser
+implementierte Forschung auch als Vorschau. Bestehende Quellen, Profile,
+Veröffentlichungen und Fingerprints bleiben erhalten.
+
+**58 relevante Tests bestanden, 4,45 s**: unabhängige Enumeration geordneter
+Partnerwürfe, Rollen-/Würfel-/Kaffeezuordnung, unveränderliche veröffentlichte
+Kontrollen, Erwartungsreihenfolge, tatsächliche geordnete Engine-Landungen mit
+Eisbremse, regulärer Bremse sowie Funk und letzter Klappe. Die getesteten
+Gegenfälle reservieren den einzigen passenden Eis-/Bremswürfel und verwerfen
+einen Konzentrationszug, der die verbleibenden Funk-/Klappen-/Kontrollaufgaben
+unmöglich macht. Ein positiver Windfall benötigt drei Bremsaktivierungen plus
+zwei Pilotinnenkontrollen und passt ausdrücklich nicht in vier Würfel. Privacy,
+RNG, Pacing/Cache, Instrumentierungsparität und Ressourcen-/STOP-/Berichts-/
+Veröffentlichungsschutz sind geprüft. Technische Übungen, keine Gewinnquoten.
+
+Der neue Vergleich `ai.joint_landing_compare` ist regulär beendet,
+**Exit 0, 105,75 Sekunden**: native Crew-5-Auswahl,
+bisheriger Prior und neue gemeinsame Endrundenvorgabe, exakt dieselben
+tatsächlichen Crew-5-Tensoren/Abstand 12. Zwölf offizielle GIG-/KEF-gelbe
+Einzelkartenfälle zu je 20 Spielen je Variante, 720 frische Entwicklungspartien,
+keine PPO-Updates und null neue Trainingsentscheidungen. Acht Worker .7,
+Torch 1, nice 15, ein verwalteter Lauf, native Engine-Uhr. Bericht
+`ai/experiments/wind-ice-2026-10-25/joint-landing-development-v1.json`, Log
+`/tmp/cockpit-joint-landing-development-v1.log`; Bericht `complete=true`,
+abgeleitete Analyse `joint-landing-analysis-v1.json`.
+Entwicklung **14.992.000 + 100*i**, zwölf Fälle zu je
+20 Seeds, zuletzt **14.993.100–14.993.119**. Technische Vergleichstests
+14.989.300/310 getrennt. Abschlusskohorte ab 15.400.000 weiter unbenutzt.
+
+| Einzelkarte | GIG Wind: Quelle / Prior / gemeinsame Aufgaben | KEF Eis: Quelle / Prior / gemeinsame Aufgaben |
+| --- | ---: | ---: |
+| Adaptation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Anticipation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Control | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Mastery | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Synchronisation | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Working-together | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+
+**Kein Sieggewinn, kein neuer Modellrelease.** 1.604 geeignete Entscheidungen
+in 158 Partien, nur 26 positive statische Belegungen in fünf Partien. Die neue
+Vorgabe verändert 24 tatsächliche Prior-Wahlen in diesen fünf Partien. Alle
+240 gepaarten Status bleiben verloren; in einer Partie ändert sich der
+Verlustgrund (offene Eisbremse zu zu schneller Landung). Aktive Worker wurden
+bei etwa 43–48 % CPU und Priorität 15 beobachtet. Dieselben Gewichte unter
+anderen Referenzen sind keine unabhängig trainierten Modelle. Null statische
+Belegung ist kein Engine-Unmöglichkeitsbeweis, unter anderem weil zukünftiger
+Kaffee und Karteneffekte bewusst nicht vorweggenommen werden.
+
+Deshalb folgt zunächst die **passive** Diagnose `ai.landing_task_budget` /
+`ai.landing_budget_probe`, keine neue Maske und kein weiteres unverändertes PPO.
+Sie prüft beim ersten Eintritt in 1.000 Fuß und die Landerunde eine optimistische
+notwendige Zählgrenze: aktuelle und zukünftige reguläre Würfel, Pflichtkontrollen jeder
+verbleibenden Runde, rollenbezogene Upgrades, gemeinsame Eisfelder und alle
+aktuellen Flugzeuge mit freien Funkplätzen. Augen, Kaffeekosten, Reihenfolge,
+künftiger Verkehr und Verlust halber Eispaare beim Rundenwechsel bleiben
+optimistisch unberücksichtigt. Vor der Landerunde darf zukünftiger Wind maximal
+günstig werden; in der Landerunde gelten unveränderliche veröffentlichte
+Schubwerte und der Wind bei erfolgreicher waagerechter Ruderauflösung.
+Nicht für jeden Windflug wird pauschal ein Bremswürfel verlangt: ein
+enginegeprüfter starker Gegenwind kann sogar ohne reguläre Bremse landen.
+Synchronisation mit noch möglichem künftigem Bonus bewirkt Enthaltung; ein
+tatsächlich ausgegebener Bonus zählt einmal, nie einer nur wegen Kartenbesitz.
+
+Weitere **neun Diagnosetests bestanden** (1,25 s), damit 67 unterschiedliche
+relevante Tests dieser Phase. Der abschließende gemeinsame Lauf aller 67 Tests
+bestand in **5,71 Sekunden**. Geprüft sind unveränderte erfolgreiche Engine-Präfixe,
+Endrunden- und Zwei-Runden-Kapazität, Funkplatz-/Rollenbudgets, Kaffee ersetzt
+keinen Würfel, Bonus-/Privacy-/RNG-/Stop-/Berichtsschutz. Die Diagnose ist
+**regulär beendet, Exit 0, 40,06 Sekunden**: 24 Trainingspartien, zwei je
+offiziellem Wind-/Eis-Kartenfall, 1.453 gesampelte Entscheidungen, mit
+unverändertem Prior und tatsächlichen Crew-5-Gewichten. Ein Worker .7,
+Torch 1, nice 15; Namensraum `train:landing-budget-probe:251070:...`, keine
+Entwicklungs-/Qualifikationsseeds, keine PPO-Updates. Bericht
+`ai/experiments/wind-ice-2026-10-25/task-budget-training-probe-v1.json`, Log
+`/tmp/cockpit-task-budget-training-probe-v1.log`. Bericht `complete=true`,
+abgeleitete Analyse `task-budget-training-analysis-v1.json`.
+
+Erste Eintrittszustände: **1.000 Fuß: 9 falsch / 5 bestanden / 3 Enthaltungen**
+unter 17 erreichten Partien; **Landerunde: 11 falsch / 1 bestanden /
+3 Enthaltungen** unter 15 erreichten Partien. Enthaltungen betreffen möglichen
+zukünftigen Synchronisationsbonus, ohne dafür Würfel zu erfinden. Einzelne
+Eisfälle benötigen bei 1.000 Fuß bereits **19–20 Platzierungen bei nur
+16 verbleibenden regulären Würfeln**. Ein Windfall hat zwar 16 Aufgaben bei
+16 Würfeln, scheitert aber an Rollen-/Funkplatzkapazität. Diese kleine passive
+Trainingspfaddiagnose ist kein Gewinnquotennachweis und erklärt nicht jede
+Niederlage. Die übrigen Partien erreichten diese Eintrittszustände nicht.
+
+**Nächster begründeter Schritt:** in einer ausdrücklich neuen Forschungsumgebung
+früheres Verschlechtern einer noch bestandenen notwendigen Aufgaben-Kapazität
+verhindern. Zunächst nur reine Wind-/Eisfälle; mögliche künftige Synchronisation
+weiterhin ausnehmen. Aktuell ausgegebener Bonus zählt einmal. Kandidaten mit
+der nativen Engine und öffentlichen Vorher-/Nachherzuständen prüfen, insbesondere
+Konzentration, schon aktivierte Upgrades und wirkungslose Funkzüge an knapper
+Kapazität. Keine noch rettbare erfolgreiche Enginefolge aufgrund zu strenger
+Brems-/Rollenannahmen entfernen; Gegenwindbeispiel erhalten. Bereits nach der
+optimistischen Grenze unrettbare oder unbekannte Zustände nicht durch einen
+neuen künstlichen Terminalzustand ersetzen. Masken-/Referenzänderung klar als
+neue Phase behandeln, alte Crews/Quellen unverändert lassen. Erst begrenzten
+frischen Entwicklungsvergleich gegen erhaltene Kontrollen, dann gegebenenfalls
+erneutes PPO/erfolgreiche Übungen. Nicht denselben unveränderten schwachen
+Lehrer länger trainieren. Aktuell kein schwerer Job aktiv.
+
 ## Neue Forschung: enginegeprüfte letzte eigene Landefolge
 
 `ai.solo_landing` rekonstruiert einen **getrennten** Endrundenzustand ausschließlich

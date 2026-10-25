@@ -1,0 +1,297 @@
+{
+  "format": 1,
+  "complete": true,
+  "source_report": "task-budget-training-probe-v1.json",
+  "source_report_sha256": "9d53ea009a61b34aced7ad4103dcfd8dde361b0e1edaba6c88c480eb89ff50bb",
+  "release_evidence": false,
+  "qualification_used": false,
+  "ppo_updates": 0,
+  "new_training_decisions": 0,
+  "sampled_training_decisions": 1453,
+  "elapsed_seconds": 40.0619597081095,
+  "entry_counts": {
+    "1000ft": {
+      "True": 5,
+      "False": 9,
+      "None": 3
+    },
+    "final": {
+      "False": 11,
+      "None": 3,
+      "True": 1
+    }
+  },
+  "case_entries": {
+    "LOG_GIG_YELLOW|adaptation": {
+      "episodes": 2,
+      "1000ft": {
+        "True": 1
+      },
+      "final": {
+        "False": 1
+      }
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "episodes": 2,
+      "1000ft": {
+        "False": 1
+      },
+      "final": {}
+    },
+    "LOG_GIG_YELLOW|control": {
+      "episodes": 2,
+      "1000ft": {},
+      "final": {}
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "episodes": 2,
+      "1000ft": {},
+      "final": {}
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "episodes": 2,
+      "1000ft": {
+        "None": 1
+      },
+      "final": {
+        "None": 1
+      }
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "episodes": 2,
+      "1000ft": {
+        "True": 2
+      },
+      "final": {
+        "True": 1
+      }
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "episodes": 2,
+      "1000ft": {
+        "False": 2
+      },
+      "final": {
+        "False": 2
+      }
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "episodes": 2,
+      "1000ft": {
+        "False": 2
+      },
+      "final": {
+        "False": 2
+      }
+    },
+    "LOG_KEF_YELLOW|control": {
+      "episodes": 2,
+      "1000ft": {
+        "True": 1,
+        "False": 1
+      },
+      "final": {
+        "False": 2
+      }
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "episodes": 2,
+      "1000ft": {
+        "False": 1,
+        "True": 1
+      },
+      "final": {
+        "False": 2
+      }
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "episodes": 2,
+      "1000ft": {
+        "None": 2
+      },
+      "final": {
+        "None": 2
+      }
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "episodes": 2,
+      "1000ft": {
+        "False": 2
+      },
+      "final": {
+        "False": 2
+      }
+    }
+  },
+  "1000ft_failed_count_examples": [
+    {
+      "seed": "train:landing-budget-probe:251070:1:1",
+      "case_key": "LOG_GIG_YELLOW|anticipation",
+      "minimum_total_need": 16,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 0,
+      "copilot_owned_tasks": 3,
+      "shared_ice_tasks": 0,
+      "radio_tasks": 5,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:6:0",
+      "case_key": "LOG_KEF_YELLOW|adaptation",
+      "minimum_total_need": 19,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 4,
+      "copilot_owned_tasks": 3,
+      "shared_ice_tasks": 3,
+      "radio_tasks": 1,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:6:1",
+      "case_key": "LOG_KEF_YELLOW|adaptation",
+      "minimum_total_need": 19,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 5,
+      "copilot_owned_tasks": 2,
+      "shared_ice_tasks": 3,
+      "radio_tasks": 1,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:7:0",
+      "case_key": "LOG_KEF_YELLOW|anticipation",
+      "minimum_total_need": 18,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 4,
+      "copilot_owned_tasks": 1,
+      "shared_ice_tasks": 4,
+      "radio_tasks": 1,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:7:1",
+      "case_key": "LOG_KEF_YELLOW|anticipation",
+      "minimum_total_need": 18,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 4,
+      "copilot_owned_tasks": 2,
+      "shared_ice_tasks": 4,
+      "radio_tasks": 0,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:8:1",
+      "case_key": "LOG_KEF_YELLOW|control",
+      "minimum_total_need": 18,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 4,
+      "copilot_owned_tasks": 3,
+      "shared_ice_tasks": 3,
+      "radio_tasks": 0,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:9:0",
+      "case_key": "LOG_KEF_YELLOW|mastery",
+      "minimum_total_need": 17,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 3,
+      "copilot_owned_tasks": 1,
+      "shared_ice_tasks": 3,
+      "radio_tasks": 2,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:11:0",
+      "case_key": "LOG_KEF_YELLOW|working-together",
+      "minimum_total_need": 20,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 4,
+      "copilot_owned_tasks": 2,
+      "shared_ice_tasks": 4,
+      "radio_tasks": 2,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:11:1",
+      "case_key": "LOG_KEF_YELLOW|working-together",
+      "minimum_total_need": 19,
+      "available_total": 16,
+      "controls_by_role": {
+        "pilot": 4,
+        "kopilot": 4
+      },
+      "pilot_owned_tasks": 4,
+      "copilot_owned_tasks": 1,
+      "shared_ice_tasks": 4,
+      "radio_tasks": 2,
+      "radio_slots_by_role": {
+        "pilot": 2,
+        "kopilot": 4
+      }
+    }
+  ],
+  "conclusions": [
+    "Nine of17 first1000ft entries fail an optimistic necessary count bound; three abstain for future synchronization and five pass.",
+    "Eleven of15 first-final entries fail this bound; three abstain for future synchronization and one passes.",
+    "The bound ignores faces, ordering, coffee costs, lost partial ice fields and future traffic; a pass is not proof of a win.",
+    "This is a small passive training-path diagnosis, not an independent win-rate cohort or a mask change.",
+    "Next test a separately versioned early capacity-preserving constraint, including role/radio limits and future-bonus abstention; do not train the weak unchanged teacher longer."
+  ]
+}

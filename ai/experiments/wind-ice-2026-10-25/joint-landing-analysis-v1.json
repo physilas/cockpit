@@ -1,0 +1,286 @@
+{
+  "format": 1,
+  "complete": true,
+  "source_report": "joint-landing-development-v1.json",
+  "source_report_sha256": "4b38f2970554da7ffaa1e273f25c18a314acd509e7edab8e096f685259eca9c4",
+  "release_evidence": false,
+  "qualification_used": false,
+  "new_training_decisions": 0,
+  "ppo_updates": 0,
+  "elapsed_seconds": 105.74611250008456,
+  "cases": {
+    "LOG_GIG_YELLOW|adaptation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 146,
+        "positive_decisions": 4,
+        "changed_prior_reference": 4,
+        "changed_prior_policy_choices": 4
+      },
+      "eligible_episodes": 14,
+      "positive_episodes": 1,
+      "changed_policy_episodes": 1,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 105,
+        "positive_decisions": 2,
+        "changed_prior_reference": 2,
+        "changed_prior_policy_choices": 2
+      },
+      "eligible_episodes": 10,
+      "positive_episodes": 1,
+      "changed_policy_episodes": 1,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_GIG_YELLOW|control": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 127,
+        "positive_decisions": 9,
+        "changed_prior_reference": 9,
+        "changed_prior_policy_choices": 9
+      },
+      "eligible_episodes": 12,
+      "positive_episodes": 1,
+      "changed_policy_episodes": 1,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 92,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 8,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 104,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 10,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 124,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 12,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 166,
+        "positive_decisions": 6,
+        "changed_prior_reference": 4,
+        "changed_prior_policy_choices": 4
+      },
+      "eligible_episodes": 16,
+      "positive_episodes": 1,
+      "changed_policy_episodes": 1,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 1
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 179,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 18,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_KEF_YELLOW|control": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 150,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 16,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 137,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 14,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 122,
+        "positive_decisions": 5,
+        "changed_prior_reference": 5,
+        "changed_prior_policy_choices": 5
+      },
+      "eligible_episodes": 13,
+      "positive_episodes": 1,
+      "changed_policy_episodes": 1,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "games": 20,
+      "native_wins": 0,
+      "prior_wins": 0,
+      "joint_wins": 0,
+      "counts": {
+        "eligible_decisions": 152,
+        "positive_decisions": 0,
+        "changed_prior_reference": 0
+      },
+      "eligible_episodes": 15,
+      "positive_episodes": 0,
+      "changed_policy_episodes": 0,
+      "paired_prior": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "changed_status_reason_pairs": 0
+    }
+  },
+  "diagnostic_totals": {
+    "eligible_decisions": 1604,
+    "positive_decisions": 26,
+    "changed_prior_reference": 24,
+    "changed_prior_policy_choices": 24
+  },
+  "eligible_episodes": 158,
+  "positive_episodes": 5,
+  "changed_policy_episodes": 5,
+  "changed_status_reason_pairs": 1,
+  "conclusions": [
+    "Every arm/case had0/20 wins; no per-case win improvement and no release.",
+    "Joint tasks changed24 prior-policy decisions and found positive static assignments in26 decisions.",
+    "A zero static score is not a full-engine impossibility proof; omitted future resources and role sequencing matter.",
+    "The next passive probe must separate already insufficient task counts from face/physics/cooperation limitations before further training."
+  ]
+}

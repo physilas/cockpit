@@ -1,0 +1,1429 @@
+{
+  "format": 1,
+  "complete": true,
+  "phase": "passive_training_task_deadline_probe",
+  "release_evidence": false,
+  "qualification_used": false,
+  "ppo_updates": 0,
+  "new_training_decisions": 0,
+  "sampled_training_decisions": 1453,
+  "model": {
+    "checkpoint": "ai/releases/crew5-leak-preview-v1/best.pt",
+    "file_sha256": "159ce1a0e7baf783344068e61ab79d7b2ee4cdf1e365634ca2004f75fead5511",
+    "weights_sha256": "e59d9f7bee62b12ed0faf094c80945cc2b1d984544eb619547940c752238bb83",
+    "model_config": {
+      "kind": "guided_residual",
+      "observation_size": 489,
+      "action_count": 217,
+      "hidden_size": 256,
+      "hidden_layers": 2,
+      "source": {
+        "kind": "residual",
+        "observation_size": 489,
+        "action_count": 217,
+        "hidden_size": 256,
+        "hidden_layers": 2,
+        "source": {
+          "observation_size": 352,
+          "action_count": 125,
+          "hidden_size": 128,
+          "hidden_layers": 2
+        }
+      },
+      "guide_margin": 12.0
+    },
+    "phase_steps": 80139,
+    "frozen_source_weights_sha256": "3a7c3bcb985d11bff39d59f4ddda964ad9eaa64540b0754791c8be934cd3c507"
+  },
+  "probe_sha256": "4086a928840bba6ef984621aa6bd5c8103b5dcc87c7c517d81c2c3cc970db05e",
+  "prior_comparison_sha256": "24c73237d60d6ff8df44baf269285efd7abac70ef5dc9d2bb19f1df9bee47c24",
+  "workers": 1,
+  "cpu_duty_cycle": 0.7,
+  "threads": 1,
+  "games_per_case": 2,
+  "seed_namespace": "train:landing-budget-probe:251070:",
+  "episodes": [
+    {
+      "seed": "train:landing-budget-probe:251070:0:0",
+      "case_key": "LOG_GIG_YELLOW|adaptation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 1,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 14,
+            "available_total": 16,
+            "possible": true,
+            "reason": "count_bound_passes"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 1,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 1,
+            "minimum_total_need": 8,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "landeklappen_unvollstaendig"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:0:1",
+      "case_key": "LOG_GIG_YELLOW|adaptation",
+      "entries": [],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:1:0",
+      "case_key": "LOG_GIG_YELLOW|anticipation",
+      "entries": [],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:1:1",
+      "case_key": "LOG_GIG_YELLOW|anticipation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 2,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 0,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 5,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 16,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:2:0",
+      "case_key": "LOG_GIG_YELLOW|control",
+      "entries": [],
+      "status": "verloren",
+      "reason": "uebers_ziel_hinaus"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:2:1",
+      "case_key": "LOG_GIG_YELLOW|control",
+      "entries": [],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:3:0",
+      "case_key": "LOG_GIG_YELLOW|mastery",
+      "entries": [],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:3:1",
+      "case_key": "LOG_GIG_YELLOW|mastery",
+      "entries": [],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:4:0",
+      "case_key": "LOG_GIG_YELLOW|synchronisation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 1,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": true,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 0,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 11,
+            "available_total": 16,
+            "possible": null,
+            "reason": "unissued_future_sync_abstention"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": true,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 2,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 2,
+            "minimum_total_need": 8,
+            "available_total": 8,
+            "possible": null,
+            "reason": "unissued_future_sync_abstention"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:4:1",
+      "case_key": "LOG_GIG_YELLOW|synchronisation",
+      "entries": [],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:5:0",
+      "case_key": "LOG_GIG_YELLOW|working-together",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 2,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 14,
+            "available_total": 16,
+            "possible": true,
+            "reason": "count_bound_passes"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 1,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 7,
+            "available_total": 8,
+            "possible": true,
+            "reason": "count_bound_passes"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "landeklappen_unvollstaendig"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:5:1",
+      "case_key": "LOG_GIG_YELLOW|working-together",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 1,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 0,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 5,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 14,
+            "available_total": 16,
+            "possible": true,
+            "reason": "count_bound_passes"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "kollision"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:6:0",
+      "case_key": "LOG_KEF_YELLOW|adaptation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 19,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 2,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 2,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 11,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "eisbremsen_unvollstaendig,flugzeuge_uebrig,landeklappen_unvollstaendig"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:6:1",
+      "case_key": "LOG_KEF_YELLOW|adaptation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 5,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 19,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 12,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:7:0",
+      "case_key": "LOG_KEF_YELLOW|anticipation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 18,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 0,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 13,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:7:1",
+      "case_key": "LOG_KEF_YELLOW|anticipation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 1,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 18,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 13,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:8:0",
+      "case_key": "LOG_KEF_YELLOW|control",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 16,
+            "available_total": 16,
+            "possible": true,
+            "reason": "count_bound_passes"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 0,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 11,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:8:1",
+      "case_key": "LOG_KEF_YELLOW|control",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 18,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 13,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:9:0",
+      "case_key": "LOG_KEF_YELLOW|mastery",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 3,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 17,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 2,
+            "copilot_owned_tasks": 0,
+            "shared_ice_tasks": 2,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 10,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:9:1",
+      "case_key": "LOG_KEF_YELLOW|mastery",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 2,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 1,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 14,
+            "available_total": 16,
+            "possible": true,
+            "reason": "count_bound_passes"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 1,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 0,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 8,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "landeklappen_unvollstaendig"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:10:0",
+      "case_key": "LOG_KEF_YELLOW|synchronisation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": true,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 3,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 17,
+            "available_total": 16,
+            "possible": null,
+            "reason": "unissued_future_sync_abstention"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": true,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 2,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 2,
+            "radio_tasks": 0,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 10,
+            "available_total": 8,
+            "possible": null,
+            "reason": "unissued_future_sync_abstention"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "eisbremsen_unvollstaendig"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:10:1",
+      "case_key": "LOG_KEF_YELLOW|synchronisation",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 1,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": true,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 3,
+            "copilot_owned_tasks": 3,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 18,
+            "available_total": 16,
+            "possible": null,
+            "reason": "unissued_future_sync_abstention"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": true,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 3,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 3,
+            "radio_tasks": 1,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 12,
+            "available_total": 8,
+            "possible": null,
+            "reason": "unissued_future_sync_abstention"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:11:0",
+      "case_key": "LOG_KEF_YELLOW|working-together",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 2,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 20,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 0,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 14,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "zu_schnell_gelandet"
+    },
+    {
+      "seed": "train:landing-budget-probe:251070:11:1",
+      "case_key": "LOG_KEF_YELLOW|working-together",
+      "entries": [
+        {
+          "stage": "1000ft",
+          "round": 6,
+          "height": 1000,
+          "distance": 2,
+          "budget": {
+            "supported": true,
+            "future_rounds": 1,
+            "regular_remaining": {
+              "kopilot": 4,
+              "pilot": 4
+            },
+            "available_by_role": {
+              "pilot": 8,
+              "kopilot": 8
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 2,
+              "kopilot": 4
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 19,
+            "available_total": 16,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        },
+        {
+          "stage": "final",
+          "round": 7,
+          "height": 0,
+          "distance": 0,
+          "budget": {
+            "supported": true,
+            "future_rounds": 0,
+            "regular_remaining": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "available_by_role": {
+              "pilot": 4,
+              "kopilot": 4
+            },
+            "issued_shared_bonus": 0,
+            "uncertain_future_bonus": false,
+            "controls_by_role": {
+              "pilot": 2,
+              "kopilot": 2
+            },
+            "pilot_owned_tasks": 4,
+            "copilot_owned_tasks": 1,
+            "shared_ice_tasks": 4,
+            "radio_tasks": 2,
+            "radio_slots_by_role": {
+              "pilot": 1,
+              "kopilot": 2
+            },
+            "minimum_brake_upgrades": 0,
+            "minimum_total_need": 15,
+            "available_total": 8,
+            "possible": false,
+            "reason": "necessary_count_bound_fails"
+          }
+        }
+      ],
+      "status": "verloren",
+      "reason": "eisbremsen_unvollstaendig,flugzeuge_uebrig,landeklappen_unvollstaendig"
+    }
+  ],
+  "entry_counts": {
+    "1000ft": {
+      "True": 5,
+      "False": 9,
+      "None": 3
+    },
+    "final": {
+      "False": 11,
+      "None": 3,
+      "True": 1
+    }
+  },
+  "elapsed_seconds": 40.0619597081095
+}
