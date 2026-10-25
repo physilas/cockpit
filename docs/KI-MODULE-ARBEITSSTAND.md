@@ -113,7 +113,13 @@ Control+Mastery (Kerosin/Echtzeit), tatsächliche NN-Platzierungen und gespeiche
 Feedback; technische Wind-/NoCard- und 0%-Sperrprüfungen; unverändertes Crew 4/
 Profil 11 mit allen sechs Karten; Daumen-/Mobil-/Privacy-/Speicher-/Cloudretry-
 Regression. Chrome und Scoped-Server geschlossen, letzter Job regulär Exit 0.
-Kein schwerer Job aktiv. Geprüfter Stand bereit für Push und Pages-Byteprüfung.
+Kein schwerer Job aktiv. **Mit `efa65649a65e55103220b47e95fb55694a846126`
+nach main gepusht und erfolgreich per GitHub Pages deployed.** Live bytegenau
+geprüft: Modellkatalog, Cacheversion, Singleplayer-JavaScript, Enginebundle und
+tatsächliches Crew-3-Browsergewicht. Öffentlicher Katalog enthält alle 18 Routen
+und genau 51 positive Fälle dieses Releases sowie alle 73 bisherigen Einträge.
+Der Veröffentlichungsauftrag ist abgeschlossen; das 30–40-%-Ziel aller Module
+bleibt offen.
 
 ## Aktueller Auftrag: weitere Module, zunächst Praktikant
 
