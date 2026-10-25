@@ -82,11 +82,15 @@ def _target(slot,targets):
 class ModuleEnv(CrewEnv):
     actions,slots=MODULE_ACTIONS,MODULE_SLOTS
 
-    def __init__(self,*args,abilities=None,curriculum_cases=(),clock=None,**kwargs):
+    def __init__(self,*args,abilities=None,curriculum_cases=(),clock=None,planning_cpu_duty_cycle=1.,**kwargs):
+        if (type(planning_cpu_duty_cycle) not in (int,float) or not math.isfinite(planning_cpu_duty_cycle)
+                or not 0<planning_cpu_duty_cycle<=1):
+            raise ValueError('Planning CPU duty cycle must be finite and in (0,1].')
         super().__init__(*args,**kwargs)
         self.abilities=None if abilities is None else tuple(abilities)
         self.curriculum_cases=tuple(curriculum_cases)
         self.clock=clock
+        self.planning_cpu_duty_cycle=float(planning_cpu_duty_cycle)
 
     def validate_scenario(self):
         if self.game.cockpit.module-set(MODULES) or set(self.game.zusatz.karten)-set(CARDS):
@@ -201,13 +205,18 @@ class ModuleEnv(CrewEnv):
 
     def _assist(self,mask):
         if not self.assistance_version or self.current_role not in self.assisted_roles:return mask
-        if self.assistance_version in (10,11):
+        if self.assistance_version in (10,11,12):
             from .module_guidance import module_guidance
             allowed, self._reference_mask = module_guidance(self.view(), mask)
-            if (self.assistance_version == 11 and 'leak' in self.game.cockpit.module
+            if (self.assistance_version in (11,12) and 'leak' in self.game.cockpit.module
                     and not self.game.cockpit.module & {'wind','ice','intern'}):
-                from .leak_advice import leak_reference
-                self._reference_mask = leak_reference(self.view(), allowed)
+                if self.assistance_version == 12:
+                    from .leak_card_advice import leak_card_reference
+                    self._reference_mask = leak_card_reference(self.view(), allowed,
+                        cpu_duty_cycle=self.planning_cpu_duty_cycle)
+                else:
+                    from .leak_advice import leak_reference
+                    self._reference_mask = leak_reference(self.view(), allowed)
             return allowed
         if self.game.cockpit.module <= {'kerosene'} and not self.game.zusatz.karten and self.assistance_version in (3,4,5,6,7,8,9):
             # Exact compatibility for the first PPO curriculum stage. Other
@@ -228,7 +237,7 @@ class ModuleEnv(CrewEnv):
 
     def info(self):
         result=super().info()
-        if self.assistance_version in (9,10,11):
+        if self.assistance_version in (9,10,11,12):
             # Pure public/own-hand advice, not another legality constraint.
             result['reference_action_mask']=(list(self._reference_mask)
                 if any(result['action_mask']) and self.current_role in self.assisted_roles

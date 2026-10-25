@@ -154,7 +154,7 @@ Referenz ab; das ist keine generelle Garantie. Stärkere Vorgabe hilft mehreren
 Fällen, doch das trainierte Modell bleibt bei zwei Karten sieglos. Die Quelle
 mit Abstand 12 erreicht 5–20 % je Karte; der kleine Entwicklungsvergleich ist
 keine Qualifikation. **Keine bestehende Crew geändert oder Konfiguration heimlich
-umgestellt.** Kein schwerer Job mehr aktiv. Sieben gezielte Tests bestehen.
+umgestellt.** Der Vergleich hinterließ keinen aktiven Job. Sieben gezielte Tests bestehen.
 
 Nächster begründeter Schritt: getrenntes neues öffentliches Profil für das
 belegte Anpassungsmanöver; dann neue Phase aus den ursprünglichen Gewichten mit
@@ -178,6 +178,65 @@ Der beobachtete Unterschied „Verkehr auf jedem überflogenen Feld“ gegenübe
 des Strafterms: übersprungene Flugzeuge bleiben unerreichbar und verhindern
 später die Landung. Kein belegter nutzbarer Regelvorteil. Ruderauflösung,
 einmalige Leckzahlung und eigene Aerodynamikänderungen wurden korrekt gefunden.
+
+### Neue öffentliche Planungsphase 12: Anpassung als geplantes Manöver
+
+Der abgeschlossene Leckvergleich und der öffentliche Gegenfall sind mit
+`78de538` gesichert und gepusht. Danach wurde ein **neues Profil 12** ergänzt;
+Profil 11 und alle vorhandenen Releasegewichte bleiben unverändert. Neue
+Quelldatei `ai.leak_card_advice` plant eine legale Anpassung als 1→6 bzw.
+allgemein 7−Augenzahl-Manöver vor der anschließenden gewöhnlichen Handplanung.
+Die virtuelle Hand hat dieselbe Würfelanzahl. Platzierungs-/Kaffeeregeln werden
+für die veränderten Augen neu berechnet; keine alte Gesichtsmaske wird kopiert.
+
+Normale Pläne und höchstens vier verschiedene Augenwert-Manöver werden gemeinsam
+bewertet; ein Kartenverbrauch kostet einen weichen Punkt und muss netto einen
+normalen Plan verbessern. Das ist eine begrenzte Heuristik, kein exakter
+Gewinnwert oder Beweis richtiger Ressourcenbewertung. Fehlende/verwendete Karte,
+andere Physik und Dialoge fallen exakt auf Profil 11 zurück. Keine Zeitlimits
+oder lastabhängiges Weglassen von Kandidaten: feste Arbeit (maximal Beam 24),
+CPU-Pausen etwa alle 20 ms ändern keine Referenzmaske. Native Worker übergeben
+`planning_cpu_duty_cycle=.7`, Browser rechnet mit 1; Beobachtung/Maske bleiben gleich.
+Gemessen etwa 20–52 ms CPU je neuer Planungsentscheidung, mit .7 etwa 33–73 ms
+Wandzeit. Neun neue gezielte Tests plus sieben bestehende Lecktests bestehen,
+inklusive beider Rollen, echter Rettungsfolge, Kartenverbrauch über Runden,
+virtueller Legalität, Privacy, deterministischem Pacing und Browserbridge.
+
+`ai.train_leak` kann jetzt ausdrücklich `--assistance-version 12 --guide-margin 12`
+verwenden. Standard 11/4 bleibt semantisch erhalten, aber **kein exaktes Resume
+alter Fingerprints**. Ein neuer Aufruf startet erneut von originalem
+`ai/releases/crew2-v1/best.pt`, frischem Adam, Zählern und Replay 0; die 80.206
+Entscheidungen der schwächeren Linie werden nicht geerbt. Gewichtsdatei-Fingerprint
+vor Override und Anfangs-Fingerprint danach werden getrennt aufgezeichnet;
+Tensorhashes stimmen exakt überein. Die endliche Vorgabe verändert ausdrücklich
+die Anfangswahrscheinlichkeiten, keine Tensorwerte. Bestehender Detailzweig lernt,
+ursprüngliche Grundlage bleibt eingefroren. Phasehash umfasst nun auch den
+verwendeten Kopier-/Hashhelper; alte Reports bleiben unverändert.
+
+Der technische Metal-Probelauf `runs/leak-profile12-smoke-v1` ist regulär fertig:
+69 neue Entscheidungen, ein echtes Update, Grundlage exakt unverändert,
+trainierbarer Detailzweig verändert. Anfangstensoren exakt originales Crew-2-
+Release, Modellkonfiguration mit Abstand 12 ausdrücklich anders. Bericht
+`profile12-smoke-v1.json`; Probelaufgewichte werden verworfen. Zehn fokussierte
+Trainer-/Fallbewertungstests bestehen, inklusive echtem 12/12-Rollout→PPO.
+
+**373 Python-Tests bestanden in 99,55 Sekunden**, verwalteter Job Exit 0,
+Log `/tmp/cockpit-leak12-tests.log`. Drei echte Browserprüfungen bestehen:
+Profil 12 mit originalen Crew-2-Tensoren und ausdrücklich Abstand 12 wählt selbst
+Anpassung 1→6 und anschließend Ruder 6 des KI-Kopiloten; Fluglage +2, Flug läuft
+weiter. Dies ist ein technischer öffentlicher Gegenfall, keine neue Spielquote.
+Unverändertes Crew 4/Profil 11 mit allen sechs Karten sowie Daumen-/Mobil-/
+Speicher-/Cloudretry-Verhalten sind ebenfalls geprüft. Chrome und scoped Server
+sind geschlossen, letzter Job regulär beendet, kein schwerer Lauf aktiv.
+Unabhängiger Read-only-Review ohne konkreten Befund; bestehende Modellkataloge
+und Releasegewichte bleiben exakt erhalten.
+
+Nächste ausdrücklich neue begrenzte Phase: `runs/leak-profile12-stage1/`,
+Seed 251057, Entwicklung je 20 Partien/Karte ab 14.930.000 mit Abstand 100,
+80.000 neue Entscheidungen oder 600 Trainingssekunden plus letzte Charge,
+acht Worker zu .7, Torch 1, nice 15, Metal. Auswahl nach schwächster Karte,
+Mittel nur bei Gleichstand, Warmstand bleibt auswählbar. Kein neuer unabhängiger
+Test und bisher kein Profil-12-Modell veröffentlicht.
 
 ### Abgeschlossene neue Phase: Leck auf Atlanta gelb
 
@@ -1327,7 +1386,12 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.route
   --output ai/experiments/modules-50pct-2026-10-25/route-policy-probe-v1.json
 ```
 
-### Weitere Forschung nach der Veröffentlichung
+### Historischer Forschungsplan vor dem Ausbau um Praktikant und Leck
+
+Die folgenden Punkte dokumentieren den damaligen Stand vor Crew 3/4 und werden
+nicht als aktuelle Einschränkung von Karten-Vorschauen oder als neuer Auftrag
+über die oben dokumentierten Phasen gelesen. Aktuell gelten die Abschnitte am
+Anfang dieses Arbeitsstands und die ausdrückliche Preview-Anweisung.
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
    keinen zweiten schweren Job. `joint-finish` erreichte nur 45 statt 48

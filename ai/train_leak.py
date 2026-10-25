@@ -1,4 +1,4 @@
-"""Bounded public-profile-11 PPO on Atlanta's six official leak/card cases.
+"""Bounded public-profile-11/12 PPO on Atlanta's six official leak/card cases.
 
 Fresh phase, existing guided detail branch, frozen foundation. No automatic
 publication and no substitution of an average for a weak card combination.
@@ -6,6 +6,7 @@ publication and no substitution of an average for a weak card combination.
 import argparse
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -22,6 +23,7 @@ from .nn_model import build_model
 from .public_case_eval import run_public_case
 from .train import collect_rollout, ppo_update
 from .train_fuel import successful_replay
+from .intern_strength_compare import MARGINS, tensor_fingerprint, with_margin
 
 
 _model, _options, _duty = None, None, None
@@ -29,10 +31,45 @@ _model, _options, _duty = None, None, None
 
 def phase_fingerprint():
     digest = hashlib.sha256(planner_fingerprint(3).encode())
-    for name in ('train_leak.py', 'public_case_eval.py'):
+    for name in ('train_leak.py', 'public_case_eval.py', 'intern_strength_compare.py'):
         digest.update(name.encode())
         digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()
+
+
+def initialize_phase(checkpoint, *, device='cpu', assistance_version=11, guide_margin=4.):
+    """Copy existing tensors into an explicit phase with a finite prior override.
+
+    ``source_weights_sha256`` names the unmodified input checkpoint; the
+    separately recorded initial fingerprint includes the chosen guide margin.
+    No optimizer, counters, replay, or RNG state is resumed from that source.
+    """
+    if assistance_version not in (11, 12):
+        raise ValueError('Leak training uses public profile 11 or 12.')
+    if type(guide_margin) not in (int, float) or guide_margin not in MARGINS:
+        raise ValueError('Use a finite guide margin of 4, 8 or 12.')
+    original, payload = load_checkpoint(checkpoint, device)
+    if (original.config.get('kind') != 'guided_residual' or original.config['action_count'] != 217
+            or original.config['observation_size'] != 489):
+        raise ValueError('Use an existing guided schema-3 player, without another network branch.')
+    source_sha = weight_fingerprint(original)
+    source_tensor_sha = tensor_fingerprint(original)
+    frozen_sha = weight_fingerprint(original.source)
+    model = with_margin(original, guide_margin)
+    if (tensor_fingerprint(model) != source_tensor_sha
+            or weight_fingerprint(model.source) != frozen_sha):
+        raise RuntimeError('Finite guidance override changed source tensors or the frozen foundation.')
+    lineage = dict(source_checkpoint_weights_sha256=source_sha,
+        source_weights_sha256=source_sha, initial_weights_sha256=weight_fingerprint(model),
+        source_tensor_sha256=source_tensor_sha, initial_tensor_sha256=tensor_fingerprint(model),
+        frozen_source_weights_sha256=frozen_sha,
+        frozen_source_tensor_sha256=tensor_fingerprint(model.source),
+        source_model_config=deepcopy(original.config), initial_model_config=deepcopy(model.config),
+        source_phase_steps=payload['total_steps'], source_guide_margin=original.guide_margin,
+        guide_margin=model.guide_margin, guide_margin_overridden=original.guide_margin != model.guide_margin,
+        phase_kind=('new_public_module_profile_11_leak' if assistance_version == 11
+                    else 'new_public_module_profile_12_leak_cards'))
+    return model, payload, lineage
 
 
 def selection_score(rows):
@@ -54,7 +91,7 @@ def _collect(task):
     _model.load_state_dict(state)
     torch.manual_seed(seed + update*1009 + ordinal)
     return collect_rollout(_model, ModuleEnv(**_options), steps,
-        seed=f'leak-profile11:{seed}:{update}:{ordinal}', episodes_done=0,
+        seed=f'leak-profile{_options["assistance_version"]}:{seed}:{update}:{ordinal}', episodes_done=0,
         gamma=.995, gae_lambda=.95, uniform_mix=.03, discount_unit='placement',
         cpu_duty_cycle=_duty)
 
@@ -63,7 +100,7 @@ def _evaluate(task):
     state, case, games, seed = task
     _model.load_state_dict(state)
     return run_public_case(_model, case, games, seed, cpu_duty_cycle=_duty,
-                           assistance_version=11)
+                           assistance_version=_options['assistance_version'])
 
 
 def main():
@@ -80,6 +117,8 @@ def main():
     parser.add_argument('--eval-seed', type=int, default=14910000)
     parser.add_argument('--eval-games-per-case', type=int, default=20)
     parser.add_argument('--eval-every', type=int, default=20)
+    parser.add_argument('--assistance-version', type=int, choices=(11, 12), default=11)
+    parser.add_argument('--guide-margin', type=float, choices=MARGINS, default=4.)
     args = parser.parse_args()
     if (not 1 <= args.workers <= 8 or not 0 < args.cpu_duty_cycle <= .7 or
             args.steps < 1 or not math.isfinite(args.seconds) or not 0 < args.seconds <= 900 or
@@ -97,20 +136,23 @@ def main():
     keys = {case_key(case) for case in cases}
     torch.set_num_threads(1)
     torch.manual_seed(args.seed)
-    model, source = load_checkpoint(args.source, args.device)
-    if (model.config.get('kind') != 'guided_residual' or model.config['action_count'] != 217 or
-            model.config['observation_size'] != 489):
-        parser.error('Use an existing guided schema-3 player, without another network branch.')
-    initial_sha, frozen_sha = weight_fingerprint(model), weight_fingerprint(model.source)
+    try:
+        model, source, lineage = initialize_phase(args.source, device=args.device,
+            assistance_version=args.assistance_version, guide_margin=args.guide_margin)
+    except ValueError as exc:
+        parser.error(str(exc))
+    initial_sha, frozen_sha = lineage['initial_weights_sha256'], lineage['frozen_source_weights_sha256']
     optimizer = torch.optim.Adam((p for p in model.parameters() if p.requires_grad), lr=5e-5, eps=1e-5)
-    options = dict(airport='LOG_ATL_YELLOW', assistance_version=11, max_steps=256,
+    options = dict(airport='LOG_ATL_YELLOW', assistance_version=args.assistance_version, max_steps=256,
         curriculum_cases=cases, round_reward=0., sync_weight=.05, sync_tolerance=1., task_weight=.02)
+    if args.assistance_version == 12:
+        options['planning_cpu_duty_cycle'] = args.cpu_duty_cycle
     config = {**options, 'schema_version':3, 'supported_modules':['leak'],
         'supported_cards':sorted(case['abilities'][0] for case in cases), 'ability_count':1,
         'supported_cases':cases, 'source_checkpoint':args.source.as_posix(),
-        'source_weights_sha256':initial_sha, 'source_phase_steps':source['total_steps'],
+        **lineage,
         'source_planner_sha256':source['train_config'].get('planner_sha256'),
-        'phase_kind':'new_public_module_profile_11_leak', 'phase_sha256':phase_fingerprint(),
+        'phase_sha256':phase_fingerprint(),
         'planner_sha256':planner_fingerprint(3), 'action_mask_version':2,
         'workers':args.workers, 'cpu_duty_cycle':args.cpu_duty_cycle, 'threads':1, 'device':args.device,
         'seed':args.seed, 'eval_seed':args.eval_seed, 'eval_seed_stride':100,

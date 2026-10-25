@@ -35,14 +35,15 @@ def run_public_case(model, case, games, seed, cpu_duty_cycle=.7, assistance_vers
     if (config.get('kind') != 'guided_residual' or config.get('observation_size') != 489
             or config.get('action_count') != 217):
         raise ValueError('Use a guided schema-3 player with 489 features and 217 actions.')
-    if assistance_version not in (10, 11):
-        raise ValueError('Public module development uses explicit profile 10 or 11.')
+    if assistance_version not in (10, 11, 12):
+        raise ValueError('Public module development uses explicit profile 10, 11 or 12.')
     if not math.isfinite(cpu_duty_cycle) or not 0 < cpu_duty_cycle <= .7:
         raise ValueError('Evaluation duty cycle must be in (0, .7].')
     budget = CpuBudget(cpu_duty_cycle)
     env = ModuleEnv(case['airport'], abilities=list(case['abilities']),
                     assistance_version=assistance_version, max_steps=256,
-                    round_reward=0., sync_weight=0., task_weight=0.)
+                    round_reward=0., sync_weight=0., task_weight=0.,
+                    **({'planning_cpu_duty_cycle': cpu_duty_cycle} if assistance_version == 12 else {}))
     agent = ModelAgent(model)
     records = []
     was_training = model.training

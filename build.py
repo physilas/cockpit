@@ -38,6 +38,7 @@ PYTHON_DATEIEN = [
     "ai/module_guidance.py",
     "ai/intern_advice.py",
     "ai/leak_advice.py",
+    "ai/leak_card_advice.py",
     "ai/module_physics.py",
     "ai/throttle.py",
     "ai/public_rules.py",

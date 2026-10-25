@@ -66,10 +66,10 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
     if any(config.get(flag) for flag in ('research_all_modules', 'research_open_risk', 'research_capacity_guard')):
         raise ValueError('Research action masks need a matching browser environment before preview.')
     profile = config.get('assistance_version', 0)
-    if type(profile) is not int or not 0 <= profile <= 11:
+    if type(profile) is not int or not 0 <= profile <= 12:
         raise ValueError('Unknown browser assistance profile.')
-    if model.config.get('kind') == 'guided_residual' and profile not in (9, 10, 11):
-        raise ValueError('Guided browser models require a public reference profile 9, 10 or 11.')
+    if model.config.get('kind') == 'guided_residual' and profile not in (9, 10, 11, 12):
+        raise ValueError('Guided browser models require a public reference profile 9, 10, 11 or 12.')
     if (report.get('weights_sha256') != weight_fingerprint(model)
             or type(report.get('assistance_version')) is not int
             or report.get('assistance_version') != profile
@@ -83,7 +83,7 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         cases = report['cases']
         if not isinstance(cases, dict) or not cases or report.get('routes'):
             raise ValueError('Use explicit nonempty card cases without mixed route aggregates.')
-        if model_schema(model)['version'] != 3 or profile not in (0, 10, 11):
+        if model_schema(model)['version'] != 3 or profile not in (0, 10, 11, 12):
             raise ValueError('Card previews require schema 3 and a public module/card profile.')
         claims = {}
         for field, registered in (('supported_modules', MODULES), ('supported_cards', CARDS)):
