@@ -670,6 +670,14 @@ mit Gewicht 0,03. Quelle ist wieder der unveränderte 500.347-Stand, nicht die
 128-Züge-Probe. Grobe Dauer 20–40 Minuten, abhängig von Episoden und Bewertungen.
 Währenddessen keine Such-/Trainingsquellen ändern und keinen zweiten schweren
 Job starten. Konkrete Schritte/Einzelquoten immer aus den laufenden Logs lesen.
+Die Anfangsprüfung ist abgeschlossen: je 100 Partien auf den **neuen** festen
+Entwicklungsseeds ergeben **OSL 48 / HND 36 / LHR 68 / YUL 88 %**. Das ist der
+Stand vor dem ersten Update unter der neuen Auswahl, keine Verbesserung und
+nicht dieselbe HND-Stichprobe wie die vorherigen 45/48-Vergleiche.
+Erster protokollierter PPO-Stand: **2.283 neue Entscheidungen**, davon HND 1.095,
+OSL 615, LHR 258, YUL 315. Die eingefrorene Grundlage blieb auch nach diesem
+echten Metal-Update exakt unverändert. Weitere Zähler immer aus `training.jsonl`
+lesen; sie steigen während des laufenden Jobs weiter.
 
 ```sh
 nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
