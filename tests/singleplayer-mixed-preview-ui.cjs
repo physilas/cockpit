@@ -16,12 +16,12 @@ const rows=page=>page.evaluate(async()=>{
       {const base=window.COCKPIT_AI_CATALOG.models.find(model=>model.id==='crew3-intern-preview-v1/best.pt');
        window.__priorMixedCatalog=JSON.stringify(window.COCKPIT_AI_CATALOG.models);
        window.COCKPIT_AI_CATALOG.models.unshift({...base,id:'${fixtureId}',name:'Mixed cases fixture (Test)',
-         recommended:true,supported_airports:['MUC','LOG_YUL_GREEN','LOG_GIG_YELLOW','LOG_ATL_GREEN'],quality:{approved:false},
+         recommended:true,supported_airports:['LOG_YUL_GREEN','LOG_HND_GREEN','LOG_GIG_YELLOW','LOG_ATL_GREEN'],quality:{approved:false},
          preview:{enabled:true,positive_only:true,evaluation_kind:'development',
-           route_results:{MUC:{games:20,win_rate:.99}},
-           supported_cases:[{airport:'MUC',abilities:[]},{airport:'LOG_YUL_GREEN',abilities:[]},
+           route_results:{LOG_YUL_GREEN:{games:20,win_rate:.99}},
+           supported_cases:[{airport:'LOG_YUL_GREEN',abilities:[]},{airport:'LOG_HND_GREEN',abilities:[]},
              {airport:'LOG_GIG_YELLOW',abilities:['control']},{airport:'LOG_GIG_YELLOW',abilities:['adaptation']}],
-           case_results:{'MUC|':{games:20,wins:1,win_rate:.05},'LOG_YUL_GREEN|':{games:20,wins:0,win_rate:0},
+           case_results:{'LOG_YUL_GREEN|':{games:20,wins:1,win_rate:.05},'LOG_HND_GREEN|':{games:20,wins:0,win_rate:0},
              'LOG_GIG_YELLOW|control':{games:20,wins:2,win_rate:.1},'LOG_GIG_YELLOW|adaptation':{games:20,wins:0,win_rate:0}}}});}
     `}));
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
@@ -44,7 +44,7 @@ const rows=page=>page.evaluate(async()=>{
         return (row.abilities.length===2 && route.modules.includes('realtime')?100:0)
           + (row.abilities.length===2?20:0) + row.abilities.filter(card=>['control','mastery'].includes(card)).length;
       };
-      const noCards=current.preview.supported_cases.find(row=>row.airport==='MUC' && !row.abilities.length)
+      const noCards=current.preview.supported_cases.find(row=>row.airport==='LOG_YUL_GREEN' && !row.abilities.length)
         || current.preview.supported_cases.find(row=>!row.abilities.length);
       const withCards=current.preview.supported_cases.filter(row=>row.abilities.length).sort((a,b)=>score(b)-score(a))[0];
       assert.ok(noCards && withCards,'The published release needs both tested runtime paths');
@@ -112,13 +112,13 @@ const rows=page=>page.evaluate(async()=>{
     }
     await chooseMode(page,'play');
     await chooseModel(page,fixtureId);
-    await chooseRoute(page,'custom-MUC');
-    for(const route of ['YUL-green','ATL-green']) {
+    await chooseRoute(page,'YUL-green');
+    for(const route of ['HND-green','ATL-green']) {
       assert.equal(await page.locator(`#solo-route option[value="${route}"]`).count(),0,
         'Zero-result and unlisted no-card cases stay hidden despite route hints');
     }
     await chooseMode(page,'feedback');
-    for(const [route,cards,rate] of [['custom-MUC',[],5],['GIG-yellow',['control'],10]]) {
+    for(const [route,cards,rate] of [['YUL-green',[],5],['GIG-yellow',['control'],10]]) {
       await chooseModel(page,fixtureId);
       await chooseRoute(page,route);
       assert.match(await page.locator('#solo-description').innerText(),new RegExp(`Entwicklungstest im KI-Selbstspiel: ${rate} %`));
@@ -147,7 +147,7 @@ const rows=page=>page.evaluate(async()=>{
         nachAktion(answer);
       });
       let recording;
-      const key=(route==='custom-MUC'?'MUC':'LOG_GIG_YELLOW')+'|'+cards.join(',');
+      const key=(route==='YUL-green'?'LOG_YUL_GREEN':'LOG_GIG_YELLOW')+'|'+cards.join(',');
       for(let attempt=0;attempt<50;attempt++) {
         await page.waitForTimeout(100);
         if(await page.locator('#ai-resume').count()) throw new Error(await page.locator('.ai-paused').innerText());
@@ -163,6 +163,6 @@ const rows=page=>page.evaluate(async()=>{
       await page.locator('[data-mode="feedback"]').click();
     }
     assert.deepEqual(errors,[]);
-    console.log('✓ Mixed exact positive cases: empty-card/custom and wind-card launches, case-specific quotes/records, zero/unlisted cases hidden, strict launch revalidation, original Crew3 tensors and approved defaults preserved; actual current release '+(current?'checked':'not present (fixture-only opt-in)'));
+    console.log('✓ Mixed exact positive cases: standard base-game and wind-card launches, case-specific quotes/records, zero/unlisted cases hidden, strict launch revalidation, original Crew3 tensors and approved defaults preserved; actual current release '+(current?'checked':'not present (fixture-only opt-in)'));
   } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

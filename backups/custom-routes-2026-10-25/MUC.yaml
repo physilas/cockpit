@@ -1,0 +1,40 @@
+# FLUGHAFEN INFORMATIONEN
+code: MUC
+bezeichnung: München
+
+# MODULE
+module: null
+faehigkeitskarten: 0
+
+# SCHWIERIGKEIT UND LAENGE
+schwierigkeit: 0
+laenge: 7
+neuwurf_hoehen: [6000, 2000]
+
+# FLUGZEUGE UND KURVEN
+#
+# Ein Eintrag pro Feld der Entfernungsleiste, von "am weitesten weg"
+# (Entfernung 6) bis zum Flughafen (Entfernung 0).
+# Format je Zeile: "<initiale Flugzeuge> <flugzeugwuerfel> <kurven_min> <kurven_max>"
+#
+# ANNAHME: Die Anzahl der Flugzeuge pro Feld ist NICHT im Regelheft als
+# Zahl angegeben - im echten Spiel steht sie auf der bedruckten
+# Entfernungsleiste (Icons pro Feld). Das Aufbau-Kapitel (S.3) nennt nur
+# die Gesamtzahl "12 Flugzeuge (9 auf der Leiste, 3 bleiben übrig)" als
+# allgemeine Materialübersicht für alle Flughäfen. Die
+# ursprüngliche Verteilung war daher ein PLATZHALTER, den ich anhand der
+# Gesamtzahl geraten habe. Bitte anhand des echten MUC-Leiste-Bauteils
+# korrigieren!
+# Für einen leichteren Einstieg steht am Start nur 1 Flugzeug (gesamt: 8).
+#
+# "flugzeugwuerfel", "kurven_min" und "kurven_max" kommen im Basis-
+# Regelheft nicht vor (siehe Hinweis in landung.py) und werden aktuell
+# von der Engine nicht ausgewertet - Platzhalterwerte.
+flugzeuge_wuerfel_kurven_min_max:
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2
+- 0 0 -2 2

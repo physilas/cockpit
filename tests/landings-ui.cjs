@@ -22,6 +22,8 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     assert.equal(await page.locator('select').count(), 0);
     await page.getByRole('button',{name:/Pass & Play/}).click();
     assert.equal(await page.locator('.landing-card').count(),21);
+    assert.equal(await page.locator('[data-filter="custom"]').count(),0);
+    assert.equal(await page.locator('[data-scenario^="custom-"]').count(),0);
     await page.locator('[data-filter="green"]').click(); assert.equal(await page.locator('.landing-card').count(),6);
     await page.locator('[data-filter="yellow"]').click(); assert.equal(await page.locator('.landing-card').count(),7);
     await page.locator('[data-filter="red"]').click(); assert.equal(await page.locator('.landing-card').count(),5);
@@ -95,12 +97,15 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     console.log('✓ Real-engine shared reroll popup, both dice pools, placed dice locked, two confirmations, one token, highlighted results, automatic close, Escape and 320px layout');
     await page.locator('#neues-spiel-btn').click();
     assert.equal(await page.locator('dialog[open]').count(),0);
-    await page.locator('[data-action="gallery"]').click(); await page.locator('[data-filter="custom"]').click();
-    assert.equal(await page.locator('.landing-card').count(),3);
-    await page.locator('[data-scenario="custom-LHR"]').click(); await page.locator('[data-action="start"]').click();
+    await page.locator('[data-action="gallery"]').click();
+    assert.equal(await page.locator('.landing-card').count(),21);
+    assert.equal(await page.locator('[data-filter="custom"]').count(),0);
+    assert.equal(await page.locator('[data-scenario^="custom-"]').count(),0);
+    await page.locator('[data-scenario="LHR-green"]').click(); await page.locator('[data-action="start"]').click();
     await page.locator('#spiel-ui').waitFor({state:'visible'});
     state = await page.evaluate(() => pyToJs(bridge.zustand()));
-    assert.equal(state.szenario_id,'custom-LHR'); assert.equal(state.mock,false); assert.equal(state.laenge,5);
+    assert.equal(state.szenario_id,'LHR-green'); assert.equal(state.mock,false); assert.equal(state.laenge,6);
+    if(await page.locator('#verkehr-dialog[open]').count()) await page.locator('.traffic-peek-button').click();
     await page.locator('#menue-btn').click(); await page.getByRole('button',{name:/Pass & Play/}).click();
     await page.locator('[data-action="gallery"]').click(); await page.locator('[data-filter="all"]').click();
     await page.locator('[data-scenario="PRG-green"]').click();
@@ -108,7 +113,7 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     await page.locator('[data-action="gallery"]').click();
     assert.match(await page.locator('[data-scenario="PRG-green"]').innerText(),/Gelandet/);
     assert.equal(await page.locator('[data-scenario="LHR-green"] .landing-completed').count(),0);
-    console.log('✓ Real Pyodide start, traffic action, route switching, original custom LHR and official progress');
+    console.log('✓ Real Pyodide start, traffic action, official route switching/progress; custom routes and filter absent');
     await page.setViewportSize({width:390,height:844});
     await page.screenshot({path:path.join(shotDir,'mobile.png')});
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
@@ -125,6 +130,8 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     const host = await context.newPage(); host.on('pageerror', e=>errors.push(e.message));
     await host.goto(`${base}/frontend/web/multiplayer.html`);
     await host.locator('#btn-host').click(); assert.equal(await host.locator('.landing-card').count(),21);
+    assert.equal(await host.locator('[data-filter="custom"]').count(),0);
+    assert.equal(await host.locator('[data-scenario^="custom-"]').count(),0);
     assert.equal(await host.locator('select').count(),0);
     await host.locator('[data-scenario="HND-red"]').click(); await host.locator('[data-ability="control"]').click(); await host.locator('[data-action="start"]').click();
     await host.waitForFunction(()=>pyodideReady,{},{timeout:90000});
@@ -208,9 +215,13 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     console.log('✓ Host preflight, hidden partner dice, matching scenario on both devices, waiting/cancel/new landing (transport fixture)');
     const offline = await context.newPage();
     await offline.route('https://**/*', route=>route.abort());
-    await offline.addInitScript(()=>localStorage.setItem('flyteam-loadout-drafts-v1','invalid json'));
+    await offline.addInitScript(()=>{
+      localStorage.setItem('flyteam-loadout-drafts-v1','invalid json');
+      localStorage.setItem('flyteam-selection-v1',JSON.stringify({id:'custom-LHR'}));
+    });
     await offline.goto(`${base}/frontend/web/?view=landings`);
     assert.equal(await offline.locator('.landing-card').count(),21);
+    assert.equal(await offline.locator('[data-scenario^="custom-"]').count(),0);
     console.log('✓ Catalogue works with external CDNs unavailable and invalid saved drafts');
     assert.deepEqual(errors,[]);
     console.log(`All browser checks passed. Screenshots: ${shotDir}`);

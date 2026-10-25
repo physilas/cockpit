@@ -1,5 +1,32 @@
 # Arbeitsstand: Modul-KI, auf Nutzerwunsch pausiert
 
+## Vorläufig ausschließlich Standardrouten im Spiel
+
+Auf den ergänzenden Nutzerwunsch sind eigene Routen aus dem gemeinsamen
+Browserkatalog entfernt. Einzelspieler, Pass & Play und die Mehrspieler-Auswahl
+zeigen vorerst nur die **21 Logbuchrouten**; der Galerie-Filter „Eigene Strecken“
+entfällt. Alte gespeicherte Auswahlen einer eigenen Route fallen auf eine
+Standardroute zurück. Die KI-Auswahl bevorzugt eine freigegebene Crew für die
+erste Standard-Grundspielroute, ohne fest eingebautes MUC-Startziel.
+
+Backup unter `backups/custom-routes-2026-10-25/`: FRA, LHR, MUC, MUC_T1,
+MUC_T2 und MUC_T3 als sechs bytegenau kopierte YAML-Dateien, vollständige alte
+Katalogeinträge und SHA-256-Prüfsummen. Wiederherstellungshinweise in der README.
+Originale Engine-Dateien und historische Trainings-/Release-Daten bleiben für
+die Reproduzierbarkeit zusätzlich erhalten, werden aber nicht im Spiel angeboten.
+Die vorläufige Sichtbarkeit wird zentral beim Browser-Build festgelegt.
+
+**Nach dieser Ergänzung bestanden acht Katalogtests, der Node-Fallvertrag und
+fünf betroffene Browserprüfungen:** getrennte Schritte/Handy/Querformat,
+allgemeines Feedback und beide Rollen, Vorschauen, gemischte Kartenfälle sowie
+Galerie/Pass & Play/Mehrspieler mit echter Engine und simuliertem Transport.
+Geprüft sind 21 sichtbare Standardrouten, kein eigener Filter/Eintrag, Start einer
+offiziellen Heathrow-Route, alte gespeicherte eigene Auswahl und Offline-Katalog.
+Vier Einzelspielerprüfungen bestanden direkt; die Galerieprüfung wurde an den
+Verkehrsdialog der nun offiziellen Ersatzstrecke angepasst und bestand danach.
+Alle sechs Backups stimmen mit Original und Prüfsumme überein. Build/Cache
+aktualisiert; Training und Automation bleiben pausiert.
+
 ## Einzelspieler-Auswahl in getrennten Schritten
 
 Auf neuen Nutzerwunsch folgt die Auswahl jetzt **Modus → KI und eigene Rolle →

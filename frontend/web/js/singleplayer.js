@@ -231,8 +231,9 @@ window.Singleplayer = (() => {
       <details class="solo-data"><summary>Eigene Aufzeichnungen</summary><div><button id="solo-export">Aufzeichnungen exportieren</button><span id="ai-export-status" role="status"></span></div>
       <p class="solo-storage-note" id="solo-storage-status"></p></details></section></div>`;
     setup = {mode: "play", humanRole: "pilot", model: null};
-    // Prefer a qualified release supporting the initially selected MUC route.
-    const preferred = [...qualifiedModels()].filter(m => !isPreview(m) && supports(m, "MUC")).sort((a,b) =>
+    // Start with a qualified crew for the first standard base-game landing.
+    const firstRoute = window.LANDING_CATALOG.scenarios.find(s => !s.modules.length && !s.ability_count);
+    const preferred = [...qualifiedModels()].filter(m => !isPreview(m) && supportsRoute(m, firstRoute)).sort((a,b) =>
       Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)) ||
       Number(b.checkpoint === "latest") - Number(a.checkpoint === "latest") || b.steps - a.steps)[0];
     if (preferred) document.getElementById("solo-model").value = preferred.id;
@@ -302,7 +303,7 @@ window.Singleplayer = (() => {
       : supportsRoute(setup.model, route) && (setup.mode !== "feedback" || supportsFeedback(setup.model, route)));
     const routeSelector = document.getElementById("solo-route"), previousRoute = routeSelector.value;
     routeSelector.innerHTML = routes.map(s => `<option value="${esc(s.id)}">${esc(s.code)} · ${esc(s.name)}${s.modules.map(module => ` · ${esc(window.LANDING_CATALOG.modules[module]?.name || module)}`).join("")}${s.ability_count ? ` · ${s.ability_count} ${s.ability_count === 1 ? "Karte" : "Karten"}` : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("");
-    routeSelector.value = routes.find(s => s.id === previousRoute)?.id || routes.find(s => s.engine_code === "MUC")?.id || routes[0]?.id || "";
+    routeSelector.value = routes.find(s => s.id === previousRoute)?.id || routes[0]?.id || "";
     const selectedRoute = routes.find(s => s.id === routeSelector.value);
     document.getElementById("solo-model-description").textContent = !setup.model ? "Keine KI verfügbar."
       : `${isPreview(setup.model) ? "Testmodell · noch nicht unabhängig qualifiziert. " : ""}${routes.length} ${routes.length === 1 ? "Landung verfügbar" : "Landungen verfügbar"}.`;

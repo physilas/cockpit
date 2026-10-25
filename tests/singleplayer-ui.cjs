@@ -53,7 +53,7 @@ const assertFeedbackVisible = async page => {
     assert.deepEqual(availableRoutes, expectedRoutes);
     await chooseMode(page,'feedback');
     await chooseModel(page,goodModel);
-    await chooseRoute(page,'custom-MUC');
+    await chooseRoute(page,'YUL-green');
     assert.equal(await page.locator('#solo-start').isDisabled(),true);
     assert.equal(uploads.length,0);
     await page.screenshot({path:'/tmp/flyteam-singleplayer-menu.png',fullPage:true});
@@ -156,7 +156,7 @@ const assertFeedbackVisible = async page => {
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('[data-mode="examples"]').click();
     await page.locator('#solo-consent').check();
-    await page.locator('#solo-route').selectOption('custom-MUC');
+    await page.locator('#solo-route').selectOption('YUL-green');
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible'});
     await page.evaluate(()=>{
@@ -193,7 +193,7 @@ const assertFeedbackVisible = async page => {
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('[data-mode="feedback"]').click();
     await chooseModel(page,goodModel,'kopilot');
-    await chooseRoute(page,'custom-MUC');
+    await chooseRoute(page,'YUL-green');
     await page.locator('#solo-consent').check(); await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
     await page.evaluate(()=>{

@@ -18,6 +18,8 @@ const fits = async page => assert.ok(await page.evaluate(() => {
     for (const viewport of [{width:1280,height:900},{width:390,height:844},{width:320,height:568},{width:568,height:320}]) {
       await page.setViewportSize(viewport);await page.goto(pageUrl);
       await page.getByRole('button',{name:/Singleplayer/}).click();
+      assert.equal(await page.evaluate(()=>LANDING_CATALOG.scenarios.length),21);
+      assert.equal(await page.evaluate(()=>LANDING_CATALOG.scenarios.every(s=>s.kind==='logbook' && !s.id.startsWith('custom-'))),true);
       assert.equal(await page.locator('#singleplayer-menu').getAttribute('data-step'),'mode');
       assert.equal(await page.locator('#solo-model').isVisible(),false);
       assert.equal(await page.locator('#solo-route').isVisible(),false);
@@ -59,7 +61,8 @@ const fits = async page => assert.ok(await page.evaluate(() => {
       await chooseMode(page,'play');
       assert.equal(await page.locator('#solo-consent').isChecked(),false,'Changing mode resets consent');
       await chooseModel(page,'crew-basegame-v1/best.pt');
-      await chooseRoute(page,'custom-MUC');
+      await chooseRoute(page,'YUL-green');
+      assert.equal(await page.locator('#solo-route option[value^="custom-"]').count(),0);
       assert.equal(await page.locator('#solo-route option[value="ATL-yellow"]').count(),0);
       assert.equal(await page.locator('#solo-model').inputValue(),'crew-basegame-v1/best.pt','A landing never silently changes the chosen AI');
       await chooseMode(page,'examples');

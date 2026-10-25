@@ -14,15 +14,15 @@ const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://$
        if(!candidate) throw new Error('Actual Crew-3 preview missing');
        for(const [id,preview] of [['hidden-unqualified',undefined],['hidden-disabled',{enabled:false}],['hidden-truthy',{enabled:'true'}]])
          window.COCKPIT_AI_CATALOG.models.unshift({...candidate,id,quality:{approved:false},preview,
-           supported_airports:['MUC','LOG_ATL_GREEN','LOG_LHR_YELLOW']});
-       window.COCKPIT_AI_CATALOG.models.unshift({...candidate,id:'fixture-preview-muc',recommended:true,
-         supported_airports:['MUC'],quality:{approved:false}});}
+           supported_airports:['LOG_YUL_GREEN','LOG_ATL_GREEN','LOG_LHR_YELLOW']});
+       window.COCKPIT_AI_CATALOG.models.unshift({...candidate,id:'fixture-preview-yul',recommended:true,
+         supported_airports:['LOG_YUL_GREEN'],quality:{approved:false}});}
     `}));
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     await page.goto(pageUrl);await page.getByRole('button',{name:/Singleplayer/}).click();
     assert.equal(await page.locator('#solo-model').inputValue(),'crew-basegame-v1/best.pt','Crew 1 remains the default');
-    assert.equal(await page.locator('#solo-model option[value="fixture-preview-muc"]').count(),1);
+    assert.equal(await page.locator('#solo-model option[value="fixture-preview-yul"]').count(),1);
     const actual=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(m=>m.id==='crew3-intern-preview-v1/best.pt'));
     assert.equal(actual.quality?.approved,false);
     assert.equal(actual.preview.evaluation_kind,'development');

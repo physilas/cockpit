@@ -108,7 +108,11 @@ class KatalogTest(unittest.TestCase):
         from pathlib import Path
         text = (Path(__file__).resolve().parents[1] / "frontend/web/js/landing-catalog.js").read_text()
         bundled = json.loads(text.split("window.LANDING_CATALOG = ", 1)[1].removesuffix(";\n"))
-        self.assertEqual(bundled, landekatalog())
+        expected = landekatalog()
+        expected["scenarios"] = [s for s in expected["scenarios"] if s["kind"] == "logbook"]
+        self.assertEqual(bundled, expected)
+        self.assertEqual(len(bundled["scenarios"]), 21)
+        self.assertFalse(any(s["id"].startswith("custom-") for s in bundled["scenarios"]))
 
 
 if __name__ == "__main__":

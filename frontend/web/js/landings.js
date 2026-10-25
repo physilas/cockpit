@@ -29,7 +29,7 @@
         <div data-view="gallery">
           <div class="landing-hero"><span class="landing-eyebrow">FLUGVORBEREITUNG</span><h1>Wähle deine Landung.</h1><p>Von Montréal bis Paro. Ein neuer Anflug wartet auf euch.</p><div class="landing-stats"><span>21 Landungen</span><span>11 Flughäfen</span><span>4 Schwierigkeitsstufen</span></div></div>
           <div class="landing-notice"><b>Bereit für die Landung.</b> Die Szenariovorgaben stammen aus dem Logbuch; die Fotos sind frei lizenzierte Stadt- und Landschaftspanoramen der Reiseziele. Alle 21 Originalstrecken sind aus deinen Fotos übernommen. Alle Zusatzmodule und die sechs Fähigkeiten sind aktiv. Wählt vor dem Start das für eure Landung vorgesehene Kartenset.</div>
-          <div class="landing-controls"><div class="landing-filters" role="group" aria-label="Landungen filtern"><button type="button" data-filter="all">Alle 21</button>${catalog.difficulties.map(d => `<button type="button" data-filter="${d.id}" style="--level:${d.color}"><i></i>${esc(d.label)}</button>`).join("")}<button type="button" data-filter="custom">Eigene Strecken</button></div><label class="landing-search">Flughafen suchen<input type="search" placeholder="Stadt, Flughafen oder Code …" autocomplete="off"></label></div>
+          <div class="landing-controls"><div class="landing-filters" role="group" aria-label="Landungen filtern"><button type="button" data-filter="all">Alle 21</button>${catalog.difficulties.map(d => `<button type="button" data-filter="${d.id}" style="--level:${d.color}"><i></i>${esc(d.label)}</button>`).join("")}</div><label class="landing-search">Flughafen suchen<input type="search" placeholder="Stadt, Flughafen oder Code …" autocomplete="off"></label></div>
           <p class="landing-result-count" role="status" aria-live="polite"></p><div class="landing-grid"></div><p class="landing-credit">Fotos: Wikimedia Commons · <a href="bildnachweise.html" target="_blank" rel="noopener">Bildnachweise und Lizenzen ↗</a> · <a href="${esc(catalog.source.rules_url)}" target="_blank" rel="noopener">Spielregeln bei Dized ↗</a></p>
         </div>
         <div data-view="detail" class="versteckt"></div>
@@ -40,10 +40,10 @@
     const normalize = text => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("de");
     function renderGrid() {
       const victories = read("flyteam-landings-v1", {});
-      const matches = catalog.scenarios.filter(s => (filter === "custom" ? s.kind === "custom" : s.kind === "logbook" && (filter === "all" || s.difficulty === filter))
+      const matches = catalog.scenarios.filter(s => s.kind === "logbook" && (filter === "all" || s.difficulty === filter)
         && normalize(`${s.code} ${s.name} ${s.city} ${s.country}`).includes(normalize(query.trim())));
       root.querySelectorAll('[data-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === filter)));
-      root.querySelector('.landing-result-count').textContent = `${matches.length} ${matches.length === 1 ? "Landung" : "Landungen"}${filter === "custom" ? " · eigene Strecken" : " · Logbuch"}`;
+      root.querySelector('.landing-result-count').textContent = `${matches.length} ${matches.length === 1 ? "Landung" : "Landungen"} · Logbuch`;
       grid.innerHTML = matches.length ? matches.map(s => {
         const d = difficulty(s), won = Boolean(victories[progressKey(s)]);
         return `<button type="button" class="landing-card" style="--level:${d.color}" data-scenario="${esc(s.id)}" aria-label="${esc(s.code)} ${esc(s.name)}, ${esc(d.label)}, ${s.kind === 'logbook' ? (s.practice ? 'Originalstrecke mit Übungsregeln' : 'Originalstrecke') : 'eigene Strecke'}">
