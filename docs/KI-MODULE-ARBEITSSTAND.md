@@ -831,6 +831,76 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.route
   --output ai/experiments/modules-50pct-2026-10-25/crew2-qualification-v1.json
 ```
 
+### Passive Diagnose des OpenRisk-Lernens nach Crew 2
+
+`ai.route_policy_probe` isoliert Angebotsänderungen durch die Zusatzmaske und
+Lernänderungen durch die Gewichte auf **denselben erlaubten eigenen Zuständen**.
+Je Zustand werden die ursprüngliche Politik unter Maske 9, dieselben Gewichte
+mit Zusatzmaske und der trainierte Kandidat mit Zusatzmaske verglichen.
+Gleichwertige gleichaugige Würfel werden zusätzlich als dieselbe inhaltliche
+Aktion gezählt. Nur aggregierte Zähler werden veröffentlicht; weder private
+Partnerhände noch zukünftige echte RNG-Werte gehen in diese Berechnungen ein.
+
+Die erste begrenzte Diagnose endete regulär nach **67,46 s**, Exit 0:
+**8.369 gesampelte Trainingsentscheidungen in 143 Partien**, kein PPO-Update,
+keine neuen trainierten Gewichte und keine Freigabetests. Namensraum
+`train:route-policy-probe:251042:...`. Quelle sind die exakt gleichen Crew-2-
+Gewichte, Kandidat ist der vorab gewählte 56.480-Stand des OpenRisk-PPO.
+Acht Worker zu 70 %, Torch-Threads 1, `nice -n15`, ein verwalteter schwerer
+Job; aktive Worker wurden bei 53–70 % beobachtet. Bericht
+`ai/experiments/modules-50pct-2026-10-25/route-policy-probe-v1.json`, Log
+`/tmp/cockpit-route-policy-probe-v1.log`. Aktuell ist dieser Job beendet.
+
+| Trainingszustände | HND | LHR | OSL/Kerosin | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Entscheidungen | 4.056 | 1.410 | 1.718 | 1.185 |
+| Zustand bietet eine Zusatzaktion | 168 | 19 | 18 | 18 |
+| Zusatzaktion tatsächlich gesampelt | 20 | 3 | 1 | 1 |
+| Zusatzaktion bei deterministischer Wahl | 6 | 2 | 0 | 0 |
+| Lernbedingt andere deterministische Wahl | 161 | 69 | 87 | 62 |
+| Davon beide Aktionen innerhalb alter Maske 9 | 155 | 68 | 87 | 62 |
+
+Insgesamt gibt es nur **223/8.369 = 2,66 %** Gelegenheiten für Zusatzaktionen,
+25 tatsächliche Zusatzaktionen (0,30 %) und acht deterministische Zusatzwahlen
+(0,096 %). Von 379 lernbedingt geänderten deterministischen Wahlen liegen
+**372 = 98,15 %** vollständig innerhalb der alten Maske. 336 Änderungen sind
+auch nach Zusammenfassung gleichwertiger Würfel inhaltlich verschieden.
+Das Lernen verändert somit überwiegend den alten Strategieraum. Es genügt
+nicht, die geringe Nutzung neuer Aktionen nur als fehlende Trainingsdauer zu
+deuten: Die zusätzliche Auswahl wird bereits vom Vorschlagsmechanismus selten
+angeboten. Besonders Oslo bietet sie nur in 18 von 1.718 Zuständen an.
+Dies ist eine Messung auf gesampelten Trainingspfaden, keine neue Spielquote
+und kein Kausalitätsbeweis für die beobachteten Entwicklungsverluste.
+
+Die lokale Actor-Gradientenmessung nutzt die tatsächlichen Entscheidungsanteile
+des gemischten Curriculums und die PPO-Normalisierung der Vorteile. In keinem
+der vier Fälle widerspricht die gemeinsame **vollständige Actor-Richtung** der
+routeweisen Richtung. Im gemeinsamen Encoder gibt es einen negativen
+YUL-Projektionswert; zugleich sind die Richtungen auf getrennten vollständigen
+Episodenhälften **auf derselben Route** sehr instabil: Actor-Kosinus
+HND −0,022 / LHR −0,015 / OSL −0,029 / YUL −0,134. Die Encoder-Hälften sind
+ebenfalls negativ. Damit sind einzelne negative Winkel zwischen Routen kein
+belastbarer Beleg für einen grundsätzlich falschen gemeinsamen Netzaufbau.
+Keine getrennten Routennetze oder neue Kritikergewichtung allein daraus ableiten.
+Wert-, Entropie- und Nachahmungsgradienten sind in dieser Actor-Diagnose bewusst
+nicht enthalten; sie simuliert keinen vollständigen PPO-Update oder Gewinnzuwachs.
+Maximaler Fehler des erneut berechneten Rollout-Wahrscheinlichkeitsverhältnisses:
+0,00000716. Die Gewichte bleiben unverändert.
+
+**Acht relevante Tests bestanden** (3,6 s): Instrumentierung erhält sämtliche
+gesampelten Aktionen, RNG-Folge, Rollout-Tensoren und Endresultate exakt;
+Gradientenmessung erhält vorhandene `.grad`-Felder und Gewichte; die synthetische
+Gegenrichtung wird erkannt; Referenzmasken und reservierte Prüfpartition bleiben
+geschützt. Keine Produktionsprofile, Browsermodelle oder freigegebene Quoten
+wurden geändert.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.route_policy_probe \
+  --source ai/releases/crew2-v1/best.pt --candidate runs/open-risk-ppo-stage1/best.pt \
+  --steps 8192 --seed 251042 --workers 8 --cpu-duty-cycle .7 \
+  --output ai/experiments/modules-50pct-2026-10-25/route-policy-probe-v1.json
+```
+
 ### Weitere Forschung nach der Veröffentlichung
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
@@ -845,10 +915,18 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.route
    unter der Zusatzmaske spielende Netz (45) blieben unter dem ursprünglichen
    Netz (48). Die neue PPO-Phase hat 100.214 neue Züge regulär abgeschlossen;
    der frische Vergleich zeigt keinen konsistenten Vorteil gegen beide
-   Kontrollen. Echte Zusatzaktionen werden nur selten gewählt. Als nächste
-   Diagnose die veränderten alten Entscheidungen und mögliche Konflikte der
-   Routen im gemeinsamen Detailzweig auf Entwicklungs-/Trainingszuständen
-   untersuchen, bevor weitere unveränderte PPO-Schritte laufen. Keine
+   Kontrollen. Die Diagnose oben zeigt: Die zusätzlichen Vorschläge sind selten, Lernänderungen
+   betreffen überwiegend alte Aktionen; die Routen-Gradienten sind schon
+   innerhalb derselben Route instabil. Kein Beleg, dass getrennte Netze den
+   Engpass lösen. Als nächsten begründeten Schritt den öffentlichen
+   Vorschlagsraum und seine Bewertung verbessern: zusätzliche enginelegale
+   Kaffee-/Platzierungsfolgen aus den bekannten Engpässen systematisch erfassen
+   und gegen den unveränderten Spieler prüfen. Eine eng begrenzte statische
+   Heuristik nicht wieder unverändert als starken Lehrer behandeln. Für eine
+   stärkere Suche wären unabhängige öffentliche Simulationszustände nötig,
+   deren Partnerhand und künftige Würfe ausschließlich aus einem getrennten
+   Simulations-RNG entstehen; zuerst exakte Rekonstruktion der sichtbaren
+   Engine-Zustände und Privatsphäre enginegeprüft herstellen. Keine
    Qualifikationsseeds dafür verwenden. Nicht unterstellen, alle Fehler
    entstehen kurz vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die

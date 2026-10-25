@@ -1,0 +1,398 @@
+{
+  "format": 1,
+  "phase": "training_state_route_policy_diagnosis_only",
+  "weights_sha256": {
+    "source": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+    "candidate": "592ba13fcdff5b92d58ad7b20fd14d24b8e384426cbd1b809aa94d94cf766475"
+  },
+  "checkpoints": {
+    "source": "ai/releases/crew2-v1/best.pt",
+    "candidate": "runs/open-risk-ppo-stage1/best.pt"
+  },
+  "seed_namespace": "train:route-policy-probe:251042:",
+  "requested_decisions": 8192,
+  "workers": 8,
+  "cpu_duty_cycle": 0.7,
+  "threads": 1,
+  "search_sha256": "8d895383c9c67f09c6bfa684972c2052099271d1255f4090538733583304f213",
+  "probe_sha256": "e4b4b95389bc8635aaa61b9e46880ff2f6d7fd7b5fdd05fe97af1a94aaa7b07a",
+  "independent_test_used": false,
+  "weights_changed": false,
+  "release_evidence": false,
+  "goal_achieved": false,
+  "routes": {
+    "LOG_HND_GREEN": {
+      "episodes": 72,
+      "counts": {
+        "decisions": 4056,
+        "extra_offered": 168,
+        "sampled_extra": 20,
+        "greedy_extra": 6,
+        "mask_changes": 4,
+        "learning_changes": 161,
+        "learning_changes_inside_source": 155,
+        "semantic_mask_changes": 4,
+        "semantic_learning_changes": 137,
+        "control_policy_proposal_mass": 14.808450642740354,
+        "candidate_policy_proposal_mass": 15.293835552567543,
+        "control_sampling_proposal_mass": 15.936938560567796,
+        "candidate_sampling_proposal_mass": 16.40776164131239
+      },
+      "old_action_transitions": {
+        "place:ruder -> place:ruder": 16,
+        "place:fahrwerk -> place:fahrwerk": 1,
+        "place:konzentration -> place:konzentration": 27,
+        "place:landeklappe -> coffee": 6,
+        "place:triebwerk -> place:triebwerk": 5,
+        "coffee -> coffee": 2,
+        "place:triebwerk -> coffee": 13,
+        "place:ruder -> place:landeklappe": 4,
+        "place:funk -> place:funk": 17,
+        "place:triebwerk -> place:fahrwerk": 7,
+        "place:konzentration -> place:landeklappe": 2,
+        "place:landeklappe -> place:landeklappe": 3,
+        "place:funk -> place:landeklappe": 1,
+        "place:triebwerk -> place:funk": 4,
+        "place:funk -> coffee": 7,
+        "place:funk -> place:konzentration": 4,
+        "place:triebwerk -> place:ruder": 4,
+        "place:triebwerk -> place:konzentration": 2,
+        "place:landeklappe -> place:konzentration": 1,
+        "place:funk -> place:bremse": 4,
+        "place:triebwerk -> place:bremse": 2,
+        "place:fahrwerk -> place:triebwerk": 2,
+        "coffee -> place:triebwerk": 3,
+        "coffee -> place:konzentration": 2,
+        "place:bremse -> place:fahrwerk": 1,
+        "place:fahrwerk -> place:konzentration": 1,
+        "place:funk -> place:triebwerk": 2,
+        "place:triebwerk -> place:landeklappe": 1,
+        "place:landeklappe -> place:ruder": 2,
+        "place:konzentration -> place:ruder": 1,
+        "place:konzentration -> place:fahrwerk": 2,
+        "place:landeklappe -> place:funk": 1,
+        "place:ruder -> place:triebwerk": 1,
+        "coffee -> place:ruder": 1,
+        "place:konzentration -> coffee": 2,
+        "coffee -> place:funk": 1
+      }
+    },
+    "LOG_LHR_GREEN": {
+      "episodes": 22,
+      "counts": {
+        "decisions": 1410,
+        "extra_offered": 19,
+        "sampled_extra": 3,
+        "greedy_extra": 2,
+        "mask_changes": 1,
+        "learning_changes": 69,
+        "learning_changes_inside_source": 68,
+        "semantic_mask_changes": 1,
+        "semantic_learning_changes": 61,
+        "control_policy_proposal_mass": 2.9466120043452975,
+        "candidate_policy_proposal_mass": 3.263378857922362,
+        "control_sampling_proposal_mass": 3.0427515748888254,
+        "candidate_sampling_proposal_mass": 3.3500154740177095
+      },
+      "old_action_transitions": {
+        "place:funk -> place:funk": 3,
+        "place:ruder -> place:ruder": 13,
+        "place:fahrwerk -> place:fahrwerk": 5,
+        "place:funk -> place:triebwerk": 3,
+        "place:triebwerk -> place:ruder": 5,
+        "place:landeklappe -> coffee": 4,
+        "place:konzentration -> place:konzentration": 11,
+        "coffee -> place:funk": 1,
+        "place:fahrwerk -> place:bremse": 2,
+        "place:triebwerk -> coffee": 5,
+        "place:funk -> place:konzentration": 2,
+        "place:triebwerk -> place:konzentration": 2,
+        "place:konzentration -> coffee": 2,
+        "place:landeklappe -> place:ruder": 2,
+        "place:funk -> place:fahrwerk": 1,
+        "place:funk -> coffee": 1,
+        "place:konzentration -> place:funk": 1,
+        "place:triebwerk -> place:bremse": 1,
+        "place:konzentration -> place:bremse": 1,
+        "place:triebwerk -> place:funk": 1,
+        "place:konzentration -> place:fahrwerk": 1,
+        "place:ruder -> place:landeklappe": 1
+      }
+    },
+    "LOG_OSL_GREEN": {
+      "episodes": 30,
+      "counts": {
+        "decisions": 1718,
+        "extra_offered": 18,
+        "sampled_extra": 1,
+        "greedy_extra": 0,
+        "mask_changes": 0,
+        "learning_changes": 87,
+        "learning_changes_inside_source": 87,
+        "semantic_mask_changes": 0,
+        "semantic_learning_changes": 81,
+        "control_policy_proposal_mass": 0.8161530842771754,
+        "candidate_policy_proposal_mass": 0.7395335763940238,
+        "control_sampling_proposal_mass": 0.9400741755962372,
+        "candidate_sampling_proposal_mass": 0.8657532660290599
+      },
+      "old_action_transitions": {
+        "place:funk -> place:triebwerk": 5,
+        "place:funk -> place:ruder": 2,
+        "place:landeklappe -> place:landeklappe": 1,
+        "place:kerosin -> coffee": 4,
+        "place:triebwerk -> place:triebwerk": 5,
+        "place:funk -> place:landeklappe": 1,
+        "place:konzentration -> place:fahrwerk": 1,
+        "place:ruder -> place:ruder": 9,
+        "place:funk -> coffee": 1,
+        "place:konzentration -> place:konzentration": 12,
+        "place:bremse -> place:fahrwerk": 2,
+        "place:kerosin -> place:ruder": 4,
+        "place:kerosin -> place:triebwerk": 3,
+        "place:funk -> place:fahrwerk": 2,
+        "place:kerosin -> place:bremse": 1,
+        "place:fahrwerk -> place:kerosin": 1,
+        "place:ruder -> place:landeklappe": 2,
+        "place:triebwerk -> place:bremse": 1,
+        "place:funk -> place:funk": 3,
+        "place:triebwerk -> place:ruder": 7,
+        "place:triebwerk -> place:fahrwerk": 2,
+        "place:triebwerk -> coffee": 3,
+        "coffee -> place:funk": 3,
+        "place:landeklappe -> place:konzentration": 1,
+        "coffee -> place:triebwerk": 1,
+        "place:fahrwerk -> place:fahrwerk": 2,
+        "coffee -> place:kerosin": 1,
+        "place:konzentration -> place:ruder": 2,
+        "place:bremse -> place:triebwerk": 1,
+        "place:funk -> place:konzentration": 1,
+        "place:landeklappe -> place:funk": 1,
+        "place:ruder -> place:triebwerk": 1,
+        "place:kerosin -> place:landeklappe": 1
+      }
+    },
+    "LOG_YUL_GREEN": {
+      "episodes": 19,
+      "counts": {
+        "decisions": 1185,
+        "extra_offered": 18,
+        "sampled_extra": 1,
+        "greedy_extra": 0,
+        "mask_changes": 0,
+        "learning_changes": 62,
+        "learning_changes_inside_source": 62,
+        "semantic_mask_changes": 0,
+        "semantic_learning_changes": 57,
+        "control_policy_proposal_mass": 0.3213686239614617,
+        "candidate_policy_proposal_mass": 0.4155593160830904,
+        "control_sampling_proposal_mass": 0.40931731020100415,
+        "candidate_sampling_proposal_mass": 0.500682276673615
+      },
+      "old_action_transitions": {
+        "coffee -> place:konzentration": 2,
+        "place:landeklappe -> coffee": 4,
+        "place:konzentration -> place:konzentration": 13,
+        "place:landeklappe -> place:konzentration": 2,
+        "place:fahrwerk -> place:konzentration": 2,
+        "coffee -> place:landeklappe": 2,
+        "place:landeklappe -> place:landeklappe": 1,
+        "place:bremse -> place:bremse": 1,
+        "place:funk -> place:funk": 3,
+        "place:ruder -> place:landeklappe": 1,
+        "place:bremse -> place:fahrwerk": 1,
+        "place:triebwerk -> place:funk": 1,
+        "place:funk -> place:fahrwerk": 2,
+        "place:konzentration -> place:funk": 1,
+        "coffee -> place:triebwerk": 2,
+        "place:triebwerk -> place:ruder": 5,
+        "place:landeklappe -> place:ruder": 1,
+        "place:ruder -> place:fahrwerk": 1,
+        "place:triebwerk -> place:konzentration": 3,
+        "place:funk -> place:bremse": 1,
+        "coffee -> coffee": 1,
+        "place:triebwerk -> place:triebwerk": 2,
+        "place:triebwerk -> place:fahrwerk": 1,
+        "place:funk -> place:landeklappe": 1,
+        "place:bremse -> coffee": 1,
+        "place:triebwerk -> coffee": 3,
+        "place:fahrwerk -> place:bremse": 1,
+        "place:ruder -> coffee": 1,
+        "place:funk -> place:triebwerk": 1,
+        "place:ruder -> place:triebwerk": 1
+      }
+    }
+  },
+  "actual_decisions": 8369,
+  "actor_gradients": {
+    "full_actor": {
+      "routes": {
+        "LOG_HND_GREEN": {
+          "norm": 0.08848021179437637,
+          "weight": 0.4846457163340901,
+          "combined_projection": 0.004181236028671265,
+          "combined_opposes_route": false
+        },
+        "LOG_LHR_GREEN": {
+          "norm": 0.16095569729804993,
+          "weight": 0.16847891026406978,
+          "combined_projection": 0.005034593399614096,
+          "combined_opposes_route": false
+        },
+        "LOG_OSL_GREEN": {
+          "norm": 0.13650362193584442,
+          "weight": 0.20528139562671766,
+          "combined_projection": 0.004410336259752512,
+          "combined_opposes_route": false
+        },
+        "LOG_YUL_GREEN": {
+          "norm": 0.08411940187215805,
+          "weight": 0.14159397777512248,
+          "combined_projection": 0.0008867119904607534,
+          "combined_opposes_route": false
+        }
+      },
+      "pairs": [
+        {
+          "left": "LOG_HND_GREEN",
+          "right": "LOG_LHR_GREEN",
+          "cosine": 0.06643052474430211,
+          "conflict": false
+        },
+        {
+          "left": "LOG_HND_GREEN",
+          "right": "LOG_OSL_GREEN",
+          "cosine": 0.08692787291804388,
+          "conflict": false
+        },
+        {
+          "left": "LOG_HND_GREEN",
+          "right": "LOG_YUL_GREEN",
+          "cosine": 0.011519281495786501,
+          "conflict": false
+        },
+        {
+          "left": "LOG_LHR_GREEN",
+          "right": "LOG_OSL_GREEN",
+          "cosine": 0.048360422860708345,
+          "conflict": false
+        },
+        {
+          "left": "LOG_LHR_GREEN",
+          "right": "LOG_YUL_GREEN",
+          "cosine": -0.0035329932058215463,
+          "conflict": true
+        },
+        {
+          "left": "LOG_OSL_GREEN",
+          "right": "LOG_YUL_GREEN",
+          "cosine": -0.06308939132319293,
+          "conflict": true
+        }
+      ]
+    },
+    "shared_encoder": {
+      "routes": {
+        "LOG_HND_GREEN": {
+          "norm": 0.02102101966738701,
+          "weight": 0.4846457163340901,
+          "combined_projection": 0.00023207886260934174,
+          "combined_opposes_route": false
+        },
+        "LOG_LHR_GREEN": {
+          "norm": 0.03438899666070938,
+          "weight": 0.16847891026406978,
+          "combined_projection": 0.00024249663692899048,
+          "combined_opposes_route": false
+        },
+        "LOG_OSL_GREEN": {
+          "norm": 0.033172596246004105,
+          "weight": 0.20528139562671766,
+          "combined_projection": 0.00021951482631266117,
+          "combined_opposes_route": false
+        },
+        "LOG_YUL_GREEN": {
+          "norm": 0.01741589978337288,
+          "weight": 0.14159397777512248,
+          "combined_projection": -3.347938763909042e-05,
+          "combined_opposes_route": true
+        }
+      },
+      "pairs": [
+        {
+          "left": "LOG_HND_GREEN",
+          "right": "LOG_LHR_GREEN",
+          "cosine": 0.2163831429853776,
+          "conflict": false
+        },
+        {
+          "left": "LOG_HND_GREEN",
+          "right": "LOG_OSL_GREEN",
+          "cosine": 0.019751104965677085,
+          "conflict": false
+        },
+        {
+          "left": "LOG_HND_GREEN",
+          "right": "LOG_YUL_GREEN",
+          "cosine": -0.21723332489870698,
+          "conflict": true
+        },
+        {
+          "left": "LOG_LHR_GREEN",
+          "right": "LOG_OSL_GREEN",
+          "cosine": -0.03551090455823811,
+          "conflict": true
+        },
+        {
+          "left": "LOG_LHR_GREEN",
+          "right": "LOG_YUL_GREEN",
+          "cosine": -0.285877291594646,
+          "conflict": true
+        },
+        {
+          "left": "LOG_OSL_GREEN",
+          "right": "LOG_YUL_GREEN",
+          "cosine": -0.07620545541229032,
+          "conflict": true
+        }
+      ]
+    },
+    "independent_episode_halves": {
+      "LOG_HND_GREEN": {
+        "decisions": [
+          1825,
+          2231
+        ],
+        "actor_cosine": -0.022482993960659448,
+        "encoder_cosine": -0.1335718346464117
+      },
+      "LOG_LHR_GREEN": {
+        "decisions": [
+          780,
+          630
+        ],
+        "actor_cosine": -0.014866097343372764,
+        "encoder_cosine": -0.2691281611220027
+      },
+      "LOG_OSL_GREEN": {
+        "decisions": [
+          772,
+          946
+        ],
+        "actor_cosine": -0.02907801739825527,
+        "encoder_cosine": -0.30228270732567863
+      },
+      "LOG_YUL_GREEN": {
+        "decisions": [
+          685,
+          500
+        ],
+        "actor_cosine": -0.13432704694936903,
+        "encoder_cosine": -0.11422323070302413
+      }
+    },
+    "max_rollout_ratio_error": 7.152557373046875e-06,
+    "value_entropy_imitation_gradients_included": false,
+    "note": "A noisy local actor-only diagnosis; neither a causal proof nor a predicted change in win rate."
+  }
+}
