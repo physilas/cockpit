@@ -131,7 +131,98 @@ einer ersten automatischen Ablehnung ausdrücklich vom Nutzer bestätigt.
 Keine E-Mail. Nur aussagekräftigen Fortschritt, Fehler, Abschluss oder benötigten
 Input melden.
 
-## Aktuelle Forschung: öffentliche Wind-/Eisplanung nach Crew 5
+## Aktuelle Forschung: Fair-Hand-Prior für gemeinsame Kontrollen
+
+Die getrennte neue Phase verändert keine alten Planungsprofile, Browsergewichte
+oder Microplanquellen. Der alte Forschungsfingerprint bleibt exakt erhalten.
+`ai.public_hand_prior` berechnet eine **exakte Erwartung unter einer ausdrücklich
+angenommenen IID-Fair-Hand-Verteilung**, keine kalibrierte Wahrscheinlichkeit
+der tatsächlich nach öffentlichen Entscheidungen verbliebenen Partnerhand.
+Bereits veröffentlichte Kontrollen verbrauchen keinen hypothetischen Restwürfel.
+Zwei offene Kontrollen brauchen zwei verschiedene Würfel; Kaffee für eigenen
+Vorschritt, übrige eigene Kontrollen und Partnerkontrollen wird genau einmal
+verteilt. Die eigene Fortsetzung steht **vor** der Erwartung über hypothetische
+Partnerhände fest; keine spätere Wahl passend zur unbekannten wirklichen Hand.
+Die besten Zuordnungen werden je hypothetischer Hand vereinigt, bevor ihre
+Multiplizität gezählt wird. Bitmengen und Caches begrenzen die Berechnung;
+CPU-Pacing prüft auch innerhalb der Vorbereitung regelmäßig, ohne Kandidaten
+zeitabhängig wegzulassen. Kein echter Spiel-RNG, keine private Partnerhand.
+
+`ai.wind_ice_prior_advice` kombiniert diese Erwartung mit dem erhaltenen
+Ein-Platzierungsplaner. Zusätzlich nutzt sie eine **optimistische öffentliche
+Radio-Kapazitätsgrenze**, nachdem beide Rollen ihre Kontrollen reserviert haben:
+Bewegung wird am Rundenende aufgelöst, aktuelle Flugzeuge sind somit noch nicht
+zwingend eine bereits unumkehrbare Kollision. Passende zukünftige Funkaugen
+werden damit nicht bewiesen. Ein sicherer Kaffeegewinn der Control-Karte beim
+gerade geplanten zweiten gleichen Ruder wird exakt berücksichtigt; andere
+zukünftige Kaffeegeneration und zukünftige Bonuswürfel werden nicht vorweggenommen.
+Der Versuch bündelt diese Änderungen und ist kein Kausalitätsnachweis allein
+für den Fair-Hand-Prior.
+
+`ai.wind_ice_prior_environment.PriorWindIceEnv` erhält die native Engine-Maske,
+Beobachtung, Uhr, Quellreferenz und zusätzlich die bisherige Microplanreferenz.
+Markierung `research_wind_ice_prior=true`; gleicher beschränkter Wind-/Eisbereich
+und native Dialog-/Modulfallbacks. Publisher weist diesen noch nicht im Browser
+unterstützten Forschungswrapper ausdrücklich ab. **50 relevante Tests bestehen**:
+analytische Wahrscheinlichkeiten, unabhängige Enumeration geordneter Würfe,
+keine Würfel-/Kaffee-Doppelzählung, veröffentlichte Werte, Erwartungsreihenfolge,
+bekannte Engine-Gegenfälle, tatsächlicher Control-Kaffeevorschritt samt sicherem
+Windschub, Privacy/RNG/Pacing, unveränderte alte Kontrollpartien und Ressourcen-/
+STOP-/Berichts-/Veröffentlichungsschutz. Laufzeitprobe zweier Anfangszustände
+mit einem Worker .7: 0,060/0,019 s, Trainingsnamensraum
+`train:wind-ice-prior-runtime:251067:...`, keine Gewinnquotenprobe.
+
+Der Drei-Varianten-Vergleich `ai.wind_ice_prior_compare` ist regulär beendet,
+Exit 0, **64,29 Sekunden**: native Quelle, erhaltene Microplans und neuer Prior,
+alle mit exakt denselben tatsächlichen Crew-5-Tensoren/Referenzabstand 12.
+Zwölf Fälle mit je 20 Partien pro Variante, **720 frische Entwicklungspartien**,
+native Engine-Uhr, acht Worker .7, Torch 1, nice 15, ein verwalteter Lauf.
+Keine PPO-Updates, null neue Trainingsentscheidungen, keine Qualifikation.
+Bericht `ai/experiments/wind-ice-2026-10-25/prior-development-v1.json`,
+abgeleitete Analyse `prior-analysis-v1.json`,
+Log `/tmp/cockpit-wind-ice-prior-development-v1.log`.
+
+| Einzelkarte | GIG Wind: Quelle / Microplans / Prior | KEF Eis: Quelle / Microplans / Prior |
+| --- | ---: | ---: |
+| Adaptation | 0/20 / 1/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Anticipation | 0/20 / 0/20 / 0/20 | 0/20 / 2/20 / 0/20 |
+| Control | 0/20 / 0/20 / 0/20 | 0/20 / 1/20 / 0/20 |
+| Mastery | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Synchronisation | 0/20 / 2/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+| Working-together | 0/20 / 0/20 / 0/20 | 0/20 / 0/20 / 0/20 |
+
+**Kein Gewinnquotenvorteil und kein neuer Spieler veröffentlicht.** Alle
+Einzelquoten, gepaarten Episoden und Abweichungszähler bleiben erhalten. Der
+Prior gewinnt keine Partie zusätzlich und verliert die sechs Microplansiege
+dieser Kohorte; dieser Gesamtvergleich ersetzt nicht die Tabelle je Fall.
+Die Kontrollen sind dieselben Gewichte mit anderer Referenz, keine unabhängig
+trainierten Modelle. Diagnose: bei Wind Trudelverluste 47 → 2 und Landerunden
+22 → 48, bei Eis Trudelverluste 42 → 5 und Landerunden 41 → 100, jeweils unter
+den je 120 Microplan-/Priorpartien. Dafür bei Wind 26 statt 10 und Eis 44 statt
+23 zu schnelle Landungen; weitere Niederlagen durch offene Eisbremsen, Klappen,
+Fahrwerk und Flugzeuge. Mehr erreichte Landerunden sind kein Siegbeweis.
+Kaffee wird häufiger verbraucht, aber längere Partien beeinflussen diese Zähler.
+Die Analyse kennzeichnet Konzentrations-/Aufgabenanteile ausdrücklich als
+Teilmenge der gegenüber der nativen Präferenz geänderten Züge, nicht als alle
+Aktionen und nicht als bewiesene Ursache sämtlicher Niederlagen.
+
+Nächster begründeter Schritt: **alle noch zwingenden Landeaufgaben und Funk-
+räumungen gemeinsam mit Ruder/Schub in dasselbe endliche Würfel-/Kaffeebudget
+einbeziehen**. Geeignete letzte-Runde-/Modulübungen oder eine ausdrücklich
+getrennte gemeinsame Endrundenbelegung zuerst enginegeprüft herstellen; danach
+neue begrenzte Entwicklung und gegebenenfalls Training auf tatsächlich
+erfolgreichen Übungen. Diesen weiterhin schwachen festen Lehrer nicht einfach
+länger imitieren oder per unverändertem PPO trainieren. Keine neue Architektur
+oder Kritikergewichtung aus der Diagnose ableiten. Sichtbarkeit schwacher
+Vorschauen bleibt erlaubt, verlangt aber weiterhin passende Browsersemantik.
+
+Verbrauchte neue Entwicklung: **14.987.000 + 100*i**, zwölf lexikalisch sortierte
+Fälle zu je 20 Seeds, zuletzt **14.988.100–14.988.119**. Technische Vergleichstests
+zusätzlich 14.989.100/110. Keine Abschlusskohorte verwendet, ab 15.400.000 weiter
+reserviert. Aktuell kein schwerer Job aktiv; zuletzt acht bestandene Prior-
+Tests einschließlich des neuen einzelnen Control-Kaffee-Gegenfalls.
+
+## Abgeschlossene erste Wind-/Eismicroplanung nach Crew 5
 
 Die neue, getrennte Forschungsumgebung `ai.wind_ice_environment.WindIceEnv`
 ändert ausschließlich die weiche Referenz, bewahrt Engine-Legalität, Schema,
@@ -206,7 +297,9 @@ Verbrauchte frische Entwicklung: ab **14.985.000**, Abstand 100 je lexikalisch
 sortiertem Fall, 20 Seeds je Fall, zuletzt **14.986.100–14.986.119**.
 Technische Vergleichstests benutzen getrennt 14.989.000/010; keine Qualifikations-
 kohorte wurde verwendet. Die nächste Abschlusskohorte ab 15.400.000 bleibt
-unbenutzt. Aktuell kein schwerer Job; zuletzt zwei bestandene Diagnosetests.
+unbenutzt. Zum Abschluss dieser ersten Microplanphase lief kein schwerer Job;
+zuletzt bestanden zwei Diagnosetests. Den aktuellen Stand beschreibt die neuere
+Priorphase oben.
 
 ## Abgeschlossene Diagnose nach Crew 3: Leck und Karten
 

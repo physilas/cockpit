@@ -21,7 +21,7 @@ class PublishTests(unittest.TestCase):
                 minimum_win_rate=.3, qualified_routes=['LOG_OSL_GREEN'],
                 routes={'LOG_OSL_GREEN': {'self': dict(games=500, win_ci_low=.36, win_rate=.4)}})
             evaluation.write_text(json.dumps(report))
-            for flag in ('research_all_modules', 'research_open_risk', 'research_leak_donation', 'research_wind_ice'):
+            for flag in ('research_all_modules', 'research_open_risk', 'research_leak_donation', 'research_wind_ice', 'research_wind_ice_prior'):
                 save_checkpoint(checkpoint, model, train_config={**config, flag: True},
                                 total_steps=10, module_training_steps=10)
                 with self.assertRaisesRegex(ValueError, 'matching browser'):

@@ -67,7 +67,7 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
     model, payload = load_checkpoint(checkpoint)
     config = payload['train_config']
     if any(config.get(flag) for flag in ('research_all_modules', 'research_open_risk', 'research_capacity_guard',
-                                       'research_leak_donation', 'research_wind_ice')):
+                                       'research_leak_donation', 'research_wind_ice', 'research_wind_ice_prior')):
         raise ValueError('Research action masks need a matching browser environment before preview.')
     profile = config.get('assistance_version', 0)
     if type(profile) is not int or not 0 <= profile <= 12:
@@ -181,7 +181,7 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
         raise ValueError('Qualification is still running; publish only a completed report.')
     model, payload = load_checkpoint(checkpoint)
     if any(payload['train_config'].get(flag) for flag in ('research_all_modules', 'research_open_risk',
-                                                        'research_leak_donation', 'research_wind_ice')):
+                                                        'research_leak_donation', 'research_wind_ice', 'research_wind_ice_prior')):
         raise ValueError('Research action masks need a matching browser environment before publication.')
     if report.get('weights_sha256') != weight_fingerprint(model):
         raise ValueError('Evaluation does not match these model weights.')

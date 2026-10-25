@@ -1,0 +1,516 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "qualification_used": false,
+  "new_training_decisions": 0,
+  "source_report_sha256": "61b4abe1b89b4be8132fd498ef401eaea062c6a334140b86b4c54462787e60f3",
+  "individual_cases": {
+    "LOG_GIG_YELLOW|adaptation": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 1,
+        "win_rate": 0.05
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 1
+      }
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_GIG_YELLOW|control": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 2,
+        "win_rate": 0.1
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 18,
+        "candidate_only": 0,
+        "baseline_only": 2
+      }
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 2,
+        "win_rate": 0.1
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 18,
+        "candidate_only": 0,
+        "baseline_only": 2
+      }
+    },
+    "LOG_KEF_YELLOW|control": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 1,
+        "win_rate": 0.05
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 19,
+        "candidate_only": 0,
+        "baseline_only": 1
+      }
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "native": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "microplans": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "prior": {
+        "games": 20,
+        "wins": 0,
+        "win_rate": 0.0
+      },
+      "paired_native": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      },
+      "paired_microplans": {
+        "both_win": 0,
+        "both_lose": 20,
+        "candidate_only": 0,
+        "baseline_only": 0
+      }
+    }
+  },
+  "diagnostic_route_totals": {
+    "LOG_GIG_YELLOW": {
+      "native": {
+        "episodes": 120,
+        "landing_round_started": 0,
+        "loss_reasons": {
+          "kollision": 85,
+          "trudeln": 17,
+          "pflichtfelder_nicht_erfuellt": 18
+        },
+        "coffee_units": 106,
+        "coffee_reversals": 0,
+        "changed_native_preference_placement_targets_ONLY": {},
+        "warning": "Aggregate diagnostics only, not a replacement for individual card win rates. Changed preference subset is not all actions; longer episodes affect totals."
+      },
+      "microplans": {
+        "episodes": 120,
+        "landing_round_started": 22,
+        "loss_reasons": {
+          "zu_schnell_gelandet": 10,
+          "trudeln": 47,
+          "kollision": 40,
+          "uebers_ziel_hinaus": 9,
+          "notlandung": 3,
+          "flugzeuge_uebrig": 3,
+          "landeklappen_unvollstaendig": 1,
+          "flugzeuge_uebrig,nicht_waagerecht": 2,
+          "pflichtfelder_nicht_erfuellt": 1,
+          "flugzeuge_uebrig,landeklappen_unvollstaendig": 1
+        },
+        "coffee_units": 163,
+        "coffee_reversals": 0,
+        "changed_native_preference_placement_targets_ONLY": {
+          "funk": 936,
+          "fahrwerk": 261,
+          "ruder": 693,
+          "triebwerk": 645,
+          "bremse": 162,
+          "landeklappe": 152,
+          "konzentration": 148
+        },
+        "warning": "Aggregate diagnostics only, not a replacement for individual card win rates. Changed preference subset is not all actions; longer episodes affect totals."
+      },
+      "prior": {
+        "episodes": 120,
+        "landing_round_started": 48,
+        "loss_reasons": {
+          "kollision": 66,
+          "flugzeuge_uebrig,landeklappen_unvollstaendig": 7,
+          "zu_schnell_gelandet": 26,
+          "landeklappen_unvollstaendig": 2,
+          "trudeln": 2,
+          "flugzeuge_uebrig": 5,
+          "flugzeuge_uebrig,fahrwerk_unvollstaendig,landeklappen_unvollstaendig": 3,
+          "fahrwerk_unvollstaendig": 1,
+          "flugzeuge_uebrig,fahrwerk_unvollstaendig": 1,
+          "fahrwerk_unvollstaendig,landeklappen_unvollstaendig": 1,
+          "uebers_ziel_hinaus": 2,
+          "notlandung": 2,
+          "flugzeuge_uebrig,nicht_waagerecht": 1,
+          "landeklappen_unvollstaendig,nicht_waagerecht": 1
+        },
+        "coffee_units": 768,
+        "coffee_reversals": 0,
+        "changed_native_preference_placement_targets_ONLY": {
+          "konzentration": 771,
+          "funk": 1071,
+          "ruder": 1169,
+          "triebwerk": 1172,
+          "fahrwerk": 285,
+          "landeklappe": 191,
+          "bremse": 141
+        },
+        "warning": "Aggregate diagnostics only, not a replacement for individual card win rates. Changed preference subset is not all actions; longer episodes affect totals."
+      }
+    },
+    "LOG_KEF_YELLOW": {
+      "native": {
+        "episodes": 120,
+        "landing_round_started": 0,
+        "loss_reasons": {
+          "trudeln": 16,
+          "kollision": 87,
+          "notlandung": 1,
+          "pflichtfelder_nicht_erfuellt": 16
+        },
+        "coffee_units": 151,
+        "coffee_reversals": 0,
+        "changed_native_preference_placement_targets_ONLY": {},
+        "warning": "Aggregate diagnostics only, not a replacement for individual card win rates. Changed preference subset is not all actions; longer episodes affect totals."
+      },
+      "microplans": {
+        "episodes": 120,
+        "landing_round_started": 41,
+        "loss_reasons": {
+          "trudeln": 42,
+          "eisbremsen_unvollstaendig,landeklappen_unvollstaendig": 2,
+          "zu_schnell_gelandet": 23,
+          "uebers_ziel_hinaus": 10,
+          "notlandung": 14,
+          "kollision": 10,
+          "flugzeuge_uebrig,landeklappen_unvollstaendig,nicht_waagerecht": 2,
+          "flugzeuge_uebrig": 3,
+          "eisbremsen_unvollstaendig,flugzeuge_uebrig": 1,
+          "eisbremsen_unvollstaendig": 1,
+          "pflichtfelder_nicht_erfuellt": 6,
+          "eisbremsen_unvollstaendig,flugzeuge_uebrig,landeklappen_unvollstaendig,nicht_waagerecht": 1,
+          "landeklappen_unvollstaendig": 1,
+          "eisbremsen_unvollstaendig,nicht_waagerecht": 1
+        },
+        "coffee_units": 346,
+        "coffee_reversals": 0,
+        "changed_native_preference_placement_targets_ONLY": {
+          "funk": 671,
+          "fahrwerk": 300,
+          "eisbremse": 766,
+          "ruder": 943,
+          "triebwerk": 940,
+          "landeklappe": 245,
+          "konzentration": 258
+        },
+        "warning": "Aggregate diagnostics only, not a replacement for individual card win rates. Changed preference subset is not all actions; longer episodes affect totals."
+      },
+      "prior": {
+        "episodes": 120,
+        "landing_round_started": 100,
+        "loss_reasons": {
+          "eisbremsen_unvollstaendig,landeklappen_unvollstaendig": 17,
+          "zu_schnell_gelandet": 44,
+          "eisbremsen_unvollstaendig": 10,
+          "eisbremsen_unvollstaendig,fahrwerk_unvollstaendig,landeklappen_unvollstaendig": 5,
+          "trudeln": 5,
+          "eisbremsen_unvollstaendig,flugzeuge_uebrig": 7,
+          "eisbremsen_unvollstaendig,fahrwerk_unvollstaendig": 6,
+          "landeklappen_unvollstaendig": 2,
+          "eisbremsen_unvollstaendig,flugzeuge_uebrig,landeklappen_unvollstaendig": 6,
+          "kollision": 14,
+          "fahrwerk_unvollstaendig,landeklappen_unvollstaendig": 1,
+          "flugzeuge_uebrig,landeklappen_unvollstaendig": 1,
+          "eisbremsen_unvollstaendig,flugzeuge_uebrig,fahrwerk_unvollstaendig": 1,
+          "notlandung": 1
+        },
+        "coffee_units": 954,
+        "coffee_reversals": 1,
+        "changed_native_preference_placement_targets_ONLY": {
+          "funk": 653,
+          "konzentration": 748,
+          "fahrwerk": 309,
+          "eisbremse": 713,
+          "ruder": 1257,
+          "triebwerk": 1279,
+          "landeklappe": 255
+        },
+        "warning": "Aggregate diagnostics only, not a replacement for individual card win rates. Changed preference subset is not all actions; longer episodes affect totals."
+      }
+    }
+  },
+  "conclusion": "No new prior case won any of its20 games. Six microplan control wins were lost; no prior-only wins. Lower stall counts and more landing rounds do not establish better winning play.",
+  "next_hypothesis": "Joint mandatory landing tasks and radio clearances need the same finite dice/coffee allocation as controls. Build engine-checked terminal module exercises or a task-aware final-round solver before more PPO or imitation of this weak teacher."
+}
