@@ -491,7 +491,7 @@ Verluste. Fall 14.510.008 wird gewonnen, 14.510.047 bleibt verloren und auch
 14.510.068 endet weiterhin im Trudeln: die vermutete Ausführungskorrektur
 behebt das konkrete Ruder-Gegenbeispiel nicht. Acht Worker zu höchstens 70 %, Torch-Threads 1,
 `nice -n15`, verwaltet über `ai.job_control`; reguläres Ende nach 216 s, Exit 0.
-**Aktuell kein schwerer Lauf aktiv.** Nach dieser Änderung bestanden **241 lokale Tests** (26,3 s),
+Danach lief zunächst kein schwerer Job. Nach dieser Änderung bestanden **241 lokale Tests** (26,3 s),
 einschließlich der geschützten fremden Tests. Keine neuen PPO-Entscheidungen.
 
 ```sh
@@ -568,6 +568,52 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
   --output ai/experiments/modules-50pct-2026-10-25/early-round-haneda-development-v1.json
 ```
 
+## Gezielte legale Risikovorschläge außerhalb der alten Maske
+
+`ai.search_environment.OpenRiskEnv` ist eine **getrennte Forschungsumgebung**.
+Sie vereinigt die bisherige Maske 9 mit einer kleinen, aus der rohen
+Engine-Regelmaske gewonnenen Risiko-Auswahl (Planerversion 4). Notwendige
+Kapazitäts-/Kerosingrenzen bleiben erhalten. Schlechte Vorschläge unter −100
+Suchpunkten verdrängen keinen Rettungsneuwurf. Die Netzentscheidung wird
+ausdrücklich auf `source_action_mask` berechnet, nicht unter der erweiterten
+Auswahl; auch Referenzmaske 7 bleibt exakt erhalten. Nur der separate Suchlehrer
+`round-open` darf zusätzliche Vorschläge wählen, einschließlich des letzten
+eigenen Würfels. Andere Produktprofile und Gewichte bleiben gleich.
+
+Ein konstruierter, **in der Engine ausgeführter** Engpasstest zeigt: Die alte
+Maske erzwingt Kaffee −2 für Schub 2. Die Risiko-Auswahl erlaubt stattdessen
+Schub 4, bewahrt zwei Kaffee und ermöglicht danach ein um eins angepasstes
+Partner-Ruder. Beide aktuellen Kurven werden mit Fluglage −1 durchflogen;
+ein Kaffee bleibt. Dies belegt die einzelne Regelkorrektur, keine Routenquote.
+Das versteckte Partner-Ruder in der Testaufstellung wird nicht an den Lehrer
+übergeben. Weitere Tests prüfen exakt erhaltene Quell-/Referenzmasken,
+Engine-Legalität der zusätzlichen Auswahl, Partnerwürfel-Privatsphäre und die
+unveränderte Landemaske. **246 lokale Tests bestanden** (27,0 s); enthalten
+sind weiterhin die geschützten fremden Tests. Browser-/Produktcode unverändert.
+
+**Regulär abgeschlossener Vergleich:** `open-risk-haneda-development-v1.json`,
+Log `/tmp/cockpit-open-risk-haneda-development-v1.log`, 100 HND-Entwicklungspartien
+ab 14.510.000, Varianten `model`, `round-risk`, `round-open`, Beam 64, acht
+Worker zu höchstens 70 %, Torch-Threads 1, `nice -n15`, über `ai.job_control`.
+Kontrollen zuerst auf exakte Wiederholung prüfen. Die neuen Vorschläge
+verwenden weiterhin nur die eigene Hand und öffentliche Daten; auch innerhalb
+der zusätzlichen Planung wird ungefähr alle 20 ms freiwillig pausiert.
+Keine neuen PPO-Entscheidungen, keine neue Modulfreigabe. Bei Vorteil sind
+frische Entwicklungsseeds erforderlich, nicht sofort eine Freigabe. Ergebnis
+nach 96,4 s: **Netz 48, Round-Risk 47, Round-Open 45 Siege**. Die 200
+Kontrollresultate wiederholen sich exakt. Round-Open gewinnt 20 andere Partien
+und verliert 23 Netzsiege. Die Einzelkorrektur beseitigt eine Beschränkung,
+aber die feste Risikobewertung liefert keinen insgesamt stärkeren Lehrer.
+Keine große Bestätigungsserie oder Nachahmung dieser festen Zugvorgabe.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.search_evaluate \
+  --checkpoint runs/guided-residual-stage2/latest.pt --routes LOG_HND_GREEN \
+  --modes model round-risk round-open --games 100 --seed 14510000 \
+  --workers 8 --cpu-duty-cycle .7 --beam 64 \
+  --output ai/experiments/modules-50pct-2026-10-25/open-risk-haneda-development-v1.json
+```
+
 ## Nächste Arbeit
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
@@ -578,9 +624,11 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
    Kaffee-/Neuwurfreserven und kalibrierte Fortsetzungswerte bearbeiten.
    Die 17 Kollisionen und elf Kurvenverluste sind inzwischen lokalisiert:
    26/28 entstehen vor 2.000 Fuß. Den oben dokumentierten frühen Suchvergleich
-   zuerst auswerten; bei Vorteil frische Entwicklung, sonst konkrete gekoppelte
-   Aufgaben-/Kaffeeannahmen bearbeiten. Nicht unterstellen, alle Fehler entstehen
-   kurz vor Landung.
+   brachte noch keinen Vorteil. Deshalb zuerst den separaten `round-open`-Lauf
+   auswerten, der den nachgewiesenen Kaffee-Maskenengpass gezielt öffnet.
+   Bei Vorteil frische Entwicklung, sonst konkrete gekoppelte Aufgaben-/Kaffee-
+   und Partnerannahmen bearbeiten. Nicht unterstellen, alle Fehler entstehen kurz
+   vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
    Planung für Oslo braucht außerdem eine begründete Laufzeitbegrenzung.
    Kein unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.

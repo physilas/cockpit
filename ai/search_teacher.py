@@ -20,17 +20,19 @@ from .throttle import CpuBudget
 class SearchTeacher(ModelAgent):
     def __init__(self, model, *, mode='joint', beam=64, cpu_duty_cycle=1.):
         super().__init__(model)
-        if mode not in ('legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk') or not 1 <= beam <= 128:
+        if mode not in ('legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk', 'round-open') or not 1 <= beam <= 128:
             raise ValueError('Expected an explicit forecast and a bounded search beam.')
         self.mode, self.beam = mode, beam
         CpuBudget(cpu_duty_cycle)  # Validate before starting an experimental search.
         self.cpu_duty_cycle = cpu_duty_cycle
         self.considered = self.overrides = 0
 
-    def select(self, view, mask, *, reference_mask=None):
-        baseline = super().select(view, mask, reference_mask=reference_mask)
-        minimum_dice = 1 if self.mode == 'joint-finish' else 2
-        round_search = self.mode in ('round-plain', 'round-risk')
+    def select(self, view, mask, *, reference_mask=None, source_mask=None):
+        if self.mode == 'round-open' and source_mask is None:
+            raise ValueError('Open proposals require the original source mask.')
+        baseline = super().select(view, source_mask if source_mask is not None else mask, reference_mask=reference_mask)
+        minimum_dice = 1 if self.mode in ('joint-finish', 'round-open') else 2
+        round_search = self.mode in ('round-plain', 'round-risk', 'round-open')
         if (view['reroll'] or view['height'] <= 0 or not round_search and view['height'] > 2000
                 or sum(bool(d) for d in view['own_dice']) < minimum_dice):
             return baseline
@@ -50,7 +52,7 @@ class SearchTeacher(ModelAgent):
             planned['board'] = view['board'] + ([{'value': 1, 'owner': 'pilot'}]
                                                if view['fuel']['occupied'] else [None])
             planned['_fuel_profile'] = 9
-        ranks, _ = plan_actions(planned, mask, version=4 if self.mode == 'round-risk' else 3, beam=self.beam,
+        ranks, _ = plan_actions(planned, mask, version=4 if self.mode in ('round-risk', 'round-open') else 3, beam=self.beam,
                                 forecast_factory=(lambda v: make_joint_forecast(v, cooperate=cooperate))
                                 if self.mode in ('joint', 'joint-finish') else None, cooperate=cooperate)
         ranks = {i: score for i, score in ranks.items() if mask[i]}

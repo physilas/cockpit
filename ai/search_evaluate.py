@@ -17,6 +17,7 @@ from .agents import ModelAgent
 from .checkpoints import load_checkpoint, model_schema, planner_fingerprint, weight_fingerprint
 from .evaluate import evaluate, summarize_episodes
 from .search_teacher import SearchTeacher
+from .throttle import CpuBudget
 
 
 _model = None
@@ -35,10 +36,31 @@ def _run(task):
     mode, airport, seed, games, duty, beam = task
     agent = ModelAgent(_model) if mode == 'model' else SearchTeacher(_model, mode=mode, beam=beam, cpu_duty_cycle=duty)
     started = time.monotonic()
-    result = evaluate(agent, airport=airport, games=games, seed=seed, cpu_duty_cycle=duty,
-                      assistance_version=9, round_reward=0.)
+    if mode == 'round-open':
+        result = evaluate_open_risk(agent, airport, seed, games, duty, beam)
+    else:
+        result = evaluate(agent, airport=airport, games=games, seed=seed, cpu_duty_cycle=duty,
+                          assistance_version=9, round_reward=0.)
     return {'episodes': result['episodes'], 'seconds': time.monotonic() - started,
             'considered': getattr(agent, 'considered', 0), 'overrides': getattr(agent, 'overrides', 0)}
+
+
+def evaluate_open_risk(agent, airport, seed, games, duty, beam):
+    from .search_environment import OpenRiskEnv
+    env = OpenRiskEnv(airport, assistance_version=9, round_reward=0., proposal_beam=beam, cpu_duty_cycle=duty)
+    budget, records = CpuBudget(duty), []
+    for game_seed in range(seed, seed + games):
+        _, info = env.reset(seed=game_seed)
+        total = 0.
+        while not env.done:
+            guidance = ({'reference_mask': info['reference_action_mask']}
+                        if agent.model.config.get('kind') == 'guided_residual' else {})
+            action = agent.select(env.view(), info['action_mask'], source_mask=info['source_action_mask'], **guidance)
+            _, reward, _, _, info = env.step(action)
+            total += reward
+            budget.pause()
+        records.append(env.episode_record(game_seed, 'both', total))
+    return summarize_episodes(records)
 
 
 def paired_outcomes(baseline, candidate):
@@ -55,7 +77,7 @@ def paired_outcomes(baseline, candidate):
 
 def search_fingerprint():
     digest = hashlib.sha256(planner_fingerprint(3).encode())
-    for name in ('joint_round.py', 'joint_forecast.py', 'search_teacher.py', 'search_evaluate.py'):
+    for name in ('joint_round.py', 'joint_forecast.py', 'search_teacher.py', 'search_evaluate.py', 'search_environment.py'):
         digest.update(name.encode())
         digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()
@@ -65,7 +87,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--checkpoint', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk'), default=['model', 'legacy', 'joint'])
+    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk', 'round-open'), default=['model', 'legacy', 'joint'])
     p.add_argument('--routes', nargs='+', default=['LOG_OSL_GREEN', 'LOG_HND_GREEN', 'LOG_LHR_GREEN', 'LOG_YUL_GREEN'])
     p.add_argument('--games', type=int, default=100)
     p.add_argument('--seed', type=int, default=14500000)
@@ -113,6 +135,8 @@ def main():
                     summary['paired_against_joint'] = paired_outcomes(report['modes']['joint'][airport]['episodes'], rows)
                 if mode == 'round-risk' and 'round-plain' in report['modes']:
                     summary['paired_against_round_plain'] = paired_outcomes(report['modes']['round-plain'][airport]['episodes'], rows)
+                if mode == 'round-open' and 'round-risk' in report['modes']:
+                    summary['paired_against_round_risk'] = paired_outcomes(report['modes']['round-risk'][airport]['episodes'], rows)
                 summary['episodes'] = [{k: row[k] for k in ('scenario', 'seed', 'status', 'reason')} for row in rows]
                 report['modes'][mode][airport] = summary
                 args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + '\n')
