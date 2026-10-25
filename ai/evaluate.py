@@ -27,13 +27,20 @@ def wilson_interval(wins, games):
 
 def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
              ai_role="both", round_reward=0.02, max_steps=256, sync_weight=0.0, sync_tolerance=1.0,
-             task_weight=0.0, replay=None, render=False, assistance_version=0,cpu_duty_cycle=1,policy_seed=None):
+             task_weight=0.0, replay=None, render=False, assistance_version=0,cpu_duty_cycle=1,policy_seed=None,abilities=None):
     from .throttle import CpuBudget
     cpu_budget=CpuBudget(cpu_duty_cycle)
     if games < 1 or ai_role not in ("both", "pilot", "kopilot"):
         raise ValueError("Mindestens eine Partie und eine gültige Rolle sind erforderlich.")
-    env = CrewEnv(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance, task_weight=task_weight,
-                  assistance_version=assistance_version)
+    env_class = CrewEnv
+    if getattr(agent, "model", None) is not None and agent.model.config["action_count"] > 125:
+        from .modules import ModuleEnv
+        env_class = ModuleEnv
+    elif getattr(agent, "model", None) is not None and agent.model.config["action_count"] != len(ACTIONS):
+        from .fuel import FuelEnv
+        env_class = FuelEnv
+    env = env_class(airport, round_reward, max_steps, sync_weight=sync_weight, sync_tolerance=sync_tolerance, task_weight=task_weight,
+                  assistance_version=assistance_version, **({"abilities":abilities} if env_class.__name__=="ModuleEnv" else {}))
     records = []
     # With a partner, 'both' means games per role, on the same seed set.
     roles = ("pilot", "kopilot") if partner is not None and ai_role == "both" else (ai_role,)
@@ -52,14 +59,14 @@ def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
                 view = env.view()
                 active = agent if partner is None or env.current_role == tested_role else partner
                 action_id = active.select(view, info["action_mask"])
-                action = ACTIONS[action_id]
+                action = env.actions[action_id]
                 played_value = view["own_dice"][action.die] if action.kind == "place" else None
                 _, reward, _, _, info = env.step(action_id)
                 total_reward += reward
                 cpu_budget.pause()
                 if render:
                     suffix = f" [Wert {played_value}]" if played_value is not None else ""
-                    print(f"{view['role']}: {action.label()}{suffix}")
+                    print(f"{view['role']}: {action.label(env.slots)}{suffix}")
                 if replay is not None:
                     # Deliberately public only: neither private hand appears in a replay.
                     public = env.view()

@@ -7,7 +7,7 @@ import re
 import torch
 
 from backend.katalog import landekatalog
-from .checkpoints import load_checkpoint, weight_fingerprint, planner_fingerprint
+from .checkpoints import load_checkpoint, weight_fingerprint, planner_fingerprint, model_schema
 from .export_browser import export_models
 
 
@@ -33,10 +33,21 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
     profile = payload['train_config'].get('assistance_version', 0)
     if report.get('assistance_version') != profile:
         raise ValueError('Evaluation uses a different assistance profile.')
-    if profile and report.get('planner_sha256') != planner_fingerprint():
+    if profile and report.get('planner_sha256') != planner_fingerprint(model_schema(model)['version']):
         raise ValueError('Planner changed after evaluation; repeat qualification before publishing.')
     expected = {s['engine_code'] for s in landekatalog()['scenarios'] if not s['modules'] and not s['ability_count']}
     qualified = set(report.get('qualified_routes', []))
+    scenarios = {s['engine_code']: s for s in landekatalog()['scenarios']}
+    allowed_modules = set(payload['train_config'].get('supported_modules', []))
+    for code in qualified:
+        scenario = scenarios.get(code)
+        if scenario is None or scenario['ability_count'] or set(scenario['modules']) - allowed_modules:
+            raise ValueError(f'Unsupported route modules/cards: {code}.')
+        if scenario['modules'] and (report['minimum_win_rate'] < .5 or payload.get('module_training_steps',0) < 1):
+            raise ValueError('New module releases require actual module training and a quality floor of at least 50%.')
+        if scenario['modules'] and model_schema(model)['version'] < 2:
+            raise ValueError('Module routes require the module action/observation schema.')
+
     if not qualified or require_all and not expected.issubset(qualified):
         raise ValueError(f'Unqualified routes: {sorted(expected - qualified)}')
     for airport in qualified:
@@ -46,7 +57,7 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
     folder = root / 'ai' / 'releases' / release_id
     folder.mkdir(parents=True, exist_ok=True)
     payload['train_config']=portable_config(payload['train_config'],root.resolve())
-    payload['train_config'].update(display_name=name, recommended=True,
+    payload['train_config'].update(display_name=name, recommended=model_schema(model)["version"] == 1,
         supported_airports=sorted(qualified), quality={'approved': True,
             'evaluation': f'ai/releases/{release_id}/evaluation.json',
             'minimum_win_rate': report['minimum_win_rate'], 'games_per_route': report['routes'][next(iter(qualified))]['self']['games']})
@@ -65,8 +76,9 @@ def main():
     p.add_argument('--evaluation', type=Path, required=True)
     p.add_argument('--release-id', required=True)
     p.add_argument('--name', required=True)
+    p.add_argument('--qualified-routes-only', action='store_true', help='Publish only independently qualified routes, e.g. a kerosene specialist.')
     args = p.parse_args()
-    path, _ = publish(args.checkpoint, args.evaluation, args.release_id, args.name)
+    path, _ = publish(args.checkpoint, args.evaluation, args.release_id, args.name, require_all=not args.qualified_routes_only)
     print(path)
 
 

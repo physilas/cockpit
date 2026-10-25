@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 from .actions import ACTION_MASK_VERSION
-from .checkpoints import load_checkpoint, schema
+from .checkpoints import load_checkpoint, schema, model_schema
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,6 +24,17 @@ def _layers(model):
                 'bias':base64.b64encode(layer.bias.detach().cpu().numpy().astype('<f4').tobytes()).decode()})
     return layers
 
+
+
+def _model_data(model):
+    current=model_schema(model)
+    if model.config.get('kind')=='residual':
+        return {'format':3,'schema':current,'model_config':model.config,
+                'source':_model_data(model.source),
+                'residual':{'format':1,'schema':current,'layers':_layers(model.residual)}}
+    if hasattr(model,'roles'):
+        return {'format':2,'schema':current,'roles':{r:_layers(m) for r,m in model.roles.items()},'model_config':model.config}
+    return {'format':1,'schema':current,'layers':_layers(model),'model_config':model.config}
 
 def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
     output_dir = Path(output_dir)
@@ -43,9 +54,8 @@ def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
         try:
             model, payload = load_checkpoint(path)
             config = payload.get("train_config", {})
-            data = ({'format':2,'schema':schema(),'roles':{r:_layers(m) for r,m in model.roles.items()},'model_config':model.config}
-                    if hasattr(model,'roles') else
-                    {"format": 1, "schema": schema(), "layers": _layers(model), "model_config": model.config})
+            current_schema = model_schema(model)
+            data = _model_data(model)
             raw = json.dumps(data, separators=(",", ":")).encode()
             fingerprint = hashlib.sha256(raw).hexdigest()
             asset = assets / f"{fingerprint}.json"
@@ -61,7 +71,7 @@ def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
                            'supported_airports': config.get('supported_airports', [config.get('airport', 'MUC')]),
                            'quality': config.get('quality'),
                            "trained_action_mask_version": config.get("action_mask_version", 1),
-                           "fingerprint": fingerprint, "url": f"models/{asset.name}"})
+                           "schema": current_schema, "fingerprint": fingerprint, "url": f"models/{asset.name}"})
         except (ValueError, KeyError, RuntimeError, OSError) as error:
             skipped.append({"checkpoint": str(path.relative_to(runs_dir)), "reason": str(error)})
     if previous:

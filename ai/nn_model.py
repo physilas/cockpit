@@ -81,7 +81,32 @@ class RoleActorCritic(ActorCritic):
         return torch.where(pilot.unsqueeze(-1),pilot_logits,copilot_logits),torch.where(pilot,pilot_value,copilot_value)
 
 
+
+class ResidualActorCritic(ActorCritic):
+    """A frozen inherited player plus a zero-output trainable detail branch."""
+    def __init__(self,source,observation_size,action_count,hidden_size=256,hidden_layers=2):
+        nn.Module.__init__(self)
+        if observation_size<source.config['observation_size'] or action_count<source.config['action_count']:
+            raise ValueError('Residual transfer must preserve the source prefix.')
+        self.source=source
+        self.source.requires_grad_(False)
+        self.residual=ActorCritic(observation_size,action_count,hidden_size,hidden_layers)
+        nn.init.zeros_(self.residual.actor.weight);nn.init.zeros_(self.residual.actor.bias)
+        nn.init.zeros_(self.residual.critic.weight);nn.init.zeros_(self.residual.critic.bias)
+        self.config={'kind':'residual','observation_size':observation_size,'action_count':action_count,
+                     'hidden_size':hidden_size,'hidden_layers':hidden_layers,'source':source.config}
+
+    def forward(self,observation):
+        original,value=self.source(observation[...,:self.source.config['observation_size']])
+        detail,correction=self.residual(observation)
+        original=nn.functional.pad(original,(0,detail.shape[-1]-original.shape[-1]))
+        return original+detail,value+correction
+
 def build_model(config):
+    if config.get('kind')=='residual':
+        model=ResidualActorCritic(build_model(config['source']),**{k:config[k] for k in ('observation_size','action_count','hidden_size','hidden_layers')})
+        if model.config!=config:raise ValueError('Non-canonical residual model configuration.')
+        return model
     if config.get('kind')=='role_ensemble':
         if set(config['roles'])!={'pilot','kopilot'}:
             raise ValueError('Both role heads are required.')

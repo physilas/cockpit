@@ -104,7 +104,7 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
                 from .actions import ACTIONS
                 selected = partner.select(env.view(), mask)
                 observation, reward, terminated, truncated, info = env.step(selected)
-                advances = discount_unit == 'action' or ACTIONS[selected].kind == 'place'
+                advances = discount_unit == 'action' or env.actions[selected].kind in ('place','bonus_place')
                 if rewards:
                     rewards[-1] += discounts[-1] * reward
                     discounts[-1] *= gamma if advances else 1.0
@@ -121,7 +121,7 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
             data["values"].append(float(value.item()))
             values.append(float(value.item()))
             from .actions import ACTIONS
-            advances = discount_unit == 'action' or ACTIONS[int(action.item())].kind == 'place'
+            advances = discount_unit == 'action' or env.actions[int(action.item())].kind in ('place','bonus_place')
             discounts.append(gamma if advances else 1.0)
             traces.append(gae_lambda if advances else 1.0)
             observation, reward, terminated, truncated, info = env.step(int(action.item()))

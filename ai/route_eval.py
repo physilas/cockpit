@@ -10,7 +10,7 @@ import torch
 
 from backend.katalog import landekatalog
 from .agents import ModelAgent, HeuristicAgent
-from .checkpoints import load_checkpoint, weight_fingerprint, planner_fingerprint
+from .checkpoints import load_checkpoint, weight_fingerprint, planner_fingerprint, model_schema
 from .evaluate import evaluate, summarize_episodes
 
 
@@ -46,7 +46,7 @@ def main():
     report = {'format': 1, 'checkpoint_sha256': hashlib.sha256(args.checkpoint.read_bytes()).hexdigest(),
               'weights_sha256': weight_fingerprint(model),
               'planner_sha256': planner_fingerprint() if profile else None,
-              'assistance_version': profile, 'seed': args.seed, 'minimum_win_rate': args.minimum_win_rate,
+              'assistance_version': profile, 'schema_version': model_schema(model)['version'], 'seed': args.seed, 'minimum_win_rate': args.minimum_win_rate,
               'routes': {}, 'qualified_routes': [],
               'note': 'Self-play qualification; heuristic partner results are separate and do not predict human win rates.'}
     with ProcessPoolExecutor(args.workers, mp_context=multiprocessing.get_context('spawn')) as pool:

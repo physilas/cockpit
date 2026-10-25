@@ -1,0 +1,2112 @@
+{
+  "format": 1,
+  "date": "2026-10-25",
+  "minimum_win_rate": 0.5,
+  "qualification_games_per_case": 500,
+  "confidence_rule": "Wilson lower bound >= 0.5 for EACH case; no pooling across cases",
+  "cases": [
+    {
+      "airport": "LOG_YUL_GREEN",
+      "modules": [],
+      "abilities": [],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_LHR_GREEN",
+      "modules": [],
+      "abilities": [],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_GREEN",
+      "modules": [],
+      "abilities": [],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_GREEN",
+      "modules": [
+        "intern"
+      ],
+      "abilities": [],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_LHR_YELLOW",
+      "modules": [
+        "intern"
+      ],
+      "abilities": [],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "adaptation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "adaptation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "abilities": [
+        "adaptation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "abilities": [
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "abilities": [
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "kerosene",
+        "intern"
+      ],
+      "abilities": [
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "wind",
+        "leak"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "leak",
+        "ice"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "wind",
+        "ice"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "anticipation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "control"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "anticipation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "mastery"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "control",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "mastery",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "mastery",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "synchronisation",
+        "working-together"
+      ],
+      "minimum_win_rate": 0.5
+    }
+  ]
+}

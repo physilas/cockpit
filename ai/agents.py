@@ -25,7 +25,16 @@ class ModelAgent:
         import torch
         device = next(self.model.parameters()).device
         with torch.no_grad():
-            action, _, _ = self.model.act(torch.tensor(encode(view), dtype=torch.float32, device=device),
+            if self.model.config["observation_size"] != len(encode(view)):
+                if self.model.config["observation_size"] == 352:
+                    from .fuel import fuel_encode
+                    observation = fuel_encode(view)
+                else:
+                    from .modules import module_encode
+                    observation = module_encode(view)
+            else:
+                observation = encode(view)
+            action, _, _ = self.model.act(torch.tensor(observation, dtype=torch.float32, device=device),
                                            mask, deterministic=self.deterministic,
                                            uniform_mix=0.0 if self.deterministic else self.uniform_mix)
         return int(action.item())
@@ -38,6 +47,9 @@ def _slot_index(target, role):
 class HeuristicAgent:
     """A deliberately small baseline, not an optimal solver or privileged teacher."""
     def _placement_score(self, view, action, value=None):
+        if action.slot == len(SLOTS) and view.get('fuel', {}).get('present'):
+            face = view['own_dice'][action.die] if value is None else value
+            return 40 - 9 * face - (1000 if face >= view['fuel']['remaining'] else 0)
         slot = SLOTS[action.slot]
         value = view["own_dice"][action.die] if value is None else value
         role = view["role"]
@@ -81,12 +93,16 @@ class HeuristicAgent:
         return score
 
     def select(self, view, mask):
+        actions = ACTIONS
+        if view.get('fuel', {}).get('present'):
+            from .fuel import FUEL_ACTIONS
+            actions = FUEL_ACTIONS
         legal = [i for i, valid in enumerate(mask) if valid]
-        placements = [i for i in legal if ACTIONS[i].kind == "place"]
-        best_now = max((self._placement_score(view, ACTIONS[i]) for i in placements), default=-200)
+        placements = [i for i in legal if actions[i].kind == "place"]
+        best_now = max((self._placement_score(view, actions[i]) for i in placements), default=-200)
         scores = {}
         for i in legal:
-            action = ACTIONS[i]
+            action = actions[i]
             if action.kind == "place":
                 scores[i] = self._placement_score(view, action)
             elif action.kind == "coffee":

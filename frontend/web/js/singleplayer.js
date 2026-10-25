@@ -15,6 +15,7 @@ window.Singleplayer = (() => {
   const active = () => Boolean(session);
   const aiRole = () => setup?.humanRole === "pilot" ? "kopilot" : "pilot";
   const hasAI = () => active() && setup.mode !== "examples";
+  const activeSchema = () => setup?.mode === "examples" ? catalog.schema : setup?.model?.schema || catalog.schema;
   const pending = () => session?.events.filter(e => e.feedback && !e.feedback.committed && !e.voided) || [];
 
   const dbPromise = new Promise((resolve, reject) => {
@@ -67,7 +68,7 @@ window.Singleplayer = (() => {
       });
       for (const row of rows) {
         await LearningCloud.upload({format: "flyteam-learning-session", version: 1,
-          schema: catalog.schema, action_mask_version: catalog.action_mask_version, session: row.session});
+          schema: row.session.schema || catalog.schema, action_mask_version: catalog.action_mask_version, session: row.session});
         await new Promise((resolve, reject) => {
           const tx = db.transaction("outbox", "readwrite"), store = tx.objectStore("outbox");
           const request = store.get(row.id);
@@ -143,7 +144,7 @@ window.Singleplayer = (() => {
     if (!api) return;
     stop(); api.hideGame();
     document.getElementById("start-menu").classList.add("versteckt");
-    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.modules.length && !s.ability_count);
+    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length || qualifiedModels().some(m => supports(m, s.engine_code))));
     root().innerHTML = `<div class="solo-shell"><button class="landing-back" id="solo-back">← Menü</button>
       <span class="landing-eyebrow">DEINE CREW</span><h1>Singleplayer</h1>
       <p class="solo-intro">Zusammen fliegen. Entscheidungen bewerten. Erfahrungen weitergeben.</p>
@@ -154,7 +155,7 @@ window.Singleplayer = (() => {
       </div><div class="solo-settings">
         <label id="solo-model-label">KI<select id="solo-model">${qualifiedModels().map(model => `<option value="${esc(model.id)}">${esc(model.name || model.run)}</option>`).join("")}</select></label>
         <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
-        <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
+        <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.modules.includes("kerosene") ? " · Kerosin" : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
       </div><p id="solo-description" class="solo-description"></p>
       <label id="solo-consent-label" class="solo-consent" hidden><input id="solo-consent" type="checkbox"><span>Ich bin einverstanden, dass meine Spielzüge, KI-Bewertungen und das Spielergebnis ohne Namen oder E-Mail-Adresse gespeichert und zur Verbesserung der KI an den Betreiber übermittelt werden.</span></label>
       <p class="solo-storage-note">Die KI lernt später aus den gesammelten Beispielen und Bewertungen.</p>
@@ -193,7 +194,13 @@ window.Singleplayer = (() => {
     document.getElementById("solo-role-label").hidden = examples;
     document.getElementById("solo-route-label").hidden = false;
     document.getElementById("solo-consent-label").hidden = setup.mode === "play";
-    const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === document.getElementById("solo-route").value);
+    const routeSelector = document.getElementById("solo-route");
+    for (const option of routeSelector.options) {
+      const route = window.LANDING_CATALOG.scenarios.find(s => s.id === option.value);
+      option.disabled = setup.mode !== "play" && Boolean(route?.modules.length);
+    }
+    if (routeSelector.selectedOptions[0]?.disabled) routeSelector.value = [...routeSelector.options].find(o => !o.disabled)?.value;
+    const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === routeSelector.value);
     const selector = document.getElementById("solo-model"), previousModel = selector.value;
     const choices = qualifiedModels().filter(m => supports(m, selectedRoute?.engine_code))
       .sort((a,b) => Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
@@ -224,7 +231,7 @@ window.Singleplayer = (() => {
       if (config.mode !== "examples") {
         const response = await fetch(config.model.url);
         if (!response.ok) throw new Error("Modell konnte nicht geladen werden. Bitte Verbindung prüfen und erneut versuchen.");
-        loadedPolicy = CockpitPolicy.create(await response.json(), catalog);
+        loadedPolicy = CockpitPolicy.create(await response.json(), {schema: config.model.schema || catalog.schema});
       }
       if (version !== generation) return;
       setup = config; policy = loadedPolicy;
@@ -232,7 +239,7 @@ window.Singleplayer = (() => {
       session = {id: crypto.randomUUID(), created_at: new Date().toISOString(), mode: config.mode,
                  scenario: {id: scenario.id, engine_code: scenario.engine_code}, human_role: config.mode === "examples" ? null : config.humanRole,
                  model: config.model && config.mode !== "examples" ? clone(config.model) : null,
-                 schema_version: catalog.schema.version, action_mask_version: catalog.action_mask_version,
+                 schema_version: activeSchema().version, schema: activeSchema(), action_mask_version: catalog.action_mask_version,
                  consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
                  status: "active", events: [], engine_stack: []};
       await api.start({...scenario, ability_ids: []});
@@ -246,10 +253,10 @@ window.Singleplayer = (() => {
   }
 
   function actionId(action) {
-    return catalog.schema.actions.findIndex(a => {
+    return activeSchema().actions.findIndex(a => {
       if (a.kind !== action.kind) return false;
       if (a.kind === "place") {
-        const s = catalog.schema.slots[a.slot];
+        const s = activeSchema().slots[a.slot];
         return a.die === action.die && s.target === action.target && (s.owner === null || s.owner === action.role)
           && s.index === (action.index ?? null) && (s.target !== "funk" || s.radio_index === (action.radio_index || 0));
       }
@@ -263,7 +270,7 @@ window.Singleplayer = (() => {
     const steps = session.events.filter(e => !e.voided && e.action_id !== null).length;
     return api.decision(role, reroll ? {initiator: reroll.initiator, selections: reroll.selections} : null,
                         steps, setup.model?.max_steps || 256,
-                        hasAI() && role === aiRole() ? setup.model?.assistance_version || 0 : 0);
+                        hasAI() && role === aiRole() ? setup.model?.assistance_version || 0 : 0, activeSchema().version);
   }
 
   function beforeAction(action, actor = "human", suppliedDecision = null) {
@@ -282,7 +289,7 @@ window.Singleplayer = (() => {
                outcome: {status: answer.zustand.status, reason: answer.zustand.verlust_grund || "", round: answer.zustand.runde},
                public_after: api.decision(null, reroll && Object.values(reroll.selections).some(s => s === null)
                  ? {initiator: reroll.initiator, selections: reroll.selections} : null,
-                 session.events.length + 1, setup.model?.max_steps || 256).public_state,
+                 session.events.length + 1, setup.model?.max_steps || 256, 0, activeSchema().version).public_state,
                training_compatible: context.action_id !== null && Boolean(context.decision?.action_mask[context.action_id]), voided: false};
     if (setup.mode === "feedback" && context.actor === "ai") {
       e.feedback = {value: 0, explicit: false, committed: false}; feedbackIndex = e.id;
@@ -356,10 +363,10 @@ window.Singleplayer = (() => {
     if (session.events.filter(e => !e.voided && e.action_id !== null).length >= (setup.model.max_steps || 256)) {
       throw new Error("Das Entscheidungslimit ist erreicht. Du kannst die Partie exportieren oder neu starten.");
     }
-    const d = decision(aiRole()), id = policy.select(d), action = catalog.schema.actions[id];
+    const d = decision(aiRole()), id = policy.select(d), action = activeSchema().actions[id];
     const a = {...action, role: aiRole()};
     if (action.kind === "place") {
-      const slot = catalog.schema.slots[action.slot];
+      const slot = activeSchema().slots[action.slot];
       a.target = slot.target; a.index = slot.index; a.radio_index = slot.radio_index;
     }
     if (action.kind === "reroll_start") { beginReroll(aiRole(), "ai", d); return; }

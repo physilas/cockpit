@@ -60,7 +60,14 @@ def _collect(task):
     state, steps, namespace, torch_seed, gamma, gae_lambda, uniform_mix, discount_unit, ai_role, partner_index = task
     _model.load_state_dict(state)
     torch.manual_seed(torch_seed)
-    env = CrewEnv(**_env_options)
+    env_class = CrewEnv
+    if _model.config["action_count"] > 125:
+        from .modules import ModuleEnv
+        env_class = ModuleEnv
+    elif _model.config["action_count"] != 121:
+        from .fuel import FuelEnv
+        env_class = FuelEnv
+    env = env_class(**_env_options)
     return collect_rollout(_model, env, steps, seed=namespace, episodes_done=0,
         gamma=gamma, gae_lambda=gae_lambda, uniform_mix=uniform_mix, discount_unit=discount_unit,
         partner=_partners[partner_index] if ai_role else None, ai_role=ai_role or 'both',cpu_duty_cycle=_cpu_duty_cycle)

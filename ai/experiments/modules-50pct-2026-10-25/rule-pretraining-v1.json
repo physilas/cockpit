@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "date": "2026-10-25",
+  "schema": 3,
+  "cases": 186,
+  "training_examples": 12970,
+  "initial": {
+    "examples": 3326,
+    "legal_recall": 0.4955592245722907,
+    "illegal_specificity": 0.511301889225215,
+    "balanced_accuracy": 0.5034305568987528
+  },
+  "validation": {
+    "examples": 3326,
+    "legal_recall": 0.9897235901961342,
+    "illegal_specificity": 0.985384138367174,
+    "balanced_accuracy": 0.9875538642816541
+  },
+  "meaning": "Rule legality representation only; this is not a win rate and not PPO training.",
+  "source_weights_sha256": "d4803cfe0c8cc0ebfb1e49ae8576d9b54cf2c64269e28fc6ddf8ff5d4be9fa7e"
+}

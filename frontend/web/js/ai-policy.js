@@ -8,8 +8,24 @@ window.CockpitPolicy = (() => {
   }
 
   function create(data, catalog) {
-    if (![1, 2].includes(data.format) || JSON.stringify(data.schema) !== JSON.stringify(catalog.schema)) {
+    if (![1, 2, 3].includes(data.format) || JSON.stringify(data.schema) !== JSON.stringify(catalog.schema)) {
       throw new Error("Das Modell passt nicht zur aktuellen KI-Schnittstelle.");
+    }
+    if (data.format === 3) {
+      const source = create(data.source, {schema: data.source.schema});
+      const residual = create(data.residual, catalog);
+      const logits = observation => {
+        const inherited = source.logits(observation.slice(0, data.source.schema.features.length));
+        return residual.logits(observation).map((v, i) => v + (inherited[i] || 0));
+      };
+      return {logits, select: decision => {
+        const scores = logits(decision.observation);
+        if (scores.length !== decision.action_mask.length) throw new Error("Ungültige Aktionsmaske.");
+        let selected = -1;
+        for (let i=0; i<scores.length; i++) if (decision.action_mask[i] && (selected<0 || scores[i]>scores[selected])) selected=i;
+        if (selected<0) throw new Error("Die KI hat keine erlaubte Aktion mehr.");
+        return selected;
+      }};
     }
     if (data.format === 2) {
       if (Object.keys(data.roles || {}).sort().join(",") !== "kopilot,pilot") throw new Error("Beide KI-Rollen werden benötigt.");

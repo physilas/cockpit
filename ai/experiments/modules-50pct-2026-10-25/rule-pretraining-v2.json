@@ -1,0 +1,154 @@
+{
+  "format": 1,
+  "date": "2026-10-25",
+  "schema": 3,
+  "cases": 186,
+  "training_examples": 19468,
+  "initial": {
+    "examples": 4938,
+    "legal_recall": 0.4938354975013988,
+    "illegal_specificity": 0.5106727224637562,
+    "balanced_accuracy": 0.5022541099825775
+  },
+  "validation": {
+    "examples": 4938,
+    "legal_recall": 0.9946458546373652,
+    "illegal_specificity": 0.9926313788372209,
+    "balanced_accuracy": 0.993638616737293
+  },
+  "meaning": "Rule legality and public action-consequence representations; not a win rate and not PPO training.",
+  "initial_public_effects": {
+    "mse": 0.030081789940595627,
+    "zero_delta_baseline_mse": 0.012447389774024487,
+    "per_public_effect": {
+      "attitude": {
+        "mse": 0.029227573424577713,
+        "zero_delta_baseline_mse": 0.02182620018720627
+      },
+      "wind": {
+        "mse": 0.03595634177327156,
+        "zero_delta_baseline_mse": 0.0008100445265881717
+      },
+      "wind_sin": {
+        "mse": 0.011749569326639175,
+        "zero_delta_baseline_mse": 0.00041670151404105127
+      },
+      "wind_cos": {
+        "mse": 0.037068307399749756,
+        "zero_delta_baseline_mse": 0.00084546027937904
+      },
+      "fuel": {
+        "mse": 0.0062606665305793285,
+        "zero_delta_baseline_mse": 0.002645301865413785
+      },
+      "ice": {
+        "mse": 0.007115750107914209,
+        "zero_delta_baseline_mse": 1.2656945727940183e-05
+      },
+      "intern": {
+        "mse": 0.012848821468651295,
+        "zero_delta_baseline_mse": 9.563026105752215e-05
+      },
+      "gear": {
+        "mse": 0.02291482873260975,
+        "zero_delta_baseline_mse": 0.004365240223705769
+      },
+      "flaps": {
+        "mse": 0.006211071275174618,
+        "zero_delta_baseline_mse": 0.0010884973453357816
+      },
+      "brakes": {
+        "mse": 0.010776609182357788,
+        "zero_delta_baseline_mse": 0.0005906575242988765
+      },
+      "coffee": {
+        "mse": 0.04218389093875885,
+        "zero_delta_baseline_mse": 0.0410422645509243
+      },
+      "distance": {
+        "mse": 0.010516084730625153,
+        "zero_delta_baseline_mse": 3.3620012800383847e-06
+      },
+      "height": {
+        "mse": 0.026898160576820374,
+        "zero_delta_baseline_mse": 0.00011250618990743533
+      },
+      "speed": {
+        "mse": 0.012845801189541817,
+        "zero_delta_baseline_mse": 0.007955538108944893
+      },
+      "outcome": {
+        "mse": 0.17865337431430817,
+        "zero_delta_baseline_mse": 0.1049007698893547
+      }
+    }
+  },
+  "public_effects": {
+    "mse": 0.004836425185203552,
+    "zero_delta_baseline_mse": 0.012447389774024487,
+    "per_public_effect": {
+      "attitude": {
+        "mse": 0.02146896719932556,
+        "zero_delta_baseline_mse": 0.02182620018720627
+      },
+      "wind": {
+        "mse": 0.0008861141977831721,
+        "zero_delta_baseline_mse": 0.0008100445265881717
+      },
+      "wind_sin": {
+        "mse": 0.0004980741650797427,
+        "zero_delta_baseline_mse": 0.00041670151404105127
+      },
+      "wind_cos": {
+        "mse": 0.0009347402956336737,
+        "zero_delta_baseline_mse": 0.00084546027937904
+      },
+      "fuel": {
+        "mse": 0.001325956778600812,
+        "zero_delta_baseline_mse": 0.002645301865413785
+      },
+      "ice": {
+        "mse": 9.86162485787645e-05,
+        "zero_delta_baseline_mse": 1.2656945727940183e-05
+      },
+      "intern": {
+        "mse": 3.3560449082870036e-05,
+        "zero_delta_baseline_mse": 9.563026105752215e-05
+      },
+      "gear": {
+        "mse": 0.0024328012950718403,
+        "zero_delta_baseline_mse": 0.004365240223705769
+      },
+      "flaps": {
+        "mse": 0.0008085261797532439,
+        "zero_delta_baseline_mse": 0.0010884973453357816
+      },
+      "brakes": {
+        "mse": 0.00042182637844234705,
+        "zero_delta_baseline_mse": 0.0005906575242988765
+      },
+      "coffee": {
+        "mse": 0.00039216596633195877,
+        "zero_delta_baseline_mse": 0.0410422645509243
+      },
+      "distance": {
+        "mse": 4.767491191159934e-05,
+        "zero_delta_baseline_mse": 3.3620012800383847e-06
+      },
+      "height": {
+        "mse": 0.00022088047990109771,
+        "zero_delta_baseline_mse": 0.00011250618990743533
+      },
+      "speed": {
+        "mse": 0.005687258671969175,
+        "zero_delta_baseline_mse": 0.007955538108944893
+      },
+      "outcome": {
+        "mse": 0.03728920966386795,
+        "zero_delta_baseline_mse": 0.1049007698893547
+      }
+    }
+  },
+  "generator_sha256": "6a9e77f2f73cda229e269de066a8920e981ac527b3393246b2de68d3b60bd3c3",
+  "source_weights_sha256": "d4803cfe0c8cc0ebfb1e49ae8576d9b54cf2c64269e28fc6ddf8ff5d4be9fa7e"
+}

@@ -20,7 +20,7 @@ class Slot:
     def label(self):
         name = {"ruder": "Ruder", "triebwerk": "Triebwerk", "funk": "Funk",
                 "fahrwerk": "Fahrwerk", "landeklappe": "Landeklappe",
-                "bremse": "Bremse", "konzentration": "Konzentration"}[self.target]
+                "bremse": "Bremse", "konzentration": "Konzentration", "kerosin": "Kerosin", "training": "Praktikant", "eisbremse": "Eisbremse"}[self.target]
         number = self.radio_index if self.target == "funk" else self.index
         suffix = f" {number + 1}" if number is not None else ""
         return f"{name}{suffix}" + (f" ({self.owner})" if self.owner else "")
@@ -47,13 +47,18 @@ class Action:
     def to_dict(self):
         return asdict(self)
 
-    def label(self):
-        if self.kind == "place":
-            return f"Würfel {self.die + 1} → {SLOTS[self.slot].label}"
+    def label(self, slots=None):
+        if self.kind in ("place", "bonus_place"):
+            return f"{'Zusatzwürfel' if self.kind == 'bonus_place' else f'Würfel {self.die + 1}'} → {(SLOTS if slots is None else slots)[self.slot].label}"
         if self.kind == "coffee":
             return f"Kaffee: Würfel {self.die + 1} um {self.delta:+d} ändern"
         if self.kind == "reroll_start":
             return "Gemeinsamen Neuwurf starten"
+        if self.kind in ("bonus_roll","bonus_coffee","adaptation","anticipation","swap_start","swap_choose","swap_cancel"):
+            return {"bonus_roll":"Zusatzwürfel werfen", "bonus_coffee":f"Zusatzwürfel mit Kaffee {self.delta:+d}",
+                    "adaptation":f"Würfel {self.die+1} anpassen", "anticipation":f"Würfel {self.die+1} voraussehend neu werfen",
+                    "swap_start":"Zusammenarbeit starten", "swap_choose":f"Würfel {self.die+1} zum Tausch bestätigen",
+                    "swap_cancel":"Zusammenarbeit abbrechen"}[self.kind]
         selected = subset_indices(self.subset)
         return "Neuwurf bestätigen: " + (", ".join(str(i + 1) for i in selected) or "keinen eigenen Würfel")
 
@@ -74,6 +79,8 @@ def subset_indices(bits):
 
 def slot_field(game, slot):
     c = game.cockpit
+    if slot.target == "kerosin":
+        return c.kerosin_feld
     if slot.target == "ruder":
         return c.ruder_pilot if slot.owner == "pilot" else c.ruder_kopilot
     if slot.target == "triebwerk":
@@ -105,8 +112,8 @@ def placement_is_legal(game, role, die, slot):
     return True
 
 
-def execute_placement(game, role, action):
-    slot = SLOTS[action.slot]
+def execute_placement(game, role, action, slots=SLOTS):
+    slot = slots[action.slot]
     if slot.owner is not None and slot.owner != role:
         from backend.cockpit import Ergebnis
         return Ergebnis(False, "feld_ungueltig")

@@ -153,6 +153,12 @@ def plan_actions(view, mask, *, beam=24, version=1):
     ordinary action is returned. Unseen partner dice are represented by an
     optimistic distribution over faces, not sampled or read from the engine.
     """
+    fuel = view.get('fuel', {})
+    slots, actions = SLOTS, ACTIONS
+    if fuel.get('present'):
+        from .fuel import FUEL_SLOTS, FUEL_ACTIONS
+        slots, actions = FUEL_SLOTS, FUEL_ACTIONS
+    action_ids = {a: i for i, a in enumerate(actions)}
     forecast=None
     if view.get('_horizon') and not view['reroll'] and 0<view['height']<=2000:
         from .horizon import make_forecast
@@ -171,13 +177,13 @@ def plan_actions(view, mask, *, beam=24, version=1):
     traffic0 = tuple(c['planes'] for c in view['track'])
     start = (tuple(view['own_dice']), occupied, original_r['value'] if original_r else 0,
              original_t['value'] if original_t else 0, gear0, flaps0,
-             _bits(view['brake_progress']), view['coffee'], traffic0)
+             _bits(view['brake_progress']), view['coffee'], traffic0, 0)
     rounds = max(1, int(view['height'] // 1000))
     future = 0 if view['last_round'] else int(view['height'] // 1000)
     partner_required = sum(s.owner == partner and s.target in ('ruder', 'triebwerk') and view['board'][i] is None
-                           for i, s in enumerate(SLOTS))
+                           for i, s in enumerate(slots))
     partner_radios = sum(s.owner == partner and s.target == 'funk' and view['board'][i] is None
-                        for i, s in enumerate(SLOTS))
+                        for i, s in enumerate(slots))
     partner_clearance = max(0, min(partner_radios, view['partner_remaining'] - partner_required))
     partner_budget = capacity(view,partner)
     if version >= 4:
@@ -190,7 +196,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
 
     @lru_cache(maxsize=4096)
     def score(state, complete=False, projected=False, attitude_target=None):
-        dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic = state
+        dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic, fuel_cost = state
         value = 13 * gear.bit_count() + 14 * flaps.bit_count()
         value += sum(w for i, w in enumerate((18, 16, 10)) if brakes & (1 << i))
         value += 2.0 * coffee
@@ -200,6 +206,19 @@ def plan_actions(view, mask, *, beam=24, version=1):
                          for cell, before, after in zip(view['track'], traffic0, traffic))
         else:
             value += 18 * (sum(traffic0) - sum(traffic))
+        if fuel.get('present') and not fuel['occupied']:
+            # A shared field is paid once. An unseen partner can still take it
+            # only when public spare capacity remains; never inspect its hand.
+            partner_can_pay = view['partner_remaining'] > partner_required
+            consumption = fuel_cost or (3 if partner_can_pay else 6)
+            after = fuel['remaining'] - consumption
+            # Leftover fuel has value only when needed in the remaining
+            # rounds. In the landing round sufficient fuel is simply enough.
+            if view.get('_fuel_profile') in (5,6,7,8):
+                value += 9 * (6 - consumption)
+            else:
+                value -= 12 * max(0, 2.5 * future + 1 - after)
+            value -= 1000 * max(0, future + 1 - after)
         required = int(not rudder) + int(not thrust)
         need = ((3 - gear.bit_count()) + int(not brakes) if role == 'pilot' else 4 - flaps.bit_count())
         spare = sum(bool(d) for d in dice) - required + 2 * future
@@ -210,7 +229,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
             # would spend the dice needed to clear public traffic.
             own_slack=spare-need
             own_radios=sum(s.target=='funk' and s.owner==role and not used & (1<<i)
-                           for i,s in enumerate(SLOTS))+(1 if role=='pilot' else 2)*future
+                           for i,s in enumerate(slots))+(1 if role=='pilot' else 2)*future
             partner_radio_budget=partner_radios+(1 if partner=='pilot' else 2)*future
             radio_budget=max(0,min(own_slack,own_radios))+max(0,min(partner_budget['slack'],partner_radio_budget))
             shortfall=max(0,sum(traffic)-own_slack-partner_budget['slack'],sum(traffic)-radio_budget)
@@ -330,13 +349,13 @@ def plan_actions(view, mask, *, beam=24, version=1):
     for _ in range(depth):
         expanded = {}
         for state, first, sequence in nodes:
-            dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic = state
+            dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic, fuel_cost = state
             remaining = sum(bool(d) for d in dice)
             missing = int(not rudder) + int(not thrust)
             for die, face in enumerate(dice):
                 if not face:
                     continue
-                for index, slot in enumerate(SLOTS):
+                for index, slot in enumerate(slots):
                     if used & (1 << index) or slot.owner is not None and slot.owner != role:
                         continue
                     target = slot.target
@@ -354,16 +373,23 @@ def plan_actions(view, mask, *, beam=24, version=1):
                         faces = ((1, 2), (2, 3), (4, 5), (5, 6))[slot.index]
                     elif target == 'bremse':
                         faces = ((2,), (4,), (6,))[slot.index]
-                    elif target in ('ruder', 'triebwerk', 'funk'):
+                    elif target in ('ruder', 'triebwerk', 'funk', 'kerosin'):
                         faces = range(max(1, face - coffee), min(6, face + coffee) + 1)
                     else:
                         faces = (face,)
                     for actual in faces:
+                        if fuel.get('present') and view.get('_fuel_profile') in (7,8) and not fuel['occupied'] and not fuel_cost:
+                            maximum = fuel['remaining'] - future - 1
+                            if target == 'kerosin' and actual > maximum:
+                                continue
+                            mandatory = target in ('ruder','triebwerk')
+                            if target != 'kerosin' and maximum < 6 and view['partner_remaining'] <= partner_required and remaining - 1 - (missing - int(mandatory)) < 1:
+                                continue
                         cost = abs(actual - face)
                         if cost > coffee:
                             continue
-                        placement = ACTION_IDS[Action('place', die=die, slot=index)]
-                        action = ACTION_IDS[Action('coffee', die=die, delta=actual - face)] if cost else placement
+                        placement = action_ids[Action('place', die=die, slot=index)]
+                        action = action_ids[Action('coffee', die=die, delta=actual - face)] if cost else placement
                         if first is None and not mask[action]:
                             continue
                         next_dice = list(dice)
@@ -379,7 +405,8 @@ def plan_actions(view, mask, *, beam=24, version=1):
                                       gear | (1 << slot.index) if target == 'fahrwerk' else gear,
                                       flaps | (1 << slot.index) if target == 'landeklappe' else flaps,
                                       brakes | (1 << slot.index) if target == 'bremse' else brakes,
-                                      min(3, coffee - cost + int(target == 'konzentration')), next_traffic)
+                                      min(3, coffee - cost + int(target == 'konzentration')), next_traffic,
+                                      actual if target == 'kerosin' else fuel_cost)
                         head = action if first is None else first
                         key = (next_state, head)
                         if key not in expanded:
@@ -389,9 +416,9 @@ def plan_actions(view, mask, *, beam=24, version=1):
         def rank(node):
             priority = 0
             if version >= 3 and node[2]:
-                priority = control_priority if SLOTS[node[2][0][1]].target == 'ruder' else 0
+                priority = control_priority if slots[node[2][0][1]].target == 'ruder' else 0
                 die, index, actual, _cost = node[2][0]
-                if SLOTS[index].target == 'funk' and actual == 1 and any(
+                if slots[index].target == 'funk' and actual == 1 and any(
                         c['distance'] == view['distance'] and c['planes'] for c in view['track']):
                     priority = 20
             return score(node[0], _ == depth - 1) + priority
@@ -413,7 +440,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
             continue
         quality = (max(score(state,True,True,target) for target in range(-2,3))
                    if forecast else score(state,True))
-        first_slot = SLOTS[sequence[0][1]]
+        first_slot = slots[sequence[0][1]]
         # Publish a control early so a partner can respond before spending dice.
         quality += control_priority if first_slot.target == 'ruder' else 0.2 if first_slot.target == 'triebwerk' else 0
         if version >= 3 and first_slot.target == 'funk' and sequence[0][2] == 1 and any(

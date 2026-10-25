@@ -15,6 +15,13 @@ from .observation import MAX_TRACK_LENGTH, encode, visible_state
 
 
 class CrewEnv:
+    actions = ACTIONS
+    slots = SLOTS
+
+    def validate_scenario(self):
+        if self.game.cockpit.module or self.game.zusatz.karten:
+            raise ValueError("Dieser KI-Rahmen unterstützt nur das Grundspiel ohne Module/Karten.")
+
     def __init__(self, airport="MUC", round_reward=0.02, max_steps=256, *, sync_weight=0.0, sync_tolerance=1.0, task_weight=0.0, assistance_version=0,
                  curriculum_airports=()):
         if max_steps < 1 or not 0 <= round_reward <= 0.1:
@@ -94,8 +101,7 @@ class CrewEnv:
             # and parallel worker seed namespaces remain reproducible.
             airport = random.choice(self.curriculum_airports) if self.curriculum_airports else self.airport
             self.game = Spielplan(airport)
-            if self.game.cockpit.module or self.game.zusatz.karten:
-                raise ValueError("Dieser erste KI-Rahmen unterstützt nur das Grundspiel ohne Module/Karten.")
+            self.validate_scenario()
             if self.game.landung.get_laenge() > MAX_TRACK_LENGTH:
                 raise ValueError(f"Maximal {MAX_TRACK_LENGTH} Streckenfelder werden unterstützt.")
             self.game.starte_spiel()
@@ -163,14 +169,14 @@ class CrewEnv:
         return encode(self.view())
 
     def action_mask(self):
-        mask = [False] * ACTION_COUNT
+        mask = [False] * len(self.actions)
         if self.done:
             return mask
         role = self.current_role
         dice = self.game._wuerfel_liste(role)
         if self.reroll:
             partner_selection = self.reroll["selections"][self.other_role(role)]
-            for i, action in enumerate(ACTIONS):
+            for i, action in enumerate(self.actions):
                 if action.kind == "reroll_select":
                     selected = subset_indices(action.subset)
                     partner_can_choose = partner_selection is None and bool(self.game.verfuegbare_wuerfel(self.other_role(role)))
@@ -180,11 +186,11 @@ class CrewEnv:
         # Own available dice and public occupied fields are sufficient. A
         # non-mandatory placement may not make this round impossible to finish.
         missing_required = sum(s.owner == role and s.target in ("ruder", "triebwerk")
-                               and slot_field(self.game, s).ist_frei() for s in SLOTS)
+                               and slot_field(self.game, s).ist_frei() for s in self.slots)
         reserve_remaining = sum(w.ist_verfuegbar() for w in dice) <= missing_required
-        for i, action in enumerate(ACTIONS):
+        for i, action in enumerate(self.actions):
             if action.kind == "place":
-                slot = SLOTS[action.slot]
+                slot = self.slots[action.slot]
                 mask[i] = (not reserve_remaining or slot.target in ("ruder", "triebwerk")) and placement_is_legal(self.game, role, dice[action.die], slot)
             elif action.kind == "coffee":
                 mask[i] = dice[action.die].ist_verfuegbar() and action.delta in self.game.moegliche_kaffee_deltas(role, action.die)
@@ -226,9 +232,9 @@ class CrewEnv:
     def step(self, action_id):
         if self.game is None or self.done:
             raise ValueError("Vor einem Schritt eine laufende Partie mit reset() starten.")
-        if type(action_id) is not int or not 0 <= action_id < ACTION_COUNT or not self.action_mask()[action_id]:
+        if type(action_id) is not int or not 0 <= action_id < len(self.actions) or not self.action_mask()[action_id]:
             raise ValueError(f"Aktion {action_id!r} ist in diesem Zustand nicht erlaubt.")
-        action, role = ACTIONS[action_id], self.current_role
+        action, role = self.actions[action_id], self.current_role
         if action.kind == 'coffee':
             self.diagnostics['coffee_actions'] += 1
             self.diagnostics['coffee_units'] += abs(action.delta)
@@ -243,7 +249,7 @@ class CrewEnv:
         with self._engine_randomness():
             result = None
             if action.kind == "place":
-                result = execute_placement(self.game, role, action)
+                result = execute_placement(self.game, role, action, self.slots)
             elif action.kind == "coffee":
                 result = self.game.trinke_kaffee(role, action.die, action.delta)
             elif action.kind == "reroll_start":
