@@ -655,7 +655,7 @@ belegt identische Anfangsgewichte und exakt unveränderte eingefrorene Grundlage
 nach dem echten PPO-Update. Kein Modell aus dieser technischen Probe
 wird freigegeben oder als Gewichtsquelle des eigentlichen Laufs benutzt.
 
-**Aktueller einziger schwerer Job:** `runs/open-risk-ppo-stage1/`, Log
+**Regulär abgeschlossene PPO-Phase:** `runs/open-risk-ppo-stage1/`, Log
 `/tmp/cockpit-open-risk-ppo-stage1.log`, begrenzte Phase von
 **100.000 NEUEN Entscheidungen**:
 OSL/HND/LHR/YUL, HND dreifach und OSL zweifach im Curriculum, 100 feste
@@ -689,6 +689,58 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train
   --self-imitation-coef .03 --device mps
 ```
 
+## Abschluss der neuen PPO-Phase und frischer Vergleich
+
+Die Phase endete regulär nach **23,24 Minuten**, Exit 0, **100.214 NEUEN
+Entscheidungen** in 45 Updates/1.758 Trainingspartien. Verteilung: HND 39.057,
+OSL/Kerosin 29.668, LHR 14.396, YUL 17.093. Alle Zähler summieren sich korrekt;
+kumulative Modulhistorie mit übernommener Quelle: 565.851 Entscheidungen.
+Die eingefrorene Grundlage ist in `warm.pt`, `best.pt` und `latest.pt` exakt
+gleich geblieben. Vollständiger abgeschlossener Bericht
+`open-risk-ppo-stage1.json`, einschließlich Trainings- und Einzelvalidierung.
+
+| Neue Phasenzüge, je 100 feste Entwicklungspartien | OSL | HND | LHR | YUL | Schwächste Route |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 0, unveränderte Anfangsgewichte | 48 % | 36 % | 68 % | 88 % | 36 % |
+| 56.480, gewähltes `best.pt` | 42 % | 42 % | 65 % | 91 % | 42 % |
+| 100.214, `latest.pt` | 40 % | 44 % | 69 % | 91 % | 40 % |
+
+**Best bleibt der 56.480-Stand**, weil die vorher festgelegte Auswahl zuerst
+die schwächste Route betrachtet. Der etwas höhere Gesamtwert am Ende ersetzt
+dieses Kriterium nicht. Es gibt einen Vorteil für die schwächste Route auf
+festen Entwicklungsseeds, aber Oslo gibt nach. Keine Freigabe, kein 50-%-Nachweis
+und kein Grund für eine ungeprüfte unbegrenzte Fortsetzung.
+
+Der nächste begrenzte Schritt prüft auf **frischen Entwicklungsseeds ab
+14.700.000**, 200 Partien je OSL/HND/LHR/YUL, drei gepaarte Varianten:
+ursprüngliche 500.347-Gewichte unter alter Maske 9 (`source`), exakt dieselben
+Anfangsgewichte unter der Zusatzmaske (`warm`), gewählter 56.480-Stand unter
+Zusatzmaske (`candidate`). Damit wird auch gegen die ursprüngliche KI geprüft,
+nicht nur gegen den durch die neue Auswahl zunächst geschwächten Anfang.
+Das sind 2.400 Partien, kein unabhängiger Freigabetest. Ergebnisse werden pro
+Route und Seed mit gepaarten Gewinnen/Verlusten gegen BEIDE Kontrollen
+gespeichert. Außerdem wird gemessen, wie oft die Politik tatsächlich eine
+zusätzliche Aktion außerhalb der alten Maske 9 auswählt; Abweichungen von der
+engeren Referenzmaske 7 allein beantworten diese Frage nicht.
+
+**Aktueller einziger schwerer Lauf:** Werkzeug `ai.open_risk_compare`, Bericht
+`ai/experiments/modules-50pct-2026-10-25/open-risk-ppo-stage1-fresh-v1.json`,
+Log `/tmp/cockpit-open-risk-ppo-stage1-fresh-v1.log`. Vor Start zuerst Status,
+STOP-Datei und Prozesse prüfen; maximal acht Worker zu 70 %, Torch-Threads 1,
+`nice -n15`, ein schwerer Lauf. Die unabhängigen Seeds ab 15.000.000 werden
+vom Werkzeug ausdrücklich als Entwicklung abgelehnt. Instrumentierungstests
+prüfen unveränderte Kontroll-/Kandidatenaktionen und Gewichte. **251 lokale
+Tests bestanden** (37,5 s), einschließlich der geschützten fremden Tests.
+Der laufend geschriebene frische Bericht wird erst nach Abschluss committed.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.open_risk_compare \
+  --source runs/guided-residual-stage2/latest.pt --warm runs/open-risk-ppo-stage1/warm.pt \
+  --candidate runs/open-risk-ppo-stage1/best.pt --games 200 --seed 14700000 \
+  --workers 8 --cpu-duty-cycle .7 --beam 64 \
+  --output ai/experiments/modules-50pct-2026-10-25/open-risk-ppo-stage1-fresh-v1.json
+```
+
 ## Nächste Arbeit
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
@@ -701,9 +753,9 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train
    26/28 entstehen vor 2.000 Fuß. Der oben dokumentierte frühe Suchvergleich
    brachte noch keinen Vorteil. Auch Round-Open (45) und das unverändert
    unter der Zusatzmaske spielende Netz (45) blieben unter dem ursprünglichen
-   Netz (48). Der neue PPO-Datenweg ist technisch geprüft; jetzt den einzigen
-   oben dokumentierten Lernlauf auswerten, in dem die Bewertung dieser gezielten
-   Zusatzaktionen gelernt wird. Erst echte Einzelverbesserungen auf frischer Entwicklung
+   Netz (48). Die neue PPO-Phase hat 100.214 neue Züge regulär abgeschlossen;
+   jetzt zuerst den oben dokumentierten frischen Vergleich gegen beide
+   Kontrollen auswerten. Erst echte Einzelverbesserungen auf frischer Entwicklung
    rechtfertigen die nächste Stufe. Nicht unterstellen, alle Fehler entstehen
    kurz vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
