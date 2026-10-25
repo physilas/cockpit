@@ -195,7 +195,7 @@ class ModuleEnv(CrewEnv):
 
     def _assist(self,mask):
         if not self.assistance_version or self.current_role not in self.assisted_roles:return mask
-        if self.game.cockpit.module <= {'kerosene'} and not self.game.zusatz.karten and self.assistance_version in (3,4,5,6,7,8):
+        if self.game.cockpit.module <= {'kerosene'} and not self.game.zusatz.karten and self.assistance_version in (3,4,5,6,7,8,9):
             # Exact compatibility for the first PPO curriculum stage. Other
             # modules already expose legal actions but need their own planner.
             import json

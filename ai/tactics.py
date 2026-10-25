@@ -214,7 +214,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
             after = fuel['remaining'] - consumption
             # Leftover fuel has value only when needed in the remaining
             # rounds. In the landing round sufficient fuel is simply enough.
-            if view.get('_fuel_profile') in (5,6,7,8):
+            if view.get('_fuel_profile') in (5,6,7,8,9):
                 value += 9 * (6 - consumption)
             else:
                 value -= 12 * max(0, 2.5 * future + 1 - after)
@@ -378,7 +378,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
                     else:
                         faces = (face,)
                     for actual in faces:
-                        if fuel.get('present') and view.get('_fuel_profile') in (7,8) and not fuel['occupied'] and not fuel_cost:
+                        if fuel.get('present') and view.get('_fuel_profile') in (7,8,9) and not fuel['occupied'] and not fuel_cost:
                             maximum = fuel['remaining'] - future - 1
                             if target == 'kerosin' and actual > maximum:
                                 continue
@@ -530,7 +530,7 @@ def _cached_mask(serialized_view, mask, version):
     return tuple(_assisted_mask(json.loads(serialized_view), mask, version))
 
 
-def _assisted_mask(view, mask, version):
+def _assisted_mask(view, mask, version, *, placement_margin=None):
     """Conservative capacity plus a practical own-hand planning shortlist.
 
     This profile is deliberately a hybrid player, not a claim that all pruned
@@ -579,6 +579,8 @@ def _assisted_mask(view, mask, version):
     else:
         for i, quality in ranked.items():
             margin = 3 if version == 4 and ACTIONS[i].kind == 'place' else 1.5
+            if placement_margin is not None and ACTIONS[i].kind == 'place':
+                margin = placement_margin
             if base[i] and quality >= best - margin:
                 result[i] = True
         reroll = ACTION_IDS[Action('reroll_start')]

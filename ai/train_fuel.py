@@ -80,7 +80,7 @@ def main():
     p.add_argument('--eval-airports', nargs='+')
     p.add_argument('--device', default='mps')
     p.add_argument('--freeze-legacy', action='store_true', default=None)
-    p.add_argument('--assistance-version', type=int, choices=(3,4,5,6,7,8), default=None)
+    p.add_argument('--assistance-version', type=int, choices=(3,4,5,6,7,8,9), default=None)
     args = p.parse_args()
     seed_omitted=args.seed is None
     args.seed=250925 if seed_omitted else args.seed
@@ -113,7 +113,7 @@ def main():
             p.error('Residual module transfer requires schema 2 or 3.')
         if args.freeze_legacy:
             p.error('Residual transfer freezes its source automatically; do not add --freeze-legacy.')
-        if module_source_payload.get('rule_pretraining_examples') and inherited.config.get('kind')=='residual':
+        if (module_source_payload.get('rule_pretraining_examples') or module_source_payload.get('policy_pretraining_examples')) and inherited.config.get('kind')=='residual':
             model=inherited
         else:
             model=ResidualActorCritic(inherited,inherited.config['observation_size'],inherited.config['action_count'],hidden_size=256).to(args.device)
@@ -144,6 +144,7 @@ def main():
                   resumed_from=args.resume.as_posix() if args.resume else None,
                   residual_source=args.residual_source.as_posix() if args.residual_source else (resume['train_config'].get('residual_source') if resume else None),
                   rule_pretraining_examples=module_source_payload.get('rule_pretraining_examples',0) if module_source_payload else (resume['train_config'].get('rule_pretraining_examples',0) if resume else 0),
+                  policy_pretraining_examples=module_source_payload.get('policy_pretraining_examples',0) if module_source_payload else (resume['train_config'].get('policy_pretraining_examples',0) if resume else 0),
                   inherited_module_steps=module_source_payload.get('module_training_steps',0) if module_source_payload else (resume['train_config'].get('inherited_module_steps',0) if resume else 0),
                   curriculum_airports=args.curriculum_airports, eval_airports=args.eval_airports,
                   self_imitation_coef=args.self_imitation_coef, freeze_legacy=args.freeze_legacy, learning_rate=optimizer.param_groups[0]['lr'], uniform_mix=.03, discount_unit='placement')
@@ -187,7 +188,9 @@ def main():
         row['by_route']={k:{key:value for key,value in v.items() if key!='episodes'} for k,v in by_route.items()}
         with (args.run_dir/'validation.jsonl').open('a') as f:
             f.write(json.dumps(row)+'\n')
-        if steps and score > best_score:
+        # The initial policy must remain eligible: a first PPO update can be
+        # worse than its source and must not silently replace that baseline.
+        if score > best_score:
             best_score = score
             save('best.pt')
         print(json.dumps(dict(steps=steps, games=result['games'], win_rate=result['win_rate'],

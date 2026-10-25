@@ -73,50 +73,110 @@ Baseline. **Wind ist im Einzelvergleich weiterhin schwach**; diese Regelquote
 ist keine Gewinnquote. Berichte mit Fehlern je Größe stehen unter
 `ai/experiments/modules-50pct-2026-10-25/rule-pretraining-v3.json`.
 
-## Aktueller schwerer Lauf
+## Residual-PPO abgeschlossen und Planungsmaske untersucht
 
-`runs/modules-residual-stage1/`, Log `/tmp/cockpit-modules-residual-stage1.log`,
-verwalteter Job unter `runs/ai-job.json`. Ziel: 500.000 neue PPO-Entscheidungen
-in diesem Abschnitt; nur Entscheidungen auf Modul-/Kartenrouten werden zusätzlich
-als Modulentscheidungen gezählt. Übernommene Modulentscheidungen (100.054) und
-37.016 Regelübungen werden separat geführt. Die rund 33,7 Millionen alten
-Grundspielentscheidungen werden nicht als neues Modultraining ausgegeben.
+`runs/modules-residual-stage1/` endete regulär nach **500.313 neuen PPO-Zügen**
+in 25,4 Minuten. Davon entfielen 215.980 auf Oslo/Kerosin; 284.333 waren
+Grundspielzüge auf HND/LHR/YUL. Mit 100.054 übernommenen Kerosinzügen sind es
+316.034 kumulative Modulzüge. Die 37.016 Regelübungen bleiben separat.
+Bericht: `ai/experiments/modules-50pct-2026-10-25/residual-stage1.json`.
 
-Initialisierung: `runs/rules-allmodules-v3/rules.pt`, neuer Trainingsseed 251026.
-Gewichtetes Curriculum: Oslo grün dreimal, Haneda grün zweimal, Heathrow grün
-und Montréal grün je einmal. Validierung: 200 Partien je Route, insgesamt 800
-ab 14.000.000. Die Modellauswahl maximiert zuerst die **schwächste** Route,
-erst danach die Gesamtquote. Ausgangswerte: OSL 31,5 %, HND 33,0 %, LHR 69,0 %,
-YUL 81,5 %. Die ersten Messungen zeigen noch keine Verbesserung.
-PPO lernt zusätzlich aus bis zu 4.096 gewonnenen Trainingszügen (Koeffizient
-0,03). Validierung und Tests gelangen nie in diesen Puffer.
+Initialisierung war `runs/rules-allmodules-v3/rules.pt`, Seed 251026,
+Curriculum OSL/OSL/OSL/HND/HND/LHR/YUL und Gewinnzug-Nachahmung mit Gewicht 0,03.
+Auf jeweils 200 festen Entwicklungspartien ab 14.000.000 änderten sich die
+Quoten von OSL 31,5 / HND 33 / LHR 69 / YUL 81,5 % auf zuletzt
+**34,5 / 34 / 65 / 80 %**. Der nach schwächster Route gewählte Stand ist am Ende
+identisch mit `latest.pt`. Kein ausreichender Fortschritt, keine Freigabe.
+Für neue Läufe wurde korrigiert, dass auch das unveränderte Ausgangsmodell
+als bester Stand erhalten werden kann; zuvor wurde die erste trainierte
+Messung selbst bei Verschlechterung gespeichert.
+
+`ai.planner_probe` misst passiv rohe Regelmasken, Kapazitätsgrenzen und die
+engere Suchauswahl, ohne RNG oder Spielentscheidungen zu verändern. Gleiche
+Würfel auf demselben Zielfeld zählen als dieselbe inhaltliche Wahl.
+Auf zusätzlichen 100 Entwicklungsseed-Partien je Route ab 14.100.000:
+
+| Stand | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Ausgang | 28 % | 29 % | 64 % | 78 % |
+| Ende | 33 % | 31 % | 62 % | 85 % |
+
+Beim Endstand sind rund 30 / 51 / 48 / 47 % der Entscheidungen inhaltlich
+erzwungen, während die Kapazitätsmaske allein nur 3,5 / 4,9 / 3,0 / 1,8 %
+vollständig erzwingt. Das begründet einen Versuch mit mehr Strategieraum,
+beweist aber nicht, dass entfernte Aktionen gut wären. `best.pt` und `latest.pt`
+haben identische Gewichte: deren wiederholte Prüfung zählt NICHT als zusätzliche
+unabhängige Stichprobe. Bericht: `planner-probe-v1.json` im selben Berichtsordner.
+
+Forschungsprofil 9 für Schema 2/3 erweitert ausschließlich Platzierungen auf
+16 Scorepunkte Abstand zum besten Plan. Kaffeeauswahl, Neuwurfauswahl,
+Budgetgrenzen und Profile 3–8 bleiben gleich. Das separate Grundspielprofil 9
+bleibt unverändert. Eine Probe mit den unveränderten Ausgangsgewichten ergibt
+nur **4 / 6 / 18 / 50 %**: mehr Aktionen ohne passenden Lernstart schadet.
+Bericht: `planner-probe-wide-v1.json`. Diese Maske wird nicht veröffentlicht.
+
+## Politikvortraining und laufender DAgger-Versuch
+
+`runs/planner-distillation-v1/` ist nach 40 Epochen abgeschlossen. Das vorhandene
+Hybridmodell mit Profil 7 erzeugte in 400 frischen Trainingspartien 23.439
+erlaubte eigene Beobachtungen und Aktionsverteilungen. 100 zusätzliche Partien
+lieferten 5.734 Validierungsbeispiele in einem getrennten String-Namensraum.
+Diese Daten kommen weder aus den PPO-Validierungs- noch aus den Prüfseeds.
+Auch verlorene Lehrerpartien sind enthalten; dies ist kein stärkerer Experte.
+
+Ein weiterer Residualzweig lernt die Lehrerpolitik unter der breiteren Maske 9.
+Sein Encoder übernimmt die bisherigen Merkmale; die alten Gewichte bleiben
+eingefroren. Der neue Kritiker bleibt während dieses Politikvortrainings null,
+damit Wertlernen die Nachahmung nicht stört. Auswahl nach Validierungs-KL,
+**nicht** nach einer behaupteten Gewinnquote. Nachahmungsbeispiele und PPO-Züge
+werden getrennt gezählt. Der neue Planerfingerabdruck beginnt einen expliziten
+neuen Forschungsabschnitt; kein exaktes Resume des alten Laufs. Validierungs-KL
+2,468 → 0,615; Übereinstimmung mit Lehreraktionen zuletzt 75,76 %.
+Auf denselben zusätzlichen 100 Entwicklungsseed-Partien je Route wie der Lehrer
+(14.100.000) erreicht der Schüler nur **11 / 15 / 24 / 55 %**, gegenüber
+33 / 31 / 62 / 85 % beim Lehrer. Noch keine ausreichend erhaltene Spielweise.
+Berichte: `planner-distillation-v1.json`, `planner-distillation-games-v1.json`.
+
+**Aktueller schwerer Lauf:** `runs/planner-dagger-v1/`, Log
+`/tmp/cockpit-planner-dagger-v1.log`, Jobstatus `runs/ai-job.json`.
+Vor jedem Folgelauf Prozesse und STOP-Datei prüfen. Derselbe eingefrorene Lehrer
+beschriftet jetzt auch vom bisherigen Schüler erreichte Zustände. In 50 % der
+Züge entscheidet der Schüler mit breiter Maske, sonst der Lehrer. Diese Mischung
+nutzt einen separaten RNG, keine zukünftigen Spielwürfe. Je Route entstehen
+100 neue Trainings- und 25 neue Validierungspartien mit Seed 251029; alte Daten
+werden nur innerhalb ihres bisherigen Splits ergänzt. Der Schüler startet mit
+seinen bisherigen Gewichten, kein dritter Residualzweig wird angelegt.
+Budget: 200 Politikepochen, weiter ohne PPO und ohne neue Gewinnbehauptung.
 
 ```sh
-nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
-  --residual-source runs/rules-allmodules-v3/rules.pt \
-  --run-dir runs/modules-residual-stage1 --steps 500000 \
-  --workers 8 --cpu-duty-cycle .7 --device mps --seed 251026 \
-  --eval-games 800 --eval-every 20 \
-  --eval-airports LOG_OSL_GREEN LOG_HND_GREEN LOG_LHR_GREEN LOG_YUL_GREEN \
-  --curriculum-airports LOG_OSL_GREEN LOG_OSL_GREEN LOG_OSL_GREEN LOG_HND_GREEN LOG_HND_GREEN LOG_LHR_GREEN LOG_YUL_GREEN \
-  --self-imitation-coef .03
+nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.distill_planner \
+  --source runs/modules-residual-stage1/best.pt \
+  --student runs/planner-distillation-v1/distilled.pt \
+  --initial-data runs/planner-distillation-v1/teacher-data.pt \
+  --run-dir runs/planner-dagger-v1 --seed 251029 --student-fraction .5 \
+  --train-games-per-route 100 --validation-games-per-route 25 --epochs 200 \
+  --workers 8 --cpu-duty-cycle .7 --device mps
 ```
 
-Bei Fortsetzung `--resume .../latest.pt` und ein NEUES Laufverzeichnis verwenden;
-`--steps` ist das kumulative Ziel innerhalb dieses PPO-Abschnitts. Die CLI
-übernimmt Seed und Profil bei ausgelassenen Argumenten. Alte Checkpoints mit
-anderem Planerfingerabdruck brauchen einen ausdrücklich dokumentierten neuen
-Trainingsabschnitt, keine stillschweigende Umdeutung.
-
 Der unabhängige Kerosinvergleich ab 15.000.000 wurde noch NICHT gestartet.
-Auch die früher reservierten Kohorten 12.000.000 und 13.000.000 sind unbenutzt.
-**Keine neue Modul-KI ist freigegeben; das Menü zeigt weiter die bisherigen Modelle.**
+Auch 12.000.000 und 13.000.000 bleiben unbenutzt. Keine neue Modul-KI ist
+freigegeben; das Menü zeigt weiter die bisherigen Modelle.
 
 ## Nächste Arbeit
 
-1. Aktuellen Job/Logs prüfen; niemals einen zweiten schweren Lauf starten.
-   Bei Plateau Ursachen bearbeiten, statt denselben Ansatz endlos fortzusetzen.
-2. Die aktuelle Planung (Assistenzprofil 7 im allgemeinen Adapter) unterstützt
+1. Aktuellen DAgger-Job/Logs prüfen; niemals einen zweiten schweren Lauf
+   starten. Nach Ende `distilled.pt` unter Profil 9 und den Lehrer unter Profil 7
+   auf identischen NEUEN Entwicklungsseeds (z. B. 14.200.000, 100 je Route)
+   vergleichen. Hohe Aktionsübereinstimmung allein ist kein Gewinnnachweis.
+   Erst wenn die bisherige Spielstärke weitgehend erhalten ist, einen begrenzten
+   neuen PPO-Lauf mit `--residual-source .../distilled.pt --assistance-version 9`
+   und denselben vier Routen beginnen. Bei schlechtem Transfer zusätzlich auf
+   vom Schüler besuchten Zuständen Lehreraktionen sammeln (DAgger), statt
+   unvorbereitet sehr schwache breite Masken lange per PPO zu trainieren.
+   38 relevante Tests bestanden, einschließlich unveränderter Grundspielprofile,
+   Kapazitätsgrenzen, eingefrorenem Lehrer/Wertkopf, DAgger-Zielen und verschachteltem
+   Browserexport. Die erweiterten Browser-Quelltexte sind neu gebaut.
+2. Assistenzprofil 7 im allgemeinen Adapter und Forschungsprofil 9 unterstützen
    taktisch nur Grundspiel/Kerosin ohne Karten. Für weitere Module/Karten sind
    Modultaktik und Planung noch zu entwickeln; rohe legale Aktionen funktionieren
    bereits. Vor allgemeinem PPO Helferschleifen/Trunkierung als Flucht vor einer

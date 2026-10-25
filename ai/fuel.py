@@ -58,11 +58,18 @@ def fuel_capacity_mask(view, mask):
 
 @lru_cache(maxsize=512)
 def _fuel_assist(serialized, mask, profile):
+    # Research profile 9 widens only placement shortlists relative to profile
+    # 7. Budget bounds, coffee options and rescue rerolls retain their meaning.
+    # Schema-1's separately versioned profile 9 is unchanged.
     from .tactics import assisted_mask, capacity_mask, plan_actions
     view = json.loads(serialized)
     view['_fuel_profile'] = profile
     plan_version = 4 if profile in (4, 5, 8) else 3
     if not view['fuel']['present']:
+        if profile == 9:
+            from .tactics import _assisted_mask
+            return tuple(_assisted_mask({k: v for k, v in view.items() if k != 'fuel'},
+                                        mask[:len(ACTIONS)], 3, placement_margin=16) + [False] * 4)
         return tuple(assisted_mask({k: v for k, v in view.items() if k != 'fuel'}, mask[:len(ACTIONS)], version=3) + [False] * 4)
     if view['reroll']:
         from .tactics import _future_action_mask
@@ -81,7 +88,7 @@ def _fuel_assist(serialized, mask, profile):
             result[min(eligible, key=lambda i:(ACTIONS[i].subset ^ wanted).bit_count())] = True
         return tuple(result if any(result) else mask)
     base = capacity_mask(view, mask[:len(ACTIONS)], include_traffic=True) + list(mask[len(ACTIONS):])
-    if profile in (7,8):
+    if profile in (7,8,9):
         base = fuel_capacity_mask(view, base)
     planned = dict(view)
     planned['board'] = view['board'] + ([{'value': 1, 'owner': 'pilot'}] if view['fuel']['occupied'] else [None])
@@ -90,7 +97,9 @@ def _fuel_assist(serialized, mask, profile):
     best = max(ranked.values(), default=-10000)
     # Leave alternatives for PPO to learn task/fuel tradeoffs. Keep the base
     # profile's justified rescue reroll when no complete own plan survives.
-    result = [bool(base[i] and ranked.get(i, -1e30) >= best - 4) for i in range(len(mask))]
+    result = [bool(base[i] and ranked.get(i, -1e30) >= best -
+                   (16 if profile == 9 and FUEL_ACTIONS[i].kind == 'place' else 4))
+              for i in range(len(mask))]
     reroll_id = next(i for i, a in enumerate(ACTIONS) if a.kind == 'reroll_start')
     if base[reroll_id] and best < -100:
         result = [False] * len(mask)
@@ -127,6 +136,6 @@ class FuelEnv(CrewEnv):
         if not self.assistance_version or self.current_role not in self.assisted_roles:
             return mask
         self.validate_scenario()
-        if self.assistance_version not in (3,4,5,6,7,8):
+        if self.assistance_version not in (3,4,5,6,7,8,9):
             raise ValueError('Unbekanntes Kerosin-Assistenzprofil.')
         return list(_fuel_assist(json.dumps(self.view(), sort_keys=True), tuple(mask), self.assistance_version))
