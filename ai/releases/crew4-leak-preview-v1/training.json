@@ -1,0 +1,192 @@
+{
+  "new_training_decisions": 80206,
+  "episodes": 2481,
+  "updates": 37,
+  "training_elapsed_seconds": 331.1188039188273,
+  "total_wall_seconds": 416.27439866703935,
+  "best_steps": 80206,
+  "decisions_by_case": {
+    "LOG_ATL_YELLOW|working-together": 14086,
+    "LOG_ATL_YELLOW|adaptation": 13714,
+    "LOG_ATL_YELLOW|synchronisation": 10797,
+    "LOG_ATL_YELLOW|control": 12503,
+    "LOG_ATL_YELLOW|mastery": 14387,
+    "LOG_ATL_YELLOW|anticipation": 14719
+  },
+  "frozen_source_unchanged": true,
+  "initial_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "latest_weights_sha256": "14c9420c314b318c8cc134fa4aaa1dd1a8b80abe476f3b6a8c29fb772151a3d2",
+  "config": {
+    "airport": "LOG_ATL_YELLOW",
+    "assistance_version": 11,
+    "max_steps": 256,
+    "curriculum_cases": [
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3
+      }
+    ],
+    "round_reward": 0.0,
+    "sync_weight": 0.05,
+    "sync_tolerance": 1.0,
+    "task_weight": 0.02,
+    "schema_version": 3,
+    "supported_modules": [
+      "leak"
+    ],
+    "supported_cards": [
+      "adaptation",
+      "anticipation",
+      "control",
+      "mastery",
+      "synchronisation",
+      "working-together"
+    ],
+    "ability_count": 1,
+    "supported_cases": [
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3
+      },
+      {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3
+      }
+    ],
+    "source_checkpoint": "ai/releases/crew2-v1/best.pt",
+    "source_weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+    "source_phase_steps": 500347,
+    "source_planner_sha256": "5914675e76dce67b59f5dfecbb6c5e71c04ca079143bdfc14bb3f295e7a4dafc",
+    "phase_kind": "new_public_module_profile_11_leak",
+    "phase_sha256": "5a1b675ac3525bcfa1e53a70d54436466197fc0231d283338ed4e4f745fb3358",
+    "planner_sha256": "6d58265f011404f8cff86e2ec87514ae5fefc16463282faf5549ef83b452748e",
+    "action_mask_version": 2,
+    "workers": 8,
+    "cpu_duty_cycle": 0.7,
+    "threads": 1,
+    "device": "mps",
+    "seed": 251054,
+    "eval_seed": 14910000,
+    "eval_seed_stride": 100,
+    "eval_games_per_case": 20,
+    "eval_every": 20,
+    "steps_limit": 80000,
+    "training_seconds_limit": 600.0,
+    "learning_rate": 5e-05,
+    "uniform_mix": 0.03,
+    "self_imitation_coef": 0.03,
+    "discount_unit": "placement",
+    "publication_status": "development_only_not_published",
+    "independent_qualification_used": false
+  },
+  "preview_requested_by_user": true,
+  "independently_qualified": false
+}

@@ -45,9 +45,13 @@ const assertFeedbackVisible = async page => {
       return model.quality?.approved === true && model.preview?.enabled !== true;
     },goodModel));
     const availableRoutes = await page.locator('#solo-route option').evaluateAll(options => options.map(o => o.value).sort());
-    const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length
+    const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.ability_count && !s.modules.length
       || COCKPIT_AI_CATALOG.models.some(model => (model.quality?.approved === true || model.preview?.enabled === true)
-        && (model.supported_airports || [model.airport]).includes(s.engine_code))))
+        && (model.supported_airports || [model.airport]).includes(s.engine_code)
+        && (!s.ability_count || model.schema?.version === 3 && model.preview?.enabled === true
+          && model.preview.supported_cases?.some(row => row.airport === s.engine_code && row.abilities.length === s.ability_count
+            && new Set(row.abilities).size === row.abilities.length && row.abilities.every(id => LANDING_CATALOG.abilities.some(card => card.id === id))
+            && model.preview.case_results?.[`${row.airport}|${[...row.abilities].sort().join(',')}`]?.games > 0))))
       .map(s => s.id).sort());
     assert.deepEqual(availableRoutes, expectedRoutes);
     await page.locator('[data-mode="feedback"]').click();

@@ -7,9 +7,30 @@ window.Singleplayer = (() => {
   const isPreview = model => model?.preview?.enabled === true;
   const selectableModels = () => catalog.models.filter(m => m.quality?.approved === true || isPreview(m));
   const modelLabel = model => `${model.name || model.run}${isPreview(model) ? " · Entwicklung" : ""}`;
-  const supports = (model, airport) => (model.supported_airports || [model.airport]).includes(airport);
-  const supportsFeedback = (model, route) => Boolean(route && !route.ability_count && supports(model, route.engine_code)
-    && (!route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && ["kerosene", "intern"].includes(route.modules[0]))));
+  const supports = (model, airport) => Boolean(model && (model.supported_airports || [model.airport]).includes(airport));
+  const caseKey = (airport, cards) => `${airport}|${[...cards].sort().join(",")}`;
+  const supportedCases = (model, route) => {
+    if (!route || !isPreview(model) || model.schema?.version !== 3 || !supports(model, route.engine_code)
+        || !Array.isArray(model.preview.supported_cases)) return [];
+    const known = new Set(window.LANDING_CATALOG.abilities.map(card => card.id)), seen = new Set();
+    return model.preview.supported_cases.filter(row => {
+      if (row?.airport !== route.engine_code || !Array.isArray(row.abilities) || row.abilities.length !== route.ability_count
+          || new Set(row.abilities).size !== row.abilities.length || !row.abilities.every(card => known.has(card))) return false;
+      const key = caseKey(row.airport, row.abilities);
+      const result = model.preview.case_results?.[key];
+      if (!result || !Number.isInteger(result.games) || result.games < 1
+          || !Number.isFinite(result.win_rate) || result.win_rate < 0 || result.win_rate > 1) return false;
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    }).map(row => ({airport:row.airport,abilities:[...row.abilities].sort()}));
+  };
+  const supportsRoute = (model, route) => Boolean(route && supports(model, route.engine_code)
+    && (!route.ability_count || supportedCases(model, route).length));
+  const supportsCase = (model, route, cards) => Boolean(route && Array.isArray(cards) && supportsRoute(model, route)
+    && (route.ability_count ? supportedCases(model, route).some(row => caseKey(row.airport,row.abilities) === caseKey(route.engine_code,cards)) : cards.length === 0));
+  const supportsFeedback = (model, route, cards = null) => Boolean(route && supportsRoute(model, route)
+    && (route.ability_count ? model.schema?.version === 3 && (cards === null || supportsCase(model,route,cards))
+      : !route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && ["kerosene", "intern"].includes(route.modules[0]))));
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
   let api, setup = null, session = null, policy = null, reroll = null;
@@ -150,7 +171,8 @@ window.Singleplayer = (() => {
     if (!api) return;
     stop(); api.hideGame();
     document.getElementById("start-menu").classList.add("versteckt");
-    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length || selectableModels().some(m => supports(m, s.engine_code))));
+    const routes = window.LANDING_CATALOG.scenarios.filter(s => !s.ability_count && !s.modules.length
+      || selectableModels().some(m => supportsRoute(m, s)));
     root().innerHTML = `<div class="solo-shell"><button class="landing-back" id="solo-back">← Menü</button>
       <span class="landing-eyebrow">DEINE CREW</span><h1>Singleplayer</h1>
       <p class="solo-intro">Zusammen fliegen. Entscheidungen bewerten. Erfahrungen weitergeben.</p>
@@ -161,7 +183,8 @@ window.Singleplayer = (() => {
       </div><div class="solo-settings">
         <label id="solo-model-label">KI<select id="solo-model">${selectableModels().map(model => `<option value="${esc(model.id)}">${esc(modelLabel(model))}</option>`).join("")}</select></label>
         <label id="solo-role-label">Deine Rolle<select id="solo-role"><option value="pilot">Pilotin</option><option value="kopilot">Co-Pilot</option></select></label>
-        <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.modules.includes("kerosene") ? " · Kerosin" : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
+        <label id="solo-route-label">Strecke<select id="solo-route">${routes.map(s => `<option value="${esc(s.id)}" ${s.engine_code === "MUC" ? "selected" : ""}>${esc(s.code)} · ${esc(s.name)}${s.modules.map(module => ` · ${esc(window.LANDING_CATALOG.modules[module]?.name || module)}`).join("")}${s.ability_count ? ` · ${s.ability_count} ${s.ability_count === 1 ? "Karte" : "Karten"}` : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("")}</select></label>
+        <label id="solo-abilities-label" hidden>Fähigkeitskarten<select id="solo-abilities"></select></label>
       </div><p id="solo-description" class="solo-description"></p>
       <label id="solo-consent-label" class="solo-consent" hidden><input id="solo-consent" type="checkbox"><span>Ich bin einverstanden, dass meine Spielzüge, KI-Bewertungen und das Spielergebnis ohne Namen oder E-Mail-Adresse gespeichert und zur Verbesserung der KI an den Betreiber übermittelt werden.</span></label>
       <p class="solo-storage-note">Die KI lernt später aus den gesammelten Beispielen und Bewertungen.</p>
@@ -180,6 +203,7 @@ window.Singleplayer = (() => {
     });
     document.getElementById("solo-model").onchange = updateMenu;
     document.getElementById("solo-route").onchange = updateMenu;
+    document.getElementById("solo-abilities").onchange = updateMenu;
     document.getElementById("solo-consent").onchange = updateMenu;
     document.getElementById("solo-start").onclick = launch;
     document.getElementById("solo-export").onclick = exportData;
@@ -195,7 +219,7 @@ window.Singleplayer = (() => {
     root().querySelectorAll("[data-mode]").forEach(b => {
       b.setAttribute("aria-pressed", String(b.dataset.mode === setup.mode)); b.disabled = starting;
     });
-    for (const id of ["solo-model", "solo-role", "solo-route", "solo-consent"]) document.getElementById(id).disabled = starting;
+    for (const id of ["solo-model", "solo-role", "solo-route", "solo-abilities", "solo-consent"]) document.getElementById(id).disabled = starting;
     document.getElementById("solo-model-label").hidden = examples;
     document.getElementById("solo-role-label").hidden = examples;
     document.getElementById("solo-route-label").hidden = false;
@@ -203,26 +227,36 @@ window.Singleplayer = (() => {
     const routeSelector = document.getElementById("solo-route");
     for (const option of routeSelector.options) {
       const route = window.LANDING_CATALOG.scenarios.find(s => s.id === option.value);
-      option.disabled = setup.mode === "examples" && Boolean(route?.modules.length)
+      option.disabled = setup.mode === "examples" && Boolean(route?.modules.length || route?.ability_count)
         || setup.mode === "feedback" && !selectableModels().some(model => supportsFeedback(model, route));
     }
     if (routeSelector.selectedOptions[0]?.disabled) routeSelector.value = [...routeSelector.options].find(o => !o.disabled)?.value;
     const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === routeSelector.value);
     const selector = document.getElementById("solo-model"), previousModel = selector.value;
-    const choices = selectableModels().filter(m => supports(m, selectedRoute?.engine_code)
+    const choices = selectableModels().filter(m => supportsRoute(m, selectedRoute)
       && (setup.mode !== "feedback" || supportsFeedback(m, selectedRoute)))
       .sort((a,b) => Number(b.quality?.approved === true) - Number(a.quality?.approved === true)
         || Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
     selector.innerHTML = choices.map(m => `<option value="${esc(m.id)}">${esc(modelLabel(m))}</option>`).join("");
     if (choices.some(m => m.id === previousModel)) selector.value = previousModel;
     setup.model = choices.find(m => m.id === selector.value) || null;
+    const cardSelector = document.getElementById("solo-abilities"), previousCase = cardSelector.value;
+    const cases = setup.model && selectedRoute?.ability_count ? supportedCases(setup.model, selectedRoute) : [];
+    cardSelector.innerHTML = cases.map(row => `<option value="${esc(caseKey(row.airport,row.abilities))}">${row.abilities.map(id => esc(window.LANDING_CATALOG.abilities.find(card => card.id === id).name)).join(" + ")}</option>`).join("");
+    if (cases.some(row => caseKey(row.airport,row.abilities) === previousCase)) cardSelector.value = previousCase;
+    const selectedCase = cases.find(row => caseKey(row.airport,row.abilities) === cardSelector.value);
+    setup.abilities = selectedCase ? [...selectedCase.abilities] : [];
+    setup.caseKey = selectedRoute ? caseKey(selectedRoute.engine_code,setup.abilities) : "";
+    document.getElementById("solo-abilities-label").hidden = examples || !selectedRoute?.ability_count;
     const preview = isPreview(setup.model);
-    const successRate = (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code]?.win_rate;
+    const successRate = selectedRoute?.ability_count ? setup.model?.preview?.case_results?.[setup.caseKey]?.win_rate
+      : (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code]?.win_rate;
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
       : !setup.model ? "Für diese Strecke ist noch keine KI verfügbar."
       : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Keine Auswahl ist neutral. Dein nächster gültiger Zug speichert das Feedback." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
     document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
+      || (!examples && !supportsCase(setup.model,selectedRoute,setup.abilities))
       || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
     document.getElementById("solo-start").textContent = starting ? "Wird vorbereitet …" : examples ? "Beispielpartie starten →" : "Mit KI starten →";
   }
@@ -231,11 +265,12 @@ window.Singleplayer = (() => {
     if (starting) return;
     if (setup.mode !== "play" && !document.getElementById("solo-consent").checked) return;
     const version = ++generation;
-    const config = {...setup, humanRole: document.getElementById("solo-role").value};
+    const config = {...setup, abilities:[...(setup.abilities || [])], humanRole: document.getElementById("solo-role").value};
     const scenario = window.LANDING_CATALOG.scenarios.find(s => s.id === document.getElementById("solo-route").value);
     if (!scenario) { document.getElementById("solo-error").textContent = "Die Strecke dieses Modells ist nicht verfügbar."; return; }
-    if (config.mode !== "examples" && (!config.model || !supports(config.model, scenario.engine_code))) return;
-    if (config.mode === "feedback" && !supportsFeedback(config.model, scenario)) return;
+    if (config.mode !== "examples" && (!config.model || !supportsCase(config.model,scenario,config.abilities))) return;
+    if (scenario.ability_count && document.getElementById("solo-abilities").value !== caseKey(scenario.engine_code,config.abilities)) return;
+    if (config.mode === "feedback" && !supportsFeedback(config.model, scenario, config.abilities)) return;
     starting = true; updateMenu();
     try {
       let loadedPolicy = null;
@@ -248,12 +283,12 @@ window.Singleplayer = (() => {
       setup = config; policy = loadedPolicy;
       // Recording begins before the first render can schedule the AI.
       session = {id: crypto.randomUUID(), created_at: new Date().toISOString(), mode: config.mode,
-                 scenario: {id: scenario.id, engine_code: scenario.engine_code}, human_role: config.mode === "examples" ? null : config.humanRole,
+                 scenario: {id: scenario.id, engine_code: scenario.engine_code,ability_ids:[...config.abilities],case_key:caseKey(scenario.engine_code,config.abilities)}, human_role: config.mode === "examples" ? null : config.humanRole,
                  model: config.model && config.mode !== "examples" ? clone(config.model) : null,
                  schema_version: activeSchema().version, schema: activeSchema(), action_mask_version: catalog.action_mask_version,
                  consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
                  status: "active", events: [], engine_stack: []};
-      await api.start({...scenario, ability_ids: []});
+      await api.start({...scenario, ability_ids: [...config.abilities]});
       if (version !== generation) return;
       root().classList.add("versteckt"); persist();
       navigator.storage?.persist?.().catch(() => {});
@@ -274,7 +309,7 @@ window.Singleplayer = (() => {
       }
       if (a.kind === "coffee") return a.die === action.die && a.delta === action.delta;
       if (a.kind === "bonus_coffee") return a.delta === action.delta;
-      if (["adaptation", "anticipation"].includes(a.kind)) return a.die === action.die;
+      if (["adaptation", "anticipation", "swap_choose"].includes(a.kind)) return a.die === action.die;
       if (a.kind === "reroll_select") return a.subset === action.subset;
       return true;
     });
@@ -394,13 +429,18 @@ window.Singleplayer = (() => {
     updateStatus();
     const activeRole = reroll ? nextRerollRole() : state.zusatzaktion?.rolle || state.kooperation?.wartet_auf || state.am_zug;
     const pendingAI = state.zusatzaktion?.rolle === aiRole();
-    if (hasAI() && !paused && state.status === "laeuft" && state.phase === "platzieren"
+    const ready = hasAI() && !paused && state.status === "laeuft" && state.phase === "platzieren"
         && !api.rerollAnimating() && (!api.roundComplete() || pendingAI)
-        && activeRole === aiRole() && !timer) {
+        && activeRole === aiRole();
+    if (!ready && timer) {clearTimeout(timer);timer = null;}
+    if (ready && !timer) {
       const version = generation;
       timer = setTimeout(() => {
         timer = null;
         if (version !== generation || !hasAI() || paused || api.state().status !== "laeuft") return;
+        const current = api.state();
+        const currentRole = reroll ? nextRerollRole() : current.zusatzaktion?.rolle || current.kooperation?.wartet_auf || current.am_zug;
+        if (currentRole !== aiRole()) return;
         try { playAI(); } catch (error) { paused = error.message; afterRender(api.state()); }
       }, 650);
     }
@@ -412,6 +452,7 @@ window.Singleplayer = (() => {
     }
     const d = decision(aiRole()), id = policy.select(d), action = activeSchema().actions[id];
     const a = {...action, role: aiRole()};
+    if (["swap_choose", "swap_cancel"].includes(action.kind)) a.cooperation_id = api.state().kooperation?.id;
     if (action.kind === "place") {
       const slot = activeSchema().slots[action.slot];
       a.target = slot.target; a.index = slot.index; a.radio_index = slot.radio_index;

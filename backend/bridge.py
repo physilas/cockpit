@@ -199,6 +199,31 @@ def modul_aktion(besitzer, aktion, parameter_json="{}"):
 
 
 @_mit_verlauf
+def kooperation_waehlen_bestaetigen(besitzer, wuerfel_index, kooperation_id=None):
+    """One policy choice and undo entry for selecting AND confirming a die.
+
+    A rejected confirmation must not leave behind a partial selection. Genuine
+    realtime expiry still applies, matching the engine's two-step operation.
+    """
+    global _spiel
+    if _spiel is None:
+        return _kein_spiel()
+    if kooperation_id is not None and type(kooperation_id) is not int:
+        return {"ergebnis": _ergebnis_zu_dict(Ergebnis(False, "ungueltige_aktion")), "zustand": zustand()}
+    vorher = deepcopy(_spiel)
+    lifecycle = (_spiel.status, _spiel.aktuelle_runde, _spiel.phase, _spiel.zusatz.deadline)
+    params = {"wuerfel_index": wuerfel_index}
+    if kooperation_id is not None:
+        params["kooperation_id"] = kooperation_id
+    result = _spiel.zusatz.aktion(besitzer, "kooperation_wahl", params)
+    if result.erfolg:
+        result = _spiel.zusatz.aktion(besitzer, "kooperation_bestaetigen", params)
+    if not result.erfolg and lifecycle == (_spiel.status, _spiel.aktuelle_runde, _spiel.phase, _spiel.zusatz.deadline):
+        _spiel = vorher
+    return {"ergebnis": _ergebnis_zu_dict(result), "zustand": zustand()}
+
+
+@_mit_verlauf
 def tick():
     if _spiel is None:
         return _kein_spiel()

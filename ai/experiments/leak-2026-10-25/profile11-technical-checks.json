@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "complete": true,
+  "release_evidence": false,
+  "comparison_commit": "7fcaf1494cb699907708c343055d248d7946645f",
+  "default_planner_exact_comparisons": 72,
+  "default_planner_mismatches": 0,
+  "public_views": 24,
+  "landing_views": 7,
+  "planner_versions": [
+    1,
+    3,
+    4
+  ],
+  "native_browser_profile11_cases_roles_states": 24,
+  "native_browser_mismatches": 0,
+  "unknown_partner_poisoning_checks": 24,
+  "privacy_mismatches": 0,
+  "python_unittests": 354,
+  "python_unittest_seconds": 93.794,
+  "python_unittests_passed": true,
+  "training_path_diagnosis": {
+    "actual_new_decisions": 80206,
+    "actual_training_episodes": 2481,
+    "won_training_episodes": 0,
+    "updates_with_nonzero_success_imitation": 0
+  },
+  "note": "Technical parity and privacy checks are not additional qualification games or proof of win rates.",
+  "browser_tests_passed": 6,
+  "browser_chrome_and_scoped_server_closed": true,
+  "mobile_menu_width": 390
+}

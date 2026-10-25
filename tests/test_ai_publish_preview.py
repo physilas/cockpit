@@ -12,6 +12,8 @@ import torch
 from ai.checkpoints import load_checkpoint, planner_fingerprint, save_checkpoint, weight_fingerprint
 from ai.export_browser import export_models
 from ai.nn_model import ActorCritic, GuidedResidualActorCritic
+from ai.module_training_eval import case_key
+from ai.modules import CARDS
 from ai.publish import main, publish, publish_preview
 
 
@@ -34,6 +36,22 @@ def fixture(root, *, profile=10, supported_modules=('intern',)):
               'routes': {'LOG_ATL_GREEN': {'games': 40, 'wins': 0, 'win_rate': 0.},
                          'LOG_LHR_YELLOW': {'games': 40, 'wins': 1, 'win_rate': .025}}}
     evaluation = root/'development.json'
+    evaluation.write_text(json.dumps(report))
+    return checkpoint, evaluation, report
+
+
+def card_fixture(root):
+    checkpoint, evaluation, report = fixture(root, profile=11, supported_modules=('leak',))
+    model, payload = load_checkpoint(checkpoint)
+    payload['train_config'].update(supported_cards=list(CARDS), ability_count=1)
+    save_checkpoint(checkpoint, model, train_config=payload['train_config'], total_steps=120000,
+                    module_training_steps=120000)
+    report.pop('routes')
+    report['cases'] = {}
+    for ordinal, card in enumerate(sorted(CARDS)):
+        case = {'airport': 'LOG_ATL_YELLOW', 'modules': ['leak'], 'abilities': [card]}
+        wins = ordinal % 2
+        report['cases'][case_key(case)] = {**case, 'games': 40, 'wins': wins, 'win_rate': wins/40}
     evaluation.write_text(json.dumps(report))
     return checkpoint, evaluation, report
 
@@ -110,7 +128,7 @@ class PublishPreviewTests(unittest.TestCase):
                 checkpoint, evaluation, _ = fixture(root, profile=profile)
                 with self.assertRaises(ValueError):
                     publish_preview(checkpoint, evaluation, 'bad-profile', 'Preview', root=root)
-        for flag in ('research_all_modules', 'research_open_risk'):
+        for flag in ('research_all_modules', 'research_open_risk', 'research_capacity_guard'):
             with self.subTest(flag=flag), tempfile.TemporaryDirectory() as folder:
                 root = Path(folder)
                 checkpoint, evaluation, _ = fixture(root)
@@ -158,6 +176,105 @@ class PublishPreviewTests(unittest.TestCase):
                 main()
                 self.assertEqual(preview.call_count, int(explicit))
                 self.assertEqual(normal.call_count, int(not explicit))
+
+    def test_explicit_profile11_card_preview_lists_only_tested_cases_including_zero(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            checkpoint, evaluation, report = card_fixture(root)
+            # A preview may expose a tested subset. Other cards on the same
+            # route must not become selectable merely via supported_airports.
+            kept = sorted(report['cases'])[:2]
+            report['cases'] = {key: report['cases'][key] for key in kept}
+            evaluation.write_text(json.dumps(report))
+            source_bytes = checkpoint.read_bytes()
+            path, catalog = publish_preview(checkpoint, evaluation, 'leak-card-preview', 'Crew Cards Test', root=root)
+            entry = catalog['models'][0]
+            self.assertFalse(entry['quality']['approved'])
+            self.assertFalse(entry['recommended'])
+            self.assertEqual(entry['assistance_version'], 11)
+            self.assertEqual(entry['supported_airports'], ['LOG_ATL_YELLOW'])
+            self.assertTrue(entry['preview']['enabled'])
+            self.assertTrue(entry['preview']['user_requested'])
+            self.assertNotIn('route_results', entry['preview'])
+            self.assertEqual(entry['preview']['supported_cases'],
+                             [{'airport': 'LOG_ATL_YELLOW', 'abilities': report['cases'][key]['abilities']}
+                              for key in kept])
+            self.assertEqual(entry['preview']['case_results'],
+                             {key: {field: report['cases'][key][field] for field in ('games', 'wins', 'win_rate')}
+                              for key in kept})
+            self.assertEqual(min(row['win_rate'] for row in entry['preview']['case_results'].values()), 0.)
+            original, _ = load_checkpoint(checkpoint)
+            saved, payload = load_checkpoint(path)
+            self.assertEqual(weight_fingerprint(saved), weight_fingerprint(original))
+            self.assertEqual(payload['train_config']['preview'], entry['preview'])
+            self.assertEqual(checkpoint.read_bytes(), source_bytes)
+            self.assertFalse(catalog['skipped'])
+            with self.assertRaisesRegex(ValueError, 'already exists'):
+                publish_preview(checkpoint, evaluation, 'leak-card-preview', 'Different name', root=root)
+
+    def test_card_case_identity_legality_and_counts_cannot_be_pooled_or_guessed(self):
+        def mutate_first(report, field, value):
+            report['cases'][next(iter(report['cases']))][field] = value
+
+        def rename_first(report):
+            key = next(iter(report['cases']))
+            report['cases']['another-key'] = report['cases'].pop(key)
+
+        mutations = [
+            lambda report: report.__setitem__('cases', {}),
+            lambda report: report.__setitem__('routes', {'LOG_ATL_GREEN': {'games': 1, 'wins': 0, 'win_rate': 0.}}),
+            rename_first,
+            lambda report: mutate_first(report, 'case_key', 'LOG_ATL_YELLOW|wrong'),
+            lambda report: mutate_first(report, 'airport', 'LOG_PRG_GREEN'),
+            lambda report: mutate_first(report, 'abilities', []),
+            lambda report: mutate_first(report, 'abilities', ['adaptation', 'control']),
+            lambda report: mutate_first(report, 'abilities', ['unsupported-card']),
+            lambda report: mutate_first(report, 'modules', ['kerosene']),
+            lambda report: mutate_first(report, 'games', 0),
+            lambda report: mutate_first(report, 'games', True),
+            lambda report: mutate_first(report, 'wins', 41),
+            lambda report: mutate_first(report, 'wins', False),
+            lambda report: mutate_first(report, 'win_rate', .8),
+        ]
+        for ordinal, mutate in enumerate(mutations):
+            with self.subTest(ordinal=ordinal), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                checkpoint, evaluation, report = card_fixture(root)
+                mutate(report); evaluation.write_text(json.dumps(report))
+                with self.assertRaises(ValueError):
+                    publish_preview(checkpoint, evaluation, 'rejected-cards', 'Cards Test', root=root)
+                self.assertFalse((root/'ai'/'releases'/'rejected-cards').exists())
+
+    def test_card_preview_requires_declared_registered_cards_modules_and_count(self):
+        mutations = [
+            lambda config: config.pop('supported_cards'),
+            lambda config: config.__setitem__('supported_cards', []),
+            lambda config: config.__setitem__('supported_cards', ['invented-card']),
+            lambda config: config.__setitem__('supported_cards', [*CARDS, CARDS[0]]),
+            lambda config: config.__setitem__('supported_modules', ['intern']),
+            lambda config: config.__setitem__('supported_modules', ['leak', 'invented-module']),
+            lambda config: config.__setitem__('ability_count', 2),
+        ]
+        for ordinal, mutate in enumerate(mutations):
+            with self.subTest(ordinal=ordinal), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                checkpoint, evaluation, _ = card_fixture(root)
+                model, payload = load_checkpoint(checkpoint)
+                mutate(payload['train_config'])
+                save_checkpoint(checkpoint, model, train_config=payload['train_config'], total_steps=120000)
+                with self.assertRaises(ValueError):
+                    publish_preview(checkpoint, evaluation, 'unclaimed-cards', 'Cards Test', root=root)
+                self.assertFalse((root/'ai'/'releases'/'unclaimed-cards').exists())
+
+    def test_duplicate_json_keys_are_rejected_before_a_release_is_created(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            checkpoint, evaluation, report = card_fixture(root)
+            serialized = json.dumps(report)
+            evaluation.write_text('{"cases": {},' + serialized[1:])
+            with self.assertRaisesRegex(ValueError, 'Duplicate'):
+                publish_preview(checkpoint, evaluation, 'duplicate-report', 'Cards Test', root=root)
+            self.assertFalse((root/'ai'/'releases'/'duplicate-report').exists())
 
 
 if __name__ == '__main__': unittest.main()

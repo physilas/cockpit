@@ -1,0 +1,96 @@
+{
+  "format": 1,
+  "source_report": "ai/experiments/intern-2026-10-25/intern-strength-v1.json",
+  "complete": true,
+  "release_evidence": false,
+  "criterion": "Worst route first, then mean; prefer unchanged smaller margin on ties.",
+  "selected_margin": 4,
+  "change_released_preview": false,
+  "routes": {
+    "LOG_ATL_GREEN": {
+      "source_margin4": {
+        "wins": 0,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 0,
+          "both_lose": 26,
+          "candidate_only": 0,
+          "baseline_only": 14
+        }
+      },
+      "candidate_margin4": {
+        "wins": 14,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 14,
+          "both_lose": 26,
+          "candidate_only": 0,
+          "baseline_only": 0
+        }
+      },
+      "candidate_margin8": {
+        "wins": 17,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 13,
+          "both_lose": 22,
+          "candidate_only": 4,
+          "baseline_only": 1
+        }
+      },
+      "candidate_margin12": {
+        "wins": 17,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 13,
+          "both_lose": 22,
+          "candidate_only": 4,
+          "baseline_only": 1
+        }
+      }
+    },
+    "LOG_LHR_YELLOW": {
+      "source_margin4": {
+        "wins": 2,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 2,
+          "both_lose": 27,
+          "candidate_only": 0,
+          "baseline_only": 11
+        }
+      },
+      "candidate_margin4": {
+        "wins": 13,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 13,
+          "both_lose": 27,
+          "candidate_only": 0,
+          "baseline_only": 0
+        }
+      },
+      "candidate_margin8": {
+        "wins": 12,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 10,
+          "both_lose": 25,
+          "candidate_only": 2,
+          "baseline_only": 3
+        }
+      },
+      "candidate_margin12": {
+        "wins": 12,
+        "games": 40,
+        "paired_against_trained_margin4": {
+          "both_win": 10,
+          "both_lose": 25,
+          "candidate_only": 2,
+          "baseline_only": 3
+        }
+      }
+    }
+  },
+  "note": "Development games only; margin8/12 share identical trained tensors and all paired outcomes on these 80 games."
+}

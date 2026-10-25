@@ -5,7 +5,9 @@ freigegeben. Zusätzlich besteht Crew 2 · Kerosin für Oslo mit 39,8 % unter de
 neu akzeptierten 30-%-Kriterium. Das Ziel aller Module/Karten ist nicht
 abgeschlossen. Crew 1 bleibt verfügbar und vorausgewählt. Ein ausdrücklich
 gewünschter Zwischenstand heißt jetzt Crew 3 · Praktikant (Test), mit Atlanta
-grün und Heathrow gelb; er ist als Entwicklungsmodell sichtbar, ohne Freigabe.**
+grün und Heathrow gelb; er ist als Entwicklungsmodell sichtbar, ohne Freigabe.
+Zusätzlich wird Crew 4 · Leck (Test) für Atlanta gelb mit allen sechs Einzelkarten
+bereitgestellt: erst 0–5 % auf Entwicklung, ausdrücklich noch sehr schwach.**
 
 ## Verbindlicher Auftrag
 
@@ -91,12 +93,131 @@ enthalten dieselben tatsächlichen Einzelquoten.
 
 Vor jedem neuen schweren Job Prozesse, `runs/ai-job.json` und STOP prüfen.
 Nicht während eines aktiven Vergleichs dessen Planungs-/Trainingsquellen ändern.
-Eine begrenzte nächste Diagnose ist vorbereitet: `ai.intern_strength_compare`
-vergleicht frische Entwicklung mit ursprünglicher Quelle und dem gewählten
-Praktikantenmodell unter endlichen Referenzabständen 4/8/12. Dieselben trainierten
-Tensoren sind dabei keine unabhängig trainierten Modelle. Noch kein Ergebnis:
-`intern-strength-v1.json` nur nach regulärem Abschluss auswerten. Nicht ungeprüft
-mehr Training oder eine stärkere Vorgabe als Erfolg ausgeben.
+Der begrenzte Vergleich `ai.intern_strength_compare` ist regulär beendet, Exit 0.
+Log `/tmp/cockpit-intern-strength-v1.log`, vollständiger Bericht
+`ai/experiments/intern-2026-10-25/intern-strength-v1.json`, separate gepaarte
+Auswertung `intern-strength-v1-analysis.json`. 320 Partien insgesamt,
+acht Worker zu .7, Torch 1, nice 15. Je 40 frische Entwicklungspartien auf
+Atlanta ab 14.980.000 und Heathrow ab 14.990.000, keine Abschlusskohorte.
+
+| Variante | Atlanta | Heathrow | Schwächere Route |
+| --- | ---: | ---: | ---: |
+| Ursprüngliche Quelle, Abstand 4 | 0/40 | 2/40 | 0 % |
+| Trainiertes Modell, Abstand 4 | 14/40 | 13/40 | 32,5 % |
+| Gleiche Tensoren, Abstand 8 | 17/40 | 12/40 | 30 % |
+| Gleiche Tensoren, Abstand 12 | 17/40 | 12/40 | 30 % |
+
+Der trainierte Spieler verbessert beide frischen Entwicklungsrouten deutlich
+gegenüber der Quelle. Ein größerer Referenzabstand ist kein konsistenter Vorteil:
+er verbessert Atlanta und verschlechtert Heathrow. Abstand 4 bleibt nach dem
+vorab festgelegten Kriterium; **Crew 3 bleibt exakt unverändert**. Abstand 8/12
+führt in allen 80 Spielen zu denselben Ausgängen, keine zusätzlichen unabhängigen
+Modelle oder Partien. Diese kleine Probe ist keine unabhängige Qualifikation.
+
+Nächster begründeter Modulschritt: Leck, zunächst offizielles Atlanta gelb mit
+jeder der sechs erlaubten Einzelkarten. Das Rohschema beobachtet den tatsächlichen
+Kerosinstand, aber die alte Grundspielsuche ignoriert Leckkosten. Ein Leck hat
+kein Kerosinfeld; `fuel.present=true` würde eine falsche Zusatzaufgabe erzeugen.
+Die Kosten `abs(Pilotschub-Kopilotschub)+1` müssen direkt mit dem hypothetischen
+Schubpaar und seinen Bewegungsfolgen bewertet werden. Neue Planung separat
+entwickeln, engineprüfen und ausdrücklich neue Phase/Profile deklarieren.
+
+### Abgeschlossene neue Phase: Leck auf Atlanta gelb
+
+Implementiert und gezielt geprüft: öffentliches Modulprofil **11**, getrennt von 10. Die bestehende
+Handplanung erhält einen optionalen Schub-Bewertungshook, der ohne Hook exakt
+die bisherigen Rechenwege bewahrt. `ai.leak_advice` bewertet für jedes öffentliche
+oder hypothetische Schubpaar die tatsächlichen Leckkosten und die notwendige
+Mindestreserve für spätere Runden. Die öffentliche Partnerprior-Verteilung bleibt
+eine Näherung; sie ist weder eine gelesene Partnerhand noch ein exakter
+Gewinnwert. Bereits vollständig platzierter Schub hat bereits Kerosin verbraucht
+und wird nicht nochmals belastet. Gemischte Wind-/Eis-/Praktikantenphysik und
+Bonus-/Tauschdialoge behalten vorerst die bisherige Planungsreferenz.
+
+`ai.train_leak` ist eine neue explizite Phase mit frischem Adam aus den originalen
+Crew-2-Gewichten, ohne zusätzliche Netzschicht. Nur der vorhandene Detailzweig
+lernt, die ursprüngliche Grundlage bleibt eingefroren. Der echte Lauf `runs/leak-profile11-stage1/`, Log
+`/tmp/cockpit-leak-profile11-stage1.log`, ist regulär beendet, Exit 0.
+**80.206 neue Entscheidungen**, 2.481 Trainingspartien und 37 Updates,
+331,12 Rollout/PPO-Sekunden, 416,27 Sekunden gesamte Wandzeit. Budget war
+höchstens 80.000 neue Entscheidungen oder 600 Trainingssekunden plus letzte Charge,
+acht Worker zu .7, Torch 1, nice 15 und Metal-Minibatches. Alle sechs offiziellen
+Einzelkarten von `LOG_ATL_YELLOW` werden gleichberechtigt trainiert. Auswahl nach
+der schwächsten Karte, Mittel nur bei Gleichstand. Keine unabhängige Kohorte.
+
+Entwicklung über `ai.public_case_eval.run_public_case` mit echter `ModuleEnv`,
+ausdrücklichem Route/Kartenfall, ohne Allmodul-Forschungswrapper und ohne
+Proxy-Uhr. Je 20 Partien pro Karte ab 14.910.000 mit Abstand 100, vor Training,
+alle 20 Updates und am Ende. Dies sind Entwicklungsdaten, keine Qualifikation.
+Neue Quelldateien und der optionale Hook ändern den Fingerprint ehrlich;
+alte Reports/Hashes bleiben unverändert. Der Praktikantenvergleich wurde noch
+vor dieser neuen Phase unter dem damaligen Fingerprint abgeschlossen. Er darf
+nicht mit manipulierten alten Hashes als exaktes Resume fortgesetzt werden.
+
+Sieben gezielte Leck-Engine-/Privacytests, vier Tests der echten Fallbewertung
+und drei echte Rollout/PPO-/CLI-Tests bestehen. Dabei fiel ein realer
+Integrationsfehler auf: `ModuleEnv.episode_record` enthielt bisher keine tatsächlichen
+Modul-/Kartennamen. Diese öffentlichen Metadaten wurden ergänzt und die
+fallgenauen Trainingszähler anschließend erfolgreich geprüft.
+
+Der kleine Metal-Probelauf `runs/leak-profile11-smoke-v1` ist regulär beendet:
+31 neue Entscheidungen, ein echtes Update, ursprüngliche Crew-2-Anfangsgewichte
+exakt, Grundlage unverändert, Detailzweig tatsächlich verändert. Bericht
+`ai/experiments/leak-2026-10-25/profile11-smoke-v1.json`. Seine Gewichte werden
+nicht als Trainingsquelle verwendet. Aktive Worker wurden mit Priorität 15 und
+etwa 58–64 % CPU beobachtet. Im echten Lauf Seed 251054, Quelle weiterhin
+originales `ai/releases/crew2-v1/best.pt`, frischer Adam. Aktuelle Zähler/Quoten aus
+Logs lesen, währenddessen keine aktiven Trainings-/Planungsquellen ändern.
+
+Der gewählte letzte Stand bei 80.206 neuen Zügen erzielt je 20 feste
+Entwicklungspartien: **Adaptation 1/20 = 5 %, Anticipation/Control/Mastery/
+Synchronisation/Working-together jeweils 0/20**. Vorher und bei 44.191 Zügen
+alle sechs Fälle 0/20. Best wurde regelgemäß nach schwächstem Fall und Mittel
+bei Gleichstand gewählt; auch die Anfangsgewichte waren zugelassen. Das Ziel
+ist klar nicht erreicht. Kein neues unabhängiges Testset verwendet.
+
+Die tatsächlichen Fallzähler: Adaptation 13.714, Anticipation 14.719, Control
+12.503, Mastery 14.387, Synchronisation 10.797, Working-together 14.086.
+Zusammen genau 80.206. **Keine der 2.481 stochastischen Trainingspartien wurde
+gewonnen; die vorgesehene Selbstnachahmung erfolgreicher Partien war daher in
+keinem Update aktiv.** Das ist ein konkreter Befund des Lernpfades, kein Beweis,
+dass der Planer allein die Ursache ist. Nicht einfach denselben Lauf verlängern.
+Als nächste begrenzte Diagnose öffentliches Referenzspiel und NN-Auswahl trennen
+(z.B. endliche Abstände 4/8/12 auf neuen Entwicklungsfällen), anschließend
+enginegeprüfte erfolgreiche Übungen/Partien erzeugen und konkrete frühe
+Trudel-/Verkehrs-/Kerosinfehler lokalisieren.
+
+Auf ausdrücklichen Nutzerwunsch wird der sehr schwache Zwischenstand zusätzlich
+bereitgestellt: **Crew 4 · Leck (Test)**,
+`ai/releases/crew4-leak-preview-v1/best.pt`, Gewichts-SHA
+`14c9420c314b318c8cc134fa4aaa1dd1a8b80abe476f3b6a8c29fb772151a3d2`.
+Alle sechs offiziellen Einzelkarten auf `LOG_ATL_YELLOW` werden einzeln
+aufgelistet, auch die 0-%-Fälle. `quality.approved=false`, `preview.enabled=true`,
+keine Prognose menschlicher Gewinnquoten, keine Freigabe. Daten:
+`ai/experiments/leak-2026-10-25/profile11-stage1.json` und separate
+`profile11-preview-development-v1.json`, identisches Release-development.json.
+
+Neue Kartenrouten benötigen `preview.supported_cases` und fallgenaue
+`preview.case_results`; ein bloßer Routeneintrag reicht nicht. Das Kartenset wird
+explizit ausgewählt und beim Start erneut geprüft. Die Sitzung speichert den
+exakten Fall. KI-Tausch wählt/bestätigt atomar mit einer Undo-Revision;
+legale menschliche Offturn-Kartenschritte werden ohne falsches Policylabel erfasst.
+Kein weiterer schwerer Trainingslauf aktiv. Die vollständige lokale Testsuite
+besteht: **354 Tests in 93,79 Sekunden**. Zusätzlicher echter Vergleich mit dem
+Code aus `7fcaf14`: 72/72 Ranglisten und Sequenzen exakt unverändert (24 öffentliche
+Grundspiel-/Kerosinviews, Versionen 1/3/4, sieben Landungsviews). Profil 11 stimmt
+in 24/24 Route/Karte/Rolle/Zustandsfällen nativ mit der Browserbridge überein;
+24/24 Partnerhand-Poisoningprüfungen bleiben unverändert. Das sind technische
+Nachweise, keine zusätzlichen Qualifikationspartien. Dokumentiert unter
+`profile11-technical-checks.json`. Alle 72 bisherigen Katalogeinträge sind exakt
+erhalten. Alle **sechs echten Browserprüfungen** bestehen: Crew 4 mit exakten
+Kartenfällen/echten Gewichten, Crew-3-Vorschau, Praktikantenruntime, Kerosin,
+ursprüngliche Crew 2 und vollständiges Daumen-/Mobil-/Speicherverhalten. Neue
+Kartenfixture-Korrekturen betrafen nur den regelgemäßen Synchronisationsakteur,
+die Wartezeit auf eine abgeschlossene Speicherversion und den Ergebnisdialog;
+kein Produktionsfix nach der vollständigen Python-Suite. Chrome und Scoped-Server
+sind beendet, letzter Job finished/0. Mobile Kartenauswahl bei 390 px visuell geprüft.
+Geprüfter Code und abgeschlossene Berichte werden nach main gepusht.
 
 Neues **öffentliches Modulprofil 10** in `ModuleEnv`: separate, weiche
 Planungsreferenz, gemeinsame Kapazitätsregel, weiterhin lernbare Alternativen.
@@ -142,7 +263,10 @@ einschließlich echter Rollout-/PPO-Tests, Privacy, aller 186 Adapter-Startfäll
 und der unberührten fremden Transfer-Tests. Alle 71 bisherigen Katalogeinträge
 blieben exakt erhalten; hinzu kommt nur das explizite Praktikanten-Preview.
 Der Preview-Publisher verweigert das Überschreiben bestehender Releaseordner.
-Der anschließende Push enthält keine Änderungen an fremden Notebooks/Transferdateien.
+Mit `7fcaf1494cb699907708c343055d248d7946645f` nach main gepusht und per
+GitHub Pages erfolgreich veröffentlicht. Live-Katalog, Cache-Version,
+Singleplayer-JavaScript und tatsächliches Browsergewicht bytegenau geprüft.
+Der Push enthält keine Änderungen an fremden Notebooks/Transferdateien.
 
 ## Abgeschlossener Allmodul-Lauf und Daumenfeedback
 

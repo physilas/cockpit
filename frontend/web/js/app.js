@@ -66,6 +66,9 @@ function spielAktion(action, actor = "human", suppliedDecision = null) {
   else if (action.kind === "bonus_roll") result = bridge.modul_aktion(action.role, "synchronisation_wuerfeln", "{}");
   else if (action.kind === "bonus_coffee") result = bridge.modul_aktion(action.role, "bonus_kaffee", JSON.stringify({delta:action.delta}));
   else if (["adaptation", "anticipation"].includes(action.kind)) result = bridge.modul_aktion(action.role, action.kind, JSON.stringify({wuerfel_index:action.die}));
+  else if (action.kind === "swap_start") result = bridge.modul_aktion(action.role, "kooperation_start", "{}");
+  else if (action.kind === "swap_choose") result = bridge.kooperation_waehlen_bestaetigen(action.role, action.die, action.cooperation_id ?? null);
+  else if (action.kind === "swap_cancel") result = bridge.modul_aktion(action.role, "kooperation_abbrechen", JSON.stringify({kooperation_id:action.cooperation_id}));
   else if (action.kind === "module_action") result = bridge.modul_aktion(action.role, action.module_action, JSON.stringify(action.parameters));
   else if (action.kind === "round_end") result = bridge.rundenende();
   else throw new Error("Unbekannte Spielaktion.");
@@ -74,16 +77,24 @@ function spielAktion(action, actor = "human", suppliedDecision = null) {
   return answer;
 }
 
-function spielModulAktion(role, type, params) {
+function spielModulAktion(role, type, params = {}) {
   let action;
+  const logicalRole = aktuellerZustand.zusatzaktion?.rolle || aktuellerZustand.kooperation?.wartet_auf || aktuellerZustand.am_zug;
+  // Some human card effects are engine-legal off turn. Preserve those moves,
+  // while avoiding a fabricated observation/action for the current AI actor.
+  const administrative = Singleplayer.active() && role !== logicalRole;
   if (type === "zusatz_platzieren") action = {kind:"bonus_place",role,target:params.ziel,index:params.index,
     radio_index:params.funk_feld,target_owner:params.ziel_besitzer};
   else if (type === "synchronisation_wuerfeln") action = {kind:"bonus_roll",role};
   else if (type === "bonus_kaffee") action = {kind:"bonus_coffee",role,delta:params.delta};
   else if (["adaptation", "anticipation"].includes(type)) action = {kind:type,role,die:params.wuerfel_index};
+  else if (type === "kooperation_start") action = {kind:"swap_start",role};
+  else if (type === "kooperation_abbrechen") action = {kind:"swap_cancel",role,cooperation_id:params.kooperation_id};
+  else if (type === "kooperation_bestaetigen" && aktuellerZustand.kooperation?.auswahl[role] != null)
+    action = {kind:"swap_choose",role,die:aktuellerZustand.kooperation.auswahl[role],cooperation_id:params.kooperation_id ?? aktuellerZustand.kooperation.id};
   // Card dialogs can contain several engine steps for one training action.
   // Record those administrative steps without inventing a policy action ID.
-  else action = {kind:"module_action",role,module_action:type,parameters:params};
+  if (!action || administrative) action = {kind:"module_action",role,module_action:type,parameters:params};
   return spielAktion(action);
 }
 

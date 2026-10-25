@@ -147,6 +147,12 @@ class ModuleEnv(CrewEnv):
                      intern=len(self.game.zusatz.praktikant))
         return tasks
 
+    def episode_record(self, seed, ai_role, total_return):
+        record=super().episode_record(seed,ai_role,total_return)
+        record.update(modules=sorted(self.game.cockpit.module),
+                      abilities=sorted(self.game.zusatz.karten))
+        return record
+
     def action_mask(self):
         mask=[False]*len(self.actions)
         if self.done:return mask
@@ -195,9 +201,13 @@ class ModuleEnv(CrewEnv):
 
     def _assist(self,mask):
         if not self.assistance_version or self.current_role not in self.assisted_roles:return mask
-        if self.assistance_version == 10:
+        if self.assistance_version in (10,11):
             from .module_guidance import module_guidance
             allowed, self._reference_mask = module_guidance(self.view(), mask)
+            if (self.assistance_version == 11 and 'leak' in self.game.cockpit.module
+                    and not self.game.cockpit.module & {'wind','ice','intern'}):
+                from .leak_advice import leak_reference
+                self._reference_mask = leak_reference(self.view(), allowed)
             return allowed
         if self.game.cockpit.module <= {'kerosene'} and not self.game.zusatz.karten and self.assistance_version in (3,4,5,6,7,8,9):
             # Exact compatibility for the first PPO curriculum stage. Other
@@ -218,7 +228,7 @@ class ModuleEnv(CrewEnv):
 
     def info(self):
         result=super().info()
-        if self.assistance_version in (9,10):
+        if self.assistance_version in (9,10,11):
             # Pure public/own-hand advice, not another legality constraint.
             result['reference_action_mask']=(list(self._reference_mask)
                 if any(result['action_mask']) and self.current_role in self.assisted_roles

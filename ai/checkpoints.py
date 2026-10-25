@@ -48,7 +48,8 @@ def planner_fingerprint(version=1):
         digest.update(name.encode())
         digest.update(Path(__file__).with_name(name).read_bytes())
     if version == 3:
-        for name in ('modules.py', 'module_guidance.py', 'module_capacity.py', 'intern_advice.py', 'throttle.py'):
+        for name in ('modules.py', 'module_guidance.py', 'module_capacity.py', 'intern_advice.py',
+                     'leak_advice.py', 'module_physics.py', 'throttle.py'):
             digest.update(name.encode())
             digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()

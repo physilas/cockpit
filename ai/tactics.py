@@ -5,7 +5,7 @@ the partner's hand, or a random generator. The optional assistance profile is
 separate from the historical legal-action mask, so old checkpoints and human
 demonstrations retain their meaning.
 """
-from math import ceil, factorial, prod
+from math import ceil, factorial, prod, isfinite
 from functools import lru_cache
 from itertools import combinations_with_replacement, product
 import json
@@ -146,13 +146,19 @@ def _expected_best_face(scores, dice):
     return result
 
 
-def plan_actions(view, mask, *, beam=24, version=1, forecast_factory=None, cooperate=None):
+def plan_actions(view, mask, *, beam=24, version=1, forecast_factory=None, cooperate=None,
+                 thrust_score_adjustment=None):
     """Rank the first macro action of complete plans for the visible own hand.
 
     Coffee followed by placement is evaluated as one operation; only its first
     ordinary action is returned. Unseen partner dice are represented by an
     optimistic distribution over faces, not sampled or read from the engine.
+    An optional public module adjustment scores (own_thrust, partner_thrust)
+    for every speed outcome, including landing/holding/early motion failures.
+    With no adjustment the historical arithmetic and choices are unchanged.
     """
+    if thrust_score_adjustment is not None and not callable(thrust_score_adjustment):
+        raise ValueError('The optional thrust score adjustment must be callable.')
     fuel = view.get('fuel', {})
     slots, actions = SLOTS, ACTIONS
     if fuel.get('present'):
@@ -285,7 +291,7 @@ def plan_actions(view, mask, *, beam=24, version=1, forecast_factory=None, coope
             orange = view['aero_orange'] + flaps.bit_count() - flaps0.bit_count()
             brake = 2 * brakes.bit_count()
 
-            def speed_score(other):
+            def base_speed_score(other):
                 speed = thrust + other
                 if view['last_round']:
                     return -1000 * max(0, speed - brake)
@@ -323,6 +329,16 @@ def plan_actions(view, mask, *, beam=24, version=1, forecast_factory=None, coope
                         - 500 * max(0, remaining - future_max * (rounds - 1))
                         - (collision_cost if version >= 2 else 0)
                         - (2000 if version >= 3 and bad_curve else 0))
+
+            def speed_score(other):
+                ordinary = base_speed_score(other)
+                if thrust_score_adjustment is None:
+                    return ordinary
+                adjustment = thrust_score_adjustment(thrust, other)
+                if (isinstance(adjustment, bool) or not isinstance(adjustment, (int, float))
+                        or not isfinite(adjustment)):
+                    raise ValueError('A public thrust adjustment must return a finite numeric score.')
+                return ordinary + adjustment
 
             if partner_t:
                 value += speed_score(partner_t['value'])

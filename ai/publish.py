@@ -14,6 +14,24 @@ from .checkpoints import load_checkpoint, weight_fingerprint, planner_fingerprin
 from .export_browser import export_models
 
 
+def _preview_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f'Duplicate development-report key: {key}.')
+        result[key] = value
+    return result
+
+
+def _preview_counts(result):
+    if (not isinstance(result, dict) or type(result.get('games')) is not int or result['games'] < 1 or
+            type(result.get('wins')) is not int or not 0 <= result['wins'] <= result['games'] or
+            type(result.get('win_rate')) not in (int, float) or
+            result.get('win_rate') != result['wins']/result['games']):
+        raise ValueError('Preview results must contain consistent individual-case counts.')
+    return {key: result[key] for key in ('games', 'wins', 'win_rate')}
+
+
 def portable_config(value,root):
     """Release metadata must not expose machine-specific home directories."""
     if isinstance(value,dict):
@@ -39,52 +57,92 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
     folder = root/'ai'/'releases'/release_id
     if folder.exists() or folder.is_symlink():
         raise ValueError('Preview release already exists; preserve existing models and use a new release ID.')
-    report = json.loads(Path(evaluation).read_text())
-    if report.get('complete') is not True or report.get('release_evidence') is not False:
+    report = json.loads(Path(evaluation).read_text(), object_pairs_hook=_preview_object)
+    if (not isinstance(report, dict) or report.get('complete') is not True
+            or report.get('release_evidence') is not False):
         raise ValueError('A preview needs a complete, explicitly developmental report.')
     model, payload = load_checkpoint(checkpoint)
     config = payload['train_config']
-    if any(config.get(flag) for flag in ('research_all_modules', 'research_open_risk')):
+    if any(config.get(flag) for flag in ('research_all_modules', 'research_open_risk', 'research_capacity_guard')):
         raise ValueError('Research action masks need a matching browser environment before preview.')
     profile = config.get('assistance_version', 0)
-    if type(profile) is not int or not 0 <= profile <= 10:
+    if type(profile) is not int or not 0 <= profile <= 11:
         raise ValueError('Unknown browser assistance profile.')
-    if model.config.get('kind') == 'guided_residual' and profile not in (9, 10):
-        raise ValueError('Guided browser models require a public reference profile 9 or 10.')
+    if model.config.get('kind') == 'guided_residual' and profile not in (9, 10, 11):
+        raise ValueError('Guided browser models require a public reference profile 9, 10 or 11.')
     if (report.get('weights_sha256') != weight_fingerprint(model)
+            or type(report.get('assistance_version')) is not int
             or report.get('assistance_version') != profile
             or report.get('planner_sha256') != planner_fingerprint(model_schema(model)['version'])):
         raise ValueError('Development evidence does not match these weights and public planner.')
-    routes = report.get('routes', {})
-    if not isinstance(routes, dict) or not routes:
-        raise ValueError('A preview needs explicit tested routes.')
-    catalog = {scenario['engine_code']: scenario for scenario in landekatalog()['scenarios']}
-    for code, result in routes.items():
-        scenario = catalog.get(code)
-        if (not scenario or scenario['ability_count'] or
-                set(scenario['modules']) - set(config.get('supported_modules', []))):
-            raise ValueError(f'Unsupported preview route modules/cards: {code}.')
-        modules = set(scenario['modules'])
-        if 'intern' in modules and profile != 10:
-            raise ValueError('Intern previews require the matching browser profile 10.')
-        if modules - {'kerosene'} and profile not in (0, 10):
-            raise ValueError('This browser profile does not support the tested preview modules.')
-        if (not isinstance(result, dict) or type(result.get('games')) is not int or result['games'] < 1 or
-                type(result.get('wins')) is not int or not 0 <= result['wins'] <= result['games'] or
-                type(result.get('win_rate')) not in (int, float) or
-                result.get('win_rate') != result['wins']/result['games']):
-            raise ValueError('Preview results must contain consistent per-route counts.')
-        if scenario['modules'] and model_schema(model)['version'] < 3:
-            raise ValueError('This module preview requires the matching schema-3 browser.')
+    preview = {'enabled': True, 'user_requested': True, 'evaluation_kind': 'development',
+               'evaluation': f'ai/releases/{release_id}/development.json'}
+    if 'cases' in report:
+        from .module_training_eval import _official_cases, case_key
+        from .modules import CARDS, MODULES
+        cases = report['cases']
+        if not isinstance(cases, dict) or not cases or report.get('routes'):
+            raise ValueError('Use explicit nonempty card cases without mixed route aggregates.')
+        if model_schema(model)['version'] != 3 or profile not in (0, 10, 11):
+            raise ValueError('Card previews require schema 3 and a public module/card profile.')
+        claims = {}
+        for field, registered in (('supported_modules', MODULES), ('supported_cards', CARDS)):
+            values = config.get(field)
+            if (not isinstance(values, (list, tuple)) or any(type(value) is not str for value in values)
+                    or len(set(values)) != len(values) or set(values) - set(registered)):
+                raise ValueError(f'Card previews require explicit registered {field}.')
+            claims[field] = set(values)
+        official = _official_cases()
+        supported_cases, case_results, seen = [], {}, set()
+        for identity, result in cases.items():
+            if not isinstance(result, dict):
+                raise ValueError('Each preview card case must be an object.')
+            key = case_key(result)
+            pair = (result['airport'], tuple(sorted(result['abilities'])))
+            if (identity != key or key in seen or result.get('case_key', key) != key
+                    or pair not in official or not result['abilities']):
+                raise ValueError(f'Unknown, duplicate or inconsistent official card case: {identity}.')
+            modules = result.get('modules')
+            if (not isinstance(modules, (list, tuple)) or any(type(module) is not str for module in modules)
+                    or sorted(modules) != official[pair]
+                    or set(modules) - claims['supported_modules']
+                    or set(result['abilities']) - claims['supported_cards']):
+                raise ValueError(f'Unclaimed or mismatched preview modules/cards: {identity}.')
+            count = config.get('ability_count')
+            if count is not None and count != 'case_specific' and (type(count) is not int or count != len(result['abilities'])):
+                raise ValueError('The tested card count differs from the model configuration.')
+            case_results[key] = _preview_counts(result)
+            supported_cases.append({'airport': result['airport'], 'abilities': sorted(result['abilities'])})
+            seen.add(key)
+        supported_cases.sort(key=case_key)
+        supported_airports = sorted({case['airport'] for case in supported_cases})
+        preview.update(supported_cases=supported_cases, case_results=case_results)
+    else:
+        routes = report.get('routes', {})
+        if not isinstance(routes, dict) or not routes:
+            raise ValueError('A preview needs explicit tested routes.')
+        catalog = {scenario['engine_code']: scenario for scenario in landekatalog()['scenarios']}
+        for code, result in routes.items():
+            scenario = catalog.get(code)
+            if (not scenario or scenario['ability_count'] or
+                    set(scenario['modules']) - set(config.get('supported_modules', []))):
+                raise ValueError(f'Unsupported preview route modules/cards: {code}.')
+            modules = set(scenario['modules'])
+            if 'intern' in modules and profile != 10:
+                raise ValueError('Intern previews require the matching browser profile 10.')
+            if modules - {'kerosene'} and profile not in (0, 10):
+                raise ValueError('This browser profile does not support the tested preview modules.')
+            _preview_counts(result)
+            if scenario['modules'] and model_schema(model)['version'] < 3:
+                raise ValueError('This module preview requires the matching schema-3 browser.')
+        supported_airports = sorted(routes)
+        preview['route_results'] = {code: _preview_counts(result) for code, result in routes.items()}
     folder.mkdir(parents=True)
     payload['train_config'] = portable_config(config, root.resolve())
     payload['train_config'].update(display_name=name, recommended=False, publication_status='experimental_preview',
-        supported_airports=sorted(routes),
+        supported_airports=supported_airports,
         quality={'approved': False, 'reason': 'Experimental user-requested preview; development evidence only.'},
-        preview={'enabled': True, 'user_requested': True, 'evaluation_kind': 'development',
-            'evaluation': f'ai/releases/{release_id}/development.json',
-            'route_results': {code:{key:result[key] for key in ('games','wins','win_rate')}
-                              for code,result in routes.items()}})
+        preview=preview)
     target = folder/'best.pt'
     torch.save(payload, target)
     (folder/'development.json').write_text(json.dumps(report, indent=2, ensure_ascii=False)+'\n')
