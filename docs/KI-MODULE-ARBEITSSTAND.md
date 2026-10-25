@@ -115,7 +115,7 @@ bleibt unverändert. Eine Probe mit den unveränderten Ausgangsgewichten ergibt
 nur **4 / 6 / 18 / 50 %**: mehr Aktionen ohne passenden Lernstart schadet.
 Bericht: `planner-probe-wide-v1.json`. Diese Maske wird nicht veröffentlicht.
 
-## Politikvortraining und laufender DAgger-Versuch
+## Politikvortraining und abgeschlossener DAgger-Versuch
 
 `runs/planner-distillation-v1/` ist nach 40 Epochen abgeschlossen. Das vorhandene
 Hybridmodell mit Profil 7 erzeugte in 400 frischen Trainingspartien 23.439
@@ -137,25 +137,76 @@ Auf denselben zusätzlichen 100 Entwicklungsseed-Partien je Route wie der Lehrer
 33 / 31 / 62 / 85 % beim Lehrer. Noch keine ausreichend erhaltene Spielweise.
 Berichte: `planner-distillation-v1.json`, `planner-distillation-games-v1.json`.
 
-**Aktueller schwerer Lauf:** `runs/planner-dagger-v1/`, Log
-`/tmp/cockpit-planner-dagger-v1.log`, Jobstatus `runs/ai-job.json`.
-Vor jedem Folgelauf Prozesse und STOP-Datei prüfen. Derselbe eingefrorene Lehrer
-beschriftet jetzt auch vom bisherigen Schüler erreichte Zustände. In 50 % der
-Züge entscheidet der Schüler mit breiter Maske, sonst der Lehrer. Diese Mischung
-nutzt einen separaten RNG, keine zukünftigen Spielwürfe. Je Route entstehen
-100 neue Trainings- und 25 neue Validierungspartien mit Seed 251029; alte Daten
-werden nur innerhalb ihres bisherigen Splits ergänzt. Der Schüler startet mit
-seinen bisherigen Gewichten, kein dritter Residualzweig wird angelegt.
-Budget: 200 Politikepochen, weiter ohne PPO und ohne neue Gewinnbehauptung.
+`runs/planner-dagger-v1/` ist nach 200 Epochen beendet. Derselbe eingefrorene
+Lehrer beschriftete auch vom Schüler erreichte Zustände. In 50 % der Züge
+entschied der Schüler, sonst der Lehrer; separater Verhaltens-RNG, keine
+zukünftigen Spielwürfe. Seed 251029 ergänzte 23.444 Trainings- und 5.793
+Validierungsbeispiele, insgesamt 46.883 / 11.527 im jeweils getrennten Split.
+Kein dritter Residualzweig wurde angelegt. Der beste Validierungs-KL lag in
+Epoche 52 bei 0,4954; bis Epoche 200 stieg er auf 0,5968 (Überanpassung).
+Die beste Aktionsübereinstimmung am ausgewählten Stand beträgt 78,28 %.
+
+Auf je 100 neuen, identischen Entwicklungsseed-Partien ab 14.200.000:
+
+| Modell | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Lehrer, Profil 7 | 33 % | 30 % | 68 % | 84 % |
+| DAgger, Profil 9 | 20 % | 18 % | 40 % | 72 % |
+
+Der Schüler ist weiterhin deutlich schwächer; daher kein PPO-Start aus diesem
+Stand und keine Freigabe. Berichte `planner-dagger-v1.json`,
+`dagger-teacher-games-v1.json`, `dagger-student-games-v1.json`. Nicht beliebig
+mehr Epochen auf dieselben Daten verwenden.
+
+## Aktueller schwerer Lauf: lernbare Abweichungen von öffentlicher Planung
+
+`runs/guided-residual-stage1/`, Log `/tmp/cockpit-guided-residual-stage1.log`.
+Vor jedem Folgelauf `runs/ai-job.json`, Prozesse und STOP-Datei prüfen.
+Der neue Typ `guided_residual` erhält den bisherigen Spieler als eingefrorene
+Quelle. Die zusätzliche Politik startet mit Nullausgängen. Als öffentlicher
+Hinweis wird die bisherige Auswahl aus Profil 7 mitgegeben; die tatsächlich
+wählbare Maske bleibt die breitere Platzierungsauswahl aus Profil 9.
+
+Die alten zugelassenen Aktionen behalten ihre Quell-Logits. Weitere Platzierungen
+beginnen vier Logitpunkte unter dem besten Quellzug. Damit bleiben die anfänglichen
+deterministischen Entscheidungen erhalten, während zusätzliche Aktionen eine
+endliche Wahrscheinlichkeit und trainierbare Gradienten haben. Der Residualzweig
+kann diesen Abstand später überwinden. Das ist eine weiche Planungsvorgabe,
+keine vollständig planungsfreie Politik; Profil 9 grenzt weiterhin den Suchraum
+ein. Fähigkeiten/andere Module sind in dieser PPO-Stufe noch ausgeschlossen.
+
+Referenzmasken entstehen ausschließlich aus der erlaubten eigenen Sicht.
+Sie werden für Rollouts, PPO, Gewinnzug-Nachahmung, Bewertung und Browserinferenz
+identisch mitgeführt. Der Export nutzt Modellformat 4 bei unverändertem
+489/217-Beobachtungs-/Aktionsschema. Bestehende Modelle/Browserformate bleiben
+verfügbar. Ein geführter Spieler darf nicht als einfache rohe Quelle eines
+weiteren Residualzweigs eingefroren werden, weil dabei sein Hinweis verloren
+ginge; zum Fortsetzen `--resume` verwenden.
+
+219 lokale Tests bestanden, einschließlich vollständiger Anfangspartien gegen
+die eingefrorene Quelle, lernbarer Abweichungen, versteckter Partnerwürfel,
+realem PPO samt Nachahmungs-Referenzen und JS-/PyTorch-Parität. Der Metal-Smoke-Test
+`runs/guided-smoke-v1/` absolvierte 311 neue Entscheidungen mit zwei Workern.
+Seine acht Validierungspartien sind nur ein Integrationstest, kein Qualitätsbeleg.
+
+Der neue begrenzte PPO-Lauf startet vom besseren bisherigen Lehrer, nicht vom
+schwächeren Nachahmungsmodell: 200.000 neue Entscheidungen, Seed 251031,
+OSL/OSL/OSL/HND/HND/LHR/YUL, 200 Entwicklungsvalidierungen je Route ab
+14.000.000, Auswahl zuerst nach schwächster Route. Ausgangsmodell bleibt als
+Fallback im Modellvergleich. 316.034 geerbte Modulzüge, neue PPO-Züge und die
+früheren Regel-/Nachahmungsübungen bleiben getrennt gezählt.
+Die 800 Anfangspartien bestätigten exakt die bisherigen Quoten
+**34,5 / 34 / 65 / 80 %**, einschließlich identischer Verlustzählungen.
 
 ```sh
-nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.distill_planner \
-  --source runs/modules-residual-stage1/best.pt \
-  --student runs/planner-distillation-v1/distilled.pt \
-  --initial-data runs/planner-distillation-v1/teacher-data.pt \
-  --run-dir runs/planner-dagger-v1 --seed 251029 --student-fraction .5 \
-  --train-games-per-route 100 --validation-games-per-route 25 --epochs 200 \
-  --workers 8 --cpu-duty-cycle .7 --device mps
+nice -n 15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
+  --guided-source runs/modules-residual-stage1/best.pt \
+  --run-dir runs/guided-residual-stage1 --guide-margin 4 --steps 200000 \
+  --workers 8 --cpu-duty-cycle .7 --device mps --seed 251031 \
+  --eval-games 800 --eval-every 20 \
+  --eval-airports LOG_OSL_GREEN LOG_HND_GREEN LOG_LHR_GREEN LOG_YUL_GREEN \
+  --curriculum-airports LOG_OSL_GREEN LOG_OSL_GREEN LOG_OSL_GREEN LOG_HND_GREEN LOG_HND_GREEN LOG_LHR_GREEN LOG_YUL_GREEN \
+  --self-imitation-coef .03
 ```
 
 Der unabhängige Kerosinvergleich ab 15.000.000 wurde noch NICHT gestartet.
@@ -164,18 +215,15 @@ freigegeben; das Menü zeigt weiter die bisherigen Modelle.
 
 ## Nächste Arbeit
 
-1. Aktuellen DAgger-Job/Logs prüfen; niemals einen zweiten schweren Lauf
-   starten. Nach Ende `distilled.pt` unter Profil 9 und den Lehrer unter Profil 7
-   auf identischen NEUEN Entwicklungsseeds (z. B. 14.200.000, 100 je Route)
-   vergleichen. Hohe Aktionsübereinstimmung allein ist kein Gewinnnachweis.
-   Erst wenn die bisherige Spielstärke weitgehend erhalten ist, einen begrenzten
-   neuen PPO-Lauf mit `--residual-source .../distilled.pt --assistance-version 9`
-   und denselben vier Routen beginnen. Bei schlechtem Transfer zusätzlich auf
-   vom Schüler besuchten Zuständen Lehreraktionen sammeln (DAgger), statt
-   unvorbereitet sehr schwache breite Masken lange per PPO zu trainieren.
-   38 relevante Tests bestanden, einschließlich unveränderter Grundspielprofile,
-   Kapazitätsgrenzen, eingefrorenem Lehrer/Wertkopf, DAgger-Zielen und verschachteltem
-   Browserexport. Die erweiterten Browser-Quelltexte sind neu gebaut.
+1. Aktuellen geführten PPO-Lauf/Logs prüfen; niemals einen zweiten schweren Lauf
+   starten. Anfangsvalidierung entspricht den Lehrerquoten 34,5 / 34 / 65 / 80 %.
+   Nach Ende `best.pt` unter Profil 9 mit öffentlicher Referenzmaske
+   und den Lehrer unter Profil 7 auf identischen weiteren Entwicklungsseeds
+   (z. B. 14.300.000, 100 je Route) vergleichen. `ai.planner_probe` berücksichtigt
+   den neuen Politiktyp. Kein Nachahmungsfehler ersetzt die Gewinnprüfung.
+   Bei Plateau tatsächliche neu gewählte Platzierungen (`reference_departure_rate`),
+   Wert-/Politikinterferenz und stärkere öffentliche Suchlehrer untersuchen,
+   nicht bloß dieselben schwachen Lehrerlabels länger trainieren.
 2. Assistenzprofil 7 im allgemeinen Adapter und Forschungsprofil 9 unterstützen
    taktisch nur Grundspiel/Kerosin ohne Karten. Für weitere Module/Karten sind
    Modultaktik und Planung noch zu entwickeln; rohe legale Aktionen funktionieren

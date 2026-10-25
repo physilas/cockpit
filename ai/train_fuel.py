@@ -12,7 +12,7 @@ import torch
 
 from .checkpoints import load_checkpoint, save_checkpoint, planner_fingerprint, weight_fingerprint, model_schema
 from .fuel import FUEL_ACTIONS, FUEL_FEATURES
-from .nn_model import ActorCritic,ResidualActorCritic
+from .nn_model import ActorCritic,ResidualActorCritic,GuidedResidualActorCritic
 from .parallel import ParallelGames
 from .train import ppo_update
 
@@ -58,7 +58,8 @@ def successful_replay(batch, records, previous=None, *, limit=4096):
         raise ValueError('Successful replay currently requires both-role self-play.')
     if not indices:return previous
     selected=torch.tensor(indices,device=batch['actions'].device)
-    rows={k:batch[k][selected].detach() for k in ('observations','masks','actions')}
+    keys=('observations','masks','actions') + (('reference_masks',) if 'reference_masks' in batch else ())
+    rows={k:batch[k][selected].detach() for k in keys}
     if previous:rows={k:torch.cat((previous[k],rows[k])) for k in rows}
     return {k:v[-limit:] for k,v in rows.items()}
 
@@ -66,6 +67,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--resume', type=Path)
     p.add_argument('--residual-source', type=Path, help='New zero-output detail branch around an already trained fuel model.')
+    p.add_argument('--guided-source', type=Path, help='Frozen schema-3 player with a finite planner prior and wider legal choices.')
+    p.add_argument('--guide-margin', type=float, default=4.)
     p.add_argument('--self-imitation-coef', type=float, default=0.)
     p.add_argument('--source', type=Path, default=Path('ai/releases/crew-basegame-v1/best.pt'))
     p.add_argument('--run-dir', type=Path, default=Path('runs/kerosene-v1'))
@@ -88,8 +91,8 @@ def main():
         p.error('Resource cap: 1–8 workers, duty cycle in (0,.7]; positive budgets.')
     if not 0 <= args.self_imitation_coef <= .1:
         p.error("Self-imitation coefficient must be in [0,.1].")
-    if args.resume and args.residual_source:
-        p.error('Choose resume or a new residual phase, not both.')
+    if sum(bool(x) for x in (args.resume,args.residual_source,args.guided_source)) > 1:
+        p.error('Choose resume, residual transfer, or guided transfer.')
     if args.run_dir.exists():
         p.error('Use a new run directory, preserving earlier results.')
     torch.set_num_threads(1)
@@ -107,6 +110,13 @@ def main():
         args.freeze_legacy = previous['freeze_legacy'] if args.freeze_legacy is None else args.freeze_legacy
         if any(previous[k] != getattr(args,k) for k in ('seed','assistance_version','freeze_legacy')):
             p.error('Resume must preserve training seeds, planner profile and trainable parameters.')
+    elif args.guided_source:
+        inherited,module_source_payload=load_checkpoint(args.guided_source,args.device)
+        if model_schema(inherited)['version'] != 3 or args.freeze_legacy or args.assistance_version not in (None,9):
+            p.error('Guided transfer requires schema 3, assistance 9 and no --freeze-legacy.')
+        model=GuidedResidualActorCritic(inherited,489,217,guide_margin=args.guide_margin).to(args.device)
+        args.assistance_version=9
+        args.freeze_legacy=False
     elif args.residual_source:
         inherited,module_source_payload=load_checkpoint(args.residual_source,args.device)
         if model_schema(inherited)['version'] not in (2,3):
@@ -125,7 +135,7 @@ def main():
         args.freeze_legacy = bool(args.freeze_legacy)
     if args.freeze_legacy:
         freeze_legacy_policy(model)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4 if args.freeze_legacy or args.residual_source else 5e-5, eps=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4 if args.freeze_legacy or args.residual_source or args.guided_source else 5e-5, eps=1e-5)
     if resume:
         optimizer.load_state_dict(resume['optimizer_state'])
         torch.set_rng_state(resume['torch_rng_state'].cpu())
@@ -143,7 +153,10 @@ def main():
                   planner_sha256=planner_fingerprint(model_schema(model)['version']), action_mask_version=2,
                   resumed_from=args.resume.as_posix() if args.resume else None,
                   residual_source=args.residual_source.as_posix() if args.residual_source else (resume['train_config'].get('residual_source') if resume else None),
-                  rule_pretraining_examples=module_source_payload.get('rule_pretraining_examples',0) if module_source_payload else (resume['train_config'].get('rule_pretraining_examples',0) if resume else 0),
+                  guided_source=args.guided_source.as_posix() if args.guided_source else (resume['train_config'].get('guided_source') if resume else None),
+                  guidance_margin=model.config.get('guide_margin'),
+                  guided_source_weights_sha256=weight_fingerprint(model.source) if model.config.get('kind')=='guided_residual' else None,
+                  rule_pretraining_examples=module_source_payload.get('rule_pretraining_examples',module_source_payload.get('train_config',{}).get('rule_pretraining_examples',0)) if module_source_payload else (resume['train_config'].get('rule_pretraining_examples',0) if resume else 0),
                   policy_pretraining_examples=module_source_payload.get('policy_pretraining_examples',0) if module_source_payload else (resume['train_config'].get('policy_pretraining_examples',0) if resume else 0),
                   inherited_module_steps=module_source_payload.get('module_training_steps',0) if module_source_payload else (resume['train_config'].get('inherited_module_steps',0) if resume else 0),
                   curriculum_airports=args.curriculum_airports, eval_airports=args.eval_airports,
@@ -209,6 +222,8 @@ def main():
                 clip=.2, value_coef=.5, entropy_coef=.01, uniform_mix=.03,
                 demonstrations=replay, demo_coef=args.self_imitation_coef if replay else 0,
                 demo_generator=demo_generator)
+            if 'reference_masks' in batch:
+                stats['reference_departure_rate']=float((~batch['reference_masks'].gather(1,batch['actions'][:,None])).float().mean())
             for record in records:
                 route=record['scenario']
                 decisions_by_route[route]=decisions_by_route.get(route,0)+record['steps']

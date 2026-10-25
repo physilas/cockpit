@@ -206,8 +206,20 @@ class ModuleEnv(CrewEnv):
             if own<=missing:
                 for i,a in enumerate(FUEL_ACTIONS):
                     if a.kind=='place' and self.slots[a.slot].target not in ('ruder','triebwerk'):prefix[i]=False
-            return list(_fuel_assist(json.dumps(self.view(),sort_keys=True),tuple(prefix),self.assistance_version))+[False]*(len(mask)-125)
+            serialized=json.dumps(self.view(),sort_keys=True)
+            if self.assistance_version==9:
+                self._reference_mask=list(_fuel_assist(serialized,tuple(prefix),7))+[False]*(len(mask)-125)
+            return list(_fuel_assist(serialized,tuple(prefix),self.assistance_version))+[False]*(len(mask)-125)
         raise ValueError('This research planner stage supports only base game/kerosene without cards.')
+
+    def info(self):
+        result=super().info()
+        if self.assistance_version==9:
+            # Pure public/own-hand advice, not another legality constraint.
+            result['reference_action_mask']=(list(self._reference_mask)
+                if any(result['action_mask']) and self.current_role in self.assisted_roles
+                else list(result['action_mask']))
+        return result
 
     def _special(self,action,role):
         z=self.game.zusatz

@@ -21,7 +21,7 @@ class ModelAgent:
             raise ValueError("uniform_mix must be between 0 and 1.")
         self.uniform_mix = uniform_mix
 
-    def select(self, view, mask):
+    def select(self, view, mask, *, reference_mask=None):
         import torch
         device = next(self.model.parameters()).device
         with torch.no_grad():
@@ -36,7 +36,8 @@ class ModelAgent:
                 observation = encode(view)
             action, _, _ = self.model.act(torch.tensor(observation, dtype=torch.float32, device=device),
                                            mask, deterministic=self.deterministic,
-                                           uniform_mix=0.0 if self.deterministic else self.uniform_mix)
+                                           uniform_mix=0.0 if self.deterministic else self.uniform_mix,
+                                           reference_mask=reference_mask)
         return int(action.item())
 
 

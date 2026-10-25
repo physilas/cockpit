@@ -90,6 +90,8 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
     cpu_budget=CpuBudget(cpu_duty_cycle)
     device = next(model.parameters()).device
     data = {name: [] for name in ("observations", "masks", "actions", "log_probs", "values", "advantages", "returns")}
+    guided = model.config.get('kind') == 'guided_residual'
+    if guided: data['reference_masks'] = []
     records = []
     env.assisted_roles = ('pilot', 'kopilot') if partner is None else (ai_role,)
     model.eval()
@@ -102,7 +104,9 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
             mask = info["action_mask"]
             if partner is not None and env.current_role != ai_role:
                 from .actions import ACTIONS
-                selected = partner.select(env.view(), mask)
+                partner_guidance = ({'reference_mask': info['reference_action_mask']}
+                                    if getattr(getattr(partner, 'model', None), 'config', {}).get('kind') == 'guided_residual' else {})
+                selected = partner.select(env.view(), mask, **partner_guidance)
                 observation, reward, terminated, truncated, info = env.step(selected)
                 advances = discount_unit == 'action' or env.actions[selected].kind in ('place','bonus_place')
                 if rewards:
@@ -112,10 +116,12 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
                 cpu_budget.pause()
                 continue
             with torch.no_grad():
+                guidance = {'reference_mask': info['reference_action_mask']} if guided else {}
                 action, log_prob, value = model.act(torch.tensor(observation, dtype=torch.float32, device=device), mask,
-                                                    uniform_mix=uniform_mix)
+                                                    uniform_mix=uniform_mix, **guidance)
             data["observations"].append(observation)
             data["masks"].append(mask)
+            if guided: data['reference_masks'].append(info['reference_action_mask'])
             data["actions"].append(int(action.item()))
             data["log_probs"].append(float(log_prob.item()))
             data["values"].append(float(value.item()))
@@ -137,7 +143,7 @@ def collect_rollout(model, env, minimum_steps, *, seed, episodes_done, gamma, ga
         data["advantages"].extend(advantages)
         data["returns"].extend(returns)
         records.append(env.episode_record(episode_seed, ai_role, sum(rewards)))
-    tensors = {name: torch.tensor(items, dtype=torch.bool if name == "masks" else torch.long if name == "actions" else torch.float32,
+    tensors = {name: torch.tensor(items, dtype=torch.bool if name in ("masks", "reference_masks") else torch.long if name == "actions" else torch.float32,
                                   device=device) for name, items in data.items()}
     return tensors, records
 
@@ -160,8 +166,9 @@ def ppo_update(model, optimizer, batch, *, epochs=4, minibatch_size=256, clip=0.
         permutation = torch.randperm(count, device=advantages.device)
         epoch_kls = []
         for indices in permutation.split(minibatch_size):
+            guidance = {'reference_mask': batch['reference_masks'][indices]} if 'reference_masks' in batch else {}
             log_prob, entropy, value = model.evaluate_actions(batch["observations"][indices], batch["masks"][indices], batch["actions"][indices],
-                                                               uniform_mix=uniform_mix)
+                                                               uniform_mix=uniform_mix, **guidance)
             log_ratio = log_prob - batch["log_probs"][indices]
             ratio = log_ratio.exp()
             objective = torch.minimum(ratio * advantages[indices], ratio.clamp(1 - clip, 1 + clip) * advantages[indices])
@@ -177,7 +184,8 @@ def ppo_update(model, optimizer, batch, *, epochs=4, minibatch_size=256, clip=0.
                     examples = {key: value[selected.to(value.device)] for key, value in examples.items()}
                 # Pure masked policy, without the uniform exploration floor. No
                 # human log_probs, PPO advantages, rewards, or critic targets.
-                demo_logp, _, _ = model.evaluate_actions(examples["observations"], examples["masks"], examples["actions"])
+                demo_guidance = {'reference_mask': examples['reference_masks']} if 'reference_masks' in examples else {}
+                demo_logp, _, _ = model.evaluate_actions(examples["observations"], examples["masks"], examples["actions"], **demo_guidance)
                 imitation_loss = -demo_logp.mean()
                 loss = loss + demo_coef * imitation_loss
                 demo_loss = imitation_loss.detach().item()

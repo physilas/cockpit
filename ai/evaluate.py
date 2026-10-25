@@ -58,7 +58,9 @@ def evaluate(agent, *, games=100, seed=1_000_000, airport="MUC", partner=None,
             while not env.done:
                 view = env.view()
                 active = agent if partner is None or env.current_role == tested_role else partner
-                action_id = active.select(view, info["action_mask"])
+                guidance = ({'reference_mask': info['reference_action_mask']}
+                            if getattr(getattr(active, 'model', None), 'config', {}).get('kind') == 'guided_residual' else {})
+                action_id = active.select(view, info["action_mask"], **guidance)
                 action = env.actions[action_id]
                 played_value = view["own_dice"][action.die] if action.kind == "place" else None
                 _, reward, _, _, info = env.step(action_id)

@@ -6,6 +6,7 @@ sampling and PPO updates. The critic receives the SAME permitted observation.
 import torch
 from torch import nn
 from torch.distributions import Categorical
+import math
 
 from .actions import ACTION_COUNT
 from .observation import OBSERVATION_SIZE, feature_names
@@ -36,13 +37,20 @@ class ActorCritic(nn.Module):
         features = self.encoder(observation)
         return self.actor(features), self.critic(features).squeeze(-1)
 
-    def distribution(self, observation, action_mask, uniform_mix=0.0):
+    def policy_output(self, observation, reference_mask=None):
+        if reference_mask is not None:
+            raise ValueError('This policy does not consume a reference planner mask.')
+        return self(observation)
+
+    def distribution(self, observation, action_mask, uniform_mix=0.0, *, reference_mask=None):
         if not 0 <= uniform_mix <= 1:
             raise ValueError("uniform_mix must be between 0 and 1.")
-        logits, value = self(observation)
+        logits, value = self.policy_output(observation, reference_mask)
         mask = torch.as_tensor(action_mask, dtype=torch.bool, device=logits.device)
         if mask.shape != logits.shape or not bool(mask.any(dim=-1).all()):
             raise ValueError("Jede Beobachtung braucht eine passende Maske mit mindestens einer erlaubten Aktion.")
+        if reference_mask is not None and bool((torch.as_tensor(reference_mask, dtype=torch.bool, device=mask.device) & ~mask).any()):
+            raise ValueError('Reference planner actions must be inside the allowed policy mask.')
         logits = logits.masked_fill(~mask, torch.finfo(logits.dtype).min)
         distribution = Categorical(logits=logits)
         if uniform_mix:
@@ -51,13 +59,13 @@ class ActorCritic(nn.Module):
             distribution = Categorical(probs=probabilities)
         return distribution, value
 
-    def act(self, observation, action_mask, deterministic=False, uniform_mix=0.0):
-        distribution, value = self.distribution(observation, action_mask, uniform_mix)
+    def act(self, observation, action_mask, deterministic=False, uniform_mix=0.0, *, reference_mask=None):
+        distribution, value = self.distribution(observation, action_mask, uniform_mix, reference_mask=reference_mask)
         action = distribution.logits.argmax(dim=-1) if deterministic else distribution.sample()
         return action, distribution.log_prob(action), value
 
-    def evaluate_actions(self, observation, action_mask, actions, uniform_mix=0.0):
-        distribution, value = self.distribution(observation, action_mask, uniform_mix)
+    def evaluate_actions(self, observation, action_mask, actions, uniform_mix=0.0, *, reference_mask=None):
+        distribution, value = self.distribution(observation, action_mask, uniform_mix, reference_mask=reference_mask)
         return distribution.log_prob(actions), distribution.entropy(), value
 
 
@@ -86,6 +94,8 @@ class ResidualActorCritic(ActorCritic):
     """A frozen inherited player plus a zero-output trainable detail branch."""
     def __init__(self,source,observation_size,action_count,hidden_size=256,hidden_layers=2):
         nn.Module.__init__(self)
+        if source.config.get('kind') == 'guided_residual':
+            raise ValueError('Resume guided policies; their planner prior cannot be frozen as raw logits.')
         if observation_size<source.config['observation_size'] or action_count<source.config['action_count']:
             raise ValueError('Residual transfer must preserve the source prefix.')
         self.source=source
@@ -102,7 +112,43 @@ class ResidualActorCritic(ActorCritic):
         original=nn.functional.pad(original,(0,detail.shape[-1]-original.shape[-1]))
         return original+detail,value+correction
 
+
+class GuidedResidualActorCritic(ResidualActorCritic):
+    """A finite public planner prior, with learnable departures from its advice.
+
+    At initialization every newly admitted action starts `guide_margin` logits
+    below the frozen player's best reference action. Its old reference rankings
+    and deterministic decisions are preserved. Unlike a hard mask, departures
+    have nonzero probability and gradients, and the residual can promote them.
+    """
+    def __init__(self, source, observation_size, action_count, hidden_size=256, hidden_layers=2, guide_margin=4.):
+        if source.config.get('kind') == 'guided_residual' or not math.isfinite(guide_margin) or guide_margin <= 0:
+            raise ValueError('A finite positive margin and an unguided frozen source are required.')
+        super().__init__(source, observation_size, action_count, hidden_size, hidden_layers)
+        if isinstance(source, ResidualActorCritic) and source.residual.config['hidden_size'] == hidden_size and source.residual.config['hidden_layers'] == hidden_layers:
+            self.residual.encoder.load_state_dict(source.residual.encoder.state_dict())
+        self.guide_margin = float(guide_margin)
+        self.config.update(kind='guided_residual', guide_margin=self.guide_margin)
+
+    def policy_output(self, observation, reference_mask=None):
+        original, value = self.source(observation[..., :self.source.config['observation_size']])
+        detail, correction = self.residual(observation)
+        original = nn.functional.pad(original, (0, detail.shape[-1] - original.shape[-1]))
+        if reference_mask is None:
+            raise ValueError('Guided policy requires its public reference planner mask.')
+        reference = torch.as_tensor(reference_mask, dtype=torch.bool, device=detail.device)
+        if reference.shape != original.shape or not bool(reference.any(dim=-1).all()):
+            raise ValueError('Every guided decision needs a matching nonempty reference mask.')
+        top = original.masked_fill(~reference, torch.finfo(original.dtype).min).amax(-1, keepdim=True)
+        prior = torch.where(reference, original, top - self.guide_margin)
+        return prior + detail, value + correction
+
 def build_model(config):
+    if config.get('kind') == 'guided_residual':
+        model = GuidedResidualActorCritic(build_model(config['source']), **{k: config[k] for k in
+            ('observation_size', 'action_count', 'hidden_size', 'hidden_layers', 'guide_margin')})
+        if model.config != config: raise ValueError('Non-canonical guided model configuration.')
+        return model
     if config.get('kind')=='residual':
         model=ResidualActorCritic(build_model(config['source']),**{k:config[k] for k in ('observation_size','action_count','hidden_size','hidden_layers')})
         if model.config!=config:raise ValueError('Non-canonical residual model configuration.')

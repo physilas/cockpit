@@ -31,5 +31,7 @@ def decision(role=None, reroll_json="null", steps=0, max_steps=256, assistance_v
         raise ValueError("Diese Rolle ist gerade nicht am Zug.")
     view = env.view()
     public = {key: value for key, value in view.items() if key != "own_dice"}
+    info = env.info()
     return {"role": env.current_role, "observation": env.observation(),
-            "action_mask": env.action_mask(), "public_state": public}
+            "action_mask": info['action_mask'], "public_state": public,
+            **({'reference_action_mask':info['reference_action_mask']} if 'reference_action_mask' in info else {})}

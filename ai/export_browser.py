@@ -28,8 +28,10 @@ def _layers(model):
 
 def _model_data(model):
     current=model_schema(model)
-    if model.config.get('kind')=='residual':
-        return {'format':3,'schema':current,'model_config':model.config,
+    if model.config.get('kind') in ('residual','guided_residual'):
+        return {'format':4 if model.config['kind']=='guided_residual' else 3,
+                **({'guide_margin':model.guide_margin} if model.config['kind']=='guided_residual' else {}),
+                'schema':current,'model_config':model.config,
                 'source':_model_data(model.source),
                 'residual':{'format':1,'schema':current,'layers':_layers(model.residual)}}
     if hasattr(model,'roles'):

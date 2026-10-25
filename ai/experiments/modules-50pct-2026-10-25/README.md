@@ -43,9 +43,20 @@ Die erste Nachahmung nutzte 23.439 Trainings- und 5.734 Validierungsbeispiele.
 Nach 40 Epochen liegt die Aktionsübereinstimmung bei 75,76 %, die getesteten
 Einzelquoten jedoch nur bei 11 / 15 / 24 / 55 %. Die Berichte
 `planner-distillation-v1.json` und `planner-distillation-games-v1.json` halten
-diese Grenze fest. Der nächste DAgger-Lauf beschriftet gezielt auch vom Schüler
-besuchte Zustände, ergänzt die bisherigen Trainingsdaten und verwendet weiterhin
-denselben eingefrorenen Lehrer. Auch dieser Lauf ist noch keine Modulfreigabe.
+diese Grenze fest. Der folgende DAgger-Lauf ergänzte die Daten auf 46.883
+Trainings- und 11.527 Validierungsbeispiele. Sein bester Stand wurde nach 52 von
+200 Epochen gewählt; danach überangepasst. Auf neuen Entwicklungsseeds erreicht
+er 20 / 18 / 40 / 72 %, sein Lehrer dort 33 / 30 / 68 / 84 %. Die drei
+`dagger-*.json`-/`planner-dagger-v1.json`-Berichte dokumentieren den Vergleich.
+
+Der aktuelle Ansatz `guided_residual` übernimmt die alte Politik samt Gewichten
+und gibt zusätzliche Platzierungen zunächst vier Logitpunkte unter dem besten
+bisherigen Zug frei. Die öffentliche Referenzmaske ist eine weiche Vorgabe;
+neue Aktionen behalten Wahrscheinlichkeit und Gradienten. Ein Residualzweig kann
+sie höher bewerten. Auf den 800 Anfangspartien bleiben die alten Einzelquoten
+34,5 / 34 / 65 / 80 % exakt erhalten. 219 lokale Tests und ein kurzer Metal-PPO-
+Integrationstest bestanden. Der neue Lauf ist auf 200.000 weitere PPO-Züge
+begrenzt; daraus folgt noch keine Gewinnverbesserung oder Modulfreigabe.
 
 Die aktuelle automatische Fortsetzung bleibt bei acht Workern zu je 70 %, einem
 schweren Job und niedriger Prozesspriorität. „Training und automatische

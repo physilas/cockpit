@@ -144,7 +144,8 @@ def _run(task):
             while not env.done:
                 planned = env.action_mask()
                 view = env.view()
-                logits, _ = model(torch.tensor(env.observation(), dtype=torch.float32))
+                guidance = {'reference_mask':env.info()['reference_action_mask']} if model.config.get('kind')=='guided_residual' else {}
+                logits, _ = model.policy_output(torch.tensor(env.observation(), dtype=torch.float32), **guidance)
                 values = logits.tolist()
                 capacity = capacity_only_mask(view, env.unassisted_mask, profile)
                 stats = measure_choice(view, env.unassisted_mask, planned, values, env.actions, env.slots, capacity)

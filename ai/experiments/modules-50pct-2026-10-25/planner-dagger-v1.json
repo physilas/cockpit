@@ -1,0 +1,2009 @@
+{
+  "format": 1,
+  "phase": "policy_bootstrap_only",
+  "goal_achieved": false,
+  "independent_test_used": false,
+  "source": "runs/modules-residual-stage1/best.pt",
+  "source_weights_sha256": "3a7c3bcb985d11bff39d59f4ddda964ad9eaa64540b0754791c8be934cd3c507",
+  "source_phase_decisions": 500313,
+  "inherited_module_steps": 316034,
+  "planner_sha256": "2cafdff3d80b4642bd9a5cfe17d2d39aad410f0cca2843513a8fade57e7a9253",
+  "teacher_assistance_version": 7,
+  "student_assistance_version": 9,
+  "seed": 251029,
+  "workers": 8,
+  "cpu_duty_cycle": 0.7,
+  "student_start": "runs/planner-distillation-v1/distilled.pt",
+  "student_weights_sha256": "55f7bb2875cce57cbe2537f24545ab0372fd82b0875db3e8805d2923aa4a11e4",
+  "initial_data": "runs/planner-distillation-v1/teacher-data.pt",
+  "student_behavior_fraction": 0.5,
+  "dataset_games": {
+    "train": [
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 0,
+        "decisions": 498,
+        "student_decisions": 246
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 2,
+        "decisions": 491,
+        "student_decisions": 267
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 2,
+        "decisions": 608,
+        "student_decisions": 300
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 1,
+        "decisions": 569,
+        "student_decisions": 284
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 632,
+        "student_decisions": 328
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 610,
+        "student_decisions": 332
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 610,
+        "student_decisions": 292
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 0,
+        "decisions": 633,
+        "student_decisions": 313
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 655,
+        "student_decisions": 334
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 589,
+        "student_decisions": 277
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 520,
+        "student_decisions": 239
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 0,
+        "decisions": 524,
+        "student_decisions": 260
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 579,
+        "student_decisions": 275
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 530,
+        "student_decisions": 276
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 2,
+        "decisions": 491,
+        "student_decisions": 259
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 507,
+        "student_decisions": 263
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 450,
+        "student_decisions": 229
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 512,
+        "student_decisions": 243
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 534,
+        "student_decisions": 262
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 1,
+        "decisions": 493,
+        "student_decisions": 226
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 6,
+        "decisions": 618,
+        "student_decisions": 307
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 668,
+        "student_decisions": 335
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 5,
+        "decisions": 654,
+        "student_decisions": 328
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 5,
+        "decisions": 662,
+        "student_decisions": 314
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 5,
+        "decisions": 635,
+        "student_decisions": 319
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 5,
+        "decisions": 605,
+        "student_decisions": 320
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 624,
+        "student_decisions": 309
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 575,
+        "student_decisions": 281
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 606,
+        "student_decisions": 295
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 552,
+        "student_decisions": 273
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 590,
+        "student_decisions": 290
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 5,
+        "decisions": 618,
+        "student_decisions": 318
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 614,
+        "student_decisions": 306
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 8,
+        "decisions": 621,
+        "student_decisions": 315
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 8,
+        "decisions": 649,
+        "student_decisions": 313
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 8,
+        "decisions": 654,
+        "student_decisions": 353
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 5,
+        "decisions": 627,
+        "student_decisions": 331
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 6,
+        "decisions": 629,
+        "student_decisions": 314
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 572,
+        "student_decisions": 262
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 8,
+        "decisions": 636,
+        "student_decisions": 319
+      }
+    ],
+    "validation": [
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 2,
+        "decisions": 527,
+        "student_decisions": 269
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 10,
+        "wins": 2,
+        "decisions": 560,
+        "student_decisions": 285
+      },
+      {
+        "route": "LOG_OSL_GREEN",
+        "games": 5,
+        "wins": 0,
+        "decisions": 327,
+        "student_decisions": 176
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 2,
+        "decisions": 482,
+        "student_decisions": 247
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 10,
+        "wins": 3,
+        "decisions": 515,
+        "student_decisions": 275
+      },
+      {
+        "route": "LOG_HND_GREEN",
+        "games": 5,
+        "wins": 1,
+        "decisions": 300,
+        "student_decisions": 152
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 4,
+        "decisions": 534,
+        "student_decisions": 271
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 627,
+        "student_decisions": 312
+      },
+      {
+        "route": "LOG_LHR_GREEN",
+        "games": 5,
+        "wins": 4,
+        "decisions": 329,
+        "student_decisions": 161
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 650,
+        "student_decisions": 313
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 10,
+        "wins": 7,
+        "decisions": 620,
+        "student_decisions": 313
+      },
+      {
+        "route": "LOG_YUL_GREEN",
+        "games": 5,
+        "wins": 5,
+        "decisions": 322,
+        "student_decisions": 160
+      }
+    ]
+  },
+  "epochs": [
+    {
+      "epoch": 0,
+      "examples": 11527,
+      "cross_entropy": 0.8570555781794823,
+      "kl": 0.6284805988462923,
+      "teacher_action_agreement": 0.7597813828402881,
+      "teacher_support_mass": 0.832103803046736
+    },
+    {
+      "epoch": 1,
+      "examples": 11527,
+      "cross_entropy": 0.841890839734288,
+      "kl": 0.613315860401098,
+      "teacher_action_agreement": 0.7608224169341546,
+      "teacher_support_mass": 0.8315430667070045
+    },
+    {
+      "epoch": 2,
+      "examples": 11527,
+      "cross_entropy": 0.8332795524489613,
+      "kl": 0.6047045731157713,
+      "teacher_action_agreement": 0.7635117550099766,
+      "teacher_support_mass": 0.8359735468539048
+    },
+    {
+      "epoch": 3,
+      "examples": 11527,
+      "cross_entropy": 0.8244389648128075,
+      "kl": 0.5958639854796175,
+      "teacher_action_agreement": 0.7669818686561984,
+      "teacher_support_mass": 0.8376000170138079
+    },
+    {
+      "epoch": 4,
+      "examples": 11527,
+      "cross_entropy": 0.8193520178734465,
+      "kl": 0.5907770385402564,
+      "teacher_action_agreement": 0.7681096555912206,
+      "teacher_support_mass": 0.8403459940943682
+    },
+    {
+      "epoch": 5,
+      "examples": 11527,
+      "cross_entropy": 0.8115420666377604,
+      "kl": 0.5829670873045704,
+      "teacher_action_agreement": 0.7667216101327319,
+      "teacher_support_mass": 0.8374788031632254
+    },
+    {
+      "epoch": 6,
+      "examples": 11527,
+      "cross_entropy": 0.804971591384059,
+      "kl": 0.576396612050869,
+      "teacher_action_agreement": 0.7695844538908649,
+      "teacher_support_mass": 0.8396653173451123
+    },
+    {
+      "epoch": 7,
+      "examples": 11527,
+      "cross_entropy": 0.800970130407501,
+      "kl": 0.5723951510743109,
+      "teacher_action_agreement": 0.7695844538908649,
+      "teacher_support_mass": 0.8367767797294531
+    },
+    {
+      "epoch": 8,
+      "examples": 11527,
+      "cross_entropy": 0.7965930079952577,
+      "kl": 0.5680180286620676,
+      "teacher_action_agreement": 0.7688904311616206,
+      "teacher_support_mass": 0.8398337411768803
+    },
+    {
+      "epoch": 9,
+      "examples": 11527,
+      "cross_entropy": 0.791152152538796,
+      "kl": 0.562577173205606,
+      "teacher_action_agreement": 0.7713195107139759,
+      "teacher_support_mass": 0.8425552210638609
+    },
+    {
+      "epoch": 10,
+      "examples": 11527,
+      "cross_entropy": 0.7869670984854028,
+      "kl": 0.5583921191522128,
+      "teacher_action_agreement": 0.7723605448078424,
+      "teacher_support_mass": 0.8413171649878919
+    },
+    {
+      "epoch": 11,
+      "examples": 11527,
+      "cross_entropy": 0.7843181316070941,
+      "kl": 0.555743152273904,
+      "teacher_action_agreement": 0.7710592521905092,
+      "teacher_support_mass": 0.8426514346984085
+    },
+    {
+      "epoch": 12,
+      "examples": 11527,
+      "cross_entropy": 0.7799162237923629,
+      "kl": 0.5513412444591729,
+      "teacher_action_agreement": 0.7732280732193979,
+      "teacher_support_mass": 0.8401576770482312
+    },
+    {
+      "epoch": 13,
+      "examples": 11527,
+      "cross_entropy": 0.7757267914424799,
+      "kl": 0.5471518121092899,
+      "teacher_action_agreement": 0.7719267806020648,
+      "teacher_support_mass": 0.845230483777134
+    },
+    {
+      "epoch": 14,
+      "examples": 11527,
+      "cross_entropy": 0.7727195092125366,
+      "kl": 0.5441445298793466,
+      "teacher_action_agreement": 0.7745293658367312,
+      "teacher_support_mass": 0.8430367247481456
+    },
+    {
+      "epoch": 15,
+      "examples": 11527,
+      "cross_entropy": 0.7691398701157317,
+      "kl": 0.5405648907825417,
+      "teacher_action_agreement": 0.77513663572482,
+      "teacher_support_mass": 0.844217346249651
+    },
+    {
+      "epoch": 16,
+      "examples": 11527,
+      "cross_entropy": 0.7676680430975462,
+      "kl": 0.5390930637643562,
+      "teacher_action_agreement": 0.7757439056129088,
+      "teacher_support_mass": 0.8424666692555556
+    },
+    {
+      "epoch": 17,
+      "examples": 11527,
+      "cross_entropy": 0.7659434996816139,
+      "kl": 0.5373685203484239,
+      "teacher_action_agreement": 0.7739220959486424,
+      "teacher_support_mass": 0.8500290532532824
+    },
+    {
+      "epoch": 18,
+      "examples": 11527,
+      "cross_entropy": 0.7633334049184066,
+      "kl": 0.5347584255852165,
+      "teacher_action_agreement": 0.7752233885659755,
+      "teacher_support_mass": 0.8411885090524557
+    },
+    {
+      "epoch": 19,
+      "examples": 11527,
+      "cross_entropy": 0.7609920820544969,
+      "kl": 0.5324171027213068,
+      "teacher_action_agreement": 0.7767849397067754,
+      "teacher_support_mass": 0.8474634573777531
+    },
+    {
+      "epoch": 20,
+      "examples": 11527,
+      "cross_entropy": 0.7573469663427473,
+      "kl": 0.5287719870095573,
+      "teacher_action_agreement": 0.7786067493710419,
+      "teacher_support_mass": 0.8458741208650071
+    },
+    {
+      "epoch": 21,
+      "examples": 11527,
+      "cross_entropy": 0.7532888691278677,
+      "kl": 0.5247138897946777,
+      "teacher_action_agreement": 0.7772187039125531,
+      "teacher_support_mass": 0.8451957672852495
+    },
+    {
+      "epoch": 22,
+      "examples": 11527,
+      "cross_entropy": 0.7534454276537538,
+      "kl": 0.5248704483205637,
+      "teacher_action_agreement": 0.7771319510713975,
+      "teacher_support_mass": 0.8456536620077115
+    },
+    {
+      "epoch": 23,
+      "examples": 11527,
+      "cross_entropy": 0.7501685157543645,
+      "kl": 0.5215935364211745,
+      "teacher_action_agreement": 0.7764379283421532,
+      "teacher_support_mass": 0.8496293926462395
+    },
+    {
+      "epoch": 24,
+      "examples": 11527,
+      "cross_entropy": 0.7506377644144652,
+      "kl": 0.5220627850812751,
+      "teacher_action_agreement": 0.7788670078945086,
+      "teacher_support_mass": 0.8469823786150689
+    },
+    {
+      "epoch": 25,
+      "examples": 11527,
+      "cross_entropy": 0.7474338568755446,
+      "kl": 0.5188588775423546,
+      "teacher_action_agreement": 0.7786067493710419,
+      "teacher_support_mass": 0.8490026756452751
+    },
+    {
+      "epoch": 26,
+      "examples": 11527,
+      "cross_entropy": 0.746570925503889,
+      "kl": 0.517995946170699,
+      "teacher_action_agreement": 0.7780862323241086,
+      "teacher_support_mass": 0.8505768447072465
+    },
+    {
+      "epoch": 27,
+      "examples": 11527,
+      "cross_entropy": 0.743234075407437,
+      "kl": 0.514659096074247,
+      "teacher_action_agreement": 0.7790405135768197,
+      "teacher_support_mass": 0.8470954209982372
+    },
+    {
+      "epoch": 28,
+      "examples": 11527,
+      "cross_entropy": 0.7425703446873562,
+      "kl": 0.5139953653541661,
+      "teacher_action_agreement": 0.778780255053353,
+      "teacher_support_mass": 0.8507262807650652
+    },
+    {
+      "epoch": 29,
+      "examples": 11527,
+      "cross_entropy": 0.7413106406408263,
+      "kl": 0.5127356613076363,
+      "teacher_action_agreement": 0.780515311876464,
+      "teacher_support_mass": 0.8520565660082374
+    },
+    {
+      "epoch": 30,
+      "examples": 11527,
+      "cross_entropy": 0.740295725258865,
+      "kl": 0.511720745925675,
+      "teacher_action_agreement": 0.7819033573349528,
+      "teacher_support_mass": 0.8518254007151009
+    },
+    {
+      "epoch": 31,
+      "examples": 11527,
+      "cross_entropy": 0.7382197124883371,
+      "kl": 0.509644733155147,
+      "teacher_action_agreement": 0.7820768630172639,
+      "teacher_support_mass": 0.8479796735826924
+    },
+    {
+      "epoch": 32,
+      "examples": 11527,
+      "cross_entropy": 0.7382794834387068,
+      "kl": 0.5097045041055167,
+      "teacher_action_agreement": 0.7840721783638415,
+      "teacher_support_mass": 0.8527888316815276
+    },
+    {
+      "epoch": 33,
+      "examples": 11527,
+      "cross_entropy": 0.7358796159484975,
+      "kl": 0.5073046366153074,
+      "teacher_action_agreement": 0.7822503686995749,
+      "teacher_support_mass": 0.8538004919114837
+    },
+    {
+      "epoch": 34,
+      "examples": 11527,
+      "cross_entropy": 0.7349334499971859,
+      "kl": 0.5063584706639959,
+      "teacher_action_agreement": 0.7828576385876638,
+      "teacher_support_mass": 0.8510543970177694
+    },
+    {
+      "epoch": 35,
+      "examples": 11527,
+      "cross_entropy": 0.7359651508941049,
+      "kl": 0.5073901715609148,
+      "teacher_action_agreement": 0.7812960874468639,
+      "teacher_support_mass": 0.8519590352491027
+    },
+    {
+      "epoch": 36,
+      "examples": 11527,
+      "cross_entropy": 0.734568932018783,
+      "kl": 0.505993952685593,
+      "teacher_action_agreement": 0.7819033573349528,
+      "teacher_support_mass": 0.8552883621762526
+    },
+    {
+      "epoch": 37,
+      "examples": 11527,
+      "cross_entropy": 0.7316785642969812,
+      "kl": 0.5031035849637912,
+      "teacher_action_agreement": 0.7811225817645527,
+      "teacher_support_mass": 0.8526531082805926
+    },
+    {
+      "epoch": 38,
+      "examples": 11527,
+      "cross_entropy": 0.7326828355366001,
+      "kl": 0.50410785620341,
+      "teacher_action_agreement": 0.781469593129175,
+      "teacher_support_mass": 0.8520877785515969
+    },
+    {
+      "epoch": 39,
+      "examples": 11527,
+      "cross_entropy": 0.7328508924122458,
+      "kl": 0.5042759130790557,
+      "teacher_action_agreement": 0.7825973800641971,
+      "teacher_support_mass": 0.8548622015520118
+    },
+    {
+      "epoch": 40,
+      "examples": 11527,
+      "cross_entropy": 0.7312078472797916,
+      "kl": 0.5026328679466016,
+      "teacher_action_agreement": 0.7828576385876638,
+      "teacher_support_mass": 0.8568438863137905
+    },
+    {
+      "epoch": 41,
+      "examples": 11527,
+      "cross_entropy": 0.7300826191043795,
+      "kl": 0.5015076397711895,
+      "teacher_action_agreement": 0.7825106272230415,
+      "teacher_support_mass": 0.8525171280734566
+    },
+    {
+      "epoch": 42,
+      "examples": 11527,
+      "cross_entropy": 0.730729730051472,
+      "kl": 0.502154750718282,
+      "teacher_action_agreement": 0.783378155634597,
+      "teacher_support_mass": 0.857466298501531
+    },
+    {
+      "epoch": 43,
+      "examples": 11527,
+      "cross_entropy": 0.7301749665759697,
+      "kl": 0.5015999872427797,
+      "teacher_action_agreement": 0.7830311442699749,
+      "teacher_support_mass": 0.8534756400097665
+    },
+    {
+      "epoch": 44,
+      "examples": 11527,
+      "cross_entropy": 0.7292092363139623,
+      "kl": 0.5006342569807722,
+      "teacher_action_agreement": 0.7807755703999306,
+      "teacher_support_mass": 0.8538759651359478
+    },
+    {
+      "epoch": 45,
+      "examples": 11527,
+      "cross_entropy": 0.7271218150737766,
+      "kl": 0.49854683574058656,
+      "teacher_action_agreement": 0.7850264596165525,
+      "teacher_support_mass": 0.8552080877348257
+    },
+    {
+      "epoch": 46,
+      "examples": 11527,
+      "cross_entropy": 0.7264276613870209,
+      "kl": 0.4978526820538308,
+      "teacher_action_agreement": 0.7841589312049969,
+      "teacher_support_mass": 0.8578626166567319
+    },
+    {
+      "epoch": 47,
+      "examples": 11527,
+      "cross_entropy": 0.7269891030595859,
+      "kl": 0.49841412372639576,
+      "teacher_action_agreement": 0.7827708857465082,
+      "teacher_support_mass": 0.8548445428163395
+    },
+    {
+      "epoch": 48,
+      "examples": 11527,
+      "cross_entropy": 0.7273270996030375,
+      "kl": 0.49875212026984755,
+      "teacher_action_agreement": 0.785113212457708,
+      "teacher_support_mass": 0.8580536288442353
+    },
+    {
+      "epoch": 49,
+      "examples": 11527,
+      "cross_entropy": 0.7257000595354461,
+      "kl": 0.49712508020225604,
+      "teacher_action_agreement": 0.7836384141580637,
+      "teacher_support_mass": 0.8586970978167089
+    },
+    {
+      "epoch": 50,
+      "examples": 11527,
+      "cross_entropy": 0.725534101718523,
+      "kl": 0.49695912238533296,
+      "teacher_action_agreement": 0.7821636158584193,
+      "teacher_support_mass": 0.8565502628403524
+    },
+    {
+      "epoch": 51,
+      "examples": 11527,
+      "cross_entropy": 0.7268797855297773,
+      "kl": 0.49830480619658724,
+      "teacher_action_agreement": 0.7834649084757526,
+      "teacher_support_mass": 0.8561748399732015
+    },
+    {
+      "epoch": 52,
+      "examples": 11527,
+      "cross_entropy": 0.7240093916362432,
+      "kl": 0.4954344123030532,
+      "teacher_action_agreement": 0.7827708857465082,
+      "teacher_support_mass": 0.8580694184543626
+    },
+    {
+      "epoch": 53,
+      "examples": 11527,
+      "cross_entropy": 0.7256949932595702,
+      "kl": 0.4971200139263802,
+      "teacher_action_agreement": 0.7853734709811746,
+      "teacher_support_mass": 0.8577885360102233
+    },
+    {
+      "epoch": 54,
+      "examples": 11527,
+      "cross_entropy": 0.7264535936424426,
+      "kl": 0.4978786143092525,
+      "teacher_action_agreement": 0.7832046499522859,
+      "teacher_support_mass": 0.8603939461130999
+    },
+    {
+      "epoch": 55,
+      "examples": 11527,
+      "cross_entropy": 0.7254130845834347,
+      "kl": 0.49683810525024463,
+      "teacher_action_agreement": 0.7839854255226859,
+      "teacher_support_mass": 0.8577080047625955
+    },
+    {
+      "epoch": 56,
+      "examples": 11527,
+      "cross_entropy": 0.7247718494174444,
+      "kl": 0.49619687008425445,
+      "teacher_action_agreement": 0.7842456840461525,
+      "teacher_support_mass": 0.8580168764351496
+    },
+    {
+      "epoch": 57,
+      "examples": 11527,
+      "cross_entropy": 0.725519974171531,
+      "kl": 0.496944994838341,
+      "teacher_action_agreement": 0.7845059425696191,
+      "teacher_support_mass": 0.8594737671353805
+    },
+    {
+      "epoch": 58,
+      "examples": 11527,
+      "cross_entropy": 0.7262132738887297,
+      "kl": 0.49763829455553965,
+      "teacher_action_agreement": 0.7837251669992192,
+      "teacher_support_mass": 0.8539378924951846
+    },
+    {
+      "epoch": 59,
+      "examples": 11527,
+      "cross_entropy": 0.7256598826334587,
+      "kl": 0.4970849033002687,
+      "teacher_action_agreement": 0.7851999652988635,
+      "teacher_support_mass": 0.8608128142354804
+    },
+    {
+      "epoch": 60,
+      "examples": 11527,
+      "cross_entropy": 0.7246758153776329,
+      "kl": 0.4961008360444429,
+      "teacher_action_agreement": 0.7838119198403748,
+      "teacher_support_mass": 0.8603824308701005
+    },
+    {
+      "epoch": 61,
+      "examples": 11527,
+      "cross_entropy": 0.7256615684877774,
+      "kl": 0.4970865891545874,
+      "teacher_action_agreement": 0.7837251669992192,
+      "teacher_support_mass": 0.8603951626331962
+    },
+    {
+      "epoch": 62,
+      "examples": 11527,
+      "cross_entropy": 0.7263793692405137,
+      "kl": 0.4978043899073236,
+      "teacher_action_agreement": 0.7837251669992192,
+      "teacher_support_mass": 0.8621033699708768
+    },
+    {
+      "epoch": 63,
+      "examples": 11527,
+      "cross_entropy": 0.7268607782151018,
+      "kl": 0.49828579888191166,
+      "teacher_action_agreement": 0.7845059425696191,
+      "teacher_support_mass": 0.8611149123135492
+    },
+    {
+      "epoch": 64,
+      "examples": 11527,
+      "cross_entropy": 0.7240362073093397,
+      "kl": 0.4954612279761496,
+      "teacher_action_agreement": 0.7838119198403748,
+      "teacher_support_mass": 0.8599473415972757
+    },
+    {
+      "epoch": 65,
+      "examples": 11527,
+      "cross_entropy": 0.7256867430811382,
+      "kl": 0.4971117637479482,
+      "teacher_action_agreement": 0.7830311442699749,
+      "teacher_support_mass": 0.8576254442164829
+    },
+    {
+      "epoch": 66,
+      "examples": 11527,
+      "cross_entropy": 0.724474937920766,
+      "kl": 0.495899958587576,
+      "teacher_action_agreement": 0.7826841329053527,
+      "teacher_support_mass": 0.8591200589533846
+    },
+    {
+      "epoch": 67,
+      "examples": 11527,
+      "cross_entropy": 0.7253160666093622,
+      "kl": 0.49674108727617217,
+      "teacher_action_agreement": 0.7838119198403748,
+      "teacher_support_mass": 0.8624732132600024
+    },
+    {
+      "epoch": 68,
+      "examples": 11527,
+      "cross_entropy": 0.7246134875757051,
+      "kl": 0.49603850824251505,
+      "teacher_action_agreement": 0.7831178971111303,
+      "teacher_support_mass": 0.8601220254111271
+    },
+    {
+      "epoch": 69,
+      "examples": 11527,
+      "cross_entropy": 0.7257134320730347,
+      "kl": 0.49713845273984464,
+      "teacher_action_agreement": 0.785286718140019,
+      "teacher_support_mass": 0.8626484451035815
+    },
+    {
+      "epoch": 70,
+      "examples": 11527,
+      "cross_entropy": 0.7265389955725313,
+      "kl": 0.49796401623934133,
+      "teacher_action_agreement": 0.7816430988114861,
+      "teacher_support_mass": 0.8573988021542154
+    },
+    {
+      "epoch": 71,
+      "examples": 11527,
+      "cross_entropy": 0.7265505644633308,
+      "kl": 0.4979755851301407,
+      "teacher_action_agreement": 0.7839854255226859,
+      "teacher_support_mass": 0.859217369971131
+    },
+    {
+      "epoch": 72,
+      "examples": 11527,
+      "cross_entropy": 0.727661129249769,
+      "kl": 0.49908614991657896,
+      "teacher_action_agreement": 0.7838119198403748,
+      "teacher_support_mass": 0.8618655171265697
+    },
+    {
+      "epoch": 73,
+      "examples": 11527,
+      "cross_entropy": 0.7261376953853059,
+      "kl": 0.4975627160521158,
+      "teacher_action_agreement": 0.7835516613169081,
+      "teacher_support_mass": 0.8605038181310558
+    },
+    {
+      "epoch": 74,
+      "examples": 11527,
+      "cross_entropy": 0.7280944199691137,
+      "kl": 0.49951944063592374,
+      "teacher_action_agreement": 0.7840721783638415,
+      "teacher_support_mass": 0.8646629335481709
+    },
+    {
+      "epoch": 75,
+      "examples": 11527,
+      "cross_entropy": 0.7282478213465368,
+      "kl": 0.4996728420133467,
+      "teacher_action_agreement": 0.7835516613169081,
+      "teacher_support_mass": 0.8639283513240992
+    },
+    {
+      "epoch": 76,
+      "examples": 11527,
+      "cross_entropy": 0.7285337198108442,
+      "kl": 0.4999587404776542,
+      "teacher_action_agreement": 0.783378155634597,
+      "teacher_support_mass": 0.8611374331583761
+    },
+    {
+      "epoch": 77,
+      "examples": 11527,
+      "cross_entropy": 0.7268160009483436,
+      "kl": 0.49824102161515355,
+      "teacher_action_agreement": 0.7845926954107747,
+      "teacher_support_mass": 0.862872973147793
+    },
+    {
+      "epoch": 78,
+      "examples": 11527,
+      "cross_entropy": 0.7296095851175678,
+      "kl": 0.5010346057843778,
+      "teacher_action_agreement": 0.7849397067753969,
+      "teacher_support_mass": 0.8651618894641724
+    },
+    {
+      "epoch": 79,
+      "examples": 11527,
+      "cross_entropy": 0.7282080999622013,
+      "kl": 0.4996331206290112,
+      "teacher_action_agreement": 0.784332436887308,
+      "teacher_support_mass": 0.8597970451063095
+    },
+    {
+      "epoch": 80,
+      "examples": 11527,
+      "cross_entropy": 0.7278368307171396,
+      "kl": 0.4992618513839495,
+      "teacher_action_agreement": 0.7822503686995749,
+      "teacher_support_mass": 0.8640322625259581
+    },
+    {
+      "epoch": 81,
+      "examples": 11527,
+      "cross_entropy": 0.7317755334890447,
+      "kl": 0.5032005541558546,
+      "teacher_action_agreement": 0.7823371215407304,
+      "teacher_support_mass": 0.8638784965037928
+    },
+    {
+      "epoch": 82,
+      "examples": 11527,
+      "cross_entropy": 0.7289725272200657,
+      "kl": 0.5003975478868756,
+      "teacher_action_agreement": 0.7837251669992192,
+      "teacher_support_mass": 0.8623355651363036
+    },
+    {
+      "epoch": 83,
+      "examples": 11527,
+      "cross_entropy": 0.7283122221304783,
+      "kl": 0.4997372427972883,
+      "teacher_action_agreement": 0.7834649084757526,
+      "teacher_support_mass": 0.8635552860437722
+    },
+    {
+      "epoch": 84,
+      "examples": 11527,
+      "cross_entropy": 0.7292382772305775,
+      "kl": 0.5006632978973875,
+      "teacher_action_agreement": 0.7838986726815304,
+      "teacher_support_mass": 0.8647833928650702
+    },
+    {
+      "epoch": 85,
+      "examples": 11527,
+      "cross_entropy": 0.7304989992667332,
+      "kl": 0.5019240199335432,
+      "teacher_action_agreement": 0.7802550533529973,
+      "teacher_support_mass": 0.8633384185020597
+    },
+    {
+      "epoch": 86,
+      "examples": 11527,
+      "cross_entropy": 0.7314961338132152,
+      "kl": 0.5029211544800252,
+      "teacher_action_agreement": 0.782423874381886,
+      "teacher_support_mass": 0.8634725732671797
+    },
+    {
+      "epoch": 87,
+      "examples": 11527,
+      "cross_entropy": 0.7313108211524615,
+      "kl": 0.5027358418192714,
+      "teacher_action_agreement": 0.7829443914288193,
+      "teacher_support_mass": 0.8656216533121794
+    },
+    {
+      "epoch": 88,
+      "examples": 11527,
+      "cross_entropy": 0.7316319564742145,
+      "kl": 0.5030569771410245,
+      "teacher_action_agreement": 0.7815563459703305,
+      "teacher_support_mass": 0.8639983561649754
+    },
+    {
+      "epoch": 89,
+      "examples": 11527,
+      "cross_entropy": 0.7343016565854359,
+      "kl": 0.5057266772522458,
+      "teacher_action_agreement": 0.7823371215407304,
+      "teacher_support_mass": 0.8676146918202745
+    },
+    {
+      "epoch": 90,
+      "examples": 11527,
+      "cross_entropy": 0.732007214576691,
+      "kl": 0.503432235243501,
+      "teacher_action_agreement": 0.7827708857465082,
+      "teacher_support_mass": 0.8658943589939314
+    },
+    {
+      "epoch": 91,
+      "examples": 11527,
+      "cross_entropy": 0.7331105815037442,
+      "kl": 0.5045356021705542,
+      "teacher_action_agreement": 0.7826841329053527,
+      "teacher_support_mass": 0.8641601559852513
+    },
+    {
+      "epoch": 92,
+      "examples": 11527,
+      "cross_entropy": 0.7345385706992474,
+      "kl": 0.5059635913660574,
+      "teacher_action_agreement": 0.7816430988114861,
+      "teacher_support_mass": 0.8648678437166205
+    },
+    {
+      "epoch": 93,
+      "examples": 11527,
+      "cross_entropy": 0.7341322813390228,
+      "kl": 0.5055573020058327,
+      "teacher_action_agreement": 0.7819033573349528,
+      "teacher_support_mass": 0.8661496706886719
+    },
+    {
+      "epoch": 94,
+      "examples": 11527,
+      "cross_entropy": 0.736037544781392,
+      "kl": 0.507462565448202,
+      "teacher_action_agreement": 0.7809490760822417,
+      "teacher_support_mass": 0.8660779780750832
+    },
+    {
+      "epoch": 95,
+      "examples": 11527,
+      "cross_entropy": 0.7361020648108193,
+      "kl": 0.5075270854776293,
+      "teacher_action_agreement": 0.7813828402880194,
+      "teacher_support_mass": 0.8638894875444438
+    },
+    {
+      "epoch": 96,
+      "examples": 11527,
+      "cross_entropy": 0.7353247580994051,
+      "kl": 0.5067497787662151,
+      "teacher_action_agreement": 0.7836384141580637,
+      "teacher_support_mass": 0.8662264782463862
+    },
+    {
+      "epoch": 97,
+      "examples": 11527,
+      "cross_entropy": 0.7356356003707017,
+      "kl": 0.5070606210375117,
+      "teacher_action_agreement": 0.7830311442699749,
+      "teacher_support_mass": 0.8657187922432963
+    },
+    {
+      "epoch": 98,
+      "examples": 11527,
+      "cross_entropy": 0.7382116847194636,
+      "kl": 0.5096367053862736,
+      "teacher_action_agreement": 0.7826841329053527,
+      "teacher_support_mass": 0.8641401833462842
+    },
+    {
+      "epoch": 99,
+      "examples": 11527,
+      "cross_entropy": 0.7380450101679338,
+      "kl": 0.5094700308347437,
+      "teacher_action_agreement": 0.7816430988114861,
+      "teacher_support_mass": 0.8659620433127961
+    },
+    {
+      "epoch": 100,
+      "examples": 11527,
+      "cross_entropy": 0.7389190112860875,
+      "kl": 0.5103440319528975,
+      "teacher_action_agreement": 0.7819033573349528,
+      "teacher_support_mass": 0.8656517327312708
+    },
+    {
+      "epoch": 101,
+      "examples": 11527,
+      "cross_entropy": 0.7382298188961586,
+      "kl": 0.5096548395629685,
+      "teacher_action_agreement": 0.7826841329053527,
+      "teacher_support_mass": 0.8678477580087952
+    },
+    {
+      "epoch": 102,
+      "examples": 11527,
+      "cross_entropy": 0.7386731574476836,
+      "kl": 0.5100981781144935,
+      "teacher_action_agreement": 0.7842456840461525,
+      "teacher_support_mass": 0.8656262903849725
+    },
+    {
+      "epoch": 103,
+      "examples": 11527,
+      "cross_entropy": 0.7403561058654183,
+      "kl": 0.5117811265322283,
+      "teacher_action_agreement": 0.7819033573349528,
+      "teacher_support_mass": 0.8661802968137478
+    },
+    {
+      "epoch": 104,
+      "examples": 11527,
+      "cross_entropy": 0.7421976206018659,
+      "kl": 0.5136226412686759,
+      "teacher_action_agreement": 0.7818166044937972,
+      "teacher_support_mass": 0.8634972954971208
+    },
+    {
+      "epoch": 105,
+      "examples": 11527,
+      "cross_entropy": 0.7402505029196171,
+      "kl": 0.5116755235864271,
+      "teacher_action_agreement": 0.7825973800641971,
+      "teacher_support_mass": 0.8686530532764108
+    },
+    {
+      "epoch": 106,
+      "examples": 11527,
+      "cross_entropy": 0.7426575923965016,
+      "kl": 0.5140826130633116,
+      "teacher_action_agreement": 0.7811225817645527,
+      "teacher_support_mass": 0.8650895733674877
+    },
+    {
+      "epoch": 107,
+      "examples": 11527,
+      "cross_entropy": 0.7421237745112947,
+      "kl": 0.5135487951781047,
+      "teacher_action_agreement": 0.7823371215407304,
+      "teacher_support_mass": 0.8662141065414692
+    },
+    {
+      "epoch": 108,
+      "examples": 11527,
+      "cross_entropy": 0.7431642989019389,
+      "kl": 0.5145893195687489,
+      "teacher_action_agreement": 0.7819901101761083,
+      "teacher_support_mass": 0.8667003028957658
+    },
+    {
+      "epoch": 109,
+      "examples": 11527,
+      "cross_entropy": 0.7453320584748494,
+      "kl": 0.5167570791416594,
+      "teacher_action_agreement": 0.7819033573349528,
+      "teacher_support_mass": 0.8696113494425621
+    },
+    {
+      "epoch": 110,
+      "examples": 11527,
+      "cross_entropy": 0.7440989998866422,
+      "kl": 0.5155240205534521,
+      "teacher_action_agreement": 0.7830311442699749,
+      "teacher_support_mass": 0.8664122206117973
+    },
+    {
+      "epoch": 111,
+      "examples": 11527,
+      "cross_entropy": 0.7448126003967047,
+      "kl": 0.5162376210635147,
+      "teacher_action_agreement": 0.7822503686995749,
+      "teacher_support_mass": 0.8662814519820483
+    },
+    {
+      "epoch": 112,
+      "examples": 11527,
+      "cross_entropy": 0.7457019427276251,
+      "kl": 0.5171269633944351,
+      "teacher_action_agreement": 0.7818166044937972,
+      "teacher_support_mass": 0.8675095190910471
+    },
+    {
+      "epoch": 113,
+      "examples": 11527,
+      "cross_entropy": 0.7459461630409379,
+      "kl": 0.5173711837077478,
+      "teacher_action_agreement": 0.7827708857465082,
+      "teacher_support_mass": 0.8661678059719334
+    },
+    {
+      "epoch": 114,
+      "examples": 11527,
+      "cross_entropy": 0.7468190008679546,
+      "kl": 0.5182440215347646,
+      "teacher_action_agreement": 0.7831178971111303,
+      "teacher_support_mass": 0.86924941287219
+    },
+    {
+      "epoch": 115,
+      "examples": 11527,
+      "cross_entropy": 0.7481627964162657,
+      "kl": 0.5195878170830757,
+      "teacher_action_agreement": 0.7826841329053527,
+      "teacher_support_mass": 0.8675533720592142
+    },
+    {
+      "epoch": 116,
+      "examples": 11527,
+      "cross_entropy": 0.7486451512209569,
+      "kl": 0.5200701718877668,
+      "teacher_action_agreement": 0.7813828402880194,
+      "teacher_support_mass": 0.8692447559432473
+    },
+    {
+      "epoch": 117,
+      "examples": 11527,
+      "cross_entropy": 0.7504822235007313,
+      "kl": 0.5219072441675413,
+      "teacher_action_agreement": 0.7812093346057083,
+      "teacher_support_mass": 0.8653145885492349
+    },
+    {
+      "epoch": 118,
+      "examples": 11527,
+      "cross_entropy": 0.7507183639020946,
+      "kl": 0.5221433845689045,
+      "teacher_action_agreement": 0.7803418061941528,
+      "teacher_support_mass": 0.8672379359436168
+    },
+    {
+      "epoch": 119,
+      "examples": 11527,
+      "cross_entropy": 0.7507266630280035,
+      "kl": 0.5221516836948135,
+      "teacher_action_agreement": 0.7823371215407304,
+      "teacher_support_mass": 0.8661086637686078
+    },
+    {
+      "epoch": 120,
+      "examples": 11527,
+      "cross_entropy": 0.7522370057330641,
+      "kl": 0.523662026399874,
+      "teacher_action_agreement": 0.7796477834649085,
+      "teacher_support_mass": 0.8692937000281608
+    },
+    {
+      "epoch": 121,
+      "examples": 11527,
+      "cross_entropy": 0.7540100758617828,
+      "kl": 0.5254350965285928,
+      "teacher_action_agreement": 0.7811225817645527,
+      "teacher_support_mass": 0.8685955128024827
+    },
+    {
+      "epoch": 122,
+      "examples": 11527,
+      "cross_entropy": 0.7533473540461052,
+      "kl": 0.5247723747129152,
+      "teacher_action_agreement": 0.7809490760822417,
+      "teacher_support_mass": 0.8683668109956346
+    },
+    {
+      "epoch": 123,
+      "examples": 11527,
+      "cross_entropy": 0.7536483899235901,
+      "kl": 0.5250734105904,
+      "teacher_action_agreement": 0.7815563459703305,
+      "teacher_support_mass": 0.8675653717922629
+    },
+    {
+      "epoch": 124,
+      "examples": 11527,
+      "cross_entropy": 0.7556529163414538,
+      "kl": 0.5270779370082638,
+      "teacher_action_agreement": 0.782423874381886,
+      "teacher_support_mass": 0.8707175236206637
+    },
+    {
+      "epoch": 125,
+      "examples": 11527,
+      "cross_entropy": 0.7554527936509593,
+      "kl": 0.5268778143177693,
+      "teacher_action_agreement": 0.7818166044937972,
+      "teacher_support_mass": 0.8701603349129863
+    },
+    {
+      "epoch": 126,
+      "examples": 11527,
+      "cross_entropy": 0.7558707296460482,
+      "kl": 0.5272957503128581,
+      "teacher_action_agreement": 0.7810358289233973,
+      "teacher_support_mass": 0.8693012784585749
+    },
+    {
+      "epoch": 127,
+      "examples": 11527,
+      "cross_entropy": 0.7560454231190891,
+      "kl": 0.527470443785899,
+      "teacher_action_agreement": 0.7832914027934414,
+      "teacher_support_mass": 0.8677147959363919
+    },
+    {
+      "epoch": 128,
+      "examples": 11527,
+      "cross_entropy": 0.7590216051635567,
+      "kl": 0.5304466258303666,
+      "teacher_action_agreement": 0.782423874381886,
+      "teacher_support_mass": 0.8718058683002069
+    },
+    {
+      "epoch": 129,
+      "examples": 11527,
+      "cross_entropy": 0.7594987715667105,
+      "kl": 0.5309237922335205,
+      "teacher_action_agreement": 0.7807755703999306,
+      "teacher_support_mass": 0.8673429154063218
+    },
+    {
+      "epoch": 130,
+      "examples": 11527,
+      "cross_entropy": 0.7596803650827475,
+      "kl": 0.5311053857495575,
+      "teacher_action_agreement": 0.7800815476706862,
+      "teacher_support_mass": 0.8678327957382328
+    },
+    {
+      "epoch": 131,
+      "examples": 11527,
+      "cross_entropy": 0.7604533890760751,
+      "kl": 0.531878409742885,
+      "teacher_action_agreement": 0.7820768630172639,
+      "teacher_support_mass": 0.8681847023055923
+    },
+    {
+      "epoch": 132,
+      "examples": 11527,
+      "cross_entropy": 0.761249798923599,
+      "kl": 0.532674819590409,
+      "teacher_action_agreement": 0.7803418061941528,
+      "teacher_support_mass": 0.8691684699403947
+    },
+    {
+      "epoch": 133,
+      "examples": 11527,
+      "cross_entropy": 0.7637898530790065,
+      "kl": 0.5352148737458164,
+      "teacher_action_agreement": 0.7796477834649085,
+      "teacher_support_mass": 0.8708685322855273
+    },
+    {
+      "epoch": 134,
+      "examples": 11527,
+      "cross_entropy": 0.7631236665100156,
+      "kl": 0.5345486871768256,
+      "teacher_action_agreement": 0.7801683005118417,
+      "teacher_support_mass": 0.8707819647684343
+    },
+    {
+      "epoch": 135,
+      "examples": 11527,
+      "cross_entropy": 0.7622941513833845,
+      "kl": 0.5337191720501945,
+      "teacher_action_agreement": 0.7795610306237529,
+      "teacher_support_mass": 0.8695888908136705
+    },
+    {
+      "epoch": 136,
+      "examples": 11527,
+      "cross_entropy": 0.7647089443534,
+      "kl": 0.5361339650202099,
+      "teacher_action_agreement": 0.7789537607356641,
+      "teacher_support_mass": 0.8703174936892392
+    },
+    {
+      "epoch": 137,
+      "examples": 11527,
+      "cross_entropy": 0.7651926385484544,
+      "kl": 0.5366176592152644,
+      "teacher_action_agreement": 0.7790405135768197,
+      "teacher_support_mass": 0.8696936425925273
+    },
+    {
+      "epoch": 138,
+      "examples": 11527,
+      "cross_entropy": 0.7660277867406139,
+      "kl": 0.5374528074074238,
+      "teacher_action_agreement": 0.7795610306237529,
+      "teacher_support_mass": 0.8711806338917426
+    },
+    {
+      "epoch": 139,
+      "examples": 11527,
+      "cross_entropy": 0.7678614773629927,
+      "kl": 0.5392864980298027,
+      "teacher_action_agreement": 0.7774789624360198,
+      "teacher_support_mass": 0.8707054471105035
+    },
+    {
+      "epoch": 140,
+      "examples": 11527,
+      "cross_entropy": 0.7673330597971819,
+      "kl": 0.5387580804639919,
+      "teacher_action_agreement": 0.780515311876464,
+      "teacher_support_mass": 0.8713345415544415
+    },
+    {
+      "epoch": 141,
+      "examples": 11527,
+      "cross_entropy": 0.7688536617196815,
+      "kl": 0.5402786823864915,
+      "teacher_action_agreement": 0.7807755703999306,
+      "teacher_support_mass": 0.8703461461130492
+    },
+    {
+      "epoch": 142,
+      "examples": 11527,
+      "cross_entropy": 0.7711022866147652,
+      "kl": 0.5425273072815752,
+      "teacher_action_agreement": 0.7776524681183309,
+      "teacher_support_mass": 0.8703532744707398
+    },
+    {
+      "epoch": 143,
+      "examples": 11527,
+      "cross_entropy": 0.7699618481582435,
+      "kl": 0.5413868688250535,
+      "teacher_action_agreement": 0.7796477834649085,
+      "teacher_support_mass": 0.869251818113773
+    },
+    {
+      "epoch": 144,
+      "examples": 11527,
+      "cross_entropy": 0.7712717029437587,
+      "kl": 0.5426967236105686,
+      "teacher_action_agreement": 0.778780255053353,
+      "teacher_support_mass": 0.8698369192727536
+    },
+    {
+      "epoch": 145,
+      "examples": 11527,
+      "cross_entropy": 0.7726427810742496,
+      "kl": 0.5440678017410595,
+      "teacher_action_agreement": 0.779734536306064,
+      "teacher_support_mass": 0.8710285781459257
+    },
+    {
+      "epoch": 146,
+      "examples": 11527,
+      "cross_entropy": 0.7733105952838789,
+      "kl": 0.5447356159506889,
+      "teacher_action_agreement": 0.7785199965298863,
+      "teacher_support_mass": 0.869015525962821
+    },
+    {
+      "epoch": 147,
+      "examples": 11527,
+      "cross_entropy": 0.7748014102466524,
+      "kl": 0.5462264309134623,
+      "teacher_action_agreement": 0.7786935022121975,
+      "teacher_support_mass": 0.8697595597140816
+    },
+    {
+      "epoch": 148,
+      "examples": 11527,
+      "cross_entropy": 0.7756244541041878,
+      "kl": 0.5470494747709977,
+      "teacher_action_agreement": 0.776871692547931,
+      "teacher_support_mass": 0.8717240755252105
+    },
+    {
+      "epoch": 149,
+      "examples": 11527,
+      "cross_entropy": 0.777037435996002,
+      "kl": 0.5484624566628119,
+      "teacher_action_agreement": 0.7773922095948642,
+      "teacher_support_mass": 0.8694928677981587
+    },
+    {
+      "epoch": 150,
+      "examples": 11527,
+      "cross_entropy": 0.7766383036039043,
+      "kl": 0.5480633242707142,
+      "teacher_action_agreement": 0.7786067493710419,
+      "teacher_support_mass": 0.8711421765012817
+    },
+    {
+      "epoch": 151,
+      "examples": 11527,
+      "cross_entropy": 0.7778950357226162,
+      "kl": 0.5493200563894262,
+      "teacher_action_agreement": 0.7794742777825974,
+      "teacher_support_mass": 0.8721150867935066
+    },
+    {
+      "epoch": 152,
+      "examples": 11527,
+      "cross_entropy": 0.779049183500809,
+      "kl": 0.5504742041676189,
+      "teacher_action_agreement": 0.7786935022121975,
+      "teacher_support_mass": 0.8715345565201538
+    },
+    {
+      "epoch": 153,
+      "examples": 11527,
+      "cross_entropy": 0.7789205391532975,
+      "kl": 0.5503455598201075,
+      "teacher_action_agreement": 0.7792140192591307,
+      "teacher_support_mass": 0.8709860528922923
+    },
+    {
+      "epoch": 154,
+      "examples": 11527,
+      "cross_entropy": 0.7813770535286544,
+      "kl": 0.5528020741954643,
+      "teacher_action_agreement": 0.7791272664179751,
+      "teacher_support_mass": 0.872157969457832
+    },
+    {
+      "epoch": 155,
+      "examples": 11527,
+      "cross_entropy": 0.78149074910158,
+      "kl": 0.55291576976839,
+      "teacher_action_agreement": 0.7782597380064197,
+      "teacher_support_mass": 0.8724933517375306
+    },
+    {
+      "epoch": 156,
+      "examples": 11527,
+      "cross_entropy": 0.7827505362336857,
+      "kl": 0.5541755569004957,
+      "teacher_action_agreement": 0.7762644226598421,
+      "teacher_support_mass": 0.8705712566043142
+    },
+    {
+      "epoch": 157,
+      "examples": 11527,
+      "cross_entropy": 0.7839413312609347,
+      "kl": 0.5553663519277446,
+      "teacher_action_agreement": 0.7794742777825974,
+      "teacher_support_mass": 0.8738549461573236
+    },
+    {
+      "epoch": 158,
+      "examples": 11527,
+      "cross_entropy": 0.7860175879518497,
+      "kl": 0.5574426086186597,
+      "teacher_action_agreement": 0.7775657152771753,
+      "teacher_support_mass": 0.8741360562853111
+    },
+    {
+      "epoch": 159,
+      "examples": 11527,
+      "cross_entropy": 0.7852394381555646,
+      "kl": 0.5566644588223746,
+      "teacher_action_agreement": 0.7767849397067754,
+      "teacher_support_mass": 0.8700294603837729
+    },
+    {
+      "epoch": 160,
+      "examples": 11527,
+      "cross_entropy": 0.7850822153690838,
+      "kl": 0.5565072360358938,
+      "teacher_action_agreement": 0.7766981868656199,
+      "teacher_support_mass": 0.8701748484345687
+    },
+    {
+      "epoch": 161,
+      "examples": 11527,
+      "cross_entropy": 0.7857751510982409,
+      "kl": 0.5572001717650509,
+      "teacher_action_agreement": 0.7761776698186865,
+      "teacher_support_mass": 0.8712795439914
+    },
+    {
+      "epoch": 162,
+      "examples": 11527,
+      "cross_entropy": 0.789371204751626,
+      "kl": 0.560796225418436,
+      "teacher_action_agreement": 0.7763511755009976,
+      "teacher_support_mass": 0.8742165451731533
+    },
+    {
+      "epoch": 163,
+      "examples": 11527,
+      "cross_entropy": 0.7885226701277442,
+      "kl": 0.5599476907945542,
+      "teacher_action_agreement": 0.7772187039125531,
+      "teacher_support_mass": 0.8709446488492372
+    },
+    {
+      "epoch": 164,
+      "examples": 11527,
+      "cross_entropy": 0.7897607880266623,
+      "kl": 0.5611858086934722,
+      "teacher_action_agreement": 0.7771319510713975,
+      "teacher_support_mass": 0.8721573089099235
+    },
+    {
+      "epoch": 165,
+      "examples": 11527,
+      "cross_entropy": 0.7920937243407252,
+      "kl": 0.5635187450075352,
+      "teacher_action_agreement": 0.7773922095948642,
+      "teacher_support_mass": 0.8737026163966428
+    },
+    {
+      "epoch": 166,
+      "examples": 11527,
+      "cross_entropy": 0.7923008387072435,
+      "kl": 0.5637258593740535,
+      "teacher_action_agreement": 0.7776524681183309,
+      "teacher_support_mass": 0.8731616541343828
+    },
+    {
+      "epoch": 167,
+      "examples": 11527,
+      "cross_entropy": 0.7923872170014363,
+      "kl": 0.5638122376682463,
+      "teacher_action_agreement": 0.776090916977531,
+      "teacher_support_mass": 0.8721784133494154
+    },
+    {
+      "epoch": 168,
+      "examples": 11527,
+      "cross_entropy": 0.7932299045218736,
+      "kl": 0.5646549251886835,
+      "teacher_action_agreement": 0.7773054567537087,
+      "teacher_support_mass": 0.873296175576398
+    },
+    {
+      "epoch": 169,
+      "examples": 11527,
+      "cross_entropy": 0.7948434967743179,
+      "kl": 0.5662685174411278,
+      "teacher_action_agreement": 0.7774789624360198,
+      "teacher_support_mass": 0.8728641812154174
+    },
+    {
+      "epoch": 170,
+      "examples": 11527,
+      "cross_entropy": 0.7945883768362051,
+      "kl": 0.566013397503015,
+      "teacher_action_agreement": 0.7754836470894422,
+      "teacher_support_mass": 0.8723936526868643
+    },
+    {
+      "epoch": 171,
+      "examples": 11527,
+      "cross_entropy": 0.7974250097891976,
+      "kl": 0.5688500304560075,
+      "teacher_action_agreement": 0.7760041641363755,
+      "teacher_support_mass": 0.8733612269698316
+    },
+    {
+      "epoch": 172,
+      "examples": 11527,
+      "cross_entropy": 0.7974211331552238,
+      "kl": 0.5688461538220337,
+      "teacher_action_agreement": 0.7756571527717533,
+      "teacher_support_mass": 0.8723521162694787
+    },
+    {
+      "epoch": 173,
+      "examples": 11527,
+      "cross_entropy": 0.7987924594462171,
+      "kl": 0.5702174801130271,
+      "teacher_action_agreement": 0.7762644226598421,
+      "teacher_support_mass": 0.8713719478927193
+    },
+    {
+      "epoch": 174,
+      "examples": 11527,
+      "cross_entropy": 0.7992458571696454,
+      "kl": 0.5706708778364553,
+      "teacher_action_agreement": 0.7755703999305977,
+      "teacher_support_mass": 0.8737587206090863
+    },
+    {
+      "epoch": 175,
+      "examples": 11527,
+      "cross_entropy": 0.8016654098448609,
+      "kl": 0.5730904305116709,
+      "teacher_action_agreement": 0.7772187039125531,
+      "teacher_support_mass": 0.8743426807013391
+    },
+    {
+      "epoch": 176,
+      "examples": 11527,
+      "cross_entropy": 0.803659562489781,
+      "kl": 0.575084583156591,
+      "teacher_action_agreement": 0.7750498828836644,
+      "teacher_support_mass": 0.8739457523004752
+    },
+    {
+      "epoch": 177,
+      "examples": 11527,
+      "cross_entropy": 0.8039802606246246,
+      "kl": 0.5754052812914345,
+      "teacher_action_agreement": 0.7749631300425089,
+      "teacher_support_mass": 0.8747060455907361
+    },
+    {
+      "epoch": 178,
+      "examples": 11527,
+      "cross_entropy": 0.8036329324251451,
+      "kl": 0.5750579530919551,
+      "teacher_action_agreement": 0.7773054567537087,
+      "teacher_support_mass": 0.8728697409372933
+    },
+    {
+      "epoch": 179,
+      "examples": 11527,
+      "cross_entropy": 0.8041473241343382,
+      "kl": 0.5755723448011482,
+      "teacher_action_agreement": 0.7766981868656199,
+      "teacher_support_mass": 0.8719882536525996
+    },
+    {
+      "epoch": 180,
+      "examples": 11527,
+      "cross_entropy": 0.8047514405866504,
+      "kl": 0.5761764612534603,
+      "teacher_action_agreement": 0.7753101414071311,
+      "teacher_support_mass": 0.8735956724988749
+    },
+    {
+      "epoch": 181,
+      "examples": 11527,
+      "cross_entropy": 0.8062416303806234,
+      "kl": 0.5776666510474333,
+      "teacher_action_agreement": 0.7760041641363755,
+      "teacher_support_mass": 0.8718098924798503
+    },
+    {
+      "epoch": 182,
+      "examples": 11527,
+      "cross_entropy": 0.8080723711444673,
+      "kl": 0.5794973918112772,
+      "teacher_action_agreement": 0.7747896243601978,
+      "teacher_support_mass": 0.8732548125693853
+    },
+    {
+      "epoch": 183,
+      "examples": 11527,
+      "cross_entropy": 0.8087200679462182,
+      "kl": 0.5801450886130282,
+      "teacher_action_agreement": 0.7762644226598421,
+      "teacher_support_mass": 0.873871939050114
+    },
+    {
+      "epoch": 184,
+      "examples": 11527,
+      "cross_entropy": 0.8106036670677286,
+      "kl": 0.5820286877345385,
+      "teacher_action_agreement": 0.7763511755009976,
+      "teacher_support_mass": 0.8738859866140536
+    },
+    {
+      "epoch": 185,
+      "examples": 11527,
+      "cross_entropy": 0.8101723810386873,
+      "kl": 0.5815974017054972,
+      "teacher_action_agreement": 0.7746161186778867,
+      "teacher_support_mass": 0.8729583443715875
+    },
+    {
+      "epoch": 186,
+      "examples": 11527,
+      "cross_entropy": 0.8119373400027045,
+      "kl": 0.5833623606695144,
+      "teacher_action_agreement": 0.7761776698186865,
+      "teacher_support_mass": 0.8735389143572394
+    },
+    {
+      "epoch": 187,
+      "examples": 11527,
+      "cross_entropy": 0.8138314936088028,
+      "kl": 0.5852565142756128,
+      "teacher_action_agreement": 0.7765246811833088,
+      "teacher_support_mass": 0.8762586416080859
+    },
+    {
+      "epoch": 188,
+      "examples": 11527,
+      "cross_entropy": 0.8133471699582948,
+      "kl": 0.5847721906251048,
+      "teacher_action_agreement": 0.7752233885659755,
+      "teacher_support_mass": 0.8729000586301794
+    },
+    {
+      "epoch": 189,
+      "examples": 11527,
+      "cross_entropy": 0.8146833832756006,
+      "kl": 0.5861084039424106,
+      "teacher_action_agreement": 0.7754836470894422,
+      "teacher_support_mass": 0.8744169903554393
+    },
+    {
+      "epoch": 190,
+      "examples": 11527,
+      "cross_entropy": 0.815722709311423,
+      "kl": 0.587147729978233,
+      "teacher_action_agreement": 0.7757439056129088,
+      "teacher_support_mass": 0.8743508958522823
+    },
+    {
+      "epoch": 191,
+      "examples": 11527,
+      "cross_entropy": 0.8181626265984081,
+      "kl": 0.5895876472652181,
+      "teacher_action_agreement": 0.77591741129522,
+      "teacher_support_mass": 0.8748697224790166
+    },
+    {
+      "epoch": 192,
+      "examples": 11527,
+      "cross_entropy": 0.8168172601597818,
+      "kl": 0.5882422808265918,
+      "teacher_action_agreement": 0.7757439056129088,
+      "teacher_support_mass": 0.8739165293433013
+    },
+    {
+      "epoch": 193,
+      "examples": 11527,
+      "cross_entropy": 0.8183766768575801,
+      "kl": 0.58980169752439,
+      "teacher_action_agreement": 0.7757439056129088,
+      "teacher_support_mass": 0.8736633396090768
+    },
+    {
+      "epoch": 194,
+      "examples": 11527,
+      "cross_entropy": 0.8189357961879865,
+      "kl": 0.5903608168547965,
+      "teacher_action_agreement": 0.776090916977531,
+      "teacher_support_mass": 0.8749183885778363
+    },
+    {
+      "epoch": 195,
+      "examples": 11527,
+      "cross_entropy": 0.8197613232276627,
+      "kl": 0.5911863438944727,
+      "teacher_action_agreement": 0.7755703999305977,
+      "teacher_support_mass": 0.8734917864481387
+    },
+    {
+      "epoch": 196,
+      "examples": 11527,
+      "cross_entropy": 0.8212660808942568,
+      "kl": 0.5926911015610667,
+      "teacher_action_agreement": 0.7747896243601978,
+      "teacher_support_mass": 0.874218509608216
+    },
+    {
+      "epoch": 197,
+      "examples": 11527,
+      "cross_entropy": 0.8222947765939655,
+      "kl": 0.5937197972607755,
+      "teacher_action_agreement": 0.7764379283421532,
+      "teacher_support_mass": 0.8746543573859539
+    },
+    {
+      "epoch": 198,
+      "examples": 11527,
+      "cross_entropy": 0.8219491471087642,
+      "kl": 0.5933741677755742,
+      "teacher_action_agreement": 0.7740956016309534,
+      "teacher_support_mass": 0.8734720256081001
+    },
+    {
+      "epoch": 199,
+      "examples": 11527,
+      "cross_entropy": 0.8232775809676544,
+      "kl": 0.5947026016344643,
+      "teacher_action_agreement": 0.7764379283421532,
+      "teacher_support_mass": 0.8751511688378034
+    },
+    {
+      "epoch": 200,
+      "examples": 11527,
+      "cross_entropy": 0.8253944269531338,
+      "kl": 0.5968194476199438,
+      "teacher_action_agreement": 0.7747896243601978,
+      "teacher_support_mass": 0.8735729835386484
+    }
+  ],
+  "best_epoch": 52,
+  "new_examples": {
+    "train": 23444,
+    "validation": 5793
+  },
+  "aggregate_examples": {
+    "train": 46883,
+    "validation": 11527
+  }
+}

@@ -8,19 +8,26 @@ window.CockpitPolicy = (() => {
   }
 
   function create(data, catalog) {
-    if (![1, 2, 3].includes(data.format) || JSON.stringify(data.schema) !== JSON.stringify(catalog.schema)) {
+    if (![1, 2, 3, 4].includes(data.format) || JSON.stringify(data.schema) !== JSON.stringify(catalog.schema)) {
       throw new Error("Das Modell passt nicht zur aktuellen KI-Schnittstelle.");
     }
-    if (data.format === 3) {
+    if (data.format === 3 || data.format === 4) {
+      if (data.format === 4 && (!Number.isFinite(data.guide_margin) || data.guide_margin <= 0)) throw new Error("Ungültige Planungsvorgabe.");
       const source = create(data.source, {schema: data.source.schema});
       const residual = create(data.residual, catalog);
-      const logits = observation => {
+      const logits = (observation, referenceMask) => {
         const inherited = source.logits(observation.slice(0, data.source.schema.features.length));
+        if (data.format === 4) {
+          if (!referenceMask || referenceMask.length !== data.schema.actions.length || !referenceMask.some(Boolean)) throw new Error("Die öffentliche Planungsvorgabe fehlt.");
+          const top = Math.max(...inherited.filter((_, i) => referenceMask[i]));
+          return residual.logits(observation).map((v, i) => v + (referenceMask[i] ? inherited[i] || 0 : top - data.guide_margin));
+        }
         return residual.logits(observation).map((v, i) => v + (inherited[i] || 0));
       };
       return {logits, select: decision => {
-        const scores = logits(decision.observation);
+        const scores = logits(decision.observation, decision.reference_action_mask);
         if (scores.length !== decision.action_mask.length) throw new Error("Ungültige Aktionsmaske.");
+        if (data.format === 4 && decision.reference_action_mask.some((v, i) => v && !decision.action_mask[i])) throw new Error("Die Planungsvorgabe enthält eine unerlaubte Aktion.");
         let selected = -1;
         for (let i=0; i<scores.length; i++) if (decision.action_mask[i] && (selected<0 || scores[i]>scores[selected])) selected=i;
         if (selected<0) throw new Error("Die KI hat keine erlaubte Aktion mehr.");
