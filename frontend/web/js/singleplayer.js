@@ -10,6 +10,7 @@ window.Singleplayer = (() => {
   let api, setup = null, session = null, policy = null, reroll = null;
   let timer = null, generation = 0, paused = "", starting = false, storageError = "";
   let feedbackIndex = null, saveQueue = Promise.resolve(), memory = new Map();
+  let feedbackHeaderObserver = null;
   let cloudTimer = null, cloudBusy = false, retryDelay = 5000;
   const root = () => document.getElementById("singleplayer-menu");
   const active = () => Boolean(session);
@@ -211,7 +212,7 @@ window.Singleplayer = (() => {
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
       : !setup.model ? "Für diese Strecke ist noch keine geprüfte KI verfügbar."
-      : `${selectedRoute?.code || ""} · ${setup.mode === "feedback" ? "Bewerte KI-Aktionen von −2 bis +2. Dein nächster gültiger Zug speichert das Feedback; ohne Änderung gilt 0." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` Getestet im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
+      : `${selectedRoute?.code || ""} · ${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Keine Auswahl ist neutral. Dein nächster gültiger Zug speichert das Feedback." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` Getestet im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
     document.getElementById("solo-start").disabled = starting || (!examples && !setup.model)
       || (setup.mode !== "play" && !document.getElementById("solo-consent").checked);
     document.getElementById("solo-start").textContent = starting ? "Wird vorbereitet …" : examples ? "Beispielpartie starten →" : "Mit KI starten →";
@@ -308,28 +309,55 @@ window.Singleplayer = (() => {
     return action.kind === "reroll_start" ? "Gemeinsamen Neuwurf starten" : "Würfel für den Neuwurf auswählen";
   }
 
+  const ratingText = value => value === 0 ? "Neutral" : `${value > 0 ? "+" : "−"}${Math.abs(value)}`;
+
+  function positionFeedback(panel) {
+    // Sticky stays in the board's layout, so it does not cover its first controls.
+    // Measure the actual header: its height includes the device's safe-area inset.
+    const game = document.getElementById("spiel-ui"), header = document.getElementById("game-header");
+    if (game && game.firstElementChild !== panel) game.prepend(panel);
+    const updateOffset = () => panel.style.setProperty("--ai-feedback-top", `${header?.getBoundingClientRect().height || 0}px`);
+    updateOffset();
+    if (!feedbackHeaderObserver && header && window.ResizeObserver) {
+      feedbackHeaderObserver = new ResizeObserver(updateOffset);
+      feedbackHeaderObserver.observe(header);
+    }
+  }
+
   function renderFeedback() {
     const panel = document.getElementById("ai-feedback"), events = pending();
-    panel.classList.toggle("versteckt", !events.length);
-    if (!events.length) { panel.replaceChildren(); return; }
+    const visible = active() && setup.mode === "feedback";
+    panel.classList.toggle("versteckt", !visible);
+    if (!visible) { panel.replaceChildren(); return; }
+    positionFeedback(panel);
     const selected = events.find(e => e.id === feedbackIndex) || events.at(-1);
-    feedbackIndex = selected.id;
-    panel.innerHTML = `<div class="ai-feedback-heading"><strong>Wie war die KI-Aktion?</strong><output id="ai-rating-value">${selected.feedback.value > 0 ? "+" : ""}${selected.feedback.value}</output></div>
-      ${events.length > 1 ? `<label class="ai-feedback-action">Aktion<select id="ai-feedback-action">${events.map(e => `<option value="${e.id}" ${e.id === selected.id ? "selected" : ""}>${esc(label(e.action))} · ${e.feedback.value > 0 ? "+" : ""}${e.feedback.value}</option>`).join("")}</select></label>` : `<p>${esc(label(selected.action))}</p>`}
-      <input id="ai-rating" type="range" min="-2" max="2" step="1" value="${selected.feedback.value}" aria-label="KI-Aktion bewerten" aria-valuetext="${selected.feedback.value}" list="ai-rating-ticks">
-      <datalist id="ai-rating-ticks">${[-2,-1,0,1,2].map(v => `<option value="${v}"></option>`).join("")}</datalist>
-      <div class="ai-rating-labels"><span>−2 · schlecht</span><span>0 · neutral</span><span>+2 · gut</span></div>
-      <p>Mit deinem nächsten gültigen Zug gespeichert. Unbewertete Aktionen zählen als 0.</p>
-      <button id="ai-feedback-save">Feedback jetzt speichern</button>`;
-    document.getElementById("ai-feedback-action")?.addEventListener("change", event => { feedbackIndex = Number(event.target.value); renderFeedback(); });
-    document.getElementById("ai-rating").oninput = event => {
-      selected.feedback.value = Number(event.target.value); selected.feedback.explicit = true;
-      document.getElementById("ai-rating-value").textContent = `${selected.feedback.value > 0 ? "+" : ""}${selected.feedback.value}`;
-      event.target.setAttribute("aria-valuetext", String(selected.feedback.value)); persist();
+    feedbackIndex = selected?.id ?? null;
+    const value = selected?.feedback.value || 0;
+    panel.innerHTML = `<div class="ai-feedback-copy"><div class="ai-feedback-heading"><strong>KI-Aktion</strong><output id="ai-rating-value" aria-live="polite">${ratingText(value)}</output></div>
+      ${events.length > 1 ? `<select id="ai-feedback-action" aria-label="KI-Aktion auswählen">${events.map(e => `<option value="${e.id}" ${e.id === selected.id ? "selected" : ""}>${esc(label(e.action))} · ${ratingText(e.feedback.value)}</option>`).join("")}</select>` : `<p class="ai-feedback-current" title="${esc(selected ? label(selected.action) : "")}">${selected ? esc(label(selected.action)) : "Warte auf die nächste KI-Aktion."}</p>`}</div>
+      <div class="ai-feedback-thumbs" role="group" aria-label="KI-Aktion bewerten" aria-describedby="ai-feedback-hint">
+        <button id="ai-rating-down" type="button" data-feedback-value="-1" aria-label="Daumen runter" aria-pressed="${value < 0}" ${selected ? "" : "disabled"}><span aria-hidden="true">👎</span></button>
+        <button id="ai-rating-up" type="button" data-feedback-value="1" aria-label="Daumen hoch" aria-pressed="${value > 0}" ${selected ? "" : "disabled"}><span aria-hidden="true">👍</span></button>
+      </div>
+      <div class="ai-feedback-footer"><small id="ai-feedback-hint">${selected ? "Keine Auswahl = neutral. Nächster gültiger Zug speichert." : "Mit 👎 oder 👍 bewerten; erneut tippen = neutral."}</small>
+        ${selected ? '<button id="ai-feedback-save" type="button">Speichern</button>' : ""}</div>`;
+    document.getElementById("ai-feedback-action")?.addEventListener("change", event => {
+      feedbackIndex = Number(event.target.value); renderFeedback();
+      document.getElementById("ai-feedback-action")?.focus();
+    });
+    panel.querySelectorAll("[data-feedback-value]").forEach(button => button.addEventListener("click", () => {
+      if (!selected) return;
+      const sign = Number(button.dataset.feedbackValue);
+      // Historical records can contain −2/+2; do not rewrite them just to render.
+      selected.feedback.value = Math.sign(selected.feedback.value) === sign ? 0 : sign;
+      selected.feedback.explicit = selected.feedback.value !== 0;
+      document.getElementById("ai-rating-value").textContent = ratingText(selected.feedback.value);
+      panel.querySelectorAll("[data-feedback-value]").forEach(other => other.setAttribute("aria-pressed", String(Math.sign(selected.feedback.value) === Number(other.dataset.feedbackValue))));
       const option = document.getElementById("ai-feedback-action")?.selectedOptions[0];
-      if (option) option.textContent = `${label(selected.action)} · ${selected.feedback.value > 0 ? "+" : ""}${selected.feedback.value}`;
-    };
-    document.getElementById("ai-feedback-save").onclick = () => { commitFeedback("manual"); persist(); renderFeedback(); };
+      if (option) option.textContent = `${label(selected.action)} · ${ratingText(selected.feedback.value)}`;
+      persist();
+    }));
+    document.getElementById("ai-feedback-save")?.addEventListener("click", () => { commitFeedback("manual"); persist(); renderFeedback(); });
   }
 
   function updateStatus() {
@@ -341,6 +369,7 @@ window.Singleplayer = (() => {
     const bar = document.getElementById("ai-session-bar");
     bar.classList.toggle("versteckt", !active());
     if (!active()) return;
+    renderFeedback();
     if (state.status !== "laeuft") { clearTimeout(timer); timer = null; }
     bar.innerHTML = `<div><strong>${names[setup.mode]}</strong><span>${hasAI() ? `Du: ${roleNames[setup.humanRole]} · KI: ${esc(setup.model.name || setup.model.run)} / ${setup.model.checkpoint}` : "Beide Rollen werden als Beispiele aufgezeichnet"}</span><small id="ai-storage-status" role="status"></small></div>
       ${storageError ? '<button id="ai-game-export">Aufzeichnungen sichern</button>' : ""}${paused ? '<button id="ai-resume">KI fortsetzen</button>' : ""}<p class="ai-paused" role="alert">${esc(paused)}</p>`;

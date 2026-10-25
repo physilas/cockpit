@@ -2,10 +2,24 @@
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
 const base = process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000';
+const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${base}/frontend/web/`;
 const rows = page => page.evaluate(async () => {
   const db = await new Promise((resolve,reject) => { const r=indexedDB.open('flyteam-learning-v1',2); r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
   return new Promise(resolve => { const r=db.transaction('sessions').objectStore('sessions').getAll();r.onsuccess=()=>resolve(r.result); });
 });
+const assertFeedbackVisible = async page => {
+  assert.ok(await page.locator('#ai-feedback').evaluate(panel => {
+    const rect = panel.getBoundingClientRect(), header = document.getElementById('game-header').getBoundingClientRect();
+    const buttons = [...panel.querySelectorAll('[data-feedback-value]')];
+    return rect.top >= header.bottom - 1 && rect.bottom <= innerHeight
+      && rect.left >= 0 && rect.right <= innerWidth
+      && buttons.every(button => {
+        const box = button.getBoundingClientRect();
+        return box.width >= 44 && box.height >= 44
+          && button.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+      });
+  }));
+};
 (async () => {
   const browser = await chromium.launch({headless:true, executablePath:process.env.COCKPIT_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
   try {
@@ -18,7 +32,7 @@ const rows = page => page.evaluate(async () => {
       await route.fulfill({status:fail?503:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:'{}'});
     });
     const page=await context.newPage(); page.on('pageerror',e=>errors.push(e.message));
-    await page.goto(`${base}/frontend/web/`);
+    await page.goto(pageUrl);
     await page.getByRole('button',{name:/Singleplayer/}).click();
     assert.ok(await page.locator('#solo-model option').count()>=1);
     const goodModel = await page.locator('#solo-model').inputValue();
@@ -38,6 +52,10 @@ const rows = page => page.evaluate(async () => {
     await page.locator('#solo-model').selectOption(goodModel);
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
+    assert.equal(await page.locator('#ai-feedback').isVisible(),true);
+    assert.equal(await page.locator('#ai-rating-up').isDisabled(),true);
+    assert.equal(await page.locator('#ai-rating-down').isDisabled(),true);
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
     await page.evaluate(()=>{
       pyodide.runPython('import backend.bridge as b\nfor d in b._spiel.pilot_wuerfel + b._spiel.kopilot_wuerfel: d.augenzahl = 3');
       render(pyToJs(bridge.zustand()));
@@ -54,12 +72,38 @@ const rows = page => page.evaluate(async () => {
       }
     }
     await page.waitForFunction(()=>!document.getElementById('ai-feedback').classList.contains('versteckt') && (aktuellerZustand.am_zug==='pilot' || aktuellerZustand.status!=='laeuft'),{},{timeout:5000});
-    assert.equal(await page.locator('#ai-rating').inputValue(),'0');
-    await page.locator('#ai-rating').fill('2');
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
+    assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'false');
+    assert.equal(await page.locator('#ai-rating-down').getAttribute('aria-pressed'),'false');
+    await assertFeedbackVisible(page);
+    await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
+    await assertFeedbackVisible(page);
+    await page.setViewportSize({width:320,height:740});
+    await page.waitForTimeout(50);
+    await assertFeedbackVisible(page);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({path:'/tmp/flyteam-singleplayer-feedback-320.png'});
+    await page.locator('#ai-rating-down').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'−1');
+    assert.equal(await page.locator('#ai-rating-down').getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'false');
+    await page.keyboard.press('Space');
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
+    assert.equal(await page.locator('#ai-rating-down').getAttribute('aria-pressed'),'false');
+    assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'false');
+    await page.locator('#ai-rating-up').click();
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'+1');
+    assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'true');
+    await page.locator('#ai-rating-up').click();
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
+    await page.locator('#ai-rating-up').click();
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:'/tmp/flyteam-singleplayer-feedback-390.png'});
     await page.screenshot({path:'/tmp/flyteam-singleplayer-feedback.png',fullPage:true});
     if(await page.evaluate(()=>aktuellerZustand.status==='laeuft')) {
       assert.equal(await page.evaluate(()=>spielAktion({kind:'place',role:'pilot',die:0,target:'ruder',index:null}).ergebnis.erfolg),false);
-      assert.equal(await page.locator('#ai-rating').inputValue(),'2');
+      assert.equal(await page.locator('#ai-rating-value').innerText(),'+1');
       await page.evaluate(()=>{
         const d=pyToJs(aiBridge.decision('pilot','null',0,256));
         const i=d.action_mask.findIndex((ok,i)=>ok && COCKPIT_AI_CATALOG.schema.actions[i].kind==='place');
@@ -72,7 +116,7 @@ const rows = page => page.evaluate(async () => {
     await page.waitForTimeout(100);
     let data=await rows(page), feedback=data.find(r=>r.mode==='feedback');
     assert.ok(feedback.consent.accepted_at);
-    assert.ok(feedback.events.some(e=>e.feedback?.value===2 && e.feedback.committed && e.feedback.explicit));
+    assert.ok(feedback.events.some(e=>e.feedback?.value===1 && e.feedback.committed && e.feedback.explicit));
     assert.ok(feedback.events.every(e=>!e.decision || (!('own_dice' in e.decision.public_state) && !('pilot_wuerfel' in e.decision.public_state))));
     assert.ok(feedback.events.every(e=>!e.public_after || !('own_dice' in e.public_after)));
     assert.ok(feedback.events.filter(e=>e.decision).every(e=>e.decision.observation.length===349 && e.decision.action_mask.length===121));
@@ -125,14 +169,16 @@ const rows = page => page.evaluate(async () => {
       nachAktion(spielAktion({kind:'place',role:'pilot',die:0,target:'ruder'},'ai'));
     });
     assert.equal(await page.evaluate(()=>aktuellerZustand.status),'verloren');
-    assert.equal(await page.locator('#ai-rating').inputValue(),'0');
+    assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
     assert.ok(await page.locator('#wuerfel-pilot .wuerfel:not(.platziert)').evaluateAll(els=>els.every(e=>e.textContent==='?')));
     await page.locator('#ai-feedback-save').click();
+    assert.equal(await page.locator('#ai-rating-up').isDisabled(),true);
+    assert.equal(await page.locator('#ai-rating-down').isDisabled(),true);
     await page.waitForTimeout(100);
     data=await rows(page);
     assert.ok(data.some(r=>r.human_role==='kopilot' && r.events.some(e=>e.feedback?.committed && !e.feedback.explicit && e.feedback.value===0)));
     assert.equal(await page.locator('#ai-resume').count(),0);
     assert.deepEqual(errors,[]);
-    console.log('✓ Model selector, mobile menu, consent, real model turns, feedback/invalid-move/default-zero/terminal commit, both roles and privacy, examples, reroll/undo, IndexedDB persistence, cloud retry and quiet upload');
+    console.log('✓ Model selector, mobile menu, consent, real model turns, sticky mobile/keyboard thumbs and neutral toggle, feedback/invalid-move/default-zero/terminal commit, both roles and privacy, examples, reroll/undo, IndexedDB persistence, cloud retry and quiet upload');
   } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

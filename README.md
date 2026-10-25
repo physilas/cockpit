@@ -353,7 +353,10 @@ zwischen zwei Browseransichten mit simuliertem PeerJS-Transport.
 ## Singleplayer und KI-Lernmodi
 
 Unter **Singleplayer** stehen **Mit KI spielen**, **KI-ndergartenbetreuung**
-(Feedback von −2 bis +2) und **KI-no** (Beispielpartien per Pass & Play) bereit.
+(Feedback mit 👎/👍) und **KI-no** (Beispielpartien per Pass & Play) bereit.
+Die Bewertung bleibt oben unter der Spielleiste sichtbar: ohne Auswahl neutral,
+👎 entspricht −1 und 👍 +1. Erneutes Antippen nimmt die Auswahl zurück.
+Ältere Aufzeichnungen mit Bewertungen von −2 bis +2 bleiben lesbar.
 Die KI übernimmt eine Rolle mit denselben eigenen Würfeln und öffentlichen
 Informationen wie beim Training. Die beiden Lernmodi fragen vor dem Start nach
 Zustimmung zur Datennutzung. Aufzeichnungen werden lokal gesichert und bei
