@@ -67,7 +67,14 @@ def _collect(task):
     elif _model.config["action_count"] != 121:
         from .fuel import FuelEnv
         env_class = FuelEnv
-    env = env_class(**_env_options)
+    options = dict(_env_options)
+    if options.pop('research_open_risk', False):
+        if _model.config['action_count'] != 217 or ai_role:
+            raise ValueError('Open-risk research currently requires schema-3 self-play.')
+        from .search_environment import OpenRiskEnv
+        env_class = OpenRiskEnv
+        options['cpu_duty_cycle'] = _cpu_duty_cycle
+    env = env_class(**options)
     return collect_rollout(_model, env, steps, seed=namespace, episodes_done=0,
         gamma=gamma, gae_lambda=gae_lambda, uniform_mix=uniform_mix, discount_unit=discount_unit,
         partner=_partners[partner_index] if ai_role else None, ai_role=ai_role or 'both',cpu_duty_cycle=_cpu_duty_cycle)
@@ -78,6 +85,12 @@ def _evaluate(task):
     _model.load_state_dict(state)
     options = {k: v for k, v in _env_options.items() if k != 'curriculum_airports'}
     options['airport']=airport
+    if options.pop('research_open_risk', False):
+        if partner_index is not None or role != 'both':
+            raise ValueError('Open-risk research currently evaluates self-play only.')
+        from .search_evaluate import evaluate_open_risk
+        return evaluate_open_risk(ModelAgent(_model), airport, seed, games, _cpu_duty_cycle, 64,
+                                  **{k:v for k,v in options.items() if k!='airport'})['episodes']
     return evaluate(ModelAgent(_model), games=games, seed=seed,cpu_duty_cycle=_cpu_duty_cycle,
         partner=_partners[partner_index] if partner_index is not None else None,ai_role=role,policy_seed=seed,**options)['episodes']
 

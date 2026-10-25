@@ -34,9 +34,9 @@ def _initialize(checkpoint, expected_sha):
 
 def _run(task):
     mode, airport, seed, games, duty, beam = task
-    agent = ModelAgent(_model) if mode == 'model' else SearchTeacher(_model, mode=mode, beam=beam, cpu_duty_cycle=duty)
+    agent = ModelAgent(_model) if mode in ('model', 'model-open') else SearchTeacher(_model, mode=mode, beam=beam, cpu_duty_cycle=duty)
     started = time.monotonic()
-    if mode == 'round-open':
+    if mode in ('round-open', 'model-open'):
         result = evaluate_open_risk(agent, airport, seed, games, duty, beam)
     else:
         result = evaluate(agent, airport=airport, games=games, seed=seed, cpu_duty_cycle=duty,
@@ -45,9 +45,11 @@ def _run(task):
             'considered': getattr(agent, 'considered', 0), 'overrides': getattr(agent, 'overrides', 0)}
 
 
-def evaluate_open_risk(agent, airport, seed, games, duty, beam):
+def evaluate_open_risk(agent, airport, seed, games, duty, beam, **env_options):
     from .search_environment import OpenRiskEnv
-    env = OpenRiskEnv(airport, assistance_version=9, round_reward=0., proposal_beam=beam, cpu_duty_cycle=duty)
+    options = dict(airport=airport, assistance_version=9, round_reward=0., proposal_beam=beam, cpu_duty_cycle=duty)
+    options.update(env_options)
+    env = OpenRiskEnv(**options)
     budget, records = CpuBudget(duty), []
     for game_seed in range(seed, seed + games):
         _, info = env.reset(seed=game_seed)
@@ -55,7 +57,8 @@ def evaluate_open_risk(agent, airport, seed, games, duty, beam):
         while not env.done:
             guidance = ({'reference_mask': info['reference_action_mask']}
                         if agent.model.config.get('kind') == 'guided_residual' else {})
-            action = agent.select(env.view(), info['action_mask'], source_mask=info['source_action_mask'], **guidance)
+            if isinstance(agent, SearchTeacher):guidance['source_mask'] = info['source_action_mask']
+            action = agent.select(env.view(), info['action_mask'], **guidance)
             _, reward, _, _, info = env.step(action)
             total += reward
             budget.pause()
@@ -87,7 +90,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--checkpoint', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk', 'round-open'), default=['model', 'legacy', 'joint'])
+    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk', 'round-open', 'model-open'), default=['model', 'legacy', 'joint'])
     p.add_argument('--routes', nargs='+', default=['LOG_OSL_GREEN', 'LOG_HND_GREEN', 'LOG_LHR_GREEN', 'LOG_YUL_GREEN'])
     p.add_argument('--games', type=int, default=100)
     p.add_argument('--seed', type=int, default=14500000)

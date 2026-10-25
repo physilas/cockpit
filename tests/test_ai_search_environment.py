@@ -9,6 +9,8 @@ from ai.modules import ModuleEnv, MODULE_ACTIONS
 from ai.nn_model import ActorCritic, GuidedResidualActorCritic
 from ai.search_environment import OpenRiskEnv
 from ai.search_teacher import SearchTeacher
+from ai.search_evaluate import evaluate_open_risk
+from ai.checkpoints import weight_fingerprint
 
 
 class OpenRiskSearchTests(unittest.TestCase):
@@ -79,6 +81,15 @@ class OpenRiskSearchTests(unittest.TestCase):
         env = OpenRiskEnv('LOG_HND_GREEN', assistance_version=9);_, info = env.reset(seed=251037)
         with self.assertRaises(ValueError):
             SearchTeacher(model, mode='round-open').select(env.view(), info['action_mask'])
+
+    def test_open_environment_also_evaluates_an_unmodified_neural_policy(self):
+        torch.manual_seed(251037)
+        model = GuidedResidualActorCritic(ActorCritic(489, 217, 8, 1), 489, 217, 8, 1)
+        before = weight_fingerprint(model)
+        result = evaluate_open_risk(ModelAgent(model), 'LOG_HND_GREEN', 251037, 1, 1., 16)
+        self.assertEqual(result['games'], 1)
+        self.assertEqual(len(result['episodes']), 1)
+        self.assertEqual(weight_fingerprint(model), before)
 
 
 if __name__ == '__main__':

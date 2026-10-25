@@ -63,11 +63,25 @@ def successful_replay(batch, records, previous=None, *, limit=4096):
     if previous:rows={k:torch.cat((previous[k],rows[k])) for k in rows}
     return {k:v[-limit:] for k,v in rows.items()}
 
+
+def initialize_research_phase(path, device):
+    """Load identical guided weights; the caller starts fresh counters/Adam.
+
+    This is an explicit new experiment, never an exact resume across changed
+    planning code. The old checkpoint and its fingerprint remain untouched.
+    """
+    model, payload = load_checkpoint(path, device)
+    if model_schema(model)['version'] != 3 or model.config.get('kind') != 'guided_residual':
+        raise ValueError('A new open-risk phase needs an existing guided schema-3 player.')
+    return model, payload
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--resume', type=Path)
     p.add_argument('--residual-source', type=Path, help='New zero-output detail branch around an already trained fuel model.')
     p.add_argument('--guided-source', type=Path, help='Frozen schema-3 player with a finite planner prior and wider legal choices.')
+    p.add_argument('--phase-source', type=Path, help='Identical guided weights for a new research phase; fresh optimizer and counters.')
+    p.add_argument('--open-risk-env', action='store_true', default=None, help='Research-only union of source-9 advice and legal risk proposals.')
     p.add_argument('--guide-margin', type=float, default=4.)
     p.add_argument('--self-imitation-coef', type=float, default=0.)
     p.add_argument('--source', type=Path, default=Path('ai/releases/crew-basegame-v1/best.pt'))
@@ -91,8 +105,8 @@ def main():
         p.error('Resource cap: 1–8 workers, duty cycle in (0,.7]; positive budgets.')
     if not 0 <= args.self_imitation_coef <= .1:
         p.error("Self-imitation coefficient must be in [0,.1].")
-    if sum(bool(x) for x in (args.resume,args.residual_source,args.guided_source)) > 1:
-        p.error('Choose resume, residual transfer, or guided transfer.')
+    if sum(bool(x) for x in (args.resume,args.residual_source,args.guided_source,args.phase_source)) > 1:
+        p.error('Choose resume, residual transfer, guided transfer, or a new research phase.')
     if args.run_dir.exists():
         p.error('Use a new run directory, preserving earlier results.')
     torch.set_num_threads(1)
@@ -110,6 +124,15 @@ def main():
         args.freeze_legacy = previous['freeze_legacy'] if args.freeze_legacy is None else args.freeze_legacy
         if any(previous[k] != getattr(args,k) for k in ('seed','assistance_version','freeze_legacy')):
             p.error('Resume must preserve training seeds, planner profile and trainable parameters.')
+    elif args.phase_source:
+        if args.freeze_legacy or args.assistance_version not in (None,9) or not args.open_risk_env:
+            p.error('New research phases require --open-risk-env, assistance 9 and no --freeze-legacy.')
+        try:model,module_source_payload=initialize_research_phase(args.phase_source,args.device)
+        except ValueError as e:p.error(str(e))
+        if module_source_payload.get('train_config',{}).get('source_weights_sha256') != weight_fingerprint(base):
+            p.error('The new phase must retain the recorded original base source.')
+        args.assistance_version=9
+        args.freeze_legacy=False
     elif args.guided_source:
         inherited,module_source_payload=load_checkpoint(args.guided_source,args.device)
         if model_schema(inherited)['version'] != 3 or args.freeze_legacy or args.assistance_version not in (None,9):
@@ -141,6 +164,19 @@ def main():
         torch.set_rng_state(resume['torch_rng_state'].cpu())
         if args.device=='mps': torch.mps.set_rng_state(resume['mps_rng_state'].cpu())
     previous_config=resume['train_config'] if resume else {}
+    args.open_risk_env=previous_config.get('research_open_risk',False) if args.open_risk_env is None else args.open_risk_env
+    if args.open_risk_env and (model.config.get('kind')!='guided_residual' or args.assistance_version!=9):
+        p.error('Open-risk PPO requires guided schema-3 weights and assistance 9.')
+    if args.open_risk_env and not (args.phase_source or resume):
+        p.error('Use --phase-source for an explicit new open-risk experiment.')
+    if resume and args.open_risk_env != previous_config.get('research_open_risk',False):
+        p.error('Changing the research environment requires a new phase, not resume.')
+    search_sha=None
+    if args.open_risk_env:
+        from .search_evaluate import search_fingerprint
+        search_sha=search_fingerprint()
+        if resume and previous_config.get('research_search_sha256')!=search_sha:
+            p.error('Open-risk resume requires unchanged research search code; start a new phase instead.')
     args.curriculum_airports=args.curriculum_airports or previous_config.get('curriculum_airports',[])
     args.eval_airports=args.eval_airports or previous_config.get('eval_airports',[])
     config = dict(airport='LOG_OSL_GREEN', max_steps=256, assistance_version=args.assistance_version,
@@ -152,6 +188,11 @@ def main():
                   cpu_duty_cycle=args.cpu_duty_cycle, threads=1, device=args.device,
                   planner_sha256=planner_fingerprint(model_schema(model)['version']), action_mask_version=2,
                   resumed_from=args.resume.as_posix() if args.resume else None,
+                  phase_source=args.phase_source.as_posix() if args.phase_source else previous_config.get('phase_source'),
+                  phase_source_weights_sha256=weight_fingerprint(model) if args.phase_source else previous_config.get('phase_source_weights_sha256'),
+                  phase_source_steps=module_source_payload.get('total_steps',0) if args.phase_source else previous_config.get('phase_source_steps',0),
+                  phase_source_planner_sha256=module_source_payload.get('train_config',{}).get('planner_sha256') if args.phase_source else previous_config.get('phase_source_planner_sha256'),
+                  research_open_risk=bool(args.open_risk_env),research_search_sha256=search_sha,
                   residual_source=args.residual_source.as_posix() if args.residual_source else (resume['train_config'].get('residual_source') if resume else None),
                   guided_source=args.guided_source.as_posix() if args.guided_source else (resume['train_config'].get('guided_source') if resume else None),
                   guidance_margin=model.config.get('guide_margin'),
@@ -164,6 +205,7 @@ def main():
     args.run_dir.mkdir(parents=True)
     env_options = {k:config[k] for k in ('airport','max_steps','assistance_version','round_reward','sync_weight','sync_tolerance','task_weight')}
     env_options['curriculum_airports']=args.curriculum_airports
+    if args.open_risk_env:env_options['research_open_risk']=True
     pool = ParallelGames(args.workers, model.config, env_options, cpu_duty_cycle=args.cpu_duty_cycle)
     steps, episodes, update = ((resume[k] for k in ("total_steps","episodes","update")) if resume else (0,0,0))
     from backend.katalog import landekatalog

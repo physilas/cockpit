@@ -92,14 +92,14 @@ def _initialize(checkpoint, expected_sha):
 
 def _run(task):
     route, seed, mode, expected, duty, beam, profiling, tail = task
-    if mode == 'round-open':
+    if mode in ('round-open', 'model-open'):
         from .search_environment import OpenRiskEnv
         env = OpenRiskEnv(route, assistance_version=9, round_reward=0., proposal_beam=beam, cpu_duty_cycle=duty)
     else:
         env = ModuleEnv(route, assistance_version=9, round_reward=0.)
     _, info = env.reset(seed=seed)
     source = ModelAgent(_model)
-    active = source if mode == 'model' else SearchTeacher(_model, mode=mode, beam=beam, cpu_duty_cycle=duty)
+    active = source if mode in ('model', 'model-open') else SearchTeacher(_model, mode=mode, beam=beam, cpu_duty_cycle=duty)
     budget = CpuBudget(duty)
     rows, total_return = deque(maxlen=tail or None), 0.
     started, cpu_started = time.monotonic(), time.process_time()
@@ -110,7 +110,7 @@ def _run(task):
         view, mask = env.view(), info['action_mask']
         guidance = {'reference_mask': info['reference_action_mask']}
         baseline = source.select(view, info.get('source_action_mask', mask), **guidance)
-        if 'source_action_mask' in info:guidance['source_mask'] = info['source_action_mask']
+        if mode == 'round-open':guidance['source_mask'] = info['source_action_mask']
         with capture_plan() as captured:
             chosen = baseline if mode == 'model' else active.select(view, mask, **guidance)
         ranks, sequences = captured.get('ranks', {}), captured.get('sequences', {})
@@ -150,7 +150,7 @@ def main():
     p.add_argument('--routes', nargs='+', default=['LOG_HND_GREEN'])
     p.add_argument('--limit', type=int, default=6, help='At most this many selected counterexamples per route.')
     p.add_argument('--seeds', type=int, nargs='+', help='Restrict selected counterexamples to these development seeds.')
-    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk', 'round-open'))
+    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish', 'round-plain', 'round-risk', 'round-open', 'model-open'))
     p.add_argument('--selection', choices=('teacher-regressions', 'model-losses'), default='teacher-regressions')
     p.add_argument('--reasons', nargs='+', default=[], help='Match exact comma-separated source loss reasons.')
     p.add_argument('--trace-tail', type=int, default=0, help='Keep only the last N decisions; zero keeps all.')

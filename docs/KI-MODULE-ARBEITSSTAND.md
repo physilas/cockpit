@@ -614,6 +614,73 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
   --output ai/experiments/modules-50pct-2026-10-25/open-risk-haneda-development-v1.json
 ```
 
+## Neues Lernen mit gezielt erweiterten Aktionen
+
+`neural-open-haneda-development-v1.json` prüft die **unveränderten Gewichte**
+unter der gezielt erweiterten Maske, ohne festen Suchlehrer. Auf denselben
+100 bekannten HND-Partien: **Netz alt 48, Netz mit Zusatzaktionen 45 Siege**,
+0 zusätzliche Siege gegen drei verlorene ursprüngliche Siege. Lauf regulär
+nach 64,5 s beendet; wiederholte Kontrolle exakt gleich. Die neue Auswahl
+liefert also vor Training noch keinen Vorteil. Diese Messung ist keine
+zusätzliche unabhängige Stichprobe und keine Freigabe.
+
+Der neue PPO-Weg lernt die Bewertung dieser begrenzten Zusatzaktionen selbst,
+anstatt schwächere feste Lehrerzüge zu imitieren. **Keine zusätzliche Schicht,
+keine Änderung der eingefrorenen Grundlage oder Kritikergewichtung.** Der
+vorhandene trainierbare Detailzweig wird benutzt. `--phase-source` lädt exakt
+die geführten 500.347-Schritte-Gewichte und startet ausdrücklich eine **neue
+Forschungsphase** mit frischem Adam und Zählern. Quellpfad, Gewichts-SHA,
+Quellschritte und alter Planer-Fingerprint werden separat gespeichert; alte
+Checkpoints/Hashes werden nicht verändert. Es wird kein exaktes Resume über
+geänderten Planungscode behauptet. Ein späteres Resume der neuen Phase verlangt
+dieselbe Forschungsumgebung und denselben Such-Fingerprint.
+
+`ParallelGames` führt die neue Umgebung in Training und Bewertung mit. Die
+Referenzmaske 7 bleibt in Rollouts, PPO-Wahrscheinlichkeiten und erfolgreichem
+Trainingsreplay erhalten. Tests prüfen vor dem Update Wahrscheinlichkeits-
+verhältnisse von 1, anschließend echte Änderungen im bestehenden Detailzweig
+bei exakt unveränderten eingefrorenen Gewichten. Parallele Bewertung stimmt
+mit direkter Bewertung überein. **249 lokale Tests bestanden** (36,3 s),
+einschließlich der geschützten fremden Tests. Die bisherigen Standardpfade
+verwenden weiterhin ihre bisherigen Umgebungen.
+
+Der komplette Befehl wurde mit dem echten Modell und nur einem kleinen
+PPO-Update erfolgreich geprüft: `runs/open-risk-ppo-smoke-v1/`, Log
+`/tmp/cockpit-open-risk-ppo-smoke-v1.log`, Ziel 64 neue Entscheidungen mit
+möglichem Überschreiten zum Episodenende, tatsächlich **128 neue Entscheidungen
+in einem Update**, hier zufällig beide Trainingspartien auf OSL. Zwei Worker
+zu 70 %, CPU-Update, regulär nach 33 s beendet. Acht winzige Validierungspartien
+pro Messung dienen nur der technischen Prüfung. `open-risk-ppo-smoke-v1.json`
+belegt identische Anfangsgewichte und exakt unveränderte eingefrorene Grundlage
+nach dem echten PPO-Update. Kein Modell aus dieser technischen Probe
+wird freigegeben oder als Gewichtsquelle des eigentlichen Laufs benutzt.
+
+**Aktueller einziger schwerer Job:** `runs/open-risk-ppo-stage1/`, Log
+`/tmp/cockpit-open-risk-ppo-stage1.log`, begrenzte Phase von
+**100.000 NEUEN Entscheidungen**:
+OSL/HND/LHR/YUL, HND dreifach und OSL zweifach im Curriculum, 100 feste
+Entwicklungspartien pro Route (400 insgesamt) ab 14.650.000, Auswahl nach der
+schwächsten Route. Anfangsgewichte bleiben als möglicher bester Stand erhalten.
+Bewertung etwa alle 50.000 Entscheidungen; bei Plateau kein unbegründetes
+Endlos-PPO. Die unabhängige Qualifikation ab 15.000.000 bleibt unbenutzt.
+Höchstens acht CPU-Worker zu 70 %, ein Torch-Thread, `nice -n15`; Metal kann die
+PPO-Minibatches übernehmen und wurde außerhalb der Sandbox als verfügbar geprüft.
+Seed 251039, Lernrate 0,00005, Selbstnachahmung nur erfolgreicher Trainingszüge
+mit Gewicht 0,03. Quelle ist wieder der unveränderte 500.347-Stand, nicht die
+128-Züge-Probe. Grobe Dauer 20–40 Minuten, abhängig von Episoden und Bewertungen.
+Währenddessen keine Such-/Trainingsquellen ändern und keinen zweiten schweren
+Job starten. Konkrete Schritte/Einzelquoten immer aus den laufenden Logs lesen.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_fuel \
+  --phase-source runs/guided-residual-stage2/latest.pt --open-risk-env \
+  --run-dir runs/open-risk-ppo-stage1 --steps 100000 --workers 8 --cpu-duty-cycle .7 \
+  --seed 251039 --eval-seed 14650000 --eval-games 400 --eval-every 25 \
+  --curriculum-airports LOG_HND_GREEN LOG_HND_GREEN LOG_HND_GREEN LOG_OSL_GREEN LOG_OSL_GREEN LOG_LHR_GREEN LOG_YUL_GREEN \
+  --eval-airports LOG_OSL_GREEN LOG_HND_GREEN LOG_LHR_GREEN LOG_YUL_GREEN \
+  --self-imitation-coef .03 --device mps
+```
+
 ## Nächste Arbeit
 
 1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
@@ -623,12 +690,14 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
    gemeinsame Kontrollzuordnung, Annahmen über nachfolgende Partnerzüge,
    Kaffee-/Neuwurfreserven und kalibrierte Fortsetzungswerte bearbeiten.
    Die 17 Kollisionen und elf Kurvenverluste sind inzwischen lokalisiert:
-   26/28 entstehen vor 2.000 Fuß. Den oben dokumentierten frühen Suchvergleich
-   brachte noch keinen Vorteil. Deshalb zuerst den separaten `round-open`-Lauf
-   auswerten, der den nachgewiesenen Kaffee-Maskenengpass gezielt öffnet.
-   Bei Vorteil frische Entwicklung, sonst konkrete gekoppelte Aufgaben-/Kaffee-
-   und Partnerannahmen bearbeiten. Nicht unterstellen, alle Fehler entstehen kurz
-   vor Landung.
+   26/28 entstehen vor 2.000 Fuß. Der oben dokumentierte frühe Suchvergleich
+   brachte noch keinen Vorteil. Auch Round-Open (45) und das unverändert
+   unter der Zusatzmaske spielende Netz (45) blieben unter dem ursprünglichen
+   Netz (48). Der neue PPO-Datenweg ist technisch geprüft; jetzt den einzigen
+   oben dokumentierten Lernlauf auswerten, in dem die Bewertung dieser gezielten
+   Zusatzaktionen gelernt wird. Erst echte Einzelverbesserungen auf frischer Entwicklung
+   rechtfertigen die nächste Stufe. Nicht unterstellen, alle Fehler entstehen
+   kurz vor Landung.
    Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
    Planung für Oslo braucht außerdem eine begründete Laufzeitbegrenzung.
    Kein unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
