@@ -1,10 +1,12 @@
 from copy import deepcopy
 import random
 import unittest
+from unittest.mock import patch
 
 import torch
 
 from ai.agents import ModelAgent
+from ai.actions import ACTION_IDS, Action
 from ai.environment import CrewEnv
 from ai.fuel import FuelEnv
 from ai.joint_forecast import make_joint_forecast
@@ -128,6 +130,27 @@ class JointForecastTests(unittest.TestCase):
             paired_outcomes(before, after[:1])
         with self.assertRaises(ValueError):
             paired_outcomes(before * 2, after * 2)
+
+    def test_explicit_finish_experiment_replans_last_die_without_changing_old_modes(self):
+        model = ActorCritic(489, 217, 8, 1)
+        view = self.view()
+        view['own_dice'] = [1, 0, 0, 0]
+        view['board'][:4] = [{'value': 3, 'owner': 'pilot'}, {'value': 3, 'owner': 'kopilot'},
+                             None, {'value': 1, 'owner': 'kopilot'}]
+        place = ACTION_IDS[Action('place', die=0, slot=2)]
+        reroll = ACTION_IDS[Action('reroll_start')]
+        mask = [False] * 217
+        mask[place] = mask[reroll] = True
+        before, rng = deepcopy(view), random.getstate()
+        with patch.object(ModelAgent, 'select', return_value=reroll):
+            self.assertEqual(SearchTeacher(model, mode='joint').select(view, mask), reroll)
+            self.assertEqual(SearchTeacher(model, mode='legacy').select(view, mask), reroll)
+            self.assertEqual(SearchTeacher(model, mode='joint-finish').select(view, mask), place)
+            # No successful alternative plan means the learned reroll survives.
+            mask[place] = False
+            self.assertEqual(SearchTeacher(model, mode='joint-finish').select(view, mask), reroll)
+        self.assertEqual(view, before)
+        self.assertEqual(random.getstate(), rng)
 
 
 if __name__ == '__main__':

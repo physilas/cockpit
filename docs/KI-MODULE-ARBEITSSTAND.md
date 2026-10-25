@@ -328,7 +328,7 @@ Der unabhängige Kerosinvergleich ab 15.000.000 wurde noch NICHT gestartet.
 Auch 12.000.000 und 13.000.000 bleiben unbenutzt. Keine neue Modul-KI ist
 freigegeben; das Menü zeigt weiter die bisherigen Modelle.
 
-## Gemeinsame Würfelzuordnung und laufender Suchvergleich
+## Gemeinsame Würfelzuordnung und abgeschlossener Suchvergleich
 
 `ai/joint_round.py` berechnet statische Belegungen für hypothetische Hände:
 Ruder, Schub, rollenbezogene Aufgaben und gemeinsame Aufgaben verwenden
@@ -399,7 +399,7 @@ mit v1 exakt überein, einschließlich Verlustgründen und Eingriffszählern.
 Eine Prozesskontrolle während der langen Joint-Suche zeigte aktive Worker bei
 ungefähr 61–63 % CPU; alle acht Worker haben Priorität 15 und einen Torch-Thread.
 
-**Aktueller schwerer Job:** `ai.search_evaluate`, Log
+**Regulär abgeschlossener Suchvergleich:** `ai.search_evaluate`, Log
 `/tmp/cockpit-joint-search-development-v2.log`, Ausgabe
 `ai/experiments/modules-50pct-2026-10-25/joint-search-development-v2.json`.
 Je **100 neue Entwicklungspartien pro Route und Variante**, Seeds ab
@@ -419,16 +419,92 @@ nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.searc
   --output ai/experiments/modules-50pct-2026-10-25/joint-search-development-v2.json
 ```
 
+Der vollständige v2-Lauf endete regulär nach **28,9 Minuten**, Exit 0.
+
+| Variante, je 100 Entwicklungspartien | OSL | HND | LHR | YUL |
+| --- | ---: | ---: | ---: | ---: |
+| Unverändertes Netz (`model`) | 47 | 48 | 65 | 88 |
+| Getrennte Näherung (`legacy`) | 56 | 44 | 66 | 91 |
+| Gemeinsame Zuordnung (`joint`) | 55 | 44 | 69 | 91 |
+
+Gepaarte Gewinne/Verluste von Joint gegenüber dem Netz: OSL 17/9,
+HND 1/5, LHR 8/4, YUL 5/2. Gegenüber Legacy: OSL 3/4, HND 2/2,
+LHR 3/0, YUL 2/2. Die gemeinsame Zuordnung verbessert die schwächste
+Route **nicht**. Keine Freigabe und kein Grund, diesen Lehrer unverändert zu
+imitieren. Oslo brauchte allein 1.324 s statt 20,4 s bei Legacy: ungefähr
+65-fache Laufzeit ohne bessere Quote. Die wiederholten 800 Modell-/Legacy-
+Partien zählen weiterhin nicht als zusätzliche unabhängige Evidenz.
+
+## Öffentliche Fehlerdiagnose und letzter eigener Würfel
+
+`ai.search_diagnose` reproduzierte sechs Haneda-Fälle, die das Netz gewinnt und
+mindestens eine Suche verliert: 18 Replays, Bericht
+`haneda-search-failures-v1.json`, Log `/tmp/cockpit-haneda-search-failures-v1.log`.
+Status und Verlustgrund jedes Replays stimmen exakt mit dem v2-Vergleich überein.
+Alle schädlichen Eingriffe dieser Beispiele enthielten den ursprünglichen
+Netzzug als bewerteten Suchplan. Die Hypothese eines fehlenden Vergleichszugs
+im Beam wird dadurch **nicht** gestützt. Profiling misst reine Prozess-CPU-Zeit;
+der Hauptaufwand dieser Beispiele liegt in der Zukunftssuche, nicht im Netz.
+
+Eine erweiterte Instrumentierung zeichnet auch eigene Planfolgen und folgende
+Netzzüge auf: `haneda-search-sequences-v2.json`, neun Replays der drei Fälle
+14.510.008/047/068, Log `/tmp/cockpit-haneda-search-sequences-v2.log`.
+Diese ausgewählten Wiederholungen sind **keine neue Quotenstichprobe** und
+erzeugen keine Trainingsentscheidungen. Nur der eigene erlaubte Eingang wird
+protokolliert; keine private Partnerhand und kein zukünftiger Spielzufall.
+Die Instrumentierung verändert weder Pläne noch ausgewählte Aktionen.
+
+Konkrete Grenzen:
+
+- In 14.510.008 bauen beide Suchen vor der Landung Bremse 2 gegen Kaffee.
+  Das Netz spart den Kaffee und gewinnt die spätere Landung. Die Suchvariante
+  führt ihren Plan hier tatsächlich aus, verliert aber mit zu hohem Schub.
+  Statische Aufgabenpunkte sind deshalb kein zuverlässiger Gewinnwert.
+- In 14.510.047 priorisieren beide Suchen eine frühe Landeklappe gegen Kaffee;
+  nachfolgende Netzzüge erreichen die vollständigen Klappen nicht. Auch hier
+  wird die geplante letzte Platzierung ausgeführt. Kein allgemeiner Beleg,
+  dass bloß konsequente Planausführung diese Niederlagen verhindert.
+- In 14.510.068 plant Joint zuletzt Ruder 5; bei nur einem eigenen Würfel
+  übernimmt bisher automatisch das Netz, startet einen Neuwurf und trudelt.
+  Diese Inkonsistenz begründet einen **separaten** Versuch `joint-finish`, der
+  auch den letzten eigenen Würfel unter der aktuellen erlaubten Maske neu
+  plant. Er erzwingt keinen alten Plan nach Partnerzügen. Frühe Runden,
+  Landung und offene Neuwürfe bleiben beim Netz; fehlen bewertete erlaubte
+  Platzierungen, bleibt ebenfalls die Netzauswahl. `model`, `legacy` und
+  `joint` behalten ihre bisherige Semantik.
+
+**Aktueller einziger schwerer Lauf:** 100 Haneda-Entwicklungspartien ab 14.510.000,
+gleiche Gewichte, Varianten `model`, `joint`, `joint-finish`. Wiederholte
+Kontrollen zuerst auf exakte Übereinstimmung mit v2 prüfen. Ein Erfolg auf
+diesen bereits untersuchten Seeds erfordert anschließend frische Entwicklung;
+die unabhängigen Prüfseeds ab 15.000.000 bleiben unbenutzt. Kein neues Modell
+und kein Suchprofil wurde für den Singleplayer freigegeben.
+
+Bericht `joint-finish-haneda-development-v1.json`, Log
+`/tmp/cockpit-joint-finish-haneda-development-v1.log`. Die Modellkontrolle ist
+bereits mit 48/100 abgeschlossen. Acht Worker zu höchstens 70 %, Torch-Threads 1,
+`nice -n15`, verwaltet über `ai.job_control`. Während des Laufs Such-/Spielquellen
+nicht ändern. Nach dieser Änderung bestanden **241 lokale Tests** (26,3 s),
+einschließlich der geschützten fremden Tests. Keine neuen PPO-Entscheidungen.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.search_evaluate \
+  --checkpoint runs/guided-residual-stage2/latest.pt --routes LOG_HND_GREEN \
+  --modes model joint joint-finish --games 100 --seed 14510000 \
+  --workers 8 --cpu-duty-cycle .7 --beam 64 \
+  --output ai/experiments/modules-50pct-2026-10-25/joint-finish-haneda-development-v1.json
+```
+
 ## Nächste Arbeit
 
-1. Zuerst aktuellen Suchvergleich, Prozessstatus und STOP-Datei prüfen; keinen
-   zweiten schweren Job. Erst nach Abschluss alle vier Einzelquoten und gepaarte
-   Gegenbeispiele auswerten. `joint` auch mit `legacy` vergleichen, nicht bloß
-   irgendeine Suche mit dem Modell. Bei schwachem Lehrer nicht wieder dessen
-   Labels endlos imitieren: Belegungsmodelle, Kapazitätsgrenzen und konkrete
-   verlorene öffentliche Entscheidungssituationen untersuchen. Ein besserer
-   statischer Belegungswert allein ist kein Gewinnnachweis. Kein neuer
-   unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
+1. Zuerst Prozessstatus, STOP-Datei und zuletzt dokumentierten Vergleich prüfen;
+   keinen zweiten schweren Job. Den separaten `joint-finish`-Versuch gegen beide
+   Kontrollen auswerten. Bei schwachem Lehrer nicht wieder dessen Labels endlos
+   imitieren: aktuelle gemeinsame Kontrollzuordnung, Annahmen über nachfolgende
+   Partnerzüge, Kaffeeverbrauch und kalibrierte Fortsetzungswerte bearbeiten.
+   Ein besserer statischer Belegungswert allein ist kein Gewinnnachweis. Die
+   Planung für Oslo braucht außerdem eine begründete Laufzeitbegrenzung.
+   Kein unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
 2. Assistenzprofil 7 im allgemeinen Adapter und Forschungsprofil 9 unterstützen
    taktisch nur Grundspiel/Kerosin ohne Karten. Für weitere Module/Karten sind
    Modultaktik und Planung noch zu entwickeln; rohe legale Aktionen funktionieren

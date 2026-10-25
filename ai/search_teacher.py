@@ -3,7 +3,9 @@
 The source controls early rounds, landings and rerolls. In the preceding two
 rounds an own-hand search can rerank its moves using either the old independent
 forecast or joint dice assignments. No engine, private partner hand or RNG is
-available to select(). This player is not a released model.
+available to select(). The separate joint-finish experiment also replans the
+last own die, avoiding an automatic switch back to the network mid-plan.
+This player is not a released model.
 """
 import time
 
@@ -16,7 +18,7 @@ from .throttle import CpuBudget
 class SearchTeacher(ModelAgent):
     def __init__(self, model, *, mode='joint', beam=64, cpu_duty_cycle=1.):
         super().__init__(model)
-        if mode not in ('legacy', 'joint') or not 1 <= beam <= 128:
+        if mode not in ('legacy', 'joint', 'joint-finish') or not 1 <= beam <= 128:
             raise ValueError('Expected an explicit forecast and a bounded search beam.')
         self.mode, self.beam = mode, beam
         CpuBudget(cpu_duty_cycle)  # Validate before starting an experimental search.
@@ -25,7 +27,8 @@ class SearchTeacher(ModelAgent):
 
     def select(self, view, mask, *, reference_mask=None):
         baseline = super().select(view, mask, reference_mask=reference_mask)
-        if view['reroll'] or not 0 < view['height'] <= 2000 or sum(bool(d) for d in view['own_dice']) < 2:
+        minimum_dice = 1 if self.mode == 'joint-finish' else 2
+        if view['reroll'] or not 0 < view['height'] <= 2000 or sum(bool(d) for d in view['own_dice']) < minimum_dice:
             return baseline
         modules = view.get('modules_state', {})
         if set(modules.get('modules', [])) - {'kerosene'} or modules.get('cards'):
@@ -45,7 +48,7 @@ class SearchTeacher(ModelAgent):
             planned['_fuel_profile'] = 9
         ranks, _ = plan_actions(planned, mask, version=3, beam=self.beam,
                                 forecast_factory=(lambda v: make_joint_forecast(v, cooperate=cooperate))
-                                if self.mode == 'joint' else None, cooperate=cooperate)
+                                if self.mode in ('joint', 'joint-finish') else None, cooperate=cooperate)
         ranks = {i: score for i, score in ranks.items() if mask[i]}
         if not ranks:
             return baseline

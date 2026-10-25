@@ -65,7 +65,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--checkpoint', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint'), default=['model', 'legacy', 'joint'])
+    p.add_argument('--modes', nargs='+', choices=('model', 'legacy', 'joint', 'joint-finish'), default=['model', 'legacy', 'joint'])
     p.add_argument('--routes', nargs='+', default=['LOG_OSL_GREEN', 'LOG_HND_GREEN', 'LOG_LHR_GREEN', 'LOG_YUL_GREEN'])
     p.add_argument('--games', type=int, default=100)
     p.add_argument('--seed', type=int, default=14500000)
@@ -109,6 +109,8 @@ def main():
                     summary['paired_against_model'] = paired_outcomes(report['modes']['model'][airport]['episodes'], rows)
                 if mode == 'joint' and 'legacy' in report['modes']:
                     summary['paired_against_legacy'] = paired_outcomes(report['modes']['legacy'][airport]['episodes'], rows)
+                if mode == 'joint-finish' and 'joint' in report['modes']:
+                    summary['paired_against_joint'] = paired_outcomes(report['modes']['joint'][airport]['episodes'], rows)
                 summary['episodes'] = [{k: row[k] for k in ('scenario', 'seed', 'status', 'reason')} for row in rows]
                 report['modes'][mode][airport] = summary
                 args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + '\n')
