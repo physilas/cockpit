@@ -30,6 +30,8 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
     if report.get('complete') is False:
         raise ValueError('Qualification is still running; publish only a completed report.')
     model, payload = load_checkpoint(checkpoint)
+    if any(payload['train_config'].get(flag) for flag in ('research_all_modules', 'research_open_risk')):
+        raise ValueError('Research action masks need a matching browser environment before publication.')
     if report.get('weights_sha256') != weight_fingerprint(model):
         raise ValueError('Evaluation does not match these model weights.')
     profile = payload['train_config'].get('assistance_version', 0)
@@ -45,8 +47,10 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
         scenario = scenarios.get(code)
         if scenario is None or scenario['ability_count'] or set(scenario['modules']) - allowed_modules:
             raise ValueError(f'Unsupported route modules/cards: {code}.')
-        if scenario['modules'] and (report['minimum_win_rate'] < .5 or payload.get('module_training_steps',0) < 1):
-            raise ValueError('New module releases require actual module training and a quality floor of at least 50%.')
+        # The user explicitly lowered the all-module target to 30–40 % on
+        # 25 October. Keep the per-route confidence requirement, not a mean.
+        if scenario['modules'] and (report['minimum_win_rate'] < .3 or payload.get('module_training_steps',0) < 1):
+            raise ValueError('New module releases require actual module training and a quality floor of at least 30%.')
         if scenario['modules'] and model_schema(model)['version'] < 2:
             raise ValueError('Module routes require the module action/observation schema.')
 

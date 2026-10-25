@@ -92,7 +92,7 @@ def _development_seed(seed, games):
         raise ValueError('Development must stay in [14,000,000, 15,000,000); qualification seeds are reserved.')
 
 
-def run_case(model, case, games, seed, duty=.7, *, cpu_duty_cycle=None):
+def run_case(model, case, games, seed, duty=.7, *, cpu_duty_cycle=None, capacity_guard=False):
     """Deterministic full self-play on ONE explicit development case.
 
     This uses the research environment's logical one-second decision clock.
@@ -100,6 +100,13 @@ def run_case(model, case, games, seed, duty=.7, *, cpu_duty_cycle=None):
     The caller may distribute independent calls across its bounded worker pool.
     """
     from .all_modules_environment import AllModulesEnv
+    if type(capacity_guard) is not bool:
+        raise ValueError('capacity_guard must be Boolean.')
+    if capacity_guard:
+        from .capacity_modules_environment import CapacityModulesEnv
+        environment = CapacityModulesEnv
+    else:
+        environment = AllModulesEnv
 
     _development_seed(seed, games)
     key = case_key(case)
@@ -112,7 +119,7 @@ def run_case(model, case, games, seed, duty=.7, *, cpu_duty_cycle=None):
     if model.config.get('observation_size') != 489 or model.config.get('action_count') != 217:
         raise ValueError('All-module evaluation requires schema-3 model dimensions.')
     cpu_budget = CpuBudget(duty)
-    env = AllModulesEnv(case['airport'], abilities=list(case['abilities']),
+    env = environment(case['airport'], abilities=list(case['abilities']),
                         assistance_version=9, max_steps=256, round_reward=0.,
                         sync_weight=0., task_weight=0.)
     agent, records = ModelAgent(model), []
@@ -144,6 +151,7 @@ def run_case(model, case, games, seed, duty=.7, *, cpu_duty_cycle=None):
     return {'airport': case['airport'], 'abilities': sorted(case['abilities']),
             'modules': sorted(case['modules']), 'case_key': key,
             'clock_model': 'logical_one_second_per_decision',
+            'research_capacity_guard': capacity_guard,
             'release_evidence': False,
             'training_budget_failures': sum(bool(row.get('training_budget_failure')) for row in records),
             **summarize_episodes(records)}

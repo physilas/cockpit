@@ -25,7 +25,8 @@ _model, _options, _duty = None, None, None
 
 def environment_fingerprint():
     digest = hashlib.sha256(planner_fingerprint(3).encode())
-    for name in ('all_modules_environment.py', 'module_training_eval.py', 'train_all_modules.py'):
+    for name in ('all_modules_environment.py', 'module_training_eval.py', 'train_all_modules.py',
+                 'module_capacity.py', 'capacity_modules_environment.py'):
         digest.update(name.encode())
         digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()
@@ -41,7 +42,13 @@ def _collect(task):
     state, steps, seed, update, ordinal = task
     _model.load_state_dict(state)
     torch.manual_seed(seed + update * 1009 + ordinal)
-    env = AllModulesEnv(**_options)
+    options = dict(_options)
+    capacity_guard = options.pop('capacity_guard', False)
+    if capacity_guard:
+        from .capacity_modules_environment import CapacityModulesEnv
+        env = CapacityModulesEnv(**options)
+    else:
+        env = AllModulesEnv(**options)
     return collect_rollout(_model, env, steps, seed=f'allmodules:{seed}:{update}:{ordinal}',
         episodes_done=0, gamma=.995, gae_lambda=.95, uniform_mix=.03,
         discount_unit='placement', cpu_duty_cycle=_duty)
@@ -51,7 +58,8 @@ def _evaluate(task):
     state, case, games, seed = task
     _model.load_state_dict(state)
     # Explicit case; never pass the training curriculum into evaluation.
-    return run_case(_model, case, games, seed, duty=min(.7, _duty))
+    return run_case(_model, case, games, seed, duty=min(.7, _duty),
+                    capacity_guard=_options.get('capacity_guard', False))
 
 
 def development_score(rows, target=.3):
@@ -75,6 +83,8 @@ def main():
     p.add_argument('--eval-games-per-case', type=int, default=3)
     p.add_argument('--eval-interval-seconds', type=float, default=600.)
     p.add_argument('--learning-rate', type=float, default=5e-5)
+    p.add_argument('--capacity-guard', action='store_true',
+                   help='New research phase: preserve publicly provable control capacity.')
     args = p.parse_args()
     if (not 1 <= args.workers <= 8 or not 0 < args.cpu_duty_cycle <= .8
             or not 0 < args.training_seconds <= 1200 or args.steps < 1
@@ -96,10 +106,11 @@ def main():
     optimizer = torch.optim.Adam((p for p in model.parameters() if p.requires_grad), lr=args.learning_rate, eps=1e-5)
     options = dict(airport='LOG_OSL_GREEN', assistance_version=9, max_steps=256,
         round_reward=0., sync_weight=.05, sync_tolerance=1., task_weight=.02,
-        curriculum_cases=balanced_cases(cases), step_seconds=1.)
+        curriculum_cases=balanced_cases(cases), step_seconds=1., capacity_guard=args.capacity_guard)
     config = dict(airport='LOG_OSL_GREEN', assistance_version=9, max_steps=256,
         schema_version=3, supported_modules=list(MODULES), supported_cards=list(CARDS),
         ability_count='case_specific', research_all_modules=True,
+        research_capacity_guard=args.capacity_guard,
         research_environment_sha256=environment_fingerprint(),
         source_checkpoint=args.source.as_posix(), source_weights_sha256=source_sha,
         source_phase_steps=source['total_steps'], seed=args.seed, eval_seed=args.eval_seed,

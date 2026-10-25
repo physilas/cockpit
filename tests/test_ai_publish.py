@@ -9,6 +9,39 @@ from ai.publish import publish
 
 
 class PublishTests(unittest.TestCase):
+    def test_module_release_uses_new_user_floor_and_rejects_unmatched_research_masks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            model = ActorCritic(489, 217, hidden_size=8)
+            checkpoint, evaluation = root/'candidate.pt', root/'evaluation.json'
+            config = dict(airport='LOG_OSL_GREEN', assistance_version=9,
+                          supported_modules=['kerosene'])
+            report = dict(complete=True, weights_sha256=weight_fingerprint(model),
+                assistance_version=9, planner_sha256=planner_fingerprint(3),
+                minimum_win_rate=.3, qualified_routes=['LOG_OSL_GREEN'],
+                routes={'LOG_OSL_GREEN': {'self': dict(games=500, win_ci_low=.36, win_rate=.4)}})
+            evaluation.write_text(json.dumps(report))
+            for flag in ('research_all_modules', 'research_open_risk'):
+                save_checkpoint(checkpoint, model, train_config={**config, flag: True},
+                                total_steps=10, module_training_steps=10)
+                with self.assertRaisesRegex(ValueError, 'matching browser'):
+                    publish(checkpoint,evaluation,'module-test','Test',root=root,require_all=False)
+            save_checkpoint(checkpoint, model, train_config=config, total_steps=10,
+                            module_training_steps=0)
+            with self.assertRaisesRegex(ValueError, 'actual module training'):
+                publish(checkpoint,evaluation,'module-test','Test',root=root,require_all=False)
+            save_checkpoint(checkpoint, model, train_config=config, total_steps=10,
+                            module_training_steps=10)
+            evaluation.write_text(json.dumps({**report, 'minimum_win_rate': .29}))
+            with self.assertRaisesRegex(ValueError, 'at least 30%'):
+                publish(checkpoint,evaluation,'module-test','Test',root=root,require_all=False)
+            evaluation.write_text(json.dumps(report))
+            path, catalog = publish(checkpoint,evaluation,'module-test','Test',root=root,require_all=False)
+            saved, payload = load_checkpoint(path)
+            self.assertEqual(weight_fingerprint(saved),weight_fingerprint(model))
+            self.assertEqual(payload['train_config']['quality']['minimum_win_rate'], .3)
+            self.assertEqual(catalog['models'][0]['supported_airports'], ['LOG_OSL_GREEN'])
+
     def test_matching_held_out_qualification_is_required_and_preserves_weights(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

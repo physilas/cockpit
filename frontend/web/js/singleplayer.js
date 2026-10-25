@@ -5,6 +5,8 @@ window.Singleplayer = (() => {
   const roleNames = {pilot: "Pilotin", kopilot: "Co-Pilot"};
   const qualifiedModels = () => catalog.models.filter(m => m.quality?.approved === true);
   const supports = (model, airport) => (model.supported_airports || [model.airport]).includes(airport);
+  const supportsFeedback = (model, route) => Boolean(route && !route.ability_count && supports(model, route.engine_code)
+    && (!route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && route.modules[0] === "kerosene")));
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
   let api, setup = null, session = null, policy = null, reroll = null;
@@ -198,12 +200,14 @@ window.Singleplayer = (() => {
     const routeSelector = document.getElementById("solo-route");
     for (const option of routeSelector.options) {
       const route = window.LANDING_CATALOG.scenarios.find(s => s.id === option.value);
-      option.disabled = setup.mode !== "play" && Boolean(route?.modules.length);
+      option.disabled = setup.mode === "examples" && Boolean(route?.modules.length)
+        || setup.mode === "feedback" && !qualifiedModels().some(model => supportsFeedback(model, route));
     }
     if (routeSelector.selectedOptions[0]?.disabled) routeSelector.value = [...routeSelector.options].find(o => !o.disabled)?.value;
     const selectedRoute = window.LANDING_CATALOG.scenarios.find(s => s.id === routeSelector.value);
     const selector = document.getElementById("solo-model"), previousModel = selector.value;
-    const choices = qualifiedModels().filter(m => supports(m, selectedRoute?.engine_code))
+    const choices = qualifiedModels().filter(m => supports(m, selectedRoute?.engine_code)
+      && (setup.mode !== "feedback" || supportsFeedback(m, selectedRoute)))
       .sort((a,b) => Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)));
     selector.innerHTML = choices.map(m => `<option value="${esc(m.id)}">${esc(m.name || m.run)}</option>`).join("");
     if (choices.some(m => m.id === previousModel)) selector.value = previousModel;
@@ -226,6 +230,7 @@ window.Singleplayer = (() => {
     const scenario = window.LANDING_CATALOG.scenarios.find(s => s.id === document.getElementById("solo-route").value);
     if (!scenario) { document.getElementById("solo-error").textContent = "Die Strecke dieses Modells ist nicht verfügbar."; return; }
     if (config.mode !== "examples" && (!config.model || !supports(config.model, scenario.engine_code))) return;
+    if (config.mode === "feedback" && !supportsFeedback(config.model, scenario)) return;
     starting = true; updateMenu();
     try {
       let loadedPolicy = null;

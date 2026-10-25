@@ -39,7 +39,9 @@ const assertFeedbackVisible = async page => {
     assert.ok(await page.evaluate(() => [...document.querySelectorAll('#solo-model option')].every(o =>
       COCKPIT_AI_CATALOG.models.find(m => m.id === o.value)?.quality?.approved === true)));
     const availableRoutes = await page.locator('#solo-route option').evaluateAll(options => options.map(o => o.value).sort());
-    const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.modules.length && !s.ability_count).map(s => s.id).sort());
+    const expectedRoutes = await page.evaluate(() => LANDING_CATALOG.scenarios.filter(s => !s.ability_count && (!s.modules.length
+      || COCKPIT_AI_CATALOG.models.some(model => model.quality?.approved === true && (model.supported_airports || [model.airport]).includes(s.engine_code))))
+      .map(s => s.id).sort());
     assert.deepEqual(availableRoutes, expectedRoutes);
     await page.locator('[data-mode="feedback"]').click();
     assert.equal(await page.locator('#solo-start').isDisabled(),true);

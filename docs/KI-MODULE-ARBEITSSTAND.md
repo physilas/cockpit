@@ -1,4 +1,4 @@
-# Laufendes Ziel: alle Module, mindestens 50 % je Fall
+# Laufendes Ziel: alle Module, zunächst 30–40 % je Fall
 
 Stand: 25. Oktober 2026. **Crew 2 ist für acht Grundspielstrecken zusätzlich
 freigegeben. Das Ziel aller Module/Karten ist nicht abgeschlossen; keine neue
@@ -6,19 +6,21 @@ Modulstrecke freigegeben. Crew 1 bleibt verfügbar und vorausgewählt.**
 
 ## Verbindlicher Auftrag
 
-Der Nutzer wünscht mindestens 50 % auf jeder offiziellen Route und **jeder**
-erlaubten Fähigkeitskartenkombination. Die Matrix
-`ai/experiments/modules-50pct-2026-10-25/matrix.json` enthält 21 offizielle
-Routen und 186 einzelne Route/Karten-Fälle. Pro Fall sind zunächst 500 unabhängige
-Partien vorgesehen; eine Freigabe verlangt eine untere Wilson-Grenze von
-mindestens 50 %. Es darf nicht über einfache und schwere Fälle gemittelt werden.
-Die Originalrouten und Regeln werden nicht erleichtert.
+Der Nutzer hat das ursprüngliche 50-%-Ziel ausdrücklich auf zunächst **30–40 %**
+gelockert und einen etwa 20-minütigen Lauf mit Fokus auf sämtliche Module verlangt.
+Verbindlich ist jetzt `ai/experiments/modules-30pct-2026-10-25/matrix.json`:
+dieselben 21 offiziellen Routen und 186 einzelnen Route/Karten-Fälle, unveränderte
+Originalregeln, aber Freigabeuntergrenze 30 % je Fall. Eine spätere Freigabe
+verlangt unabhängige Einzeltests mit unterer Wilson-Grenze >=30 %. Die alte
+50-%-Matrix und damalige Ergebnisse bleiben unverändert als Historie erhalten.
+Es darf nicht über einfache und schwere Fälle gemittelt werden.
 
 ## Ressourcen, Stoppen und automatische Fortsetzung
 
-Die jüngste ausdrückliche Grenze ist **acht Worker zu je 70 %**, ein Torch-Thread,
-`nice -n 15`, ein schwerer Lauf gleichzeitig. Metal darf PPO-Minibatches rechnen.
-Frühere Erlaubnisse für sechs/50 oder zehn/80 sind durch acht/70 ersetzt.
+Für den ausdrücklich beauftragten **einen 20-Minuten-Lauf** erlaubt der Nutzer
+vorübergehend **acht Worker zu je 80 %**. Anschließend gilt wieder **acht/70 %**.
+Ein Torch-Thread, `nice -n 15`, ein schwerer Lauf gleichzeitig; Metal darf
+PPO-Minibatches rechnen. Die genaue Zuordnung zu Performance-Kernen steuert macOS.
 
 Eine Nachricht im Chat **„Training und automatische Fortsetzung stoppen“** bedeutet:
 aktiven eigenen Job stoppen und die 15-Minuten-Automation pausieren. Zusätzlich:
@@ -40,6 +42,91 @@ bestehende unverwaltete Trainingsprozesse prüfen. Die wieder aktivierte Automat
 einer ersten automatischen Ablehnung ausdrücklich vom Nutzer bestätigt.
 Keine E-Mail. Nur aussagekräftigen Fortschritt, Fehler, Abschluss oder benötigten
 Input melden.
+
+## Aktueller Allmodul-Lauf und Daumenfeedback
+
+Das 20-Minuten-Budget wird nach einer erfolglosen Halbzeitprüfung in zwei
+ausdrücklich getrennte Forschungsphasen aufgeteilt. `runs/allmodules-20min-v1/`,
+Log `/tmp/cockpit-allmodules-20min-v1.log`, wurde nach **350.639 neuen Zügen,
+160 Updates, 16.348 Partien und 668,37 Trainingssekunden** zur Wartung mit SIGINT
+beendet. Kein Nutzer-Stopp und keine STOP-Datei. Checkpoint und ursprünglicher
+Code sind erhalten (Commit `4fdd0eb`); der unterbrochene Bericht heißt
+`ai/experiments/modules-30pct-2026-10-25/allmodules-raw-stage1.json`.
+Ursprünglicher Befehl: `python -m ai.train_all_modules --run-dir
+runs/allmodules-20min-v1 --training-seconds 1200 --workers 8 --cpu-duty-cycle .8
+--device mps --seed 251046 --eval-seed 14800000 --eval-games-per-case 3
+--eval-interval-seconds 600`, unter `nice -n15` und `ai.job_control`.
+
+Quelle ist exakt die veröffentlichte Crew 2, frischer Adam, neue Forschungsphase
+mit eigenem Umgebungsfingerprint. Nur der vorhandene Detailzweig lernt; die
+Grundlage bleibt eingefroren. Der technische MPS-Probelauf
+`runs/allmodules-smoke-v1/` bestätigte 107 neue Entscheidungen, ein echtes Update,
+identische Anfangsgewichte und unveränderte Grundlage. Seine Gewichte wurden
+nicht übernommen. 15 gezielte Tests einschließlich echtem Worker→PPO-Datenweg
+bestanden vor dem langen Lauf.
+
+Das Curriculum zieht zuerst gleichverteilt eine Route, dann deren erlaubte
+Kartenkombination. Alle sechs Module und Karten werden ausdrücklich abgedeckt.
+Die erste Forschungsumgebung `AllModulesEnv` bewahrt Maske 9/Referenz 7 für
+Grundspiel/Kerosin ohne Karten. Andere Fälle erhalten enginelegale Auswahl mit
+Referenzmaske. Eine endlose Tausch-Start/Abbruch-Folge wird verhindert. Erreichen
+des Entscheidungslimits zählt als terminaler Trainingsfehler ohne Bootstrap,
+während das ursprüngliche Engineergebnis unverändert bleibt. Echtzeit verwendet
+eine logische Sekunde je Entscheidung: reproduzierbare Trainingsnähe, kein
+Nachweis realer menschlicher Zeitdruckfähigkeit.
+
+Das gesamte Budget zählt etwa 1.200 Sekunden Rollout/PPO-Rechenzeit; eine letzte vollständige
+Charge kann die Grenze leicht überschreiten. Validierungen und Speichern kommen
+zur Wandzeit hinzu. Vorher, nach 600 Trainingssekunden und am Ende werden je
+drei Entwicklungspartien für jeden der 186 Fälle gespielt. Dies ist nur eine
+kleine Auswahlprobe, keine Qualifikation. Auswahl zuerst nach Zahl der Fälle
+mit beobachteten >=30 %, dann schwächstem Fall, erst zuletzt beschreibendem Mittel;
+auch die Anfangsgewichte bleiben als `best.pt` zugelassen.
+
+Die Anfangsprobe hatte fünf Siege aus 558 Partien, verteilt auf nur drei Fälle
+(YUL drei, LHR einer, OSL einer). Eine unabhängige Datenprüfung fand 473 frühe
+Verluste wegen fehlender Pflichtsteuerung und keinen Budgetabbruch. Ein zusätzlicher
+öffentlicher Trainingszustand reproduziert das Problem: unter der breiten
+Modulauswahl verbraucht die bisherige Politik den letzten regulären Würfel für
+Konzentration statt fehlenden Schub. Das ist eine konkrete Planungsgrenze des
+Ausgangsspielers, kein behaupteter Modulerfolg. Nach 315.754 neuen Zügen brachte
+die Halbzeitprüfung sogar nur vier Siege in zwei Fällen; kein Verbesserungsbeleg.
+Die aktiven Quellen wurden erst nach dem geordneten Ende geändert, die alte
+Phase wird nicht als exaktes Resume fortgesetzt.
+
+Für die verbleibenden **531,63 Trainingssekunden** ist eine neue Phase
+`runs/allmodules-capacity-stage2/` läuft jetzt als einziger schwerer Job,
+Log `/tmp/cockpit-allmodules-capacity-stage2.log`, wieder von exakt Crew 2 und
+frischem Adam, nicht von den schwachen letzten Gewichten. `CapacityModulesEnv`
+reserviert nur öffentlich nachweisbar benötigte Kontrollwürfel; Praktikantentraining
+bleibt als Ersatz erlaubt, ein tatsächlich ausgegebener schwarzer Würfel zählt
+einmal gemeinsam. Bei möglicher späterer Synchronisation wird konservativ auf
+die Beschränkung verzichtet. Neue Trainings-/Bewertungsoption `--capacity-guard`
+und eigener Fingerprint; alte Produktionsprofile bleiben unverändert.
+Elf enginegeprüfte Tests decken Kapazitätsregel und neue Umgebung ab. Der echte
+MPS-Probelauf `runs/allmodules-capacity-smoke-v1/` endete mit 161 Entscheidungen
+und einem Update; Quellgewichte am Anfang exakt gleich und Grundlage danach
+unverändert. Seine Gewichte werden nicht verwendet. Insgesamt 32 gezielte
+Kapazitäts-, Datenweg- und Feedbacktests bestanden. Ein leistungsfähigerer
+Spieler ist damit noch nicht bewiesen.
+
+Der obere, mitlaufende Daumenbereich ist im Browser auf 320/390 Pixeln, mit
+Tastatur, neutralem Standard, Rücknahme und letzter Spielaktion geprüft. Er
+speichert +1/−1 statt der bisherigen Skala; alte Daten bleiben lesbar. Der Audit
+entdeckte zusätzlich eine bisherige Cloud-Schranke für Crew-2-Daten (nur Schema 1
+akzeptiert) und den fehlenden Import von Daumenfeedback ins Training. Diese
+Datenwege sind jetzt korrigiert: Worker-Version
+`b850056c-0c7c-49d4-a6e1-6001feee32a5` nimmt registrierte Schemas 1/2/3 an;
+technischer Crew-2-Liveupload mit HTTP 200 und D1 geprüft, eigene Testzeile wieder
+entfernt. Daumenpanel ist mit `8a11642` gepusht und live bytegleich geprüft.
+`ai.feedback` importiert bestätigte explizite Bewertungen samt ursprünglicher
+Referenzmaske, ohne Schema-Padding. `ai.train_feedback` bietet einen optionalen
+Offline-Actor-Kopf-Lauf mit KL-Begrenzung und Validierung nach ganzen Partien.
+Grundlage, Encoder und Kritiker bleiben unverändert; mindestens 64 informative
+Bewertungen aus vier Partien. Kandidaten erben keine alte Freigabe.
+14 gezielte Import-/Refinementtests bestanden. Vorhanden sind erst 16 nicht
+neutrale alte Schema-1-Bewertungen aus drei Partien; damit wurde kein Modell
+trainiert. Die Speicherung allein verändert weiterhin keine Gewichte.
 
 ## Abgeschlossene erste Versuche
 

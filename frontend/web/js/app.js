@@ -316,7 +316,7 @@ function render(zustand) {
   FlightModules.render(zustand, {
     role:null, selected:diceVisible ? ausgewaehlterWuerfel : null, reroll:neuwurfUi.phase !== 0,
     conceal() {diceVisible = null; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
-    onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.platziere(role, die, target, index)));},
+    onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; nachAktion(spielAktion({kind:"place",role,die,target,index}));},
     onAction(role, action, params) {ausgewaehlterWuerfel = null; nachAktion(pyToJs(bridge.modul_aktion(role, action, JSON.stringify(params))));},
     onTick() {const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {ausgewaehlterWuerfel = null; neuwurfReset(); nachAktion(r);}},
   });

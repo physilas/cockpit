@@ -460,6 +460,43 @@ Der Term bleibt ausdrücklich optional; vorhandene laufende Trainingsprozesse
 Lokale Checkpoints, Logs und Messwerte liegen in
 `runs/demo-comparison-2026-10-18/` (nicht in Git versioniert).
 
+## Daumenfeedback getrennt nachtrainieren
+
+KI-ndergartenbetreuung sammelt ausdrücklich bestätigte 👍/👎 zu KI-Aktionen.
+Neutral wird beim Refinement ignoriert. Auch verlorene Partien können hilfreiche
+Bewertungen enthalten. Rückgängig gemachte Aktionen und ältere Revisionen werden
+ausgeschlossen. Geführte Modelle benötigen die gespeicherten Referenzmasken;
+alte 349er-Eingaben werden nicht auf Crew 2 mit 489 Merkmalen aufgefüllt.
+
+`ai.feedback` prüft lokale Exporte oder archivierte Cloud-Partien ohne Updates:
+
+```sh
+.venv/bin/python -m ai.feedback --schema-version 1 ai/data/archives
+```
+
+Der bisherige `--demo-data`-Pfad bleibt für gewonnene menschliche Beispielpartien.
+Ein ausdrücklich gestarteter Offline-Lauf kann später Crew-2-Daumen verwenden:
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.train_feedback \
+  --checkpoint ai/releases/crew2-v1/best.pt --data feedback-export.json \
+  --run-dir runs/feedback-candidate-v1 --cpu-duty-cycle .7
+```
+
+Mindestens 64 informative Bewertungen aus vier Partien sind erforderlich;
+ganze Partien bilden die getrennte Validierung. Nur der vorhandene Actor-Kopf
+wird angepasst; Encoder, Grundlage und Kritiker bleiben exakt. Positive Daumen
+erhöhen, negative senken die Wahrscheinlichkeit der bewerteten Aktion. Kleines
+Gewicht und KL-Begrenzung halten die Anpassung nahe am Ausgangsspieler.
+Die Anfangsgewichte bleiben zugelassen. Bessere Feedback-Loss belegt keine
+höhere Gewinnquote: Kandidaten brauchen unabhängige Spieltests, erhalten keine
+Freigabe und werden nicht automatisch veröffentlicht.
+
+Die bisherigen 16 nicht neutralen Bewertungen aus drei alten Schema-1-Partien
+sind zu wenig und passen nicht zur Crew-2-Architektur. Mit ihnen wurde kein
+neues Modell trainiert. Normale Partien ohne Aufzeichnung verändern keine
+Gewichte automatisch.
+
 ## Tests und Erweiterungen
 
 ```bash

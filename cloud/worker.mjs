@@ -12,25 +12,53 @@ export const UPSERT_SESSION = `
   WHERE excluded.revision > training_sessions.revision
 `;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// These are the versioned browser/training schemas, not client-chosen lengths.
+const SCHEMAS = new Map([[1, {features: 349, actions: 121}], [2, {features: 352, actions: 125}], [3, {features: 489, actions: 217}]]);
+const boolMask = (value, size) => Array.isArray(value) && value.length === size && value.every(n => typeof n === "boolean");
+const featureNames = (value, size) => Array.isArray(value) && value.length === size && value.every(name => typeof name === "string");
+const actionDefinitions = (value, size) => Array.isArray(value) && value.length === size && value.every(action =>
+  action && !Array.isArray(action) && typeof action.kind === "string" && Object.values(action).every(item =>
+    item === null || typeof item === "string" || (typeof item === "number" && Number.isFinite(item))));
+function containsPrivateHand(value) {
+  const stack = [value];
+  while (stack.length) {
+    const current = stack.pop();
+    if (!current || typeof current !== "object") continue;
+    for (const [key, item] of Object.entries(current)) {
+      if (["own_dice", "partner_dice", "pilot_wuerfel", "kopilot_wuerfel"].includes(key)) return true;
+      if (item && typeof item === "object") stack.push(item);
+    }
+  }
+  return false;
+}
 
 function valid(data) {
   const s = data?.session, schema = data?.schema;
   if (data?.format !== "flyteam-learning-session" || data.version !== 1 || !s || !uuid.test(s.id)) return false;
   if (!["feedback", "examples"].includes(s.mode) || !Number.isSafeInteger(s.data_revision) || s.data_revision < 1) return false;
   if (s.consent?.version !== "2026-10-18" || !Number.isFinite(Date.parse(s.consent.accepted_at))) return false;
-  if (schema?.version !== 1 || !Array.isArray(schema.features) || schema.features.length !== 349
-      || !Array.isArray(schema.actions) || schema.actions.length !== 121) return false;
+  const dimensions = SCHEMAS.get(schema?.version);
+  if (!dimensions || !featureNames(schema.features, dimensions.features)
+      || !actionDefinitions(schema.actions, dimensions.actions)) return false;
+  if (s.schema_version !== undefined && s.schema_version !== schema.version) return false;
+  if (s.schema !== undefined && (s.schema?.version !== schema.version
+      || !featureNames(s.schema.features, dimensions.features) || !actionDefinitions(s.schema.actions, dimensions.actions)
+      || JSON.stringify(s.schema.features) !== JSON.stringify(schema.features)
+      || JSON.stringify(s.schema.actions) !== JSON.stringify(schema.actions))) return false;
   if (!Array.isArray(s.events) || s.events.length < 1 || s.events.length > 1024) return false;
   return s.events.every(e => {
     if (!e || !["human", "ai", "system"].includes(e.actor)) return false;
     if (e.feedback && (!Number.isInteger(e.feedback.value) || Math.abs(e.feedback.value) > 2 || typeof e.feedback.committed !== "boolean")) return false;
+    if (containsPrivateHand(e.decision?.public_state) || containsPrivateHand(e.public_after)) return false;
     if (e.action_id === null) return e.decision === null;
-    return Number.isInteger(e.action_id) && e.action_id >= 0 && e.action_id < 121
+    return Number.isInteger(e.action_id) && e.action_id >= 0 && e.action_id < dimensions.actions
       && ["pilot", "kopilot"].includes(e.decision?.role)
-      && Array.isArray(e.decision.observation) && e.decision.observation.length === 349
+      && Array.isArray(e.decision.observation) && e.decision.observation.length === dimensions.features
       && e.decision.observation.every(n => typeof n === "number" && Number.isFinite(n))
-      && Array.isArray(e.decision.action_mask) && e.decision.action_mask.length === 121
-      && e.decision.action_mask.every(n => typeof n === "boolean");
+      && boolMask(e.decision.action_mask, dimensions.actions)
+      && (e.decision.reference_action_mask === undefined ||
+          (boolMask(e.decision.reference_action_mask, dimensions.actions)
+           && e.decision.reference_action_mask.every((allowed, i) => !allowed || e.decision.action_mask[i])));
   });
 }
 

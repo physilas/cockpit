@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "selected_before_new_qualification": true,
+  "date": "2026-10-25",
+  "source": "ai/releases/crew2-v1/best.pt",
+  "weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "airports": [
+    "LOG_OSL_GREEN"
+  ],
+  "abilities": [],
+  "new_user_accepted_win_rate_range": [
+    0.3,
+    0.4
+  ],
+  "minimum_wilson_lower_bound": 0.3,
+  "self_games": 500,
+  "self_seed_start": 15200000,
+  "partner_games_per_role": 100,
+  "partner_seed_start": 15300000,
+  "qualification_started": false,
+  "proposed_release": "crew2-kerosene-v1",
+  "reason": "Unchanged previously selected Crew 2; existing 40.4% Oslo result motivates a fresh independent test under the newly lowered criterion. No altered old report or model selection from new held-out results. All-module research candidates remain separate."
+}

@@ -69,6 +69,13 @@ Weder Archivschlüssel noch installationsbezogene Datenbankkennungen werden
 committet. Die JSON-Dateien werden im bestehenden öffentlichen Repository
 veröffentlicht.
 
+Am 25.10.2026 wurde der Empfänger für die registrierten Schemas 1/2/3 erweitert:
+Crew-2-Aufzeichnungen mit 489 Merkmalen, 217 Aktionen und Referenzmaske werden
+jetzt angenommen. Die bisherige reine Schema-1-Prüfung wies sie ab; lokale
+Aufzeichnungen blieben dabei erhalten. Ein technischer Crew-2-Upload wurde nach
+der Bereitstellung mit HTTP 200 und echter D1-Speicherung geprüft und die eigene
+Testzeile anschließend gezielt entfernt. ±1/0 sowie historische ±2 bleiben lesbar.
+
 Bei einer Neueinrichtung oder Schlüsselrotation denselben neuen Schlüssel über
 Standardeingabe setzen, ohne ihn in Befehlsargumenten oder Dateien im Repository
 zu hinterlegen:
