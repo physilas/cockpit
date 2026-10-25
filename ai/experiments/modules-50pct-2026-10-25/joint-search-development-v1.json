@@ -1,0 +1,5182 @@
+{
+  "format": 1,
+  "phase": "development_search_teacher_only",
+  "goal_achieved": false,
+  "independent_test_used": false,
+  "checkpoint": "runs/guided-residual-stage2/latest.pt",
+  "weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "source_training_steps": 500347,
+  "search_sha256": "70f8b72bb6e0b1d0f879e069bb3457487137d5cf3be3e8e1ecab8a024e22500a",
+  "source_planner_sha256": "5914675e76dce67b59f5dfecbb6c5e71c04ca079143bdfc14bb3f295e7a4dafc",
+  "planner_sha256": "45560b39a5de5ed7d1a83cc74083cefc0e85bbd9dce5dcc7da6d1d337c36ed48",
+  "weights_changed": false,
+  "seed": 14500000,
+  "games_per_route": 100,
+  "workers": 8,
+  "cpu_duty_cycle": 0.7,
+  "threads": 1,
+  "beam": 64,
+  "modes": {
+    "model": {
+      "LOG_OSL_GREEN": {
+        "games": 100,
+        "wins": 47,
+        "win_rate": 0.47,
+        "win_ci_low": 0.3751065198210374,
+        "win_ci_high": 0.5671131686275227,
+        "mean_round": 6.34,
+        "mean_return": -0.06,
+        "truncated_rate": 0,
+        "mean_outcome_return": -0.06,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 1.31,
+        "mean_distance_remaining": 0.56,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.83,
+        "landing_round_rate": 0.82,
+        "mean_coffee_actions": 4.31,
+        "mean_coffee_units": 4.82,
+        "mean_rerolls": 1.31,
+        "mean_coffee_reversals": 0.01,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.12,
+        "truncated": 0,
+        "loss_reasons": {
+          "flugzeuge_uebrig": 2,
+          "kerosin_leer": 3,
+          "fahrwerk_unvollstaendig": 7,
+          "zu_schnell_gelandet": 14,
+          "landeklappen_unvollstaendig": 3,
+          "nicht_waagerecht": 10,
+          "kollision": 11,
+          "uebers_ziel_hinaus": 2,
+          "trudeln": 6
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500000,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500003,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500004,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500005,
+            "status": "verloren",
+            "reason": "kerosin_leer"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500006,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500007,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500010,
+            "status": "verloren",
+            "reason": "kerosin_leer"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500011,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500012,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500013,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500014,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500015,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500016,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500017,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500018,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500019,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500021,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500023,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500024,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500025,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500026,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500027,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig,landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500028,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500029,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500031,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500032,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500033,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500034,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500035,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500036,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500037,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500040,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500041,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500042,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500043,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500044,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500046,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500047,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500049,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500050,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500052,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500053,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500054,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500055,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500056,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500057,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500058,
+            "status": "verloren",
+            "reason": "kerosin_leer"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500059,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500060,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500061,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500062,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500063,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500064,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500065,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500066,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500067,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500069,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500070,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500071,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500072,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500073,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500074,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500075,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500076,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500077,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500078,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500079,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500080,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500083,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500085,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500086,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500087,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500088,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500089,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500091,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500092,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500093,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500094,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500096,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500097,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500098,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500099,
+            "status": "gewonnen",
+            "reason": ""
+          }
+        ],
+        "considered": 0,
+        "overrides": 0,
+        "elapsed_seconds": 19.12213712511584
+      },
+      "LOG_HND_GREEN": {
+        "games": 100,
+        "wins": 48,
+        "win_rate": 0.48,
+        "win_ci_low": 0.38464384320080547,
+        "win_ci_high": 0.5768359490982345,
+        "mean_round": 5.82,
+        "mean_return": -0.04,
+        "truncated_rate": 0,
+        "mean_outcome_return": -0.04,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 3.12,
+        "mean_distance_remaining": 1.17,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.67,
+        "landing_round_rate": 0.67,
+        "mean_coffee_actions": 5.56,
+        "mean_coffee_units": 6.03,
+        "mean_rerolls": 1.14,
+        "mean_coffee_reversals": 0,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.09,
+        "truncated": 0,
+        "loss_reasons": {
+          "kollision": 17,
+          "zu_schnell_gelandet": 3,
+          "notlandung": 2,
+          "ruder_verbotene_stellung": 11,
+          "nicht_waagerecht": 6,
+          "landeklappen_unvollstaendig": 6,
+          "trudeln": 2,
+          "flugzeuge_uebrig": 8,
+          "fahrwerk_unvollstaendig": 3,
+          "uebers_ziel_hinaus": 1
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510000,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510003,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510004,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510005,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510006,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510007,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510010,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510011,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510012,
+            "status": "verloren",
+            "reason": "notlandung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510013,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510014,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510015,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510017,
+            "status": "verloren",
+            "reason": "notlandung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510018,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510019,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510021,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510023,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510024,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510025,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510026,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510027,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510028,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510029,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510031,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510033,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510034,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510035,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510036,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510037,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510040,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510041,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510042,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510043,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510044,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510046,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510047,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510049,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510050,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510052,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510054,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510055,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510056,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510057,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510058,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510059,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510060,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510061,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510062,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510063,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig,landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510064,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510065,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510066,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510067,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510069,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510070,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510071,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510072,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510073,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510074,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510075,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510076,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510077,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510078,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510079,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510080,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510083,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510085,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510086,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,landeklappen_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510087,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510088,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510089,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510091,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510092,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510093,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510094,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510096,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510097,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510098,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510099,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,fahrwerk_unvollstaendig,landeklappen_unvollstaendig"
+          }
+        ],
+        "considered": 0,
+        "overrides": 0,
+        "elapsed_seconds": 15.445905167143792
+      },
+      "LOG_LHR_GREEN": {
+        "games": 100,
+        "wins": 65,
+        "win_rate": 0.65,
+        "win_ci_low": 0.5525426042919797,
+        "win_ci_high": 0.7363589534652197,
+        "mean_round": 6.7,
+        "mean_return": 0.3,
+        "truncated_rate": 0,
+        "mean_outcome_return": 0.3,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 0.94,
+        "mean_distance_remaining": 0.18,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.92,
+        "landing_round_rate": 0.92,
+        "mean_coffee_actions": 5.54,
+        "mean_coffee_units": 6.24,
+        "mean_rerolls": 0.97,
+        "mean_coffee_reversals": 0.03,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.08,
+        "truncated": 0,
+        "loss_reasons": {
+          "zu_schnell_gelandet": 7,
+          "kollision": 6,
+          "flugzeuge_uebrig": 12,
+          "landeklappen_unvollstaendig": 5,
+          "nicht_waagerecht": 4,
+          "trudeln": 2,
+          "uebers_ziel_hinaus": 1
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520000,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520003,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520004,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520005,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520006,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520007,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520010,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520011,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520012,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520013,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520014,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520015,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520017,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520018,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520019,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520021,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520023,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520024,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520025,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520026,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520027,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520028,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520029,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520030,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520031,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520033,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520034,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520035,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520036,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520037,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520040,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520041,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520042,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520043,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520044,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520046,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520047,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520048,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520049,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520050,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520052,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520054,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520055,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520056,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520057,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520058,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520059,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520060,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520061,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520062,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520063,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520064,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520065,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520066,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520067,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520069,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520070,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520071,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520072,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520073,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520074,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520075,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520076,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520077,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520078,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520079,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520080,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520083,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520085,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520086,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520087,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520088,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520089,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520091,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520092,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520093,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520094,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520096,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520097,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520098,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520099,
+            "status": "gewonnen",
+            "reason": ""
+          }
+        ],
+        "considered": 0,
+        "overrides": 0,
+        "elapsed_seconds": 17.053559999912977
+      },
+      "LOG_YUL_GREEN": {
+        "games": 100,
+        "wins": 88,
+        "win_rate": 0.88,
+        "win_ci_low": 0.8018773199709163,
+        "win_ci_high": 0.9300066263473222,
+        "mean_round": 6.91,
+        "mean_return": 0.76,
+        "truncated_rate": 0,
+        "mean_outcome_return": 0.76,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 0.23,
+        "mean_distance_remaining": 0.05,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.97,
+        "landing_round_rate": 0.97,
+        "mean_coffee_actions": 5.22,
+        "mean_coffee_units": 6.11,
+        "mean_rerolls": 0.45,
+        "mean_coffee_reversals": 0.01,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.01,
+        "truncated": 0,
+        "loss_reasons": {
+          "kollision": 2,
+          "zu_schnell_gelandet": 4,
+          "trudeln": 1,
+          "uebers_ziel_hinaus": 1,
+          "flugzeuge_uebrig": 2,
+          "nicht_waagerecht": 1,
+          "landeklappen_unvollstaendig": 1
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530000,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530003,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530004,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530005,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530006,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530007,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530010,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530011,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530012,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530013,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530014,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530015,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530017,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530018,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530019,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530020,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530021,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530023,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530024,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530025,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530026,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530027,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530028,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530029,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530031,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530033,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530034,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530035,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530036,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530037,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530040,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530041,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530042,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530043,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530044,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530046,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530047,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530049,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530050,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530052,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530054,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530055,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530056,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530057,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530058,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530059,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530060,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530061,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530062,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530063,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530064,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530065,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530066,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530067,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530069,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530070,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530071,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530072,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530073,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530074,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530075,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530076,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530077,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530078,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530079,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530080,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530083,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530085,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530086,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530087,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530088,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530089,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530091,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530092,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530093,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530094,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530096,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530097,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530098,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530099,
+            "status": "gewonnen",
+            "reason": ""
+          }
+        ],
+        "considered": 0,
+        "overrides": 0,
+        "elapsed_seconds": 17.903195249848068
+      }
+    },
+    "legacy": {
+      "LOG_OSL_GREEN": {
+        "games": 100,
+        "wins": 56,
+        "win_rate": 0.56,
+        "win_ci_low": 0.4622792771125631,
+        "win_ci_high": 0.6532813459903167,
+        "mean_round": 6.29,
+        "mean_return": 0.12,
+        "truncated_rate": 0,
+        "mean_outcome_return": 0.12,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 1.32,
+        "mean_distance_remaining": 0.6,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.8,
+        "landing_round_rate": 0.8,
+        "mean_coffee_actions": 4.22,
+        "mean_coffee_units": 4.75,
+        "mean_rerolls": 1.16,
+        "mean_coffee_reversals": 0,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.04,
+        "truncated": 0,
+        "loss_reasons": {
+          "flugzeuge_uebrig": 3,
+          "landeklappen_unvollstaendig": 2,
+          "zu_schnell_gelandet": 8,
+          "kerosin_leer": 1,
+          "fahrwerk_unvollstaendig": 1,
+          "nicht_waagerecht": 7,
+          "trudeln": 6,
+          "kollision": 12,
+          "uebers_ziel_hinaus": 4
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500000,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500003,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500004,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500005,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500006,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500007,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500010,
+            "status": "verloren",
+            "reason": "kerosin_leer"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500011,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500012,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500013,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500014,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500015,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500017,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500018,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500019,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500021,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500023,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500024,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500025,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500026,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500027,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500028,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500029,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500031,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500033,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500034,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500035,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500036,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500037,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500040,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500041,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500042,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500043,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500044,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500045,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500046,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500047,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500049,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500050,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500052,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500054,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500055,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500056,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500057,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500058,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500059,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500060,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500061,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500062,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500063,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500064,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500065,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500066,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500067,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500069,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500070,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500071,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500072,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500073,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500074,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500075,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500076,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500077,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500078,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500079,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500080,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500081,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500083,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500085,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500086,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500087,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500088,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500089,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500091,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500092,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500093,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500094,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500096,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500097,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500098,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_OSL_GREEN",
+            "seed": 14500099,
+            "status": "gewonnen",
+            "reason": ""
+          }
+        ],
+        "considered": 1017,
+        "overrides": 372,
+        "elapsed_seconds": 19.98805887508206,
+        "paired_against_model": {
+          "both_win": 38,
+          "both_lose": 35,
+          "candidate_only": 18,
+          "baseline_only": 9
+        }
+      },
+      "LOG_HND_GREEN": {
+        "games": 100,
+        "wins": 44,
+        "win_rate": 0.44,
+        "win_ci_low": 0.34671865400968327,
+        "win_ci_high": 0.537720722887437,
+        "mean_round": 5.79,
+        "mean_return": -0.12,
+        "truncated_rate": 0,
+        "mean_outcome_return": -0.12,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 3.16,
+        "mean_distance_remaining": 1.19,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.66,
+        "landing_round_rate": 0.66,
+        "mean_coffee_actions": 5.43,
+        "mean_coffee_units": 5.88,
+        "mean_rerolls": 1.18,
+        "mean_coffee_reversals": 0,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.09,
+        "truncated": 0,
+        "loss_reasons": {
+          "kollision": 16,
+          "ruder_verbotene_stellung": 12,
+          "zu_schnell_gelandet": 6,
+          "landeklappen_unvollstaendig": 8,
+          "notlandung": 1,
+          "uebers_ziel_hinaus": 2,
+          "nicht_waagerecht": 5,
+          "trudeln": 3,
+          "flugzeuge_uebrig": 8,
+          "fahrwerk_unvollstaendig": 1
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510000,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510003,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510004,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510005,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510006,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510007,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510008,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510010,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510011,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510012,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510013,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510014,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510015,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510017,
+            "status": "verloren",
+            "reason": "notlandung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510018,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510019,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510021,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510023,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510024,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510025,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510026,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510027,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510028,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510029,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510031,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510033,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510034,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510035,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510036,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510037,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510040,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510041,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510042,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510043,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510044,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510046,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510047,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510049,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510050,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510052,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510054,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510055,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510056,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510057,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510058,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510059,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510060,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510061,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510062,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510063,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig,landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510064,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510065,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510066,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510067,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510069,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510070,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510071,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510072,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510073,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510074,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510075,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510076,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510077,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510078,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510079,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510080,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510083,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510085,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510086,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,landeklappen_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510087,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510088,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510089,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510091,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510092,
+            "status": "verloren",
+            "reason": "ruder_verbotene_stellung"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510093,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510094,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510096,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510097,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510098,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_HND_GREEN",
+            "seed": 14510099,
+            "status": "verloren",
+            "reason": "trudeln"
+          }
+        ],
+        "considered": 892,
+        "overrides": 95,
+        "elapsed_seconds": 16.618366499897093,
+        "paired_against_model": {
+          "both_win": 43,
+          "both_lose": 51,
+          "candidate_only": 1,
+          "baseline_only": 5
+        }
+      },
+      "LOG_LHR_GREEN": {
+        "games": 100,
+        "wins": 66,
+        "win_rate": 0.66,
+        "win_ci_low": 0.5627754565831095,
+        "win_ci_high": 0.74538620502457,
+        "mean_round": 6.68,
+        "mean_return": 0.32,
+        "truncated_rate": 0,
+        "mean_outcome_return": 0.32,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 0.98,
+        "mean_distance_remaining": 0.19,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.91,
+        "landing_round_rate": 0.91,
+        "mean_coffee_actions": 5.56,
+        "mean_coffee_units": 6.13,
+        "mean_rerolls": 0.92,
+        "mean_coffee_reversals": 0.07,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.08,
+        "truncated": 0,
+        "loss_reasons": {
+          "landeklappen_unvollstaendig": 5,
+          "nicht_waagerecht": 6,
+          "kollision": 6,
+          "flugzeuge_uebrig": 11,
+          "zu_schnell_gelandet": 5,
+          "fahrwerk_unvollstaendig": 1,
+          "uebers_ziel_hinaus": 2,
+          "trudeln": 1
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520000,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520002,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520003,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520004,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520005,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520006,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520007,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520010,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520011,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520012,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520013,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520014,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520015,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520017,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520018,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520019,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520021,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520023,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520024,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520025,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520026,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520027,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520028,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520029,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520031,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520033,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520034,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520035,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520036,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520037,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520040,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520041,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520042,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520043,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520044,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520046,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520047,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520049,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520050,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520052,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520054,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520055,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520056,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520057,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520058,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520059,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520060,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520061,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520062,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520063,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520064,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520065,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520066,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520067,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520069,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520070,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520071,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520072,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520073,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520074,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520075,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520076,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520077,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520078,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520079,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520080,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520083,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520084,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520085,
+            "status": "verloren",
+            "reason": "trudeln"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520086,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520087,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520088,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520089,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520090,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520091,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520092,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520093,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520094,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520096,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig,landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520097,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520098,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_LHR_GREEN",
+            "seed": 14520099,
+            "status": "verloren",
+            "reason": "nicht_waagerecht"
+          }
+        ],
+        "considered": 1186,
+        "overrides": 140,
+        "elapsed_seconds": 18.955681959167123,
+        "paired_against_model": {
+          "both_win": 60,
+          "both_lose": 29,
+          "candidate_only": 6,
+          "baseline_only": 5
+        }
+      },
+      "LOG_YUL_GREEN": {
+        "games": 100,
+        "wins": 91,
+        "win_rate": 0.91,
+        "win_ci_low": 0.8377362530335634,
+        "win_ci_high": 0.9519280048361151,
+        "mean_round": 6.91,
+        "mean_return": 0.82,
+        "truncated_rate": 0,
+        "mean_outcome_return": 0.82,
+        "mean_round_return": 0.0,
+        "mean_sync_return": 0.0,
+        "mean_tasks_return": 0.0,
+        "mean_tasks_undone": 0.24,
+        "mean_distance_remaining": 0.05,
+        "mean_sync_error": 0.0,
+        "airport_reached_rate": 0.97,
+        "landing_round_rate": 0.97,
+        "mean_coffee_actions": 5.2,
+        "mean_coffee_units": 6.13,
+        "mean_rerolls": 0.38,
+        "mean_coffee_reversals": 0.01,
+        "first_action_reroll_rate": 0,
+        "capacity_impossible_rate": 0.02,
+        "truncated": 0,
+        "loss_reasons": {
+          "kollision": 2,
+          "zu_schnell_gelandet": 2,
+          "fahrwerk_unvollstaendig": 1,
+          "uebers_ziel_hinaus": 1,
+          "flugzeuge_uebrig": 2,
+          "landeklappen_unvollstaendig": 1
+        },
+        "episodes": [
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530000,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530001,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530002,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530003,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530004,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530005,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530006,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530007,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530008,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530009,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530010,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530011,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530012,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530013,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530014,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530015,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530016,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530017,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530018,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530019,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530020,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530021,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530022,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530023,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530024,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530025,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530026,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530027,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530028,
+            "status": "verloren",
+            "reason": "kollision"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530029,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530030,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530031,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530032,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530033,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530034,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530035,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530036,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530037,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530038,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530039,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530040,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530041,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530042,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530043,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530044,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530045,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530046,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530047,
+            "status": "verloren",
+            "reason": "zu_schnell_gelandet"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530048,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530049,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530050,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530051,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530052,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530053,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530054,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530055,
+            "status": "verloren",
+            "reason": "fahrwerk_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530056,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530057,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530058,
+            "status": "verloren",
+            "reason": "uebers_ziel_hinaus"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530059,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530060,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530061,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530062,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530063,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530064,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530065,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530066,
+            "status": "verloren",
+            "reason": "flugzeuge_uebrig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530067,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530068,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530069,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530070,
+            "status": "verloren",
+            "reason": "landeklappen_unvollstaendig"
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530071,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530072,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530073,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530074,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530075,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530076,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530077,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530078,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530079,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530080,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530081,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530082,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530083,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530084,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530085,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530086,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530087,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530088,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530089,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530090,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530091,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530092,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530093,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530094,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530095,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530096,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530097,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530098,
+            "status": "gewonnen",
+            "reason": ""
+          },
+          {
+            "scenario": "LOG_YUL_GREEN",
+            "seed": 14530099,
+            "status": "gewonnen",
+            "reason": ""
+          }
+        ],
+        "considered": 1253,
+        "overrides": 142,
+        "elapsed_seconds": 19.976812209002674,
+        "paired_against_model": {
+          "both_win": 87,
+          "both_lose": 8,
+          "candidate_only": 4,
+          "baseline_only": 1
+        }
+      }
+    }
+  },
+  "completion_state": "interrupted_before_joint_route_completed",
+  "interruption_reason": "Maintenance: bound CPU bursts inside long search decisions, not only between game actions.",
+  "independent_repetitions": 1
+}

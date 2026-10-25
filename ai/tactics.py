@@ -146,7 +146,7 @@ def _expected_best_face(scores, dice):
     return result
 
 
-def plan_actions(view, mask, *, beam=24, version=1):
+def plan_actions(view, mask, *, beam=24, version=1, forecast_factory=None, cooperate=None):
     """Rank the first macro action of complete plans for the visible own hand.
 
     Coffee followed by placement is evaluated as one operation; only its first
@@ -160,9 +160,12 @@ def plan_actions(view, mask, *, beam=24, version=1):
         slots, actions = FUEL_SLOTS, FUEL_ACTIONS
     action_ids = {a: i for i, a in enumerate(actions)}
     forecast=None
-    if view.get('_horizon') and not view['reroll'] and 0<view['height']<=2000:
-        from .horizon import make_forecast
-        forecast=make_forecast(view)
+    if (view.get('_horizon') or forecast_factory is not None) and not view['reroll'] and 0<view['height']<=2000:
+        if forecast_factory is not None:
+            forecast=forecast_factory(view)
+        else:
+            from .horizon import make_forecast
+            forecast=make_forecast(view)
     role = view['role']
     partner = ROLES[1 - ROLES.index(role)]
     own_r = _SLOT['ruder', role, None, 0]
@@ -196,6 +199,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
 
     @lru_cache(maxsize=4096)
     def score(state, complete=False, projected=False, attitude_target=None):
+        if cooperate is not None:cooperate()
         dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic, fuel_cost = state
         value = 13 * gear.bit_count() + 14 * flaps.bit_count()
         value += sum(w for i, w in enumerate((18, 16, 10)) if brakes & (1 << i))
@@ -310,8 +314,11 @@ def plan_actions(view, mask, *, beam=24, version=1):
                                 for c in view['track'] if view['distance'] - move < c['distance'] <= view['distance'])
                 destination = next((c for c in view['track'] if c['distance'] == remaining), None)
                 spawn_cost = 2 * destination['traffic'] if version >= 3 and destination and rounds > 1 else 0
-                continuation=(40*forecast(move,attitude,gear,flaps,brakes,coffee,traffic)
-                              if projected and forecast else 0)
+                continuation=0
+                if projected and forecast:
+                    forecast_args=(move,attitude,gear,flaps,brakes,coffee,traffic)
+                    continuation=40*(forecast(*forecast_args,fuel_cost=fuel_cost) if forecast_factory is not None
+                                     else forecast(*forecast_args))
                 return (continuation-30 * abs(move - target) - spawn_cost
                         - 500 * max(0, remaining - future_max * (rounds - 1))
                         - (collision_cost if version >= 2 else 0)
@@ -349,6 +356,7 @@ def plan_actions(view, mask, *, beam=24, version=1):
     for _ in range(depth):
         expanded = {}
         for state, first, sequence in nodes:
+            if cooperate is not None:cooperate()
             dice, used, rudder, thrust, gear, flaps, brakes, coffee, traffic, fuel_cost = state
             remaining = sum(bool(d) for d in dice)
             missing = int(not rudder) + int(not thrust)

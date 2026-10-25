@@ -322,29 +322,113 @@ zu 1 war 0,00000883. Der Gewichts-Fingerprint blieb unverändert.
 Alle drei neuen Diagnosetests und die vollständige **lokale Suite mit 222 Tests**
 bestanden (38,6 s). Die lokale Suite enthält auch die geschützten fremden Tests;
 das ist keine Aussage über deren Verfügbarkeit im Remote-Repository.
-**Aktuell läuft kein schwerer Job.** Vor jedem neuen Start Status und STOP-Datei prüfen.
+Die anschließend gestartete Suchprüfung steht im nächsten Abschnitt.
 
 Der unabhängige Kerosinvergleich ab 15.000.000 wurde noch NICHT gestartet.
 Auch 12.000.000 und 13.000.000 bleiben unbenutzt. Keine neue Modul-KI ist
 freigegeben; das Menü zeigt weiter die bisherigen Modelle.
 
+## Gemeinsame Würfelzuordnung und laufender Suchvergleich
+
+`ai/joint_round.py` berechnet statische Belegungen für hypothetische Hände:
+Ruder, Schub, rollenbezogene Aufgaben und gemeinsame Aufgaben verwenden
+**verschiedene Würfel**; Kaffee ist ein einziges gemeinsames Budget.
+126 gewichtete Viererhände je Rolle decken alle 6^8 gleichverteilten Würfe ab.
+Ein ausdrücklich verfügbarer schwarzer Zusatzwürfel wird entweder der Pilotin
+oder dem Kopiloten zugeschlagen. Erfolgreiche Handpaare werden über beide
+Zuordnungen vereinigt, nicht doppelt gezählt. Besitz der Synchronisationskarte
+allein gewährt hier keinen kostenlosen Würfel. Gemeinsame Aufgaben wie Kerosin
+werden ebenso genau einmal einer Rolle zugeordnet.
+
+Sieben Tests prüfen unter anderem vollständige unabhängige Zuordnungen,
+gemeinsamen Kaffee, konkurrierende Aufgaben, den einzelnen schwarzen Würfel
+und eine tatsächlich in der Engine gewonnene konstruierte Landung. Bei drei
+Zusatzaufgaben pro Rolle helfen auch neun Gesamtwürfel nicht: vier Kontrollen
+plus sechs Aufgaben benötigen zehn. Das ist ein Regel-/Belegungsnachweis,
+keine Quote auf offiziellen Routen.
+
+`ai/joint_forecast.py` plant in der vorletzten und drittletzten Runde bis zur
+Landung: frühere Vorbereitung, Funkzuordnung, Bewegung, Fluglage, Kaffeeverbrauch
+und Kerosin konkurrieren um dieselben acht Zukunftswürfel. Ein Kerosinplatz pro
+Zukunftsrunde und das Überlebensreservoir werden mitberechnet. Der bekannte
+hypothetische eigene Kerosinverbrauch wird weitergegeben; ein noch nicht
+bezahlter Partnerverbrauch bleibt optimistisch bei eins. Zukünftige
+Verkehrswürfe werden weiterhin nur über einen öffentlichen Näherungsabschlag
+berücksichtigt. Dies ist keine kalibrierte Gewinnwahrscheinlichkeit und keine
+vollständige Suche über alle Zugfolgen oder Kartenwirkungen.
+
+`ai/search_teacher.py` ist ein ausdrücklich experimenteller Suchlehrer auf dem
+**unveränderten** geführten 500.347-Schritte-Netz. In frühen Runden, in der
+Landung und beim Neuwurf entscheidet weiter die Quelle. Nur auf 1.000/2.000 Fuß
+kann eine öffentliche Eigenhand-Suche die Auswahl neu ordnen. Drei Varianten
+werden verglichen: `model` ohne Zusatzsuche, `legacy` mit der bisherigen
+getrennten Zukunftsnäherung, `joint` mit gemeinsamer Zuordnung. Bestehende
+Assistenzprofile bleiben semantisch gleich; `plan_actions` erhielt lediglich
+einen optionalen, standardmäßig ungenutzten Forecast-Aufruf. Der dadurch neue
+Quellcode-Fingerprint markiert ausdrücklich eine Forschungsphase, kein exaktes
+Resume alter PPO-Läufe. Keine gespeicherten Fingerprints nachträglich anpassen.
+
+Die neue Suche unterstützt vorerst **Grundspiel/Kerosin ohne Fähigkeitskarten**.
+Andere Module/Karten werden ausdrücklich zurückgewiesen. Die Belegungsprimitive
+kann einen bereits verfügbaren schwarzen Würfel behandeln; Karten-Auslösung,
+Praktikantenketten, Wind, Leck, Eis und Echtzeit sind dadurch noch nicht in der
+Zukunftssuche abgedeckt. Der Produktkatalog bleibt unverändert.
+
+16 neue Tests und die gesamte **lokale Suite mit 238 Tests** bestanden
+(39,4 s); die Browserquellen wurden neu gebaut. Ein Integrationstest mit zwei
+gedrosselten Workern lief über **24 Partien** (2 je Variante und Route), Seed
+14.900.000, Beam 32. Bericht `joint-search-smoke-v1.json` enthält keine
+Freigabeevidenz. Der Bericht entstand noch vor Ergänzung der zusätzlichen
+gepaarten Ausgabe `paired_against_legacy`; Spiel-/Suchcode blieb dabei gleich.
+
+Der erste große Lauf wurde zur Wartung unterbrochen: die neue Suche erzeugte
+zu lange CPU-Spitzen innerhalb einzelner Entscheidungen, weil vorher nur
+zwischen Spielzügen pausiert wurde. Alle eigenen Prozesse sind beendet worden;
+die dauerhafte Nutzer-STOP-Datei wurde weder gesetzt noch gelöscht.
+`joint-search-development-v1.json` enthält ausschließlich die abgeschlossenen
+Varianten `model` und `legacy`; keine fertige `joint`-Route. Er ist ausdrücklich
+als unvollständig markiert. Modell/Legacy-Quoten: OSL 47/56, HND 48/44,
+LHR 65/66, YUL 88/91 Siege pro 100 Partien.
+
+Die Drosselung greift nun zusätzlich innerhalb der Eigenhand- und Zukunftssuche
+in Zeitabschnitten von ungefähr 20 ms. Die äußere Drosselung bleibt ebenfalls
+aktiv; das ist konservativer als 70 % insgesamt und vermeidet lange Volllast.
+Ein zusätzlicher Test bestätigt unveränderte Suchwerte mit Kooperationsaufrufen.
+Nach Neustart stimmen alle 800 bereits abgeschlossenen Modell-/Legacy-Ergebnisse
+mit v1 exakt überein, einschließlich Verlustgründen und Eingriffszählern.
+Eine Prozesskontrolle während der langen Joint-Suche zeigte aktive Worker bei
+ungefähr 61–63 % CPU; alle acht Worker haben Priorität 15 und einen Torch-Thread.
+
+**Aktueller schwerer Job:** `ai.search_evaluate`, Log
+`/tmp/cockpit-joint-search-development-v2.log`, Ausgabe
+`ai/experiments/modules-50pct-2026-10-25/joint-search-development-v2.json`.
+Je **100 neue Entwicklungspartien pro Route und Variante**, Seeds ab
+14.500.000, OSL/HND/LHR/YUL, Beam 64, acht Worker zu 70 %, ein Torch-Thread,
+`nice -n15`. Insgesamt 1.200 Partien; **keine neuen Trainingsentscheidungen**.
+Dieselben Entwicklungsseeds wie v1: wiederholte Modell-/Legacy-Partien zählen
+nicht als zusätzliche unabhängige Evidenz. Die Wartungsunterbrechung erfolgte
+nicht aufgrund eines Ergebnisses der noch unvollständigen Joint-Variante.
+Einzelergebnisse werden mit Route/Seed/Status/Grund gespeichert, damit
+gepaarte Unterschiede nachvollziehbar bleiben. Die abschließenden Prüfseeds
+ab 15.000.000 bleiben unbenutzt. Vor weiteren Läufen Status/STOP/Prozesse prüfen.
+
+```sh
+nice -n15 .venv/bin/python -m ai.job_control run -- .venv/bin/python -m ai.search_evaluate \
+  --checkpoint runs/guided-residual-stage2/latest.pt \
+  --games 100 --seed 14500000 --workers 8 --cpu-duty-cycle .7 --beam 64 \
+  --output ai/experiments/modules-50pct-2026-10-25/joint-search-development-v2.json
+```
+
 ## Nächste Arbeit
 
-1. Zuerst Prozessstatus/STOP-Datei prüfen; zuletzt wurden Training, frischer
-   Modellvergleich und Gradientenanalyse regulär abgeschlossen. Der letzte
-   500k-Stand verbessert die frische schwächste Route auf 42 %, ist aber unter
-   50 %. Der feste 200-Partien-Auswahlstand bleibt bei 200.115 Schritten.
-   Stärkere öffentliche Suchlehrer bearbeiten, statt unverändert weiterzutrainieren.
-   Konkret: Steuerung und Aufgaben gemeinsam auf dieselben vier Würfel pro Rolle
-   zuordnen. `horizon.py` multipliziert bisher getrennte Steuerungs- und
-   Aufgabenwahrscheinlichkeiten; diese Näherung bildet ihre Würfelkonkurrenz nicht
-   exakt ab. Aktuelles Profil 9 nutzt diese Mehr-Runden-Prognose noch nicht.
-   Einen stärkeren Suchlehrer bzw. ein ausdrücklich neues Forschungsprofil zuerst
-   mit enginegeprüften Belegungsfällen und begrenzten Entwicklungspartien prüfen;
-   bestehende Profile nicht still ändern. Der gemeinsame schwarze Würfel darf
-   die gemeinsame Kapazität nur einmal erhöhen. Simulationszufall ausschließlich
-   unabhängig erzeugen, keine echten verdeckten Würfel oder RNG-Zukunft lesen.
-   Neue Planung benötigt gemessene Gewinnquoten, nicht nur bessere Nachahmung.
+1. Zuerst aktuellen Suchvergleich, Prozessstatus und STOP-Datei prüfen; keinen
+   zweiten schweren Job. Erst nach Abschluss alle vier Einzelquoten und gepaarte
+   Gegenbeispiele auswerten. `joint` auch mit `legacy` vergleichen, nicht bloß
+   irgendeine Suche mit dem Modell. Bei schwachem Lehrer nicht wieder dessen
+   Labels endlos imitieren: Belegungsmodelle, Kapazitätsgrenzen und konkrete
+   verlorene öffentliche Entscheidungssituationen untersuchen. Ein besserer
+   statischer Belegungswert allein ist kein Gewinnnachweis. Kein neuer
+   unabhängiger Freigabetest, bevor die Entwicklungsquoten ausreichend sind.
 2. Assistenzprofil 7 im allgemeinen Adapter und Forschungsprofil 9 unterstützen
    taktisch nur Grundspiel/Kerosin ohne Karten. Für weitere Module/Karten sind
    Modultaktik und Planung noch zu entwickeln; rohe legale Aktionen funktionieren
