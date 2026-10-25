@@ -78,6 +78,13 @@ und geöffnete Info wurden visuell geprüft. Dies sind technische Nachweise,
 keine zusätzlichen Qualifikationspartien. Browser und begrenzter lokaler
 Webserver sind beendet; kein Trainingsjob aktiv.
 
+Veröffentlicht mit **`6428eac6b39ab124039e081dd8539f99e226c72a`** nach main.
+GitHub Pages lief erfolgreich durch (Run `40210307915`). Danach wurden Live-
+und lokale Bytes von Modellkatalog, Cacheversion, Singleplayer-JavaScript,
+App-JavaScript, Panel-CSS, Enginebundle und tatsächlichem Crew-5-Browsergewicht
+verglichen: alle identisch. Live sind 75 Katalogeinträge und alle sechs
+Crew-5-Kartenfälle vorhanden. Cacheversion `3981184b31be`.
+
 ## Verbindlicher Auftrag
 
 Der Nutzer hat das ursprüngliche 50-%-Ziel ausdrücklich auf zunächst **30–40 %**
