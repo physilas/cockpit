@@ -15835,5 +15835,6 @@
       "release_evidence": false
     }
   ],
-  "latest_weights_sha256": "1a7996006252ab67af808aeefc2f93361aee6d4e4910ebe6b97edf17e6df228c"
+  "latest_weights_sha256": "1a7996006252ab67af808aeefc2f93361aee6d4e4910ebe6b97edf17e6df228c",
+  "frozen_source_unchanged_verified_after_interruption": true
 }

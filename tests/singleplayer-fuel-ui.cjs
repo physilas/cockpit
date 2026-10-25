@@ -1,5 +1,5 @@
-/* Technical fixture only: OSL support is injected for the actual Crew-2 weights.
- * This is not release qualification and never uploads fixture games to D1. */
+/* Actual qualified OSL model. An unsupported ATL entry is injected only to test
+ * the feedback gate. This never uploads technical fixture games to D1. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -14,9 +14,9 @@ const records = page => page.evaluate(async () => {
   try {
     const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}), errors=[], uploads=[];
     await context.route('**/js/ai-models.js',route=>route.fulfill({contentType:'application/javascript',body:catalogSource+`
-      {const model=window.COCKPIT_AI_CATALOG.models.find(m=>m.quality?.approved && m.schema?.version===3);
-       if(!model) throw new Error('Crew-2 fixture model missing');
-       model.supported_airports=[...new Set([...model.supported_airports,'LOG_OSL_GREEN','LOG_ATL_GREEN'])];}
+      {const model=window.COCKPIT_AI_CATALOG.models.find(m=>m.quality?.approved && m.schema?.version===3 && m.supported_airports?.includes('LOG_OSL_GREEN'));
+       if(!model) throw new Error('Qualified Crew-2 OSL model missing');
+       model.supported_airports=[...new Set([...model.supported_airports,'LOG_ATL_GREEN'])];}
     `}));
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={endpoint:"https://collector.invalid/logs"};'}));
     await context.route('https://collector.invalid/logs',route=>{
@@ -27,7 +27,7 @@ const records = page => page.evaluate(async () => {
     await page.goto(pageUrl);
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('#solo-route').selectOption('OSL-green');
-    const modelId=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(m=>m.quality?.approved && m.schema?.version===3).id);
+    const modelId=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(m=>m.quality?.approved && m.schema?.version===3 && m.supported_airports?.includes('LOG_OSL_GREEN')).id);
     await page.locator('#solo-model').selectOption(modelId);
     await page.locator('[data-mode="feedback"]').click();
     assert.equal(await page.locator('#solo-route option[value="OSL-green"]').evaluate(option=>option.disabled),false);

@@ -368,6 +368,13 @@ unabhängig bestandenen Strecken. Die Auswahl zeigt die jeweilige Selbstspielquo
 sie ist keine Vorhersage der Gewinnquote mit Menschen. Prüfprotokoll und
 Ergebnisse stehen unter [Crew 2](ai/releases/crew2-v1/README.md).
 
+**Crew 2 · Kerosin** ergänzt Oslo/Gardermoen mit Kerosin ohne Karten. Dieselben
+bewährten Gewichte erreichten in 500 neuen unabhängigen Selbstspielen 39,8 %
+(Wilson-Untergrenze 35,6 %) und bestehen damit das neu akzeptierte 30-%-Kriterium.
+Die schwächere Heuristikpartnerprobe und Grenzen stehen im
+[Prüfbericht](ai/releases/crew2-kerosene-v1/README.md). Auch dort ist das
+Daumenfeedback verfügbar. Weitere Module und Karten sind noch nicht freigegeben.
+
 Modelle für die statische Webseite bereitstellen:
 
 ```bash

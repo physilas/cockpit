@@ -1,8 +1,9 @@
 # Laufendes Ziel: alle Module, zunächst 30–40 % je Fall
 
 Stand: 25. Oktober 2026. **Crew 2 ist für acht Grundspielstrecken zusätzlich
-freigegeben. Das Ziel aller Module/Karten ist nicht abgeschlossen; keine neue
-Modulstrecke freigegeben. Crew 1 bleibt verfügbar und vorausgewählt.**
+freigegeben. Zusätzlich besteht **Crew 2 · Kerosin** Oslo mit 39,8 % unter dem
+neu akzeptierten 30-%-Kriterium. Das Ziel aller Module/Karten ist nicht
+abgeschlossen. Crew 1 bleibt verfügbar und vorausgewählt.**
 
 ## Verbindlicher Auftrag
 
@@ -94,10 +95,10 @@ die Halbzeitprüfung sogar nur vier Siege in zwei Fällen; kein Verbesserungsbel
 Die aktiven Quellen wurden erst nach dem geordneten Ende geändert, die alte
 Phase wird nicht als exaktes Resume fortgesetzt.
 
-Für die verbleibenden **531,63 Trainingssekunden** ist eine neue Phase
-`runs/allmodules-capacity-stage2/` läuft jetzt als einziger schwerer Job,
-Log `/tmp/cockpit-allmodules-capacity-stage2.log`, wieder von exakt Crew 2 und
-frischem Adam, nicht von den schwachen letzten Gewichten. `CapacityModulesEnv`
+Die neue Phase für die verbleibenden **531,63 Trainingssekunden**,
+`runs/allmodules-capacity-stage2/`, ist regulär beendet (Exit 0).
+Log `/tmp/cockpit-allmodules-capacity-stage2.log`; Start wieder von exakt Crew 2
+und frischem Adam, nicht von den schwachen letzten Gewichten. `CapacityModulesEnv`
 reserviert nur öffentlich nachweisbar benötigte Kontrollwürfel; Praktikantentraining
 bleibt als Ersatz erlaubt, ein tatsächlich ausgegebener schwarzer Würfel zählt
 einmal gemeinsam. Bei möglicher späterer Synchronisation wird konservativ auf
@@ -109,6 +110,63 @@ und einem Update; Quellgewichte am Anfang exakt gleich und Grundlage danach
 unverändert. Seine Gewichte werden nicht verwendet. Insgesamt 32 gezielte
 Kapazitäts-, Datenweg- und Feedbacktests bestanden. Ein leistungsfähigerer
 Spieler ist damit noch nicht bewiesen.
+
+Ergebnis: **303.770 neue Entscheidungen, 138 Updates, 11.676 Partien und
+532,47 Trainingssekunden**, alle 186 Fälle besucht, Grundlage exakt unverändert.
+Modulentscheidungen: Kerosin 106.368, Wind 38.642, Eis 31.021, Praktikant 28.313,
+Leck 41.871, Echtzeit 28.208. Kartenzähler: Zusammenarbeit 45.261, Anpassung
+44.162, Meisterung 42.666, Synchronisation 32.717, Kontrolle 41.061,
+Voraussicht 41.578. Überlappende Modul-/Kartenzähler nicht aufsummieren.
+Je drei feste Entwicklungspartien: zuvor YUL/LHR/OSL 3/1/1 Siege, zuletzt 3/2/1;
+alle übrigen Fälle ohne Sieg. Die Auswahlregel wählt den letzten Stand, aber
+dies ist **kein belegter Modulfortschritt und keine Freigabe**. Beide Phasen
+zusammen verbrauchten 1.200,84 Trainingssekunden, 654.409 Entscheidungen und
+28.024 Partien. Da Phase zwei erneut von Crew 2 startete, sind die verworfenen
+350.639 Züge nur Aufwand, keine geerbten Trainingszüge dieses Kandidaten.
+Abgeschlossene Berichte und alle 186 Einzelzeilen:
+`allmodules-20min-summary.json`, `allmodules-capacity-stage2.json` und
+`allmodules-20min-cases.csv` im neuen Experimentordner.
+
+Nächste Ursache: Das rohe Modul-Referenzset ändert die Aktionsverteilung des
+eingefrorenen Planers stark. Auf zwölf frischen Trainingszuständen änderte allein
+eine kompatible öffentliche Kerosin-Referenz sieben Entscheidungen. Das ist
+kein Gewinnvergleich. Als nächster begründeter Versuch weiche Planungshinweise
+für kompatible Kerosin-/Kartenfälle prüfen, alle legalen Aktionen beibehalten.
+Wind, Eis und Leck benötigen ausdrücklich ihre wirkliche Physik; den alten
+Grundspielplaner dort nicht unverändert als harte Maske verwenden. Keine weitere
+unveränderte PPO-Wiederholung oder unbegründete Architekturänderung.
+
+**Unabhängige Qualifikation regulär abgeschlossen (Exit 0, 102,85 s):**
+Vorab festgelegte Qualifikation
+der UNVERÄNDERTEN Crew 2 auf `LOG_OSL_GREEN`, 500 Selbstspiele plus je 100 je Rolle
+mit Heuristikpartner. Wieder acht Worker zu .7, Torch 1, nice 15.
+Log `/tmp/cockpit-crew2-kerosene-qualification-v1.log`, Bericht
+`ai/experiments/modules-30pct-2026-10-25/crew2-kerosene-qualification-v1.json`.
+Neues ausdrücklich vom Nutzer akzeptiertes Kriterium: Wilson-Untergrenze >=.3.
+Alte .5-Berichte bleiben unverändert. Seeds **15.200.000–15.200.499** und
+**15.300.000–15.300.099** sind ab jetzt verbraucht/reserviert für diesen
+vorab gewählten Test, keine Trainings-/Debugdaten. Ab **15.400.000** bleibt die
+nächste unabhängige Kohorte unbenutzt. **199/500 Siege (39,8 %), Wilson
+35,6–44,2 %**, bestanden. Heuristikpartner separat 6/100 als Pilotin und
+9/100 als Kopilot (zusammen 7,5 %); keine Prognose menschlicher Partnerquote.
+Separater Release `ai/releases/crew2-kerosene-v1/`, Name **Crew 2 · Kerosin**,
+nur Oslo ohne Karten. Gewichte und Browserasset exakt identisch zur alten
+Crew 2, ihre bisherige Freigabe bleibt unverändert. Die schwachen neuen
+Allmodulgewichte werden nicht veröffentlicht. Weitere Module oder Karten
+sind daraus nicht freigegeben.
+
+Abschlussprüfung: **296 lokale Python-Tests bestanden** (67,12 s), einschließlich
+der geschützten fremden Transfer-Tests. Ein erster temporärer Teststarter hatte
+keinen macOS-Spawn-`__main__`-Schutz; nach Korrektur wurde die gesamte Suite
+erneut ausgeführt. Worker-/Archivtests mit echtem SQLite ebenfalls bestanden.
+Drei abschließende Browserprüfungen liefen nacheinander unter nice 15 und
+`ai.job_control`: allgemeine Daumen-/Singleplayer-UI, tatsächlicher qualifizierter
+Oslo-Spieler samt menschlichem Kerosinzug und Schema-3-Upload, bestehende Crew 2
+auf acht Routen und mit beiden Rollen. Keine JavaScript-Seitenfehler.
+Chrome und der auf 127.0.0.1 begrenzte Server sind beendet; **kein schwerer Job
+mehr aktiv**. Letzter verwalteter Job: `tests/crew2-ui.cjs`, Exit 0. Vor einem
+neuen Lauf weiterhin tatsächliche Prozesse/STOP/Status prüfen, Grenze wieder
+acht Worker zu .7.
 
 Der obere, mitlaufende Daumenbereich ist im Browser auf 320/390 Pixeln, mit
 Tastatur, neutralem Standard, Rücknahme und letzter Spielaktion geprüft. Er

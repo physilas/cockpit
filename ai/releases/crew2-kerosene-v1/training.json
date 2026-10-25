@@ -1,0 +1,21 @@
+{
+  "name": "Crew 2 \u00b7 Kerosin",
+  "weights_sha256": "1d846e7731d60c9cc84c8204e7b87b5dea643b501b5f59bc2185deb76e8609eb",
+  "source": "ai/releases/crew2-v1/best.pt",
+  "source_weights_unchanged": true,
+  "selected_before_qualification": true,
+  "source_phase_decisions": 500347,
+  "cumulative_module_decisions_including_ancestors": 536183,
+  "allmodule_research_weights_included": false,
+  "new_user_accepted_target": [
+    0.3,
+    0.4
+  ],
+  "selection": "ai/experiments/modules-30pct-2026-10-25/crew2-kerosene-selection.json",
+  "qualification": "ai/releases/crew2-kerosene-v1/evaluation.json",
+  "self_seed_start": 15200000,
+  "heuristic_partner_seed_start": 15300000,
+  "minimum_wilson_lower_bound": 0.3,
+  "all_modules_cards_goal_achieved": false,
+  "qualification_elapsed_seconds": 102.8549082
+}

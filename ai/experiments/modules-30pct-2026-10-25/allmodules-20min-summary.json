@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "complete": true,
+  "goal_achieved": false,
+  "release_evidence": false,
+  "qualification_used": false,
+  "raw_phase_decisions": 350639,
+  "capacity_phase_decisions": 303770,
+  "training_effort_decisions": 654409,
+  "training_seconds": 1200.8433873732574,
+  "episodes_effort": 28024,
+  "phases_started_from_same_unchanged_crew2": true,
+  "note": "Effort counters are summed; raw phase weights were discarded. They are NOT inherited training decisions in the capacity checkpoint. Fixed development repeated across phases is not independent evidence. Three games per case are exploratory only. All cards and modules visited; no broad module win-rate success.",
+  "best_capacity_steps": 303770,
+  "capacity_cases_visited": 186,
+  "capacity_decisions_by_module": {
+    "intern": 28313,
+    "kerosene": 106368,
+    "ice": 31021,
+    "wind": 38642,
+    "realtime": 28208,
+    "leak": 41871
+  },
+  "capacity_decisions_by_card": {
+    "working-together": 45261,
+    "adaptation": 44162,
+    "mastery": 42666,
+    "synchronisation": 32717,
+    "control": 41061,
+    "anticipation": 41578
+  },
+  "capacity_final_cases_with_any_win": [
+    "LOG_YUL_GREEN|",
+    "LOG_LHR_GREEN|",
+    "LOG_OSL_GREEN|"
+  ]
+}

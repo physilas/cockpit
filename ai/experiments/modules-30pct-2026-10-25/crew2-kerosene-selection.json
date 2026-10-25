@@ -17,7 +17,8 @@
   "self_seed_start": 15200000,
   "partner_games_per_role": 100,
   "partner_seed_start": 15300000,
-  "qualification_started": false,
+  "qualification_started": true,
   "proposed_release": "crew2-kerosene-v1",
-  "reason": "Unchanged previously selected Crew 2; existing 40.4% Oslo result motivates a fresh independent test under the newly lowered criterion. No altered old report or model selection from new held-out results. All-module research candidates remain separate."
+  "reason": "Unchanged previously selected Crew 2; existing 40.4% Oslo result motivates a fresh independent test under the newly lowered criterion. No altered old report or model selection from new held-out results. All-module research candidates remain separate.",
+  "actual_start_timestamp": 1792930486.979059
 }
