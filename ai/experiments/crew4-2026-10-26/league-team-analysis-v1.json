@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "ordered_teams": 16,
+  "routes": 21,
+  "games_per_team_route": 2,
+  "coverage": "lexicographically_first_legal_card_combination_per_route_only",
+  "repeated_frozen_control_games": 378,
+  "exact_reproduced_controls": 378,
+  "changed_crew4_team_gains": 6,
+  "changed_crew4_team_losses": 7,
+  "initial_weights_sha256": "3673cafcb4c8e8dd0ad3f900c8fbb461f821bb486afdf0091d8b968cfd00c15b",
+  "selected_weights_sha256": "610accb1032e7429f98dd764ae9c507154b65592317f751cfe29b6d0be4acfaa",
+  "new_training_decisions": 80113,
+  "decisions_by_partner_role": {
+    "Crew 1/pilot": 10014,
+    "Crew 1/kopilot": 10003,
+    "Crew 2/pilot": 9986,
+    "Crew 2/kopilot": 9954,
+    "Crew 3/pilot": 10029,
+    "Crew 3/kopilot": 10115,
+    "Crew 4/pilot": 10045,
+    "Crew 4/kopilot": 9967
+  },
+  "independent_qualification_used": false
+}

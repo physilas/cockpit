@@ -2,7 +2,7 @@
   "selection_rule": "equal_route_mean_then_base_mean_then_worst_route",
   "selected": {
     "candidate": "crew3-leak",
-    "checkpoint": "/Users/szelmer/Documents/2_Private/Urlaub/Weltreise/SkyTeam/cockpit/ai/releases/crew3-allroutes-2026-10-26-v1/best.pt",
+    "checkpoint": "ai/releases/crew3-allroutes-2026-10-26-v1/best.pt",
     "score": [
       0.17777777777777778,
       0.6333333333333334,

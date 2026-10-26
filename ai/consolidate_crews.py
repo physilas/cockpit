@@ -39,7 +39,7 @@ def consolidate(comparison,*,suffix='2026-10-26-v1',root=ROOT):
         if json.loads(evidence.read_text())!=row:raise ValueError('Separate evidence differs from comparison.')
         checkpoint,catalog=publish_preview(row['checkpoint'],evidence,release_id,f'Crew {crew}',root=root)
         canonical.append(release_id+'/best.pt')
-        selection[str(crew)]={'candidate':identity,'checkpoint':str(checkpoint),
+        selection[str(crew)]={'candidate':identity,'checkpoint':checkpoint.relative_to(root).as_posix(),
           'score':list(selection_score(row['cases'])),'new_release':release_id,
           'development_only':True,'cases':186,'routes':21}
         (checkpoint.parent/'selection.json').write_text(json.dumps({
@@ -62,6 +62,46 @@ def consolidate(comparison,*,suffix='2026-10-26-v1',root=ROOT):
             model['recommended']=model['crew_number']==1
     catalog['models'].sort(key=lambda m:(m['ui_hidden'],m.get('crew_number',999)))
     catalog_path.write_text('/* AUTO-GENERATED; canonical menu selection by ai.consolidate_crews */\nwindow.COCKPIT_AI_CATALOG = '+json.dumps(catalog,ensure_ascii=False,separators=(',',':'))+';\n')
+    return selection
+
+def update_crew4(comparison,*,release_id='crew4-allroutes-2026-10-26-v2',root=ROOT):
+    report=json.loads(Path(comparison).read_text())
+    if report.get('complete') is not True or set(report.get('models',{}))!={'baseline','league'}:
+        raise ValueError('A complete paired baseline/league comparison is required.')
+    baseline,candidate=report['models']['baseline'],report['models']['league']
+    expected={case_key(c) for c in load_cases(MATRIX)}
+    if any(row.get('complete') is not True or set(row['cases'])!=expected for row in (baseline,candidate)):
+        raise ValueError('Both players need all 186 cases.')
+    scores={name:list(selection_score(row['cases'])) for name,row in report['models'].items()}
+    delta=next((a-b for a,b in zip(scores['league'],scores['baseline']) if abs(a-b)>1e-12),0.)
+    if candidate['weights_sha256']==baseline['weights_sha256'] or delta<=0:
+        return dict(promoted=False,scores=scores,reason='No fresh advantage over the published baseline.')
+    evidence=Path(comparison).with_name(Path(comparison).stem+'-league.json')
+    if json.loads(evidence.read_text())!=candidate:raise ValueError('Evidence mismatch.')
+    catalog_path=root/'frontend/web/js/ai-models.js'
+    old=json.loads(catalog_path.read_text().split(' = ',1)[1].strip().rstrip(';'))
+    visible=[m for m in old['models'] if not m.get('ui_hidden')]
+    if len(visible)!=4 or {m.get('crew_number') for m in visible}!={1,2,3,4}:
+        raise ValueError('Preserve exactly four canonical crews.')
+    published=next(m for m in visible if m['crew_number']==4)
+    from .checkpoints import load_checkpoint,weight_fingerprint
+    if weight_fingerprint(load_checkpoint(root/'ai/releases'/published['id'])[0])!=baseline['weights_sha256']:
+        raise ValueError('Baseline is not the currently published Crew 4.')
+    checkpoint,catalog=publish_preview(candidate['checkpoint'],evidence,release_id,'Crew 4',root=root)
+    new_id=release_id+'/best.pt'
+    for model in catalog['models']:
+        if model['id']==published['id']:model['ui_hidden']=True
+        if model['id']==new_id:model.update(ui_hidden=False,crew_number=4,recommended=False)
+    catalog['models'].sort(key=lambda m:(m.get('ui_hidden',True),m.get('crew_number',999)))
+    catalog_path.write_text('/* AUTO-GENERATED; canonical menu selection by ai.consolidate_crews */\nwindow.COCKPIT_AI_CATALOG = '+json.dumps(catalog,ensure_ascii=False,separators=(',',':'))+';\n')
+    selection=dict(promoted=True,scores=scores,previous_id=published['id'],new_id=new_id,
+       comparison=str(comparison),release_evidence=False)
+    (checkpoint.parent/'selection.json').write_text(json.dumps(selection,indent=2)+'\n')
+    (checkpoint.parent/'README.md').write_text('# Crew 4 · Partnerliga\n\n'
+       'Neue Entwicklungsvorschau nach gemischtem Training mit Crews 1/2/3 und Selbstspiel in beiden Rollen.\n'
+       'Alle 21 Standardrouten/186 Kartenfälle, einschließlich Nullquoten.\n'
+       'Vorab gewählter Trainingsstand; nur bei frischem Vorteil über veröffentlichter Crew 4 übernommen.\n'
+       'Einzelquoten in development.json, keine unabhängige Qualifikation.\n')
     return selection
 
 def main():

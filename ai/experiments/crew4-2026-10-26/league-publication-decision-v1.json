@@ -1,0 +1,16 @@
+{
+  "promoted": false,
+  "scores": {
+    "baseline": [
+      0.16174603174603175,
+      0.6333333333333334,
+      0.0
+    ],
+    "league": [
+      0.13555555555555557,
+      0.6333333333333334,
+      0.0
+    ]
+  },
+  "reason": "No fresh advantage over the published baseline."
+}

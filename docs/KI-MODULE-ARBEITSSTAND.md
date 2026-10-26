@@ -1,6 +1,63 @@
-# Arbeitsstand: Modul-KI – neue beauftragte Crew-4-Phase
+# Arbeitsstand: Vier Crews veröffentlicht, Trainingsauftrag abgeschlossen
 
-## Vier sichtbare Crews – Veröffentlichung vorbereitet
+## Auftrag vom 26.10. abgeschlossen – kein Trainingsjob aktiv
+
+UI und vier kanonische Crews sind bereits mit 8dc081c / 7e56b19 nach main
+gepusht und live bytegenau geprüft. Alle beauftragten UI-Funktionen und
+21 Standardrouten/186 erlaubte Kartenfälle je Crew stehen bereit. Genau eine
+sichtbare Version pro Crew; Archive bleiben für Backups und alte Spielstände.
+
+Die ergänzend beauftragte Vier-Crew-Liga ist regulär beendet, Exit0:
+80.113 **eigene** Lernentscheidungen, 4.590 Trainingspartien/38 Updates,
+567,40 Trainingssekunden und 853,37 Sekunden Gesamtwandzeit. Quelle war die
+veröffentlichte Crew4 v1, neue Phase/Adam/Zähler, Profil12/Abstand4. Alle acht
+Partner/Rollen-Kombinationen bekamen ungefähr10.000 eigene Lernentscheidungen;
+deren exakte Summe ist80.113. Alle186 Fälle tatsächlich besucht. Grundlage und
+feste Partner blieben exakt unverändert. Gewähltes best.pt ist der letzte
+80.113-Stand nach dem vorab festgelegten Kriterium. Kein exaktes Resume behauptet.
+
+Alle16 geordneten Paarungen wurden vor und nach dem Lernen geprüft: jeweils
+21 Routen, die lexikalisch erste erlaubte Kartenkombination, je2 Spiele, je672
+Spiele. Die378 unveränderten Kontrollen ohne Crew4 stimmen exakt in Status und
+Verlustgrund überein und zählen nicht als zusätzliche unabhängige Evidenz.
+In den294 gepaarten Spielen mit Crew4: sechs zusätzliche Siege, sieben verlorene
+alte Siege. Kein durchgängiger Kooperationsgewinn. Endmatrix verwendet tatsächlich
+best.pt und protokolliert dessen Modell-SHA.
+
+Der folgende vollständige frische Vergleich ist ebenfalls regulär fertig,
+Exit0: je10 Spiele auf allen186 Fällen, **3.720 Spiele**, Seeds14.820.050+100*i
+mit Offsets50..59. Veröffentlichte Crew4 gewinnt93/1.860, Liga68/1.860;
+routeweise Mittel .161746→.135556. Kein Durchschnitt als Ersatz für Einzelwerte;
+alle Fälle/Quoten/gepaarten Episoden gespeichert. 36 neu gewonnene Partien gegen
+61 verlorene alte Siege. Deshalb **keine neue Crew4-v2**, v1 bleibt verfügbar.
+Der Qualitätsrückschritt wird nicht versteckt und kein neuer best-Stand erfunden.
+Berichte `league-stage1.json`, `league-team-analysis-v1.json`,
+`league-fresh-comparison-v1*.json`, `league-fresh-analysis-v1.json` und
+`league-publication-decision-v1.json` sind abgeschlossen, nicht mehr laufend.
+
+Die525er-Python-Suite bestand zuvor vollständig; danach acht gezielte
+Abschlussprüfungen einschließlich96 erneuter echter Browser-/PyTorch-Vergleiche.
+Sechs zusätzliche gezielte Tests der Auswahl-/Publikationslogik bestehen.
+Die neue Veröffentlichungsentscheidung weist identische/numerisch gleiche oder
+schlechtere Modelle ab; positive Ersatzlogik bewahrt genau vier sichtbare Crews,
+Crews1/2/3 und historische Archive. Keine zusätzlichen UI-/Gewichtsänderungen
+nach dem live geprüften7e56b19. Metadatenpfade der neuen selection.json-Dateien
+sind portabel relativ zum Repo, keine Gewichts-/Ergebnisänderung.
+
+Die bisherige Automation bleibt **PAUSED**. Aktuell kein schwerer Job aktiv;
+keine automatische Fortsetzung neu aktivieren. STOP ist weiterhin über
+`python -m ai.job_control stop` bedienbar; falls gesetzt, nur bei ausdrücklicher
+Fortsetzung clear-stop. Jüngste Ressourcengrenze bleibt8 Worker zu max60%,
+Torch1/nice15, ein schwerer Lauf, Metal für PPO erlaubt. Keine E-Mail.
+
+Neue verbrauchte Entwicklung: Variantenvergleich14.820.000+100*i, i0..185,
+Offsets0..9; Liga-Fresh14.820.050+100*i, Offsets50..59; feste Phasenprüfungen
+14.840.000+100*i je5 und14.860.000+100*i je3; Teamprobe14.880.000+100*i,
+i0..20, je2, am Ende ausdrücklich wiederholt. Technischer Smoke14.889.500+100*i,
+je1. Qualifikationskohorte ab15.400.000 weiter unbenutzt. Frühere belegte
+Qualifikationsbereiche nicht für Training/Debugging/Modellwahl verwenden.
+
+## Vier sichtbare Crews – veröffentlicht
 
 Neue Releases `crew1-allroutes-2026-10-26-v1` bis
 `crew4-allroutes-2026-10-26-v1`: genau eine sichtbare Version je Crew,
@@ -31,6 +88,14 @@ Praktikantenleiste bei 390×844/320×740. Neuer Bewertungs-Undo bewahrt auch nac
 automatischer Alternative beide Bewertungsrücknahmen, ohne Engineänderung;
 der gesamte Spielablauf-/Reload-/Fehlerneustarttest besteht erneut.
 
+Veröffentlicht mit **7e56b1925388420666297934068b4beee4dc648c** nach main.
+Der erste Upload brach mit HTTP 400 ab; der erneute Git-Upload über HTTP/1.1
+mit größerem Postpuffer war erfolgreich. Pages-Run **40255266607** ist erfolgreich.
+Katalog, Cacheversion, Singleplayer, Policy, Spielmenü, Enginebundle, Routen und
+alle vier tatsächlichen Browserassets sind live bytegenau geprüft. Aktuell vier
+sichtbare IDs, jede exakt 186 Fälle. Git-Arbeitsbaum enthält außer der neuen
+Dokumentation/Weiterarbeit nur die fünf ausdrücklich geschützten Fremdänderungen.
+
 ## Ergänzender Nutzerauftrag: Vier-Crew-Liga
 
 Der Nutzer möchte die vier KIs während des Trainings gegeneinander spielen
@@ -43,13 +108,36 @@ Profil-12-Referenz, niemals verdeckte Partneraugen. Die vorhandene generische
 Partner-Rolloutfunktion schaltet Partnerassistenz sonst ab; die neue getrennte
 PublicLeagueEnv bewahrt hier bewusst beide öffentlichen Referenzen.
 
-Diese Liga ist noch nicht als abgeschlossen ausgeben. Zuerst läuft ausschließlich
-der unten beschriebene Variantenvergleich (acht Worker .6/nice15). Identische
-Crew-2-Politiken werden nur einmal tatsächlich simuliert und als identische
-Kontrolle aliasiert, nicht als unabhängige zusätzliche Evidenz gezählt. Danach
-geprüfter neuer Ligaabschnitt; alle 16 geordneten Crew-Paarungen sollen zunächst
-und abschließend mit einer vorab festgelegten Kartenkombination je Route geprüft
-werden. Diese Teilmatrix ersetzt ausdrücklich keinen vollständigen 186er-Test.
+Historischer Startstand der mittlerweile abgeschlossenen Liga: einziger schwerer Job
+`runs/crew4-league-stage1-2026-10-26`, Log `/tmp/cockpit-crew4-league-stage1.log`.
+Quelle ist die tatsächlich veröffentlichte Crew 4 v1; feste Partner aus
+`runs/crew-refresh-2026-10-26-v2/league-partners.json` haben exakt die Gewichte
+der veröffentlichten Crews 1/2/3. Frischer Adam/Zähler, Profil12/Abstand4,
+80.000 eigene Lernentscheidungen oder 600 reine Trainingssekunden. Maximal
+8 Worker .6/Torch1/nice15/Metal, kein zweiter schwerer Lauf. Alle acht
+Partner/Rollen-Kombinationen sind nach echten Updates in decisions_by_partner_role
+belegt; deren Summe entspricht exakt den gespeicherten Lernaktionen. Alle 186
+Fälle wurden bereits im Training besucht. Partnergewichte werden nach jedem
+Rollout auf Identität geprüft, alte Grundlage bei jedem Speichern. Noch keine
+Erfolgsaussage für die Liga. Aktuelle Zähler immer aus dem Log lesen.
+
+Die anfänglichen 16 geordneten Teams sind regulär ausgewertet: 21 Routen,
+jeweils die lexikalisch erste erlaubte Kartenkombination, zwei Spiele je Paar
+und Route, 672 Spiele insgesamt. Team-Kohorte 14.880.000+100*i, i=0..20;
+die gleichen Spiele werden zum Abschluss wiederholt und sind keine zusätzliche
+unabhängige Stichprobe. Die abschließende Teamprüfung verwendet den vorab
+gewählten best.pt, nicht einfach latest; Modell-SHA steht bei jedem Teamstand.
+Die Teilmatrix ersetzt keinen vollständigen 186er-Test.
+
+Liga-Modellwahl: alle186 Fälle zu je3 festen Entwicklungsspielen ab14.860.000
+mit Abstand100, Quelle/warm zulässig, Bewertung nach gleichem routeweisen
+Kriterium wie zuvor. Nach Ende erfolgt eine NEUE gepaarte Entwicklungsprobe
+gegen die veröffentlichte Crew4: 10 Spiele je Fall ab14.820.050+100*i,
+also nur bisher unbenutzte Offsets50..59 im früheren Vergleichsbereich.
+Erst dann gegebenenfalls neue Crew4-v2-Vorschau, alte v1 nur im Menü archivieren,
+Crews1/2/3 unverändert erhalten. Bei identischen Gewichten Kontrolle aliasieren;
+kein scheinbar neues Modell verkaufen. Die Abschlusskohorte ab15.400.000 bleibt
+unberührt. Automation bleibt PAUSED; STOP bleibt per Nutzerbefehl bedienbar.
 
 ## Abgeschlossener erster Trainingslauf vom 26.10.2026
 

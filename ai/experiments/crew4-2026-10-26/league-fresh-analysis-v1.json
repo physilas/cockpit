@@ -1,0 +1,1312 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "promoted": false,
+  "actual_simulated_games": 3720,
+  "gained": 36,
+  "lost": 61,
+  "cases": {
+    "LOG_GIG_RED|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|anticipation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_RED|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_YELLOW|adaptation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_YELLOW|anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_YELLOW|control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_YELLOW|mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_YELLOW|synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_GIG_YELLOW|working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_HND_GREEN|": {
+      "baseline_wins": 2,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_ATL_YELLOW|control": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_ATL_YELLOW|synchronisation": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_ATL_GREEN|": {
+      "baseline_wins": 4,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 4
+    },
+    "LOG_ATL_YELLOW|mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_ATL_YELLOW|anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_ATL_YELLOW|working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|anticipation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_BLACK|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_YELLOW|adaptation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_YELLOW|anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_YELLOW|control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_YELLOW|mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_YELLOW|synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KEF_YELLOW|working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_ATL_YELLOW|adaptation": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_HND_RED|adaptation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_HND_RED|control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_HND_RED|working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_HND_RED|mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_HND_RED|anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_HND_RED|synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|anticipation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_BLACK|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_YELLOW|control": {
+      "baseline_wins": 0,
+      "league_wins": 3,
+      "games": 10,
+      "gained": 3,
+      "lost": 0
+    },
+    "LOG_KUL_YELLOW|adaptation": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_OSL_RED|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_YELLOW|mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_OSL_RED|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_YELLOW|synchronisation": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_OSL_RED|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|anticipation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_YELLOW|working-together": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_OSL_RED|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_KUL_YELLOW|anticipation": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_OSL_RED|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_RED|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|anticipation,control": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PBH_BLACK|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_LHR_GREEN|": {
+      "baseline_wins": 8,
+      "league_wins": 8,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|control,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PBH_BLACK|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_BLACK|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_OSL_GREEN|": {
+      "baseline_wins": 3,
+      "league_wins": 3,
+      "games": 10,
+      "gained": 2,
+      "lost": 2
+    },
+    "LOG_PBH_RED|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_LHR_YELLOW|": {
+      "baseline_wins": 3,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 1,
+      "lost": 2
+    },
+    "LOG_PBH_RED|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|anticipation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_PBH_RED|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PBH_RED|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_GREEN|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_GREEN|adaptation,anticipation": {
+      "baseline_wins": 2,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|adaptation,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 4,
+      "games": 10,
+      "gained": 3,
+      "lost": 0
+    },
+    "LOG_PRG_GREEN|adaptation,working-together": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PRG_GREEN|adaptation,control": {
+      "baseline_wins": 2,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|anticipation,control": {
+      "baseline_wins": 2,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|anticipation,synchronisation": {
+      "baseline_wins": 3,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 0,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|anticipation,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PRG_GREEN|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_GREEN|control,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PRG_GREEN|control,synchronisation": {
+      "baseline_wins": 2,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 2,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|control,working-together": {
+      "baseline_wins": 3,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 3
+    },
+    "LOG_PRG_GREEN|mastery,working-together": {
+      "baseline_wins": 3,
+      "league_wins": 3,
+      "games": 10,
+      "gained": 2,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|synchronisation,working-together": {
+      "baseline_wins": 3,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 0,
+      "lost": 2
+    },
+    "LOG_PRG_GREEN|mastery,synchronisation": {
+      "baseline_wins": 4,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 4
+    },
+    "LOG_PRG_YELLOW|anticipation,control": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PRG_YELLOW|anticipation,synchronisation": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_PRG_YELLOW|anticipation,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|adaptation,control": {
+      "baseline_wins": 3,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 1,
+      "lost": 2
+    },
+    "LOG_PRG_YELLOW|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|adaptation,synchronisation": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_PRG_YELLOW|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 2,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|adaptation,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_TGU_RED|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|adaptation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|adaptation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|anticipation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|control,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|mastery,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_RED|synchronisation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|adaptation,anticipation": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|anticipation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|control,mastery": {
+      "baseline_wins": 2,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 2
+    },
+    "LOG_PRG_YELLOW|control,synchronisation": {
+      "baseline_wins": 2,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_PRG_YELLOW|control,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|adaptation,control": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|adaptation,mastery": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_TGU_YELLOW|adaptation,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|adaptation,synchronisation": {
+      "baseline_wins": 2,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 2
+    },
+    "LOG_TGU_YELLOW|anticipation,control": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_TGU_YELLOW|anticipation,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 2,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|mastery,synchronisation": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_PRG_YELLOW|synchronisation,working-together": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_PRG_YELLOW|mastery,working-together": {
+      "baseline_wins": 1,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_TGU_YELLOW|anticipation,working-together": {
+      "baseline_wins": 3,
+      "league_wins": 2,
+      "games": 10,
+      "gained": 0,
+      "lost": 1
+    },
+    "LOG_TGU_YELLOW|anticipation,synchronisation": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|control,mastery": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|control,synchronisation": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|control,working-together": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 1
+    },
+    "LOG_TGU_YELLOW|mastery,working-together": {
+      "baseline_wins": 0,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 1,
+      "lost": 0
+    },
+    "LOG_TGU_YELLOW|mastery,synchronisation": {
+      "baseline_wins": 2,
+      "league_wins": 0,
+      "games": 10,
+      "gained": 0,
+      "lost": 2
+    },
+    "LOG_TGU_YELLOW|synchronisation,working-together": {
+      "baseline_wins": 1,
+      "league_wins": 1,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    },
+    "LOG_YUL_GREEN|": {
+      "baseline_wins": 9,
+      "league_wins": 9,
+      "games": 10,
+      "gained": 0,
+      "lost": 0
+    }
+  }
+}
