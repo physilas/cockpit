@@ -1,13 +1,66 @@
-# Arbeitsstand: Modul-KI, auf Nutzerwunsch pausiert
+# Arbeitsstand: Modul-KI – neue beauftragte Crew-4-Phase
 
-## Neuer Auftrag vom 26.10.2026 – in Bearbeitung
+## Aktiver Trainingslauf vom 26.10.2026
+
+Die Oberfläche ist mit **8dc081cd4ff798b50e534d5ab9cdd896ce7c08ca** nach main
+gepusht. Pages-Run 40251230279 ist erfolgreich; sieben veröffentlichte Dateien
+(Buildversion, App, Singleplayer, Spielmenü/CSS, Enginebundle, Katalog) wurden
+bytegenau live verglichen.
+
+Die erneute ausdrückliche Trainingsanweisung wurde durch `ai.job_control
+clear-stop` umgesetzt. **Die frühere Automation bleibt PAUSED**; nur der aktuelle
+beauftragte Lauf arbeitet. Aktueller einziger schwerer Job:
+`runs/crew4-allroutes-stage1-2026-10-26`, Log
+`/tmp/cockpit-crew4-allroutes-stage1.log`. Neue PPO-Phase aus dem ursprünglichen
+Praktikantenmodell `ai/releases/crew3-current-preview-v2/best.pt`, öffentliche
+Umgebung Profil 12/Abstand 4, frischer Adam und Zähler. Keine zusätzliche Schicht,
+keine Übernahme eines Forschungswrappers. Bestehender Detailzweig trainiert,
+alte Grundlage wird bei jedem Speichern auf exakte Identität geprüft.
+630 Curriculum-Einträge wählen zuerst jede der 21 Routen gleich häufig und
+innerhalb einer Route jede erlaubte Kartenkombination gleich häufig; 186 Fälle.
+Alle sechs Module und sechs Karten sind im Curriculum, einfachere Routen bleiben
+als Anker erhalten. Budget 220.000 neue Entscheidungen oder 900 Trainingssekunden,
+maximal acht Worker zu .6/Torch1/nice15, PPO auf Metal. Gesamte Wandzeit enthält
+zusätzlich Entwicklungsbewertungen. Keine zweite schwere Arbeit gleichzeitig.
+
+Der vorangegangene technische Probelauf ist regulär beendet: 212 neue
+Entscheidungen/ein echtes Metal-Update, zehn Trainingspartien, Grundlage exakt
+unverändert. Dessen Gewichte werden nicht weiterverwendet. Ein Spiel je Fall ist
+nur Technik, keine Gewinnqualifikation. Neue Hauptphase verwendet je fünf feste
+Entwicklungsspiele pro Fall, ab 14.840.000+100*i für 186 lexikalisch sortierte
+Fälle. Auswahl vorab: gleichgewichtetes Mittel der 21 routeweisen Kartenmittel,
+danach Grundspielmittel, dann schwächstes Routenmittel als Tie-Break. Es gibt
+keine behauptete Mindestquote je Fall. Warmstand bleibt als Kandidat zulässig.
+
+Vorbereitete Quellen in `runs/crew-refresh-2026-10-26-v2/`: originale Crew 1 mit
+Schema-3-Adapter (Features/Aktionen sind exakte Präfixe, ursprüngliche Tensoren
+bleiben eingefroren), Crew-2-Grund-/Kerosinvariante, Crew-3-Praktikanten-/Leckstand
+und bisherige Crew 4. Alle werden ausdrücklich als neue öffentliche Profil-12-
+Entwicklungsphase behandelt; keine alte Freigabe oder frühere Einzelquote wird
+auf neue Module/Regeln übertragen. Nach dem Training folgt EIN gepaarter
+Vergleich aller Kandidaten mit zehn frischen Entwicklungsspielen je Fall,
+ab 14.820.000+100*i. Für Crew 4 kommt ausschließlich das nach obigem Kriterium
+vorab gewählte best.pt hinzu; latest wird nicht nachträglich hineingetauscht.
+Auswahl pro Crew nach demselben festgelegten Kriterium, dann Veröffentlichung
+je einer sichtbaren Crew 1/2/3/4 mit allen 21 Routen/186 Fällen als Vorschau,
+auch mit Nullquote. Historische Dateien und Belege bleiben archiviert erhalten.
+Die Auswertung unter neuen Regeln ist keine unabhängige Qualifikation.
+
+Technik-Testseeds: Probelauf ab 14.889.500+100*i, je ein Spiel/Fall;
+separat von Entwicklung und Qualifikation. Die neue Abschlusskohorte ab
+15.400.000 bleibt unberührt. Bei „Training und automatische Fortsetzung stoppen“
+`python -m ai.job_control stop` setzen und Automation pausieren; STOP nicht ohne
+explizite Fortsetzung löschen. Aktuelle Zähler/Quoten immer aus Logs lesen,
+laufende Berichte nicht committen.
+
+## Neuer Auftrag vom 26.10.2026 – UI abgeschlossen, Training in Bearbeitung
 
 Der Nutzer hat weitere UI-Verbesserungen und anschließend erneutes Training
 von Crew 4 beauftragt. Neue verbindliche Trainingsgrenze: **höchstens acht
 CPU-Worker zu jeweils 60 %, Torch-Threads 1, nice 15, ein schwerer Lauf**.
 Metal für PPO bleibt erlaubt. Die erneute Trainingsanweisung erlaubt für diesen
-Auftrag das spätere ausdrückliche `clear-stop`; bisher ist noch kein Training
-gestartet, die vorherige Automation bleibt pausiert.
+Auftrag das ausdrückliche `clear-stop`; der neue Lauf steht oben, die vorherige
+Automation bleibt pausiert.
 
 UI-Arbeit (noch nicht als abgeschlossen ausgeben): Neuwurf mit Spielfeldblick
 und automatischer leerer Hand, zentrales Spielmenü mit Bestätigungen, dominantes
