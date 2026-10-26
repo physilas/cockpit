@@ -1,5 +1,16 @@
 /* Navigate the same visible setup steps as a player. */
 const assert = require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+// Historical runtime regressions deliberately expose archived release fixtures.
+// The canonical production menu has its own separate browser test.
+function legacySource(){
+ return fs.readFileSync(path.join(__dirname,'../frontend/web/js/ai-models.js'),'utf8')+`
+ window.COCKPIT_AI_CATALOG.models=window.COCKPIT_AI_CATALOG.models.filter(m=>!m.crew_number).map(({ui_hidden,...m})=>m);
+ `;
+}
+async function installLegacyCatalogue(context){
+ await context.route('**/js/ai-models.js',r=>r.fulfill({contentType:'application/javascript',body:legacySource()}));
+}
 
 async function chooseMode(page, mode) {
   while (await page.locator('#singleplayer-menu').getAttribute('data-step') !== 'mode')
@@ -45,4 +56,4 @@ async function leaveGame(page) {
   await page.getByRole('button',{name:'Zum Hauptmenü',exact:true}).click();
 }
 
-module.exports = {chooseMode, chooseModel, chooseRoute, chooseAbilities, leaveGame};
+module.exports = {chooseMode, chooseModel, chooseRoute, chooseAbilities, leaveGame, legacySource, installLegacyCatalogue};

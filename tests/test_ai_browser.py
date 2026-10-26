@@ -45,6 +45,35 @@ class BrowserDecisionTests(unittest.TestCase):
 
 @unittest.skipUnless(torch is not None and shutil.which("node"), "torch and node required")
 class BrowserModelTests(unittest.TestCase):
+    def test_guided_extension_includes_zero_padded_actions_in_reference_maximum(self):
+        from ai.nn_model import ActorCritic, GuidedResidualActorCritic
+        from ai.checkpoints import save_checkpoint
+        from ai.export_browser import export_models
+        torch.set_num_threads(1)
+        source=ActorCritic(hidden_size=8)
+        with torch.no_grad():source.actor.bias.fill_(-3.)
+        model=GuidedResidualActorCritic(source,489,217,hidden_size=8)
+        observations=torch.zeros(2,489)
+        references=torch.zeros(2,217,dtype=torch.bool)
+        references[:,150]=True;references[1,0]=True
+        with torch.no_grad():expected=model.policy_output(observations,references)[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp);checkpoint=folder/'runs/a/best.pt'
+            save_checkpoint(checkpoint,model,train_config={},total_steps=0)
+            catalog=export_models(folder/'runs',folder/'web')
+            data=json.loads((folder/'web'/catalog['models'][0]['url']).read_text())
+            fixture={'data':data,'observations':observations.tolist(),'references':references.tolist()}
+            code="""
+const fs=require('node:fs');global.window={};eval(fs.readFileSync(process.argv[1],'utf8'));
+const f=JSON.parse(fs.readFileSync(0,'utf8')),p=window.CockpitPolicy.create(f.data,{schema:f.data.schema});
+process.stdout.write(JSON.stringify(f.observations.map((o,i)=>p.logits(o,f.references[i]))));
+"""
+            actual=subprocess.run(['node','-e',code,str(Path(__file__).resolve().parents[1]/'frontend/web/js/ai-policy.js')],
+                input=json.dumps(fixture),text=True,capture_output=True,check=True)
+            tensor=torch.tensor(json.loads(actual.stdout),dtype=torch.float32)
+            self.assertTrue(bool(torch.isfinite(tensor).all()))
+            self.assertTrue(torch.allclose(expected,tensor,atol=1e-6))
+
     def test_exported_logits_and_choices_match_pytorch_for_architectures(self):
         from ai.actions import ACTION_COUNT
         from ai.checkpoints import save_checkpoint

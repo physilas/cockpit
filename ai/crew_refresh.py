@@ -105,22 +105,34 @@ def compare(manifest,output,*,seed,games,workers=8,duty=.6):
           'assistance_version':12,'planner_sha256':planner_fingerprint(3),
           'evaluation_fingerprint':evaluation_fingerprint(),'checkpoint':str(path),
           'seed':seed,'seed_stride':100,'games_per_case':games,'cases':{}}
+    groups={}
+    for identity,report in reports.items():
+        groups.setdefault(report['weights_sha256'],[]).append(identity)
+    representatives={identities[0]:identities for identities in groups.values()}
+    for identity,aliases in representatives.items():
+        for alias in aliases[1:]:reports[alias]['evaluation_reused_from']=identity
     output.parent.mkdir(parents=True,exist_ok=True)
     def write():
         tmp=output.with_suffix('.tmp');tmp.write_text(json.dumps({'complete':all(r['complete'] for r in reports.values()),
           'release_evidence':False,'selection':'equal_route_mean_then_base_mean_then_worst_route',
-          'workers':workers,'cpu_duty_cycle':duty,'threads':1,'total_wall_seconds':time.monotonic()-started,
+          'workers':workers,'cpu_duty_cycle':duty,'threads':1,
+          'actual_simulated_games':len(representatives)*186*games,
+          'identical_policy_aliases':{k:v for k,v in representatives.items() if len(v)>1},
+          'total_wall_seconds':time.monotonic()-started,
           'models':reports},indent=2,allow_nan=False)+'\n');tmp.replace(output)
     write()
-    tasks=[(identity,str(path),case,games,seed+i*100,duty) for identity,path in manifest.items()
+    tasks=[(identity,str(path),case,games,seed+i*100,duty) for identity,path in manifest.items() if identity in representatives
            for i,case in enumerate(cases)]
     with ProcessPoolExecutor(workers,mp_context=multiprocessing.get_context('spawn'),initializer=_init) as pool:
         futures=[pool.submit(_evaluate,task) for task in tasks]
         for ordinal,future in enumerate(as_completed(futures),1):
-            identity,row=future.result();reports[identity]['cases'][row['case_key']]=row
-            if len(reports[identity]['cases'])==186:
-                reports[identity].update(complete=True,selection_score=list(selection_score(reports[identity]['cases'])))
-                print(json.dumps({'model':identity,'score':reports[identity]['selection_score'],'cases':186}),flush=True)
+            identity,row=future.result()
+            for alias in representatives[identity]:
+                reports[alias]['cases'][row['case_key']]=row
+                if len(reports[alias]['cases'])==186:
+                    reports[alias].update(complete=True,selection_score=list(selection_score(reports[alias]['cases'])))
+                    print(json.dumps({'model':alias,'score':reports[alias]['selection_score'],'cases':186,
+                        'evaluation_reused_from':reports[alias].get('evaluation_reused_from')}),flush=True)
             if ordinal%30==0:write()
     write()
     for identity,report in reports.items():

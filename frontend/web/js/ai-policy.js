@@ -16,7 +16,10 @@ window.CockpitPolicy = (() => {
       const source = create(data.source, {schema: data.source.schema});
       const residual = create(data.residual, catalog);
       const logits = (observation, referenceMask) => {
-        const inherited = source.logits(observation.slice(0, data.source.schema.features.length));
+        const original = source.logits(observation.slice(0, data.source.schema.features.length));
+        // Expanded checkpoints assign zero inherited logits to new actions.
+        // Include those zeros when finding the guided maximum, too.
+        const inherited = Array.from({length:data.schema.actions.length},(_,i)=>original[i] ?? 0);
         if (data.format === 4) {
           if (!referenceMask || referenceMask.length !== data.schema.actions.length || !referenceMask.some(Boolean)) throw new Error("Die öffentliche Planungsvorgabe fehlt.");
           const top = Math.max(...inherited.filter((_, i) => referenceMask[i]));

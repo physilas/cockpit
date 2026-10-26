@@ -2,7 +2,7 @@
  * synthetic catalogue entries, uploads, training or qualification evidence. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
+const {chooseModel,chooseRoute,chooseAbilities,leaveGame,legacySource,installLegacyCatalogue} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 
 const web=path.resolve(__dirname,'../frontend/web');
@@ -10,7 +10,7 @@ const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_U
 const modelId='crew5-leak-preview-v1/best.pt';
 const assetSha='19e7a04826a9fb327cae2e1c8ac6d8d760c9ad0d46604e7f28a902d1dc41168d';
 const rates={adaptation:5,anticipation:15,control:15,mastery:10,synchronisation:20,'working-together':0};
-const source=fs.readFileSync(path.join(web,'js/ai-models.js'),'utf8'),sandbox={window:{}};
+const source=legacySource(),sandbox={window:{}};
 vm.runInNewContext(source,sandbox);
 const catalog=JSON.parse(JSON.stringify(sandbox.window.COCKPIT_AI_CATALOG));
 const actual=catalog.models.find(model=>model.id===modelId);
@@ -93,6 +93,7 @@ async function waitForRating(page,humanRole,predicate) {
     executablePath:process.env.COCKPIT_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
   try {
     const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),errors=[];
+    await installLegacyCatalogue(context);
     // Real catalogue and real model asset are deliberately not intercepted.
     await context.route('**/js/cloud-config.js',route=>route.fulfill({
       contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));

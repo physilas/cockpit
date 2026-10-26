@@ -1,6 +1,6 @@
 /* Actual engine/model UI: local resume, menus, result fog and one preference retry. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame}=require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame,legacySource,installLegacyCatalogue}=require('./singleplayer-setup.cjs');
 const url=(process.env.COCKPIT_TEST_URL||'http://127.0.0.1:8036')+'/frontend/web/';
 const records=page=>page.evaluate(async()=>{
   const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('flyteam-learning-v1',2);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
@@ -11,6 +11,7 @@ const waitUntil=async(fn)=>{for(let i=0;i<80;i++){if(await fn())return;await new
  const browser=await chromium.launch({headless:true,executablePath:process.env.COCKPIT_CHROME||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  try{
   const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),errors=[];
+    await installLegacyCatalogue(context);
   await context.route('**/js/cloud-config.js',r=>r.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url);await page.getByRole('button',{name:/Singleplayer/}).click();
@@ -43,7 +44,11 @@ const waitUntil=async(fn)=>{for(let i=0;i<80;i++){if(await fn())return;await new
   await waitUntil(async()=>{const r=(await records(page)).find(r=>r.id===session.id);return r.events.find(e=>e.id===replacement.id).feedback.value===-1;});
   assert.equal(await page.evaluate(()=>aktuellerZustand.rueckgaengig_version),revision,'The second negative rating cannot replace the alternative');
   assert.equal((await records(page)).find(r=>r.id===session.id).events.filter(e=>e.retry_of!==undefined).length,1);
-  console.log('✓ Actual NN alternative once; withdrawn negative label retained; second negative leaves the move');
+  await page.locator('#rueckgaengig-btn').click();
+  await page.locator('#rueckgaengig-btn').click();
+  await waitUntil(async()=>{const r=(await records(page)).find(r=>r.id===session.id);return r.events.find(e=>e.id===old.id).feedback.value===0;});
+  assert.equal(await page.evaluate(()=>aktuellerZustand.rueckgaengig_version),revision,'Undo ratings preserves alternative board');
+  console.log('✓ Actual NN alternative once; withdrawn negative label retained until explicit undo; second negative leaves the move; both ratings undo without engine changes');
   await page.locator('#menue-btn').click();
   assert.match(await page.locator('#game-dialog').innerText(),/Fortsetzen.*Neustart.*Hauptmenü/s);
   await page.getByRole('button',{name:'Neustart',exact:true}).click();

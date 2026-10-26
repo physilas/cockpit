@@ -1,7 +1,7 @@
 /* Real engine + exported model; optional cloud endpoint is intercepted. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame,legacySource,installLegacyCatalogue} = require('./singleplayer-setup.cjs');
 const base = process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000';
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${base}/frontend/web/`;
 const rows = page => page.evaluate(async () => {
@@ -25,6 +25,7 @@ const assertFeedbackVisible = async page => {
   const browser = await chromium.launch({headless:true, executablePath:process.env.COCKPIT_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
   try {
     const context = await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+    await installLegacyCatalogue(context);
     let uploads=[], fail=true; const errors=[];
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={endpoint:"https://collector.invalid/logs"};'}));
     await context.route('https://collector.invalid/logs',async route=>{

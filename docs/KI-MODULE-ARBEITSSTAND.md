@@ -1,6 +1,57 @@
 # Arbeitsstand: Modul-KI – neue beauftragte Crew-4-Phase
 
-## Aktiver Trainingslauf vom 26.10.2026
+## Vier sichtbare Crews – Veröffentlichung vorbereitet
+
+Neue Releases `crew1-allroutes-2026-10-26-v1` bis
+`crew4-allroutes-2026-10-26-v1`: genau eine sichtbare Version je Crew,
+alle 21 Standardrouten/186 Fälle einschließlich Nullquoten. Genehmigungen
+werden nicht auf die neue breite Vorschau übertragen (`quality.approved=false`).
+Alle 75 alten Katalogeinträge/Assets bleiben erhalten, aber `ui_hidden=true`;
+alte lokale Spielstände können weiterhin ihre exakten historischen Gewichte
+laden. Neue sichtbare IDs haben `crew_number=1..4`; Crew 1 bleibt Vorauswahl.
+Der Export bewahrt Sichtbarkeitsmetadaten bei späterem Merge.
+
+Der vollständige Vergleich ist Exit 0, 11.160 echte neue Spiele, je zehn pro Fall
+und sechs unterschiedlichen Politiken. Zwei Crew-2-Labels aliasieren dieselben
+Gewichte und dieselben Episoden; keine zusätzliche unabhängige Evidenz.
+Ausgewählt: crew1 / crew2-base / crew3-leak / crew4-trained. Routeweise Mittel
+nur als Auswahlstatistik: .10476 / .11111 / .17778 / .13286. Der neue Crew-4-
+Stand liegt über alter Crew 4 (.10254), aber nicht über seiner Ausgangsbasis
+crew3-intern (.13460): keine konsistente reine Lernverbesserung behaupten.
+Alle Einzelquoten und Grenzen in `docs/KI-CREWS-2026-10-26.md` und den Releases.
+
+525 vollständige Python-Tests bestanden in 92,57 s; einschliesslich der fremden
+Tests (nicht stagen). 96 echte Browser-/PyTorch-Entscheidungen aller vier
+aktuellen Modelle stimmen überein. Dabei wurde ein Erweiterungsfehler im
+Browser behoben: auch null gepaddete neue Aktionen gehören ins Maximum der
+Referenzlogits. Gezielter Gegenfall und bestehende Modelle sind geprüft.
+Echter Chrome testet exakt vier Menüpunkte, alle Fälle inklusive Nullquoten,
+echte Aktionen beider Rollen, Privacy, Schwarz ohne Starttoken und vollständige
+Praktikantenleiste bei 390×844/320×740. Neuer Bewertungs-Undo bewahrt auch nach
+automatischer Alternative beide Bewertungsrücknahmen, ohne Engineänderung;
+der gesamte Spielablauf-/Reload-/Fehlerneustarttest besteht erneut.
+
+## Ergänzender Nutzerauftrag: Vier-Crew-Liga
+
+Der Nutzer möchte die vier KIs während des Trainings gegeneinander spielen
+lassen. Sky Team ist kooperativ: vorgesehen sind geordnete Teams in beiden
+Rollen, nicht ein erfundener kompetitiver Sieg gegeneinander. Crew 4 lernt dabei
+mit eingefrorenen Crews 1/2/3 und ihrem aktuellen Selbst als Partner. Der Lernbatch
+enthält ausschließlich eigene Crew-4-Entscheidungen; Partneraktionen werden
+separat gezählt. Beide Spieler erhalten ihre jeweils eigene öffentliche
+Profil-12-Referenz, niemals verdeckte Partneraugen. Die vorhandene generische
+Partner-Rolloutfunktion schaltet Partnerassistenz sonst ab; die neue getrennte
+PublicLeagueEnv bewahrt hier bewusst beide öffentlichen Referenzen.
+
+Diese Liga ist noch nicht als abgeschlossen ausgeben. Zuerst läuft ausschließlich
+der unten beschriebene Variantenvergleich (acht Worker .6/nice15). Identische
+Crew-2-Politiken werden nur einmal tatsächlich simuliert und als identische
+Kontrolle aliasiert, nicht als unabhängige zusätzliche Evidenz gezählt. Danach
+geprüfter neuer Ligaabschnitt; alle 16 geordneten Crew-Paarungen sollen zunächst
+und abschließend mit einer vorab festgelegten Kartenkombination je Route geprüft
+werden. Diese Teilmatrix ersetzt ausdrücklich keinen vollständigen 186er-Test.
+
+## Abgeschlossener erster Trainingslauf vom 26.10.2026
 
 Die Oberfläche ist mit **8dc081cd4ff798b50e534d5ab9cdd896ce7c08ca** nach main
 gepusht. Pages-Run 40251230279 ist erfolgreich; sieben veröffentlichte Dateien
@@ -9,7 +60,7 @@ bytegenau live verglichen.
 
 Die erneute ausdrückliche Trainingsanweisung wurde durch `ai.job_control
 clear-stop` umgesetzt. **Die frühere Automation bleibt PAUSED**; nur der aktuelle
-beauftragte Lauf arbeitet. Aktueller einziger schwerer Job:
+beauftragte Lauf arbeitet. Abgeschlossener erster schwerer Job:
 `runs/crew4-allroutes-stage1-2026-10-26`, Log
 `/tmp/cockpit-crew4-allroutes-stage1.log`. Neue PPO-Phase aus dem ursprünglichen
 Praktikantenmodell `ai/releases/crew3-current-preview-v2/best.pt`, öffentliche
@@ -22,6 +73,15 @@ Alle sechs Module und sechs Karten sind im Curriculum, einfachere Routen bleiben
 als Anker erhalten. Budget 220.000 neue Entscheidungen oder 900 Trainingssekunden,
 maximal acht Worker zu .6/Torch1/nice15, PPO auf Metal. Gesamte Wandzeit enthält
 zusätzlich Entwicklungsbewertungen. Keine zweite schwere Arbeit gleichzeitig.
+
+Ergebnis der Hauptphase: regulär Exit 0, 220.270 neue Entscheidungen,
+6.782 Partien/100 Updates, 838,27 Trainingssekunden und 1.187,90 Sekunden
+Gesamtwandzeit. Alle 186 Fälle tatsächlich im Training besucht. Ausgewähltes
+best.pt bleibt der 111.052-Stand; Warm/55.666/111.052/166.630/220.270 werden in
+report.json mit vollständigen Einzelwerten dokumentiert. Die Gesamtbewertung
+verbesserte sich anfangs, nahm später wieder ab: latest ist kein Ersatz für best.
+Grundlage blieb exakt unverändert. Der aktuelle Variantenvergleich nutzt nur
+best als neu trainierten Kandidaten, getrennte neue Entwicklungsphase.
 
 Der vorangegangene technische Probelauf ist regulär beendet: 212 neue
 Entscheidungen/ein echtes Metal-Update, zehn Trainingspartien, Grundlage exakt

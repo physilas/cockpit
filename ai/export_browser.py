@@ -46,6 +46,7 @@ def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
         previous = json.loads(catalog_path.read_text().split(' = ', 1)[1].strip().rstrip(';'))
         if previous['schema'] != schema():
             raise ValueError('Existing browser catalog uses a different model schema.')
+    previous_by_id={m['id']:m for m in previous['models']} if previous else {}
     assets = output_dir / "models"
     assets.mkdir(parents=True, exist_ok=True)
     models, skipped = [], []
@@ -66,6 +67,9 @@ def export_models(runs_dir, output_dir, *, checkpoints=None, merge=False):
             name = path.relative_to(runs_dir).as_posix()
             models.append({"id": name, "run": str(path.parent.relative_to(runs_dir)),
                            "checkpoint": path.stem, "steps": payload.get("total_steps", 0),
+                           **({key:config.get(key,previous_by_id.get(name,{}).get(key))
+                               for key in ('ui_hidden','crew_number')
+                               if key in config or key in previous_by_id.get(name,{})}),
                            "airport": config.get("airport", "MUC"), "max_steps": config.get("max_steps", 256),
                            "task_weight": config.get("task_weight", 0),
                            'assistance_version': config.get('assistance_version', 0),

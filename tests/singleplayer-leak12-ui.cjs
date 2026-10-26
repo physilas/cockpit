@@ -3,11 +3,11 @@
  */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
+const {chooseModel,chooseRoute,chooseAbilities,leaveGame,legacySource,installLegacyCatalogue} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const web=path.resolve(__dirname,'../frontend/web');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
-const source=fs.readFileSync(path.join(web,'js/ai-models.js'),'utf8'),sandbox={window:{}};
+const source=legacySource(),sandbox={window:{}};
 vm.runInNewContext(source,sandbox);
 const catalog=JSON.parse(JSON.stringify(sandbox.window.COCKPIT_AI_CATALOG));
 const base=catalog.models.find(model=>model.id==='crew2-v1/best.pt');
@@ -35,6 +35,7 @@ const sessions=page=>page.evaluate(async()=>{
   const browser=await chromium.launch({headless:true,executablePath:process.env.COCKPIT_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
   try {
     const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),errors=[];
+    await installLegacyCatalogue(context);
     await context.route('**/js/ai-models.js',route=>route.fulfill({contentType:'application/javascript',
       body:source+`\nwindow.COCKPIT_AI_CATALOG.models.unshift(${JSON.stringify(fixture)});`}));
     await context.route('**/'+fixtureUrl,route=>route.fulfill({contentType:'application/json',body:JSON.stringify(asset)}));

@@ -1,0 +1,28 @@
+{
+  "selection_rule": "equal_route_mean_then_base_mean_then_worst_route",
+  "selected": {
+    "candidate": "crew1",
+    "checkpoint": "/Users/szelmer/Documents/2_Private/Urlaub/Weltreise/SkyTeam/cockpit/ai/releases/crew1-allroutes-2026-10-26-v1/best.pt",
+    "score": [
+      0.10476190476190476,
+      0.43333333333333335,
+      0.0
+    ],
+    "new_release": "crew1-allroutes-2026-10-26-v1",
+    "development_only": true,
+    "cases": 186,
+    "routes": 21
+  },
+  "candidates": {
+    "crew1": {
+      "score": [
+        0.10476190476190476,
+        0.43333333333333335,
+        0.0
+      ],
+      "checkpoint": "runs/crew-refresh-2026-10-26-v2/crew1.pt"
+    }
+  },
+  "comparison": "ai/experiments/crew4-2026-10-26/canonical-comparison-v1.json",
+  "release_evidence": false
+}

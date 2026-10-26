@@ -1,7 +1,7 @@
 /* Real catalogue and browser: isolated steps, small screens and launch config. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame,legacySource,installLegacyCatalogue} = require('./singleplayer-setup.cjs');
 const base = process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000';
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${base}/frontend/web/`;
 const fits = async page => assert.ok(await page.evaluate(() => {
@@ -13,6 +13,7 @@ const fits = async page => assert.ok(await page.evaluate(() => {
   const browser=await chromium.launch({headless:true,executablePath:process.env.COCKPIT_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
   try {
     const context=await browser.newContext({serviceWorkers:'block'}), errors=[];
+    await installLegacyCatalogue(context);
     await context.route('**/js/cloud-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     for (const viewport of [{width:1280,height:900},{width:390,height:844},{width:320,height:568},{width:568,height:320}]) {

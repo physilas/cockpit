@@ -3,9 +3,9 @@ window.Singleplayer = (() => {
   const catalog = window.COCKPIT_AI_CATALOG;
   const names = {play: "Mit KI spielen", feedback: "KI-ndergartenbetreuung", examples: "KI-no"};
   const roleNames = {pilot: "Pilotin", kopilot: "Co-Pilot"};
-  const qualifiedModels = () => catalog.models.filter(m => m.quality?.approved === true);
+  const qualifiedModels = () => catalog.models.filter(m => m.ui_hidden !== true && m.quality?.approved === true);
   const isPreview = model => model?.preview?.enabled === true;
-  const selectableModels = () => catalog.models.filter(m => m.quality?.approved === true || isPreview(m));
+  const selectableModels = () => catalog.models.filter(m => m.ui_hidden !== true && (m.quality?.approved === true || isPreview(m)));
   const modelLabel = model => `${model.name || model.run}${isPreview(model) ? " · Entwicklung" : ""}`;
   const supports = (model, airport) => Boolean(model && (model.supported_airports || [model.airport]).includes(airport));
   const hasCaseManifest = model => isPreview(model) && Object.prototype.hasOwnProperty.call(model.preview, "supported_cases");
@@ -239,7 +239,8 @@ window.Singleplayer = (() => {
     const preferred = [...qualifiedModels()].filter(m => !isPreview(m) && supportsRoute(m, firstRoute)).sort((a,b) =>
       Number(Boolean(b.recommended)) - Number(Boolean(a.recommended)) ||
       Number(b.checkpoint === "latest") - Number(a.checkpoint === "latest") || b.steps - a.steps)[0];
-    if (preferred) document.getElementById("solo-model").value = preferred.id;
+    const initial=preferred || selectableModels().filter(m=>supportsRoute(m,firstRoute)).sort((a,b)=>Number(Boolean(b.recommended))-Number(Boolean(a.recommended)))[0];
+    if (initial) document.getElementById("solo-model").value = initial.id;
     document.getElementById("solo-back").onclick = () => {
       if (starting) return;
       if (menuStep === "route") setMenuStep(setup.mode === "examples" ? "mode" : "model");
@@ -322,12 +323,13 @@ window.Singleplayer = (() => {
     if(picked)cardSelector.value=setup.caseKey;
     document.getElementById("solo-abilities-label").hidden = examples || !selectedRoute?.ability_count;
     const preview = isPreview(setup.model);
-    const successRate = selectedRoute?.ability_count || hasCaseManifest(setup.model) ? setup.model?.preview?.case_results?.[setup.caseKey]?.win_rate
-      : (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code]?.win_rate;
+    const testResult = selectedRoute?.ability_count || hasCaseManifest(setup.model) ? setup.model?.preview?.case_results?.[setup.caseKey]
+      : (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code];
+    const successRate=testResult?.win_rate;
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
       : !setup.model ? "Für diese Strecke ist noch keine KI verfügbar."
-      : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Dein Klick speichert sofort; Rückgängig nimmt die letzte Bewertung zurück. Keine Auswahl ist neutral." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen.` : ""}`;
+      : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Dein Klick speichert sofort; Rückgängig nimmt die letzte Bewertung zurück. Keine Auswahl ist neutral." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen${Number.isInteger(testResult?.games)&&Number.isInteger(testResult?.wins)?` (${testResult.wins}/${testResult.games} Partien)`:""}.` : ""}`;
     const start=document.getElementById("solo-start");
     if(start)start.disabled = starting || !selectedRoute || (!examples && !setup.model)
       || (!examples && !supportsCase(setup.model,selectedRoute,setup.abilities))
@@ -491,7 +493,7 @@ window.Singleplayer = (() => {
       </div>
       <div id="ai-feedback-info" class="ai-feedback-info" role="region" aria-labelledby="ai-feedback-info-title" ${feedbackInfoOpen ? "" : "hidden"}>
         <div class="ai-feedback-info-heading"><strong id="ai-feedback-info-title">KI-Aktion bewerten</strong><button id="ai-feedback-info-close" type="button">Schließen</button></div>
-        <p id="ai-feedback-hint">Mit 👎 oder 👍 bewerten: Dein Klick speichert sofort. Der andere Daumen ändert die Bewertung. Rückgängig nimmt die letzte Bewertung zurück; keine Auswahl ist neutral.</p>
+        <p id="ai-feedback-hint">Mit 👎 oder 👍 bewerten: Dein Klick speichert sofort. Beim ersten 👎 versucht die KI für ihren letzten rücknehmbaren Zug einmal die nächstbeste andere Aktion. Ein weiteres 👎 bewertet nur. Rückgängig nimmt die letzte Bewertung zurück; keine Auswahl ist neutral.</p>
         <div class="ai-feedback-copy"><div class="ai-feedback-heading"><strong>KI-Aktion</strong><span id="ai-feedback-info-rating">${ratingText(value)}</span></div>
         ${events.length > 1 ? `<select id="ai-feedback-action" aria-label="KI-Aktion auswählen">${events.map(e => `<option value="${e.id}" ${e.id === selected.id ? "selected" : ""}>${esc(label(e.action))} · ${ratingText(e.feedback.value)}</option>`).join("")}</select>` : `<p class="ai-feedback-current">${selected ? esc(label(selected.action)) : "Warte auf die nächste KI-Aktion."}</p>`}</div>
       </div>`;
@@ -634,6 +636,8 @@ window.Singleplayer = (() => {
       const restored=session.events[event.id];restored.engine_after=state.rueckgaengig_version;
       feedbackIndex=event.id;
     } finally {
+      // The automatic replacement must not consume the player's rating undo.
+      feedbackUndoStack=undoBefore.map(previous=>({...previous,engineRevision:api.state()?.rueckgaengig_version}));
       retryParent=null;suspended=wasSuspended;persist();api.refresh();
     }
   }
