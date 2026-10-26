@@ -1,6 +1,6 @@
 /* Explicit mixed zero-card/card preview fixture, no release or win evidence. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
-const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');
 const fixtureId='fixture-mixed-preview/best.pt';
@@ -58,7 +58,7 @@ const rows=page=>page.evaluate(async()=>{
           const expected=current.preview.supported_cases.filter(row=>row.airport===selected.airport)
             .map(row=>row.airport+'|'+[...row.abilities].sort().join(',')).sort();
           assert.deepEqual(await page.locator('#solo-abilities option').evaluateAll(options=>options.map(option=>option.value).sort()),expected);
-          await page.locator('#solo-abilities').selectOption(selected.airport+'|'+[...selected.abilities].sort().join(','));
+          await chooseAbilities(page,selected.airport+'|'+[...selected.abilities].sort().join(','));
         }
         assert.match(await page.locator('#solo-description').innerText(),/Entwicklungstest im KI-Selbstspiel/);
         await page.locator('#solo-consent').check();
@@ -134,7 +134,7 @@ const rows=page=>page.evaluate(async()=>{
         await page.evaluate(()=>{const select=document.getElementById('solo-abilities'),bad=new Option('zero-case','LOG_GIG_YELLOW|adaptation');select.add(bad);select.value=bad.value;});
         await page.locator('#solo-start').click();
         assert.equal(await page.locator('#spiel-ui').isVisible(),false,'DOM injection cannot launch a zero-win card case');
-        await page.locator('#solo-abilities').selectOption('LOG_GIG_YELLOW|control');
+        await chooseAbilities(page,'LOG_GIG_YELLOW|control');
       }
       assert.equal(await page.locator('#solo-start').isDisabled(),false);
       await page.locator('#solo-start').click();

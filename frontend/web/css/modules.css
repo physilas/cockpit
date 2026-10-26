@@ -198,3 +198,7 @@ header.has-sync-reminder { flex-wrap: wrap; }
 @keyframes trade-copilot-flight { 0% { left: 78%; } 50% { transform: translate(-50%,24px); } 100% { left: 22%; } }
 @media(max-width:360px) { #trade-dialog { padding: .75rem; } .trade-sides { gap: .65rem; } .trade-side h3 { font-size: .71rem; } }
 @media(prefers-reduced-motion:reduce) { .trade-die { transition: none; } .trade-flying { animation: none; } }
+
+/* Keep the intern's full strip and its next placement inside the lower view. */
+#intern-strip { flex-shrink: 0; padding-bottom: 3px; }
+.intern-placement-hint { margin-top: 3px; padding-top: 3px; }

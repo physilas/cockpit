@@ -7,6 +7,7 @@ bool/None) zurück, nie Wuerfel-/Ergebnis-Objekte direkt - das macht die
 und hält die Spielregeln komplett in Python (kein Regel-Code in JS).
 """
 import json
+import random
 from copy import deepcopy
 from functools import wraps
 from .spielplan import Spielplan
@@ -65,6 +66,32 @@ def neues_spiel(flughafen="MUC", karten_json="[]"):
     _revision += 1
     _undo_id += 1
     return zustand()
+
+
+def spiel_speichern():
+    """Private local engine save, separate from public AI/learning interfaces."""
+    from .saves import dump_game
+    if _spiel is None: return None
+    return dump_game(_spiel, _verlauf, random.getstate())
+
+
+def spiel_laden(raw):
+    from .saves import load_game
+    global _spiel, _verlauf, _revision, _undo_id
+    game, history, rng = load_game(raw)
+    probe = random.Random(); probe.setstate(rng)
+    _spiel, _verlauf = game, history
+    random.setstate(rng)
+    _revision += 1; _undo_id += 1
+    return zustand()
+
+
+def uhr_verschieben(seconds):
+    """Local menu pause only; network games do not call this."""
+    import math
+    if type(seconds) not in (int,float) or not math.isfinite(seconds) or seconds<0: return
+    for game in ([_spiel]+_verlauf):
+        if game is not None and game.zusatz.deadline is not None: game.zusatz.deadline += seconds
 
 
 def _ergebnis_zu_dict(ergebnis):

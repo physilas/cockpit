@@ -2,7 +2,7 @@
  * synthetic catalogue entries, uploads, training or qualification evidence. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 
 const web=path.resolve(__dirname,'../frontend/web');
@@ -114,7 +114,7 @@ async function waitForRating(page,humanRole,predicate) {
     assert.equal(await page.locator('#solo-abilities option').count(),6);
     await page.locator('#solo-consent').check();
     for(const [card,percent] of Object.entries(rates)) {
-      await page.locator('#solo-abilities').selectOption(`LOG_ATL_YELLOW|${card}`);
+      await chooseAbilities(page,`LOG_ATL_YELLOW|${card}`);
       const description=await page.locator('#solo-description').innerText();
       assert.match(description,new RegExp(`Entwicklungstest im KI-Selbstspiel: ${percent} %`));
       assert.match(description,/noch nicht unabhängig qualifiziert/);
@@ -127,7 +127,7 @@ async function waitForRating(page,humanRole,predicate) {
     for(const humanRole of ['pilot','kopilot']) {
       await chooseModel(page,modelId,humanRole);
       await chooseRoute(page,'ATL-yellow');
-      await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|adaptation');
+      await chooseAbilities(page,'LOG_ATL_YELLOW|adaptation');
       await page.locator('#solo-consent').check();
       await page.locator('#solo-start').click();
       await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});

@@ -2,7 +2,7 @@
  * Its explicit unqualified preview is not release evidence or a production change. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');
@@ -46,6 +46,14 @@ const waitForAIBonus=async(page,previous)=>{
     assert.match(await page.locator('#solo-description').innerText(),/Entwicklungstest im KI-Selbstspiel: 5 %/);
     await page.locator('#solo-consent').check();await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
+    if(await page.locator('#sync-dialog[open]').count()) await page.locator('.sync-peek-button').click();
+    for(const viewport of [{width:390,height:844},{width:320,height:740}]) {
+      await page.setViewportSize(viewport);await page.waitForTimeout(200);
+      const box=await page.locator('#intern-strip').boundingBox();
+      assert.ok(box && box.y>=0 && box.y+box.height<=viewport.height,JSON.stringify({viewport,box}));
+      await page.screenshot({path:`/tmp/cockpit-intern-${viewport.width}.png`});
+    }
+    await page.setViewportSize({width:390,height:844});
     // Training changes regular am_zug, but the AI still owns its pending token.
     const pending=await page.evaluate(()=>{
       pyodide.runPython('import backend.bridge as b\nwhile b._spiel.phase == "verkehr": b._spiel.wirf_verkehrswuerfel()\nb._spiel.zusatz.praktikant = [1,2,3,4,5,6]\nb._spiel.am_zug = "kopilot"\nfor die in b._spiel.pilot_wuerfel + b._spiel.kopilot_wuerfel: die.augenzahl = 3');
@@ -96,7 +104,7 @@ const waitForAIBonus=async(page,previous)=>{
     assert.ok(await page.locator('.bonus-target').count()>0);
     await page.locator('.bonus-target').first().click();
     await page.waitForTimeout(80);
-    await page.locator('#menue-btn').click();
+    await leaveGame(page);
     data=(await sessions(page))[0];
     const human=data.events.filter(e=>e.actor==='human' && e.action.kind==='bonus_place');
     assert.equal(human.length,1);

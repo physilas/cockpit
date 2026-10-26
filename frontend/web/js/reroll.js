@@ -4,6 +4,20 @@ const NeuwurfDialog = (() => {
   const namen = {pilot: "Pilotin", kopilot: "Co-Pilot"};
   let dialog = null;
   let aktuell = null;
+  let blick = false, zurueck = null;
+
+  function ohneWuerfelBestaetigen(z, ui) {
+    for (const rolle of rollen) if (!z[`${rolle}_wuerfel_frei`].some(Boolean)) {
+      ui.auswahl[rolle] = []; ui.bestaetigt[rolle] = true;
+    }
+  }
+
+  function spielfeldAnsehen() {
+    if (!aktuell || aktuell.ui.phase !== 1) return;
+    blick = true; dialog.close();
+    document.body.classList.remove("neuwurf-dialog-offen");
+    zurueck.hidden = false; zurueck.focus();
+  }
 
   function neuerZustand() {
     return {
@@ -18,6 +32,8 @@ const NeuwurfDialog = (() => {
     if (dialog?.open) dialog.close();
     document.body.classList.remove("neuwurf-dialog-offen");
     aktuell = null;
+    blick = false;
+    if (zurueck) zurueck.hidden = true;
   }
 
   function render(z, ui, options) {
@@ -30,16 +46,24 @@ const NeuwurfDialog = (() => {
       dialog.id = "neuwurf-dialog";
       dialog.setAttribute("aria-labelledby", "neuwurf-titel");
       dialog.setAttribute("aria-describedby", "neuwurf-hinweis");
-      dialog.innerHTML = '<header><span class="neuwurf-symbol" aria-hidden="true">↻</span><h2 id="neuwurf-titel">Gemeinsam neu würfeln</h2></header><p id="neuwurf-hinweis"></p><div class="neuwurf-spieler"></div><p class="neuwurf-status" role="status" aria-live="polite"></p><button type="button" class="neuwurf-abbrechen">Abbrechen</button>';
+      dialog.innerHTML = '<header><span class="neuwurf-symbol" aria-hidden="true">↻</span><h2 id="neuwurf-titel">Gemeinsam neu würfeln</h2></header><p id="neuwurf-hinweis"></p><div class="neuwurf-spieler"></div><p class="neuwurf-status" role="status" aria-live="polite"></p><button type="button" class="neuwurf-ansehen">Spielfeld ansehen</button><button type="button" class="neuwurf-abbrechen">Abbrechen</button>';
       dialog.addEventListener("cancel", event => {
         event.preventDefault();
         if (aktuell?.ui.phase === 1) aktuell.options.onCancel();
       });
       dialog.querySelector(".neuwurf-abbrechen").addEventListener("click", () => aktuell?.options.onCancel());
+      dialog.querySelector(".neuwurf-ansehen").addEventListener("click", spielfeldAnsehen);
+      zurueck = document.createElement("button");
+      zurueck.id = "neuwurf-zurueck"; zurueck.type = "button"; zurueck.hidden = true;
+      zurueck.textContent = "Zurück zum Neuwurf";
+      zurueck.onclick = () => { blick = false; zurueck.hidden = true; dialog.showModal(); document.body.classList.add("neuwurf-dialog-offen"); };
+      document.body.appendChild(zurueck);
       document.body.appendChild(dialog);
     }
     aktuell = {ui, options};
+    ohneWuerfelBestaetigen(z, ui);
     const ergebnis = ui.phase === 2;
+    if (ergebnis) { blick = false; zurueck.hidden = true; }
     const fokus = dialog.contains(document.activeElement) ? document.activeElement.dataset.focus : null;
     dialog.classList.toggle("neuwurf-ergebnis", ergebnis);
     dialog.querySelector("h2").textContent = ergebnis ? "Neu gewürfelt!" : "Gemeinsam neu würfeln";
@@ -88,7 +112,7 @@ const NeuwurfDialog = (() => {
       const anzahl = ui.auswahl[rolle].length;
       status.textContent = ergebnis ? `${anzahl} neu gewürfelt` : bereit ? "✓ Bestätigt" : `${anzahl} ausgewählt`;
       section.appendChild(status);
-      if (!ergebnis && meins) {
+      if (!ergebnis && meins && z[`${rolle}_wuerfel_frei`].some(Boolean)) {
         const confirm = document.createElement("button");
         confirm.type = "button";
         confirm.className = "neuwurf-bestaetigen" + (bereit ? " bereit" : "");
@@ -103,10 +127,11 @@ const NeuwurfDialog = (() => {
       ? "Das Popup schließt gleich automatisch."
       : rollen.some(rolle => ui.bestaetigt[rolle]) ? "Warte auf die zweite Bestätigung …" : "Ein gemeinsamer Neuwurf kostet 1 Plättchen.");
     dialog.querySelector(".neuwurf-abbrechen").hidden = ergebnis;
-    if (!dialog.open) dialog.showModal();
-    document.body.classList.add("neuwurf-dialog-offen");
+    dialog.querySelector(".neuwurf-ansehen").hidden = ergebnis;
+    if (!dialog.open && !blick) dialog.showModal();
+    document.body.classList.toggle("neuwurf-dialog-offen", !blick);
     if (fokus) dialog.querySelector(`[data-focus="${fokus}"]:not(:disabled)`)?.focus({preventScroll: true});
   }
 
-  return {neuerZustand, render, schliessen};
+  return {neuerZustand, render, schliessen, ohneWuerfelBestaetigen, isPeeking: () => blick};
 })();

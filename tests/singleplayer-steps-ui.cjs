@@ -1,7 +1,7 @@
 /* Real catalogue and browser: isolated steps, small screens and launch config. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const base = process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000';
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${base}/frontend/web/`;
 const fits = async page => assert.ok(await page.evaluate(() => {
@@ -46,7 +46,7 @@ const fits = async page => assert.ok(await page.evaluate(() => {
       assert.equal(await page.locator('#solo-model').isVisible(),false);
       assert.deepEqual(await page.locator('#solo-route option').evaluateAll(options=>options.map(o=>o.value)),['ATL-yellow']);
       assert.equal(await page.locator('#solo-abilities option').count(),6);
-      await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|working-together');
+      await chooseAbilities(page,'LOG_ATL_YELLOW|working-together');
       assert.match(await page.locator('#solo-description').innerText(),/0 %/);
       assert.equal(await page.locator('#solo-start').isDisabled(),true);
       await page.locator('#solo-consent').check();
@@ -79,7 +79,7 @@ const fits = async page => assert.ok(await page.evaluate(() => {
     // Fail a real model request once: preserve the last step and allow retry.
     await chooseMode(page,'play');await chooseModel(page,'crew5-leak-preview-v1/best.pt','pilot');
     await chooseRoute(page,'ATL-yellow');
-    await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|adaptation');
+    await chooseAbilities(page,'LOG_ATL_YELLOW|adaptation');
     const url=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(m=>m.id==='crew5-leak-preview-v1/best.pt').url);
     await page.route(`**/${url}`,route=>route.fulfill({status:503,body:'temporarily unavailable'}),{times:1});
     await page.locator('#solo-start').click();

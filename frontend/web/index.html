@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="css/modules.css">
 <link rel="stylesheet" href="css/reroll.css">
 <link rel="stylesheet" href="css/singleplayer.css">
+<link rel="stylesheet" href="css/game-dialogs.css">
 <style>
   /* ── Startmenü ── */
   #start-menu {
@@ -51,6 +52,7 @@
       <div style="font-size:3rem">✈</div>
       <h1>Fly Team</h1>
     </div>
+    <button id="resume-last-game" class="start-btn" hidden style="background:var(--blau);color:white">Letztes Spiel fortsetzen<span id="resume-last-label"></span></button>
     <button class="start-btn" style="background:var(--blau);color:white"
             onclick="Singleplayer.showMenu()">
       🤖 Singleplayer
@@ -231,6 +233,7 @@
   <script src="js/cloud-config.js"></script>
   <script src="js/learning-cloud.js"></script>
   <script src="js/singleplayer.js"></script>
+  <script src="js/game-dialogs.js"></script>
   <script src="js/app.js?v=compact-distance-v2"></script>
   <script>
     if ("serviceWorker" in navigator) {

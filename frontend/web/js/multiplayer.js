@@ -247,6 +247,7 @@ function hostAktion(msg, absender) {
       neuwurfUi.phase = 1;
       neuwurfUi.id = ++neuwurfSequence;
       neuwurfUi.wuerfel = {pilot: [...z.pilot_wuerfel], kopilot: [...z.kopilot_wuerfel]};
+      NeuwurfDialog.ohneWuerfelBestaetigen(z, neuwurfUi);
       ausgewaehlterWuerfel = kaffeeMenuFuer = null;
       raw = z;
     } else if (["neuwurf_toggle", "neuwurf_confirm", "neuwurf_cancel"].includes(msg.typ)) {
@@ -267,6 +268,7 @@ function hostAktion(msg, absender) {
         if (neuwurfUi.bestaetigt.pilot && neuwurfUi.bestaetigt.kopilot) {
           if (!neuwurfUi.auswahl.pilot.length && !neuwurfUi.auswahl.kopilot.length) {
             neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
+            NeuwurfDialog.ohneWuerfelBestaetigen(z, neuwurfUi);
             neuwurfUi.meldung = "Wählt zusammen mindestens einen Würfel aus.";
           } else {
             const r = pyToJs(bridge.benutze_neuwurf(neuwurfUi.auswahl.pilot, neuwurfUi.auswahl.kopilot));
@@ -284,6 +286,7 @@ function hostAktion(msg, absender) {
               }, 2400);
             } else {
               neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
+              NeuwurfDialog.ohneWuerfelBestaetigen(z, neuwurfUi);
               neuwurfUi.meldung = grundText(r.ergebnis.grund);
             }
           }
@@ -474,7 +477,7 @@ function bindeNeuwurfTokens(z) {
 
 // Jede Leiste zeigt nur noch ihre aktuell sichtbaren Felder. So bleiben
 // keine leeren Kacheln oberhalb der Entfernung bzw. Höhe zurück.
-const TRACK_UNIT_PX = 36;
+let TRACK_UNIT_PX = 36;
 function setzeGauge(prefix, remaining) {
   const track = document.getElementById(`${prefix}-track`);
   const height = Math.max(0, remaining) * TRACK_UNIT_PX;
@@ -498,6 +501,7 @@ function renderAttitude(fluglage) {
 }
 
 function renderTracks(z) {
+  TRACK_UNIT_PX = z.module.includes("intern") ? Math.max(18,Math.min(36,Math.floor((innerHeight-590-(z.zusatzaktion?32:0))/Math.max(7,z.entfernung+1)))) : 36;
   document.getElementById("altitude-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
   document.getElementById("distance-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
 
@@ -650,6 +654,7 @@ function render(z) {
   const imNeuwurf = neuwurfUi.phase !== 0;
 
   if(z.status!=="laeuft") {
+    GameDialogs.result(z,z.status==="gewonnen"?"Eure Crew hat die Landung geschafft.":grundText(z.verlust_grund));
     amZug.innerHTML=`<div class="spiel-ende ${z.status}">`+
       (z.status==="gewonnen"?"🎉 Sicher gelandet!":`💥 Verloren – ${grundText(z.verlust_grund)}`)+
       "</div>";
@@ -674,6 +679,7 @@ function render(z) {
     amZug.style.color=ichDran?"var(--gruen)":"var(--muted)";
     if(rBtn)rBtn.disabled=!ichDran;
   }
+  if(z.status==="laeuft")GameDialogs.result(z,"");
 }
 
 // Ordnet Funk/Fahrwerk/Landeklappen ihrer Seitenspalte zu. Ruder, Triebwerk,
@@ -922,7 +928,14 @@ window.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") starte_Beitreten(document.getElementById("join-code-input").value);
   });
 
-  document.getElementById("neues-spiel-btn")?.addEventListener("click", waehleLandung);
+  GameDialogs.connect({
+    canRestart:()=>myRole==='pilot',
+    confirmMainText:'Die Verbindung zur gemeinsamen Partie wird beendet.',
+    onRestart(){GameDialogs.reset();meineAktion({typ:'neues_spiel'});},
+    onMainMenu(){window.location='index.html';},
+    onResume(){if(aktuellerZustand)render(aktuellerZustand);},
+  });
+  document.getElementById("neues-spiel-btn")?.addEventListener("click",()=>GameDialogs.menu());
   document.getElementById("rundenende-btn")?.addEventListener("click", () => meineAktion({typ:"rundenende"}));
   document.getElementById("rueckgaengig-btn")?.addEventListener("click", () => document.dispatchEvent(new Event("cockpit-undo")));
   document.addEventListener("cockpit-undo", () => {
@@ -930,7 +943,7 @@ window.addEventListener("DOMContentLoaded", () => {
     meineAktion({typ:"rueckgaengig",version:aktuellerZustand.rueckgaengig_version});
   });
   document.getElementById("menue-btn")?.addEventListener("click", () => {
-    window.location = "index.html";
+    GameDialogs.menu();
   });
   if (joinCode) {
     showScreen("screen-join");

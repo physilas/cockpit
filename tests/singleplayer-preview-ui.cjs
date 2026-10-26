@@ -1,7 +1,7 @@
 /* Menu-only QA of the actual exported preview; no model updates or qualification. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');

@@ -81,5 +81,14 @@ window.CockpitPolicy = (() => {
       },
     };
   }
-  return {create};
+  return {create(data,catalog){
+    const policy=create(data,catalog);
+    policy.rank=decision=>{
+      policy.select(decision); // Validate the same observation/reference/mask.
+      const scores=policy.logits(decision.observation,decision.reference_action_mask);
+      return scores.map((score,index)=>({score,index})).filter(row=>decision.action_mask[row.index])
+        .sort((a,b)=>b.score-a.score||a.index-b.index).map(row=>row.index);
+    };
+    return policy;
+  }};
 })();

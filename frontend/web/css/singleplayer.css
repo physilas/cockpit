@@ -78,3 +78,15 @@
   [data-step="model"] .solo-settings { grid-template-columns: 1fr 1fr; }
   .solo-model-description { margin-block: .5rem; }
 }
+
+.solo-picker .landing-nav, .solo-picker .landing-hero, .solo-picker .landing-notice, .solo-picker .landing-credit { display: none; }
+.solo-picker .landing-filters [data-filter="all"] { font-size: 0; }
+.solo-picker .landing-filters [data-filter="all"]::after { content: "Alle"; font-size: .8rem; }
+.solo-picker .landing-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.solo-picker .landing-detail-top { grid-template-columns: 1fr; }
+.solo-picker .landing-card-image { height: 150px; }
+.solo-picker .landing-detail-image { height: 210px; }
+.solo-picker .landing-card-body { padding: .7rem; }
+#solo-route-meta[hidden] { display:none; }
+.solo-picker .landing-launch { position: static; }
+@media(max-width:540px){.solo-picker .landing-grid{grid-template-columns:1fr;}.solo-picker .landing-card-image{height:190px;}}

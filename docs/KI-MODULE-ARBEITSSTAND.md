@@ -1,5 +1,52 @@
 # Arbeitsstand: Modul-KI, auf Nutzerwunsch pausiert
 
+## Neuer Auftrag vom 26.10.2026 – in Bearbeitung
+
+Der Nutzer hat weitere UI-Verbesserungen und anschließend erneutes Training
+von Crew 4 beauftragt. Neue verbindliche Trainingsgrenze: **höchstens acht
+CPU-Worker zu jeweils 60 %, Torch-Threads 1, nice 15, ein schwerer Lauf**.
+Metal für PPO bleibt erlaubt. Die erneute Trainingsanweisung erlaubt für diesen
+Auftrag das spätere ausdrückliche `clear-stop`; bisher ist noch kein Training
+gestartet, die vorherige Automation bleibt pausiert.
+
+UI-Arbeit (noch nicht als abgeschlossen ausgeben): Neuwurf mit Spielfeldblick
+und automatischer leerer Hand, zentrales Spielmenü mit Bestätigungen, dominantes
+Endergebnis mit weißem Nebel, lokale Wiederaufnahme nach Reload, komplette
+Praktikantenleiste, kein Start-Neuwurfplättchen auf Rot/Schwarz, Bild-/Kartenwahl
+wie Mehrspieler. Im Kindergarten soll die letzte unveränderte KI-Aktion bei
+erstem 👎 einmal durch die nächstbeste legale, inhaltlich andere Aktion ersetzt
+werden; erneutes 👎 bleibt nur Bewertung. Zurückgezogene negative Labels bleiben
+erhalten, aber gehören nicht als gespielter Zug in Demonstrationstrajektorien.
+Kein Live-Update der Netzgewichte. Private Engine-/RNG-Spielstände bleiben
+ausschließlich lokal und getrennt von öffentlichen KI-/Cloud-Aufzeichnungen.
+
+**Oberfläche geprüft und bereit zum Push:** Fünf betroffene echte Chrome-Prüfungen
+bestehen: Schrittauswahl/Bildgalerie, Feedback/Undo/Cloudretry, Pass & Play und
+Host/Gast-Mehrspieler, neue Spielabläufe und Praktikantenlauf. Die NN-Alternative
+wurde einmal tatsächlich ausgeführt; das zweite negative Urteil ließ den Zug
+unverändert. Auch fehlgeschlagener Neustart lässt die alte Partie erhalten.
+Neuladen setzt Felder, Rolle, KI und Karten wieder fort; leere Neuwurfhand
+bestätigt automatisch. Beide Ergebnis-Popups und weißer Nebel visuell geprüft.
+Praktikantenleiste passt bei 390×844 und 320×740 vollständig ins Sichtfenster.
+51 native Tests für Spielstände, Standardregeln, Undo und Lernaufzeichnungen,
+der Node-Kartenvertrag und Mehrspieler-Aktions-/Privacy-Test bestehen.
+Zurückgezogene negative Labels bleiben im Feedbackdatensatz, werden aus
+Demonstrationstrajektorien ausgeschlossen. Build, Cache und JS-Syntax geprüft.
+Kein neues Training in diesem UI-Commit; Automation weiterhin pausiert.
+
+Danach: nur eine sichtbare Version pro Crew; historische Dateien erhalten.
+Alle 21 Standardrouten/186 erlaubten Kartenfälle sollen auch bei schwachen oder
+null Quoten als ehrlich beschriftete Vorschau verfügbar sein. Höhere Nummer
+ist kein Beweis besserer Leistung. Kandidaten nach vorher festgelegtem
+Gesamtkriterium vergleichen und echte Einzelwerte dokumentieren; einfachere
+Routen nicht allein wegen alter enger Veröffentlichungslisten ausschließen.
+Crew 1 braucht für Module zunächst einen Schema-3-Adapter unter Erhalt ihrer
+ursprünglichen Gewichte; Quellen nicht blind als voll modultrainiert ausgeben.
+Neue Crew-4-Phase benötigt den nun gültigen Regelsatz ohne Starttoken auf
+Rot/Schwarz, frische Entwicklung und ehrliche Lineage; kein exaktes Resume über
+geänderte Regeldateien. Nicht unverändert endlos den alten schwachen Lecklauf
+wiederholen. Verbesserte KIs nach Prüfung direkt pushen.
+
 ## Vorläufig ausschließlich Standardrouten im Spiel
 
 Auf den ergänzenden Nutzerwunsch sind eigene Routen aus dem gemeinsamen

@@ -89,11 +89,14 @@ def load_demonstrations(paths, airport):
                 or snapshot["action_mask_version"] != ACTION_MASK_VERSION
                 or s.get("action_mask_version") != ACTION_MASK_VERSION):
             raise ValueError(f"Demonstration und aktuelles Schema/Aktionsmaske passen nicht: {path}")
-        live = [e for e in s["events"] if e.get("voided") is False]
+        live = [e for e in s["events"] if e.get("voided") is False and not e.get("withdrawn")]
         if not live or live[-1].get("outcome", {}).get("status") != "gewonnen":
             raise ValueError(f"Sieg nicht durch letztes gültiges Ereignis bestätigt: {path}")
         start = len(actions)
         for e in s["events"]:
+            if e.get("withdrawn"):
+                excluded["withdrawn"] += 1
+                continue
             if e.get("voided") is True:
                 excluded["voided"] += 1
                 continue

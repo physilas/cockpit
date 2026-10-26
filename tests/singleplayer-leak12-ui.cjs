@@ -3,7 +3,7 @@
  */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const web=path.resolve(__dirname,'../frontend/web');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;

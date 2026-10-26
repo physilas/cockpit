@@ -1,0 +1,103 @@
+/* Actual engine/model UI: local resume, menus, result fog and one preference retry. */
+const {chromium}=require('playwright'),assert=require('node:assert/strict');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame}=require('./singleplayer-setup.cjs');
+const url=(process.env.COCKPIT_TEST_URL||'http://127.0.0.1:8036')+'/frontend/web/';
+const records=page=>page.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('flyteam-learning-v1',2);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+  return new Promise(resolve=>{const r=db.transaction('sessions').objectStore('sessions').getAll();r.onsuccess=()=>resolve(r.result);});
+});
+const waitUntil=async(fn)=>{for(let i=0;i<80;i++){if(await fn())return;await new Promise(r=>setTimeout(r,75));}throw new Error('Timed out waiting for saved UI state');};
+(async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:process.env.COCKPIT_CHROME||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ try{
+  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),errors=[];
+  await context.route('**/js/cloud-config.js',r=>r.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
+  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url);await page.getByRole('button',{name:/Singleplayer/}).click();
+  await chooseMode(page,'feedback');await chooseModel(page,'crew5-leak-preview-v1/best.pt','pilot');
+  await page.locator('#solo-next').click();
+  assert.ok(await page.locator('#solo-landings .landing-card img').count()>0);
+  await chooseRoute(page,'ATL-yellow');await chooseAbilities(page,'LOG_ATL_YELLOW|control');
+  assert.equal(await page.locator('#solo-landings [data-ability]').count(),6);
+  await page.locator('#solo-consent').check();await page.locator('#solo-start').click();
+  await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
+  await page.evaluate(()=>{
+   pyodide.runPython('import backend.bridge as b\nwhile b._spiel.phase=="verkehr":b._spiel.wirf_verkehrswuerfel()\nfor d in b._spiel.pilot_wuerfel:d.augenzahl=3\nfor d,n in zip(b._spiel.kopilot_wuerfel,[1,2,3,6]):d.augenzahl=n');
+   resetVerkehrUi();render(pyToJs(bridge.zustand()));
+   nachAktion(spielAktion({kind:'place',role:'pilot',die:0,target:'ruder'}));
+  });
+  await waitUntil(async()=>{const rows=await records(page);return rows.some(r=>r.events.some(e=>e.actor==='ai'));});
+  await page.evaluate(()=>Singleplayer.suspend());
+  let rows=await records(page),session=rows.find(r=>r.mode==='feedback');
+  const old=session.events.filter(e=>e.actor==='ai').at(-1),before=await page.evaluate(()=>aktuellerZustand.rueckgaengig_version);
+  await page.locator('#ai-rating-down').click();
+  await waitUntil(async()=>{const r=(await records(page)).find(r=>r.id===session.id);return r.events.some(e=>e.retry_of===old.id);});
+  session=(await records(page)).find(r=>r.id===session.id);
+  const rejected=session.events.find(e=>e.id===old.id),replacement=session.events.find(e=>e.retry_of===old.id);
+  assert.ok(rejected.withdrawn&&rejected.feedback.value===-1&&rejected.feedback.committed);
+  assert.notEqual(replacement.action_id,rejected.action_id);
+  assert.ok(await page.evaluate(()=>aktuellerZustand.rueckgaengig_version)>before);
+  if(await page.getByRole('button',{name:'Zurück zum Spielfeld',exact:true}).isVisible())await page.getByRole('button',{name:'Zurück zum Spielfeld',exact:true}).click();
+  const revision=await page.evaluate(()=>aktuellerZustand.rueckgaengig_version);
+  await page.locator('#ai-rating-down').click();
+  await waitUntil(async()=>{const r=(await records(page)).find(r=>r.id===session.id);return r.events.find(e=>e.id===replacement.id).feedback.value===-1;});
+  assert.equal(await page.evaluate(()=>aktuellerZustand.rueckgaengig_version),revision,'The second negative rating cannot replace the alternative');
+  assert.equal((await records(page)).find(r=>r.id===session.id).events.filter(e=>e.retry_of!==undefined).length,1);
+  console.log('✓ Actual NN alternative once; withdrawn negative label retained; second negative leaves the move');
+  await page.locator('#menue-btn').click();
+  assert.match(await page.locator('#game-dialog').innerText(),/Fortsetzen.*Neustart.*Hauptmenü/s);
+  await page.getByRole('button',{name:'Neustart',exact:true}).click();
+  assert.match(await page.locator('#game-dialog-title').innerText(),/neu starten/);
+  await page.getByRole('button',{name:'Abbrechen',exact:true}).click();
+  const modelURL=await page.evaluate(()=>COCKPIT_AI_CATALOG.models.find(m=>m.id==='crew5-leak-preview-v1/best.pt').url);
+  await page.route(`**/${modelURL}`,r=>r.fulfill({status:503,body:'offline'}),{times:1});
+  const beforeFailure=await page.evaluate(()=>JSON.stringify(aktuellerZustand.felder));
+  await page.getByRole('button',{name:'Neustart',exact:true}).click();await page.getByRole('button',{name:'Neu starten',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('.game-dialog-error')?.textContent.includes('Modell konnte nicht geladen'));
+  assert.equal(await page.evaluate(()=>JSON.stringify(aktuellerZustand.felder)),beforeFailure,'Failed restart preserves game');
+  await page.getByRole('button',{name:'Abbrechen',exact:true}).click();
+  await page.getByRole('button',{name:'Neustart',exact:true}).click();await page.getByRole('button',{name:'Neu starten',exact:true}).click();
+  await page.waitForTimeout(500);
+  await page.waitForFunction(()=>aktuellerZustand.runde===1&&aktuellerZustand.status==='laeuft'&&aktuellerZustand.felder.ruder.pilot==null);
+  await page.evaluate(()=>{
+   pyodide.runPython('while b._spiel.phase=="verkehr":b._spiel.wirf_verkehrswuerfel()\nb._spiel.pilot_wuerfel[0].augenzahl=3');
+   resetVerkehrUi();render(pyToJs(bridge.zustand()));
+   nachAktion(spielAktion({kind:'place',role:'pilot',die:0,target:'ruder'}));Singleplayer.suspend();
+  });
+  await leaveGame(page);
+  assert.equal(await page.locator('#resume-last-game').isVisible(),true);
+  await page.reload();await page.locator('#resume-last-game').click();
+  await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});await page.evaluate(()=>Singleplayer.suspend());
+  assert.equal(await page.evaluate(()=>aktuellerZustand.szenario_id),'ATL-yellow');
+  assert.ok(await page.evaluate(()=>aktuellerZustand.felder.ruder.pilot));
+  assert.deepEqual(await page.evaluate(()=>aktuellerZustand.faehigkeitskarten),['control']);
+  console.log('✓ Confirmed restart/main menu; local reload restores fields, chosen AI, role and cards');
+  await page.evaluate(()=>{
+   pyodide.runPython('import backend.bridge as b\nb._spiel.am_zug="pilot"\nb._spiel.neuwurf_plaettchen=1\nfor d in b._spiel.kopilot_wuerfel:d.platziert=True');render(pyToJs(bridge.zustand()));
+  });
+  await page.locator('#s-neuwurf button').click();
+  assert.equal(await page.locator('#neuwurf-dialog .kopilot .neuwurf-bestaetigen').count(),0);
+  await page.locator('#neuwurf-dialog .pilot [data-index="1"]').click();
+  await page.locator('.neuwurf-ansehen').click();
+  assert.equal(await page.locator('#neuwurf-dialog').isVisible(),false);
+  await page.locator('#neuwurf-zurueck').click();
+  assert.equal(await page.locator('#neuwurf-dialog .pilot [data-index="1"]').getAttribute('aria-pressed'),'true');
+  await page.locator('#neuwurf-dialog .pilot .neuwurf-bestaetigen').click();
+  await page.waitForFunction(()=>aktuellerZustand.neuwurf_plaettchen===0);
+  await page.locator('#neuwurf-dialog').waitFor({state:'hidden'});
+  console.log('✓ Field peek preserves reroll choice; a player without dice needs no confirmation');
+  await page.evaluate(()=>{
+   GameDialogs.reset();pyodide.runPython('b._spiel.status="verloren"\nb._spiel.verlust_grund="trudeln"');render(pyToJs(bridge.zustand()));
+  });
+  assert.equal(await page.locator('#game-dialog').isVisible(),true);
+  assert.match(await page.locator('#game-dialog-title').innerText(),/verloren/);
+  assert.equal(await page.locator('#game-dialog .game-dialog-actions button').count(),3);
+  await page.screenshot({path:'/tmp/cockpit-result-fog.png'});
+  await page.getByRole('button',{name:'Zurück zum Spielfeld',exact:true}).click();
+  assert.equal(await page.locator('#game-dialog').isVisible(),false);
+  await page.evaluate(()=>{GameDialogs.reset();pyodide.runPython('b._spiel.status="gewonnen"');render(pyToJs(bridge.zustand()));});
+  assert.match(await page.locator('#game-dialog-title').innerText(),/gelandet/);
+  assert.deepEqual(errors,[]);
+  await context.close();console.log('✓ Centered result overlay, white fog and board return; no browser errors');
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

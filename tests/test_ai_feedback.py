@@ -57,6 +57,13 @@ class FeedbackImportTests(unittest.TestCase):
         self.assertEqual(sum(row['decisions'] for row in dataset.manifest['rated_models']), 16)
         self.assertTrue(all(row['id'] and row['fingerprint'] for row in dataset.manifest['rated_models']))
 
+    def test_withdrawn_negative_action_remains_an_informative_label(self):
+        event = self.data['session']['events'][0]
+        event.update(withdrawn=True, replaced_by=99)
+        event['feedback']['value'] = -1
+        dataset = self.load()
+        self.assertEqual(dataset.ratings, (-1,))
+
     def test_neutral_pending_voided_human_implicit_and_nonconsented_are_ignored(self):
         original = self.data['session']['events'][0]
         events = []

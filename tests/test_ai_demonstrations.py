@@ -30,6 +30,13 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(data.manifest["excluded"], {"voided": 1, "non_decision": 7, "incompatible": 0, "non_human": 0})
         self.assertTrue(all(mask[action] for mask, action in zip(data.masks, data.actions)))
 
+    def test_withdrawn_move_is_excluded_from_played_trajectory(self):
+        event = next(e for e in self.data['session']['events'] if not e.get('voided') and e.get('decision'))
+        event['withdrawn'] = True
+        with tempfile.TemporaryDirectory() as root:
+            data = load_demonstrations([self.write(root, self.data)], 'MUC')
+        self.assertEqual(len(data.actions), 59)
+
     def test_duplicate_single_and_browser_exports_do_not_multiply_the_game(self):
         original = load_demonstrations([FIXTURE], "MUC")
         exported = {**self.data, "format": "flyteam-learning-data", "sessions": [self.data["session"]]}

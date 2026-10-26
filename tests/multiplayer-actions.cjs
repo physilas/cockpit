@@ -23,6 +23,7 @@ const context = vm.createContext({
   console, URLSearchParams, COCKPIT_SCHEMA:JSON.parse(fs.readFileSync(path.join(root,'backend/ui_schema.json'))),
   setTimeout:fn => {const id = Symbol(); timers.set(id,fn); return id;},
   clearTimeout:id => timers.delete(id),
+  GameDialogs:{connect(){}, result(){}, menu(){}},
   Landings:{mount:() => ({})},
   window:{location:{search:'?join=ABCDEF'},addEventListener:(event,fn) => events.set(event,fn)},
   document:{body:{classList:{remove(){}}},getElementById:element,addEventListener:(event,fn) => events.set(event,fn),dispatchEvent:event => events.get(event.type)?.()},
@@ -135,3 +136,13 @@ assert.equal(state.neuwurf_plaettchen,0,'One-sided selection not rolled');
 closeResult();
 assert.equal(act({typ:'neuwurf_start',version:7}),false,'Reroll without token');
 console.log('✓ Independent selection, both confirmation orders, authenticated roles, duplicate/stale guards, one token, result, auto-close, cancellation, empty selection and engine failure');
+
+state.neuwurf_plaettchen=1;
+state.pilot_wuerfel_frei=[false,false,false,false];
+id=start();
+assert.equal(ui().bestaetigt.pilot,true,'Empty hand needs no confirmation');
+toggle(id,0,'kopilot'); confirm(id,'kopilot');
+assert.equal(ui().phase,2,'Only the nonempty hand confirms');
+assert.deepEqual(rerolls().at(-1),['reroll',[],[0]]);
+closeResult();
+console.log('✓ Empty partner hand automatically confirms without spending or inventing dice');

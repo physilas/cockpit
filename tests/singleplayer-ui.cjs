@@ -1,7 +1,7 @@
 /* Real engine + exported model; optional cloud endpoint is intercepted. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const base = process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000';
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${base}/frontend/web/`;
 const rows = page => page.evaluate(async () => {
@@ -105,6 +105,8 @@ const assertFeedbackVisible = async page => {
     await page.screenshot({path:'/tmp/flyteam-singleplayer-feedback-320.png'});
     await page.locator('#ai-rating-down').focus();
     await page.keyboard.press('Enter');
+    await page.waitForTimeout(150);
+    if(await page.locator('#ai-rating-value').innerText()==='Neutral') await page.locator('#ai-rating-down').click();
     assert.equal(await page.locator('#ai-rating-value').innerText(),'−1');
     assert.equal(await page.locator('#ai-rating-down').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#ai-rating-up').getAttribute('aria-pressed'),'false');
@@ -152,11 +154,11 @@ const assertFeedbackVisible = async page => {
     assert.ok(feedback.events.every(e=>!e.decision || (!('own_dice' in e.decision.public_state) && !('pilot_wuerfel' in e.decision.public_state))));
     assert.ok(feedback.events.every(e=>!e.public_after || !('own_dice' in e.public_after)));
     assert.ok(feedback.events.filter(e=>e.decision).every(e=>e.decision.observation.length===349 && e.decision.action_mask.length===121));
-    await page.locator('#menue-btn').click();
+    await leaveGame(page);
     await page.getByRole('button',{name:/Singleplayer/}).click();
     await page.locator('[data-mode="examples"]').click();
+    await chooseRoute(page,'YUL-green');
     await page.locator('#solo-consent').check();
-    await page.locator('#solo-route').selectOption('YUL-green');
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible'});
     await page.evaluate(()=>{
@@ -203,7 +205,7 @@ const assertFeedbackVisible = async page => {
     assert.equal(await page.evaluate(()=>aktuellerZustand.status),'verloren');
     assert.equal(await page.locator('#ai-rating-value').innerText(),'Neutral');
     assert.ok(await page.locator('#wuerfel-pilot .wuerfel:not(.platziert)').evaluateAll(els=>els.every(e=>e.textContent==='?')));
-    await page.locator('#menue-btn').click();
+    await leaveGame(page);
     assert.equal(await page.locator('#ai-feedback').isVisible(),false);
     await page.waitForTimeout(100);
     data=await rows(page);

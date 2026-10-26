@@ -1,0 +1,12 @@
+.game-dialog { width: min(92vw,420px); max-height: 90dvh; overflow-y: auto; padding: 1.5rem; border: 1px solid #b8cfcc; border-radius: 22px; margin: auto; color: #193f48; background: #fcfefb; text-align: center; box-shadow: 0 15px 70px #31545d55; }
+.game-dialog::backdrop { background: #ffffffc9; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.game-dialog-icon { font-size: 2.5rem; line-height: 1.3; }
+.game-dialog h2 { font-size: 1.6rem; margin: .5rem 0; }
+.game-dialog p { line-height: 1.5; font-size: .95rem; }
+.game-dialog-actions { display: grid; gap: .6rem; margin-top: 1.2rem; }
+.game-dialog-actions button { min-height: 48px; padding: .75rem; border: 1px solid #90b1af; border-radius: 10px; color: #204e58; background: #edf4f1; font-weight: 750; }
+.game-dialog-actions .primary { color: white; background: #235562; border-color: #235562; }
+.game-dialog-error:empty { display: none; }
+.game-dialog-error { color: #a13e31; }
+.game-dialog button:focus-visible { outline: 3px solid #d0a33e; outline-offset: 2px; }
+#resume-last-game[hidden] { display: none; }

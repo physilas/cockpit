@@ -760,9 +760,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -809,9 +807,7 @@ window.LANDING_CATALOG = {
       },
       "source_note": "Auf der fotografierten Leiste und bei Dized zusätzlich Kerosin; im englischen PDF fehlt dieses Symbol.",
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -857,9 +853,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -905,9 +899,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -948,9 +940,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -994,9 +984,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -1043,9 +1031,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     },
     {
@@ -1090,9 +1076,7 @@ window.LANDING_CATALOG = {
         "orientation": "bottom-to-top"
       },
       "practice": false,
-      "neuwurf_hoehen": [
-        6000
-      ],
+      "neuwurf_hoehen": [],
       "route_verified": true
     }
   ],

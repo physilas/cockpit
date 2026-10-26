@@ -63,7 +63,7 @@ class KatalogTest(unittest.TestCase):
         self.assertEqual(Landung("LOG_ATL_GREEN").get_flugzeugwuerfel()[0], 4)
         self.assertEqual(Landung("LOG_PRG_YELLOW").get_initial_flugzeuge(), [0, 0, 1, 3, 0, 3, 2, 3])
         self.assertEqual(Landung("LOG_HND_GREEN").get_neuwurf_hoehen(), [6000, 2000])
-        self.assertEqual(Landung("LOG_HND_RED").get_neuwurf_hoehen(), [6000])
+        self.assertEqual(Landung("LOG_HND_RED").get_neuwurf_hoehen(), [])
         self.assertEqual(Landung("LOG_HND_RED").geplante_module, ["kerosene", "intern"])
         self.assertEqual(Landung("LOG_KUL_BLACK").get_kurven_min()[3], -2)
         self.assertEqual(Landung("LOG_KUL_BLACK").get_kurven_max()[3], -2)

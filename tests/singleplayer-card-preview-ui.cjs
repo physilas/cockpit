@@ -1,6 +1,6 @@
 /* Isolated schema-3 card fixtures; no release evidence and no real uploads. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
-const {chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const pageUrl=process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const source=fs.readFileSync(new URL('../frontend/web/js/ai-models.js',`file://${__filename}`),'utf8');
 const cards=['control','mastery','synchronisation','adaptation','anticipation','working-together'];
@@ -36,13 +36,13 @@ const rows=page=>page.evaluate(async()=>{
     await chooseRoute(page,'ATL-yellow');
     await page.locator('#solo-consent').check();
     for(const card of cards) {
-      await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|'+card);
+      await chooseAbilities(page,'LOG_ATL_YELLOW|'+card);
       const rate=actual.preview.case_results['LOG_ATL_YELLOW|'+card].win_rate;
       assert.match(await page.locator('#solo-description').innerText(),new RegExp(`Entwicklungstest im KI-Selbstspiel: ${rate*100} %`));
       assert.match(await page.locator('#solo-description').innerText(),/noch nicht unabhängig qualifiziert/);
       assert.equal(await page.locator('#solo-start').isDisabled(),false,'Zero-win previews remain intentionally playable');
     }
-    await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|adaptation');
+    await chooseAbilities(page,'LOG_ATL_YELLOW|adaptation');
     await page.screenshot({path:'/tmp/cockpit-crew4-menu.png',fullPage:true});
     await page.locator('#solo-start').click();
     await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});
@@ -72,14 +72,14 @@ const rows=page=>page.evaluate(async()=>{
         'A route-level hint cannot enable an invalid card count');
       assert.match(await page.locator('#solo-route option:checked').innerText(),/Kerosinleck.*1 Karte/);
       assert.equal(await page.locator('#solo-abilities option').count(),6);
-      await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|'+card);
+      await chooseAbilities(page,'LOG_ATL_YELLOW|'+card);
       assert.doesNotMatch(await page.locator('#solo-description').innerText(),/99 %/);
       await page.locator('#solo-consent').check();
       if(card==='control') {
         await page.evaluate(()=>{const option=new Option('unlisted','LOG_ATL_YELLOW|unknown');document.getElementById('solo-abilities').add(option);document.getElementById('solo-abilities').value=option.value;});
         await page.locator('#solo-start').click();
         assert.equal(await page.locator('#spiel-ui').isVisible(),false,'Launch must revalidate the selected case');
-        await page.locator('#solo-abilities').selectOption('LOG_ATL_YELLOW|control');
+        await chooseAbilities(page,'LOG_ATL_YELLOW|control');
       }
       await page.locator('#solo-start').click();
       await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});

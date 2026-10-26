@@ -19,10 +19,11 @@
   const moduleHTML = s => s.modules.map(id => `<span class="landing-chip">${esc(catalog.modules[id].icon)} ${esc(catalog.modules[id].name)}</span>`).join("");
 
   function mount(root, options) {
+    const scenarios = options.scenarios || catalog.scenarios;
     let filter = "all", query = "", selected = null, detail = false, busy = false;
     let drafts = read("flyteam-loadout-drafts-v1", {});
     const stored = read("flyteam-selection-v1", {});
-    selected = catalog.scenarios.find(s => s.id === stored.id) || catalog.scenarios[0];
+    selected = scenarios.find(s => s.id === stored.id) || scenarios[0];
     root.innerHTML = `
       <div class="landing-shell">
         <nav class="landing-nav" aria-label="Navigation"><button type="button" class="landing-back" data-action="back">← Menü</button><span>✈ FLY TEAM <span class="landing-mode">${esc(options.mode || "Pass & Play")}</span></span></nav>
@@ -40,7 +41,7 @@
     const normalize = text => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("de");
     function renderGrid() {
       const victories = read("flyteam-landings-v1", {});
-      const matches = catalog.scenarios.filter(s => s.kind === "logbook" && (filter === "all" || s.difficulty === filter)
+      const matches = scenarios.filter(s => s.kind === "logbook" && (filter === "all" || s.difficulty === filter)
         && normalize(`${s.code} ${s.name} ${s.city} ${s.country}`).includes(normalize(query.trim())));
       root.querySelectorAll('[data-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === filter)));
       root.querySelector('.landing-result-count').textContent = `${matches.length} ${matches.length === 1 ? "Landung" : "Landungen"} · Logbuch`;
@@ -52,8 +53,11 @@
       }).join('') : '<div class="landing-empty">Keine Landung gefunden. Versuche einen anderen Suchbegriff.</div>';
     }
     function selectedCards() {
+      if(!selected)return [];
       const saved = drafts[selected.id];
-      return Array.isArray(saved) ? [...new Set(saved)].filter(id => catalog.abilities.some(a => a.id === id)).slice(0, selected.ability_count) : [];
+      const cards = Array.isArray(saved) ? [...new Set(saved)].filter(id => catalog.abilities.some(a => a.id === id)).slice(0, selected.ability_count) : [];
+      const sets = options.cardSets?.(selected);
+      return sets && !sets.some(set=>cards.every(id=>set.includes(id))) ? [] : cards;
     }
     function renderDetail(focus = false) {
       const s = selected, d = difficulty(s), cards = selectedCards();
@@ -62,7 +66,15 @@
         <section class="landing-route"><h2>Deine ${s.practice ? 'Übungsstrecke' : 'Strecke'}</h2><p>${s.track.length} Felder · Grundregeln${s.track.some(r => Number(r.split(' ')[1])) ? ' · Verkehrswürfel' : ''}${s.track.some(r => r.split(' ').slice(2).join(' ') !== '-2 2') ? ' · Kurven' : ''}</p><ol class="landing-route-strip">${s.track.map((row,i) => { const [planes,traffic,lo,hi] = row.split(' ').map(Number); return `<li><b>${i === s.track.length - 1 ? '⚑' : s.track.length - 1 - i}</b><span aria-label="${planes} Flugzeuge">${'✈'.repeat(planes) || '·'}</span><small>${traffic ? `⚄ ×${traffic}` : '—'}</small><small>${lo !== -2 || hi !== 2 ? `${lo} … ${hi}` : 'frei'}</small></li>`; }).join('')}</ol></section>
         <section class="landing-loadout"><div class="landing-section-title"><h2>Fähigkeitskarten</h2><span>${cards.length} / ${s.ability_count} ausgewählt</span></div><p>${s.ability_count ? 'Wählt genau die angegebene Zahl unterschiedlicher Fähigkeiten. Euer Set wird auf diesem Gerät gespeichert und ist während des Flugs aktiv.' : 'Für diese Landung sieht das Logbuch keine Fähigkeitskarten vor.'}</p>${s.ability_count ? `<div class="landing-abilities">${catalog.abilities.map(a => `<button type="button" class="landing-ability" data-ability="${a.id}" aria-pressed="${cards.includes(a.id)}" ${!cards.includes(a.id) && cards.length >= s.ability_count ? 'disabled' : ''}><span class="landing-ability-mark">${cards.includes(a.id) ? '✓' : '+'}</span><strong>${esc(a.name)}</strong><small>${esc(a.original_name)}</small><p>${esc(a.description)}</p></button>`).join('')}</div><p class="landing-detail-note">Die Fähigkeiten dieses Sets sind im Spiel aktiv. Die deutschen Namen sind Arbeitsübersetzungen.</p>` : ''}</section>
         <div class="landing-launch"><div><b>${esc(s.code)} · ${esc(d.label)}</b><span>${s.kind === 'logbook' ? (s.practice ? 'Originalstrecke · Übungsregeln' : (s.modules.length ? `Originalstrecke · ${s.modules.map(id => catalog.modules[id].name).join(' · ')}` : 'Originalstrecke · Grundspiel')) : 'Partie mit eigener Strecke'}</span></div><button type="button" class="landing-start" data-action="start" ${busy || cards.length !== s.ability_count ? 'disabled' : ''}>${busy ? 'Wird vorbereitet …' : esc(options.startLabel || (s.practice ? 'Übungsflug starten →' : 'Spiel starten →'))}</button><p class="landing-launch-status" role="status" aria-live="polite"></p></div>`;
+      const sets=options.cardSets?.(s);
+      if(sets)details.querySelectorAll('[data-ability]').forEach(button=>{
+        if(!cards.includes(button.dataset.ability)&&!sets.some(set=>[...cards,button.dataset.ability].every(id=>set.includes(id))))button.disabled=true;
+      });
+      const start=details.querySelector('[data-action="start"]');
+      if(options.startButtonId)start.id=options.startButtonId;
+      if(options.canStart&&!options.canStart(s,cards))start.disabled=true;
       gallery.classList.add('versteckt'); details.classList.remove('versteckt');
+      options.onSelection?.(s,cards);
       if (focus) { window.scrollTo(0,0); details.querySelector('h1').focus({preventScroll:true}); }
     }
     root.addEventListener('input', event => {
@@ -74,7 +86,7 @@
       if (busy && button.dataset.action !== 'back') return;
       if (button.dataset.filter) { filter = button.dataset.filter; renderGrid(); }
       if (button.dataset.scenario) {
-        selected = catalog.scenarios.find(s => s.id === button.dataset.scenario);
+        selected = scenarios.find(s => s.id === button.dataset.scenario);
         write('flyteam-selection-v1', {id:selected.id}); detail = true; renderDetail(true);
       }
       if (button.dataset.ability) {
@@ -85,15 +97,16 @@
       }
       if (button.dataset.action === 'back') options.onBack();
       if (button.dataset.action === 'gallery') {
+        options.onGallery?.();
         detail = false; details.classList.add('versteckt'); gallery.classList.remove('versteckt'); renderGrid();
         grid.querySelector(`[data-scenario="${selected.id}"]`)?.focus({preventScroll:true});
       }
       if (button.dataset.action === 'start' && !busy) {
-        if (selectedCards().length !== selected.ability_count) return;
+        if (selectedCards().length !== selected.ability_count || options.canStart&&!options.canStart(selected,selectedCards())) return;
         busy = true; renderDetail();
         try { await options.onStart({...selected, ability_ids:selectedCards()}); }
         catch (error) { renderDetail(); details.querySelector('.landing-launch-status').textContent = `Start fehlgeschlagen: ${error.message}. Bitte erneut versuchen.`; }
-        finally { busy = false; const start = details.querySelector('[data-action="start"]'); if (start) { start.disabled = false; start.textContent = options.startLabel || (selected.practice ? 'Übungsflug starten →' : 'Spiel starten →'); } }
+        finally { busy = false; const start = details.querySelector('[data-action="start"]'); if (start) { start.disabled = selectedCards().length!==selected.ability_count || Boolean(options.canStart&&!options.canStart(selected,selectedCards())); start.textContent = options.startLabel || (selected.practice ? 'Übungsflug starten →' : 'Spiel starten →'); } }
       }
     });
     renderGrid();
@@ -101,6 +114,8 @@
       show() { root.classList.remove('versteckt'); if (detail) renderDetail(); else renderGrid(); window.scrollTo(0,0); },
       hide() { root.classList.add('versteckt'); },
       selected() { return selected; },
+      cards: selectedCards,
+      refresh() { if(detail)renderDetail();else renderGrid(); },
     };
   }
 

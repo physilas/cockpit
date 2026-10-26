@@ -19,7 +19,30 @@ async function chooseRoute(page, route) {
   if (await page.locator('#singleplayer-menu').getAttribute('data-step') === 'model')
     await page.locator('#solo-next').click();
   assert.equal(await page.locator('#singleplayer-menu').getAttribute('data-step'), 'route');
-  if (route) await page.locator('#solo-route').selectOption(route);
+  const gallery=page.locator('#solo-landings [data-action="gallery"]');
+  if(await gallery.isVisible())await gallery.click();
+  if(route)await page.locator(`#solo-landings [data-scenario="${route}"]`).click();
+  const first=await page.locator('#solo-abilities option').count() ? await page.locator('#solo-abilities option').first().getAttribute('value') : null;
+  if(first)await chooseAbilities(page,first);
 }
 
-module.exports = {chooseMode, chooseModel, chooseRoute};
+async function chooseAbilities(page, key) {
+  const wanted=key.split('|')[1]?.split(',').filter(Boolean)||[];
+  const root=page.locator('#solo-landings');
+  for(const id of await root.locator('[data-ability][aria-pressed="true"]').evaluateAll(buttons=>buttons.map(b=>b.dataset.ability)))
+    if(!wanted.includes(id))await root.locator(`[data-ability="${id}"]`).click();
+  for(const id of wanted)if(await root.locator(`[data-ability="${id}"]`).getAttribute('aria-pressed')!=='true')await root.locator(`[data-ability="${id}"]`).click();
+  if(wanted.length&&await page.locator('#solo-abilities').inputValue()!==key){
+    await root.locator(`[data-ability="${wanted[0]}"]`).click();await root.locator(`[data-ability="${wanted[0]}"]`).click();
+  }
+}
+
+async function leaveGame(page) {
+  const result=page.getByRole('button',{name:'Zurück zum Spielfeld',exact:true});
+  if(await result.isVisible())await result.click();
+  await page.locator('#menue-btn').click();
+  await page.getByRole('button',{name:'Hauptmenü',exact:true}).click();
+  await page.getByRole('button',{name:'Zum Hauptmenü',exact:true}).click();
+}
+
+module.exports = {chooseMode, chooseModel, chooseRoute, chooseAbilities, leaveGame};

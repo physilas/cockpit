@@ -1,7 +1,7 @@
 /* Actual qualified OSL model. This never uploads technical fixture games to D1. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const {chooseMode,chooseModel,chooseRoute} = require('./singleplayer-setup.cjs');
+const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame} = require('./singleplayer-setup.cjs');
 const pageUrl = process.env.COCKPIT_TEST_PAGE_URL || `${process.env.COCKPIT_TEST_URL || 'http://127.0.0.1:8000'}/frontend/web/`;
 const records = page => page.evaluate(async () => {
   const db = await new Promise((resolve,reject) => {const r=indexedDB.open('flyteam-learning-v1',2);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
@@ -74,7 +74,7 @@ const records = page => page.evaluate(async () => {
       const db=await new Promise(resolve=>{const r=indexedDB.open('flyteam-learning-v1',2);r.onsuccess=()=>resolve(r.result);});
       return new Promise(resolve=>{const r=db.transaction('sessions').objectStore('sessions').getAll();r.onsuccess=()=>resolve(r.result.some(session=>session.events.some(event=>event.actor==='human' && event.action?.target==='kerosin')));});
     });
-    await page.locator('#menue-btn').click();
+    await leaveGame(page);
     const data=(await records(page))[0],fuel=data.events.find(event=>event.actor==='human' && event.action?.target==='kerosin');
     assert.ok(fuel.training_compatible);
     assert.equal(fuel.decision.observation.length,489);
