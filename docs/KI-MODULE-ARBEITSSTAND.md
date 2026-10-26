@@ -1,5 +1,45 @@
 # Arbeitsstand: Vier Crews veröffentlicht, Trainingsauftrag abgeschlossen
 
+## Bedienung vom 26.10.: Seed-Neustart, Quoten und sichtbare Spielzüge
+
+Der neue UI-Auftrag ergänzt das Neustart-Popup um eine standardmäßig leere
+Checkbox für denselben Seed. Dafür bleibt ausschließlich lokal ein Anfangs-
+Snapshot einschließlich Engine-RNG erhalten; bei gleicher Zugfolge wiederholen
+sich auch die späteren Würfe. Ohne Haken wird eine frische Partie erzeugt.
+Der private Anfangszustand liegt getrennt von KI-Aufzeichnungen/Cloud-Uploads;
+im Multiplayer verbleibt er beim Host. Lokales Fortsetzen erhält ihn. Alte
+Spielstände ohne diesen Anfangszustand bieten die Option nicht an.
+
+Die Singleplayer-Landungswahl zeigt nur die Bildgalerie. Die gemessene
+KI-Selbstspielquote steht unter jeder Route, bei mehreren Kartensets als
+Min/Max-Spanne der erlaubten Einzelwerte. Erst die letzte noch fehlende Karte
+zeigt je Auswahl deren exakte Setquote. Bei einer Karte stehen die Werte sofort
+an den sechs Karten; ohne Karten entfällt die Kartenansicht. Angezeigt werden
+die bestehenden Entwicklungswerte, keine neu berechnete menschliche Siegchance.
+Vier Crews, Gewichte und freigegebene Falllisten bleiben unverändert.
+
+Ein Neuwurf-Hinweis bleibt beim Blick aufs Spielfeld oben sichtbar. Ein
+Kopfleisten-Symbol öffnet das lokale Flugprotokoll; Fehler bleiben zusätzlich
+kurz sichtbar. Kurze Würfelbewegungen und wegfliegende geräumte Flugzeuge
+verdeutlichen öffentliche Zustandsänderungen, ohne Engine/RNG/Politik zu ändern.
+Systemseitig reduzierte Bewegung wird berücksichtigt. Die Schaltfläche für die
+nächste Runde erscheint unten rechts erst bei vollständig verbrauchten Händen
+und ohne offenen Neuwurf-/Kartendialog. Rundenwechsel und Rückgängig werden nicht
+als neue Funkräumungen animiert.
+
+Geprüft mit vier erfolgreichen Chrome-Suiten: neue Bedienung/Quoten/Animationen,
+KI-Feedback/Undo/Fortsetzen, alle vier realen Crew-Modelle einschließlich
+Praktikantenlayout sowie gemeinsame Galerie/Neuwurf/Multiplayer. Der Host-Test
+wiederholt auch Verkehr, Spielerwürfel und RNG exakt bei gleicher Seed-Option;
+der Gast erhält keinen Anfangssnapshot. Hinzu kommen sechs lokale Speicher-
+Tests, die Node-Fall-/Aktionsverträge, Syntaxprüfung und erneuerter SW-Build.
+Die Neustart-Bestätigung bleibt während des KI-Modellladens modal, unterbindet
+Doppelklick/Escape und erhält bei Ladefehlern die bisherige Partie.
+
+Trainingsauftrag bleibt abgeschlossen; kein neuer Trainingsjob und keine
+Reaktivierung der pausierten Automation durch diese UI-Arbeit.
+
+
 ## Auftrag vom 26.10. abgeschlossen – kein Trainingsjob aktiv
 
 UI und vier kanonische Crews sind bereits mit 8dc081c / 7e56b19 nach main

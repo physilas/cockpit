@@ -90,3 +90,5 @@
 #solo-route-meta[hidden] { display:none; }
 .solo-picker .landing-launch { position: static; }
 @media(max-width:540px){.solo-picker .landing-grid{grid-template-columns:1fr;}.solo-picker .landing-card-image{height:190px;}}
+/* Hidden state selectors remain for the setup controller, never as a second UI. */
+.solo-settings[hidden], #solo-route-label, #solo-abilities-label { display: none !important; }

@@ -93,3 +93,8 @@ header .meine-rolle-badge { padding: 1px 4px; margin-left: 2px; font-size: .48re
 .photo-credit-item p { font-size: .8rem; line-height: 1.7; color: #526d6d; overflow-wrap: anywhere; }
 .photo-credit-item .photo-credit-title, .photo-credit-item .photo-credit-date { font-size: .68rem; color: #74867d; }
 @media (max-width: 650px) { .photo-credit-item { grid-template-columns: 1fr; gap: 1rem; padding: 1rem; } }
+.landing-win-rate, .landing-ability-rate { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; margin-top: .65rem; padding-top: .6rem; border-top: 1px solid #dce6df; color: #315a61; font-size: .78rem; }
+.landing-win-rate b, .landing-ability-rate b { color: #1c4f5b; font-size: 1rem; white-space: nowrap; }
+.landing-ability-rate { grid-column: 1 / -1; width: 100%; }
+.landing-launch .landing-win-rate { margin-top: .15rem; padding-top: .35rem; }
+.landing-loadout[hidden] { display: none; }

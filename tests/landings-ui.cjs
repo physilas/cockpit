@@ -96,7 +96,7 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     assert.equal(await page.evaluate(() => pyToJs(bridge.zustand()).neuwurf_plaettchen),1);
     await page.setViewportSize({width:1360,height:1000});
     console.log('✓ Real-engine shared reroll popup, both dice pools, placed dice locked, two confirmations, one token, highlighted results, automatic close, Escape and 320px layout');
-    await page.locator('#neues-spiel-btn').click();
+    await page.locator('#menue-btn').click();
     await page.getByRole('button',{name:'Hauptmenü',exact:true}).click();
     await page.getByRole('button',{name:'Zum Hauptmenü',exact:true}).click();
     await page.getByRole('button',{name:/Pass & Play/}).click();
@@ -147,6 +147,7 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     }
     await host.locator('#verkehr-dialog').waitFor({state:'hidden'});
     assert.ok(await host.evaluate(()=>pyToJs(bridge.zustand()).pilot_wuerfel.every(v=>Number.isInteger(v))));
+    const multiplayerStart=await host.evaluate(()=>({dice:[pyToJs(bridge.zustand()).pilot_wuerfel,pyToJs(bridge.zustand()).kopilot_wuerfel],rng:JSON.parse(String(bridge.spiel_speichern())).root.items[2]}));
     let msg=await host.evaluate(()=>window.fixtureHost.sent.filter(m=>m.typ==='zustand').at(-1));
     assert.equal(msg.zustand.szenario_id,'HND-red'); assert.ok(msg.zustand.pilot_wuerfel.every(v=>v===null));
     const join = await context.newPage(); join.on('pageerror', e=>errors.push(e.message));
@@ -207,6 +208,18 @@ window.Peer = class { constructor(){this.handlers={}; window.fixturePeer=this;} 
     await join.getByRole('button',{name:'Fortsetzen',exact:true}).click();
     await host.locator('#menue-btn').click();
     await host.getByRole('button',{name:'Neustart',exact:true}).click();
+    assert.equal(await host.locator('#restart-same-seed').isChecked(),false);
+    await host.locator('#restart-same-seed').check();
+    await host.getByRole('button',{name:'Neu starten',exact:true}).click();
+    for(let remaining=await host.evaluate(()=>pyToJs(bridge.zustand()).verkehrswuerfel_offen);remaining>0;remaining--){
+      await host.locator('.traffic-roll-button').click();
+      await host.waitForFunction(count=>pyToJs(bridge.zustand()).verkehrswuerfel_offen<count,remaining);
+    }
+    await host.locator('#verkehr-dialog').waitFor({state:'hidden'});
+    assert.deepEqual(await host.evaluate(()=>({dice:[pyToJs(bridge.zustand()).pilot_wuerfel,pyToJs(bridge.zustand()).kopilot_wuerfel],rng:JSON.parse(String(bridge.spiel_speichern())).root.items[2]})),multiplayerStart);
+    assert.ok(await host.evaluate(()=>window.fixtureHost.sent.every(m=>!JSON.stringify(m).includes('initialEngine'))),'Private host restart state must never enter transport');
+    await host.locator('#menue-btn').click();await host.getByRole('button',{name:'Neustart',exact:true}).click();
+    assert.equal(await host.locator('#restart-same-seed').isChecked(),false);
     await host.getByRole('button',{name:'Neu starten',exact:true}).click();
     msg=await syncJoin();
     assert.equal(msg.zustand.szenario_id,'HND-red');

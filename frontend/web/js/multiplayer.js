@@ -75,6 +75,7 @@ function showScreen(id) {
 function setMeldung(t, art) {
   const el = document.getElementById("meldung-leiste");
   if (el) { el.textContent = t||""; el.className = art||""; }
+  window.GameExperience?.record(t,art);
 }
 function setHostStatus(t, cls) {
   const el = document.getElementById("host-status");
@@ -151,9 +152,17 @@ async function ladeEngine() {
 }
 
 // ── Spielstart (Host) ────────────────────────────────────────────────────────
+let initialEngine = null; // Host-local state/RNG; never sent to the partner.
+function newEngineGame(sameSeed=false) {
+  window.GameExperience?.reset();
+  const z=sameSeed && initialEngine ? pyToJs(bridge.spiel_laden(initialEngine))
+    : pyToJs(bridge.neues_spiel(gewaehlterFlughafen,JSON.stringify(gewaehlteKarten)));
+  initialEngine=String(bridge.spiel_speichern());
+  return z;
+}
 function startGame() {
   resetVerkehrUi();
-  const rawZ = pyToJs(bridge.neues_spiel(gewaehlterFlughafen, JSON.stringify(gewaehlteKarten)));
+  const rawZ = newEngineGame();
   showScreen(null);
   choosingLanding = false;
   neuwurfUiReset();
@@ -236,7 +245,7 @@ function hostAktion(msg, absender) {
     } else if (msg.typ === "neues_spiel") {
       if (absender !== "pilot") return false;
       resetVerkehrUi();
-      raw = pyToJs(bridge.neues_spiel(gewaehlterFlughafen, JSON.stringify(gewaehlteKarten)));
+      raw = newEngineGame(msg.sameSeed === true);
       neuwurfUiReset();
 
     // ── Gemeinsamer Neuwurf, vom Host einmalig ausgeführt ──
@@ -609,6 +618,7 @@ function renderAltitudeLabels(markerY, aktuelleHoehe, neuwurfHoehen) {
 
 function render(z) {
   if(!z)return;
+  const motion=window.GameExperience?.begin(z);
   if (rueckgaengigId !== z.rueckgaengig_id) {
     if (rueckgaengigId !== null) eigeneWuerfelVersteckt = true;
     rueckgaengigId = z.rueckgaengig_id;
@@ -679,6 +689,7 @@ function render(z) {
     amZug.style.color=ichDran?"var(--gruen)":"var(--muted)";
     if(rBtn)rBtn.disabled=!ichDran;
   }
+  window.GameExperience?.finish(z,motion,{reroll:neuwurfUi.phase!==0});
   if(z.status==="laeuft")GameDialogs.result(z,"");
 }
 
@@ -931,7 +942,7 @@ window.addEventListener("DOMContentLoaded", () => {
   GameDialogs.connect({
     canRestart:()=>myRole==='pilot',
     confirmMainText:'Die Verbindung zur gemeinsamen Partie wird beendet.',
-    onRestart(){GameDialogs.reset();meineAktion({typ:'neues_spiel'});},
+    onRestart(options){GameDialogs.reset();meineAktion({typ:'neues_spiel',sameSeed:options.sameSeed===true});},
     onMainMenu(){window.location='index.html';},
     onResume(){if(aktuellerZustand)render(aktuellerZustand);},
   });

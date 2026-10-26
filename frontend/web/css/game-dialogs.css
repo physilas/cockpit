@@ -10,3 +10,5 @@
 .game-dialog-error { color: #a13e31; }
 .game-dialog button:focus-visible { outline: 3px solid #d0a33e; outline-offset: 2px; }
 #resume-last-game[hidden] { display: none; }
+.game-restart-seed { display: flex; align-items: center; justify-content: center; gap: .55rem; min-height: 44px; margin-top: .8rem; font-size: .82rem; cursor: pointer; }
+.game-restart-seed input { width: 17px; height: 17px; margin: 0; accent-color: #235562; }

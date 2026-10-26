@@ -32,6 +32,20 @@ window.Singleplayer = (() => {
     && ((route.ability_count || hasCaseManifest(model)) ? supportedCases(model, route).length : true));
   const supportsCase = (model, route, cards) => Boolean(route && Array.isArray(cards) && supportsRoute(model, route)
     && ((route.ability_count || hasCaseManifest(model)) ? supportedCases(model, route).some(row => caseKey(row.airport,row.abilities) === caseKey(route.engine_code,cards)) : cards.length === 0));
+  function routeRate(route, cards=[]) {
+    const model=setup.model;
+    if(setup.mode==='examples' || !model) return null;
+    const results=(route.ability_count || hasCaseManifest(model))
+      ? supportedCases(model,route).filter(row=>cards.every(id=>row.abilities.includes(id)))
+        .map(row=>model.preview.case_results[caseKey(row.airport,row.abilities)])
+      : [(isPreview(model)?model.preview.route_results:model.quality?.route_results)?.[route.engine_code]];
+    const tested=results.filter(r=>Number.isFinite(r?.win_rate)&&r.win_rate>=0&&r.win_rate<=1);
+    if(!tested.length) return null;
+    const rates=tested.map(r=>r.win_rate),low=Math.min(...rates),high=Math.max(...rates);
+    const percent=n=>(n*100).toLocaleString('de-DE',{maximumFractionDigits:1});
+    return {label:'KI-Selbstspiel',value:`${percent(low)}${low===high?'':`–${percent(high)}`} %`,
+      title:`${isPreview(model)?'Entwicklungstest, nicht unabhängig qualifiziert. ':'Gemessener Testwert. '}${tested.length>1?`${tested.length} erlaubte Kartensets; Spanne der Einzelquoten. `:''}${tested.length===1&&Number.isInteger(tested[0].wins)?`${tested[0].wins}/${tested[0].games} Partien. `:''}Keine Vorhersage für menschliche Mitspieler.`};
+  }
   const supportsFeedback = (model, route, cards = null) => Boolean(route && supportsRoute(model, route)
     && ((route.ability_count || hasCaseManifest(model)) ? model.schema?.version === 3 && (cards === null || supportsCase(model,route,cards))
       : !route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && ["kerosene", "intern"].includes(route.modules[0]))));
@@ -341,6 +355,7 @@ window.Singleplayer = (() => {
       routePicker=Landings.mount(holder,{
         scenarios:routes,mode:names[setup.mode],startButtonId:"solo-start",startLabel:examples?"Beispielpartie starten →":"Mit KI starten →",
         cardSets:route=>examples?null:route.ability_count||hasCaseManifest(setup.model)?supportedCases(setup.model,route).map(row=>row.abilities):null,
+        rate:routeRate,
         canStart:(route,cards)=>!starting&&(examples||supportsCase(setup.model,route,cards))&&(setup.mode==="play"||document.getElementById("solo-consent").checked),
         onBack:()=>setMenuStep(examples?"mode":"model"),
         onGallery(){document.getElementById("solo-route-meta").hidden=true;},
@@ -350,7 +365,7 @@ window.Singleplayer = (() => {
     }
   }
 
-  async function launch(restarting=false) {
+  async function launch(restarting=false, restartOptions={}) {
     if (starting || !restarting && menuStep !== "route") return;
     if (!restarting && setup.mode !== "play" && !document.getElementById("solo-consent").checked) return;
     const oldScenario=session?.scenario?.id || api.state()?.szenario_id;
@@ -379,7 +394,7 @@ window.Singleplayer = (() => {
                  schema_version: activeSchema().version, schema: activeSchema(), action_mask_version: catalog.action_mask_version,
                  consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
                  status: "active", events: [], engine_stack: []};
-      await api.start({...scenario, ability_ids: [...config.abilities]});
+      await api.start({...scenario, ability_ids: [...config.abilities]}, restarting ? restartOptions : {});
       if (version !== generation) return;
       root().classList.add("versteckt"); persist();
       navigator.storage?.persist?.().catch(() => {});
@@ -713,7 +728,7 @@ window.Singleplayer = (() => {
     canUndoFeedback, undoFeedback,
     suspend(){suspended=true;generation++;clearTimeout(timer);timer=null;},
     resume(){suspended=false;},
-    restart:()=>launch(true),
+    restart:options=>launch(true,options),
     backup(){return session ? clone({setup:{mode:setup.mode,humanRole:setup.humanRole,modelId:setup.model?.id,abilities:setup.abilities},session,reroll,feedbackIndex,feedbackUndoStack}) : null;},
     async restore(saved){
       suspended=false;paused="";

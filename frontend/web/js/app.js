@@ -22,6 +22,8 @@ let kaffeeMenuOffenFuer = null;
 let aktuellerZustand = null;
 let rueckgaengigId = null;
 let gameActive = false, activeScenario = null, menuPausedAt = null, lastSavedKey = "";
+// Private, local-only initial state + RNG. Never put this in AI/cloud records.
+let initialEngine = null;
 const resumeKey = "flyteam-resume-v1";
 
 // Pass-&-Play Würfelsichtbarkeit
@@ -109,6 +111,7 @@ function setzeMeldung(text, art) {
   const el = document.getElementById("meldung-leiste");
   el.textContent = text || "";
   el.className = art || "";
+  window.GameExperience?.record(text,art);
 }
 
 // Aerodynamik-Skala als horizontale Leiste: eine Zahl je Zelle, an den
@@ -316,6 +319,7 @@ function bindeNeuwurfTokens(zustand) {
 
 function render(zustand) {
   if (!zustand) return;
+  const motion=window.GameExperience?.begin(zustand);
   if (rueckgaengigId !== zustand.rueckgaengig_id) {
     rueckgaengigId = zustand.rueckgaengig_id;
     ausgewaehlterWuerfel = kaffeeMenuOffenFuer = null;
@@ -383,6 +387,7 @@ function render(zustand) {
     amZugEl.textContent = `Am Zug: ${zustand.am_zug === "pilot" ? "Pilotin" : "Co-Pilot"}`;
     rundenendeBtn.disabled = false;
   }
+  window.GameExperience?.finish(zustand,motion,{reroll:neuwurfUi.phase!==0});
   Singleplayer.afterRender(zustand);
   if (gameActive) {
     GameDialogs.result(zustand, zustand.status === "gewonnen" ? "Eure Crew hat die Landung geschafft." : grundText(zustand.verlust_grund));
@@ -805,7 +810,7 @@ function spielfeldUntenAusrichten() {
       richteVerkehrStreckeAus();
       return;
     }
-    document.getElementById("meldung-leiste").scrollIntoView({ block: "end", inline: "nearest", behavior: "auto" });
+    spielUi.scrollIntoView({ block: "end", inline: "nearest", behavior: "auto" });
   };
   requestAnimationFrame(() => requestAnimationFrame(ausrichten));
   // Die Track-Höhen werden direkt nach dem Rendern gesetzt. Der zweite,
@@ -821,19 +826,23 @@ const landingPicker = Landings.mount(document.getElementById("landing-selection"
   onStart: neuesSpiel,
 });
 
-async function neuesSpiel(scenario) {
+async function neuesSpiel(scenario, options = {}) {
+  if(options.sameSeed && !initialEngine)throw new Error('Der ursprüngliche Zufallszustand ist für diesen Spielstand nicht verfügbar.');
   const version = ++navigationVersion;
   if (!bridge) {
     if (!enginePromise) enginePromise = ladeEngine().catch(error => { enginePromise = null; throw error; });
     await enginePromise;
   }
   if (version !== navigationVersion) return;
-  GameDialogs.reset(); menuPausedAt = null;
+  GameDialogs.reset(); menuPausedAt = null; window.GameExperience?.reset();
   resetVerkehrUi();
   ausgewaehlterWuerfel = null;
   kaffeeMenuOffenFuer = null;
   neuwurfReset();
-  const zustand = pyToJs(bridge.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || [])));
+  const zustand = options.sameSeed && initialEngine
+    ? pyToJs(bridge.spiel_laden(initialEngine))
+    : pyToJs(bridge.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || [])));
+  initialEngine = String(bridge.spiel_speichern());
   activeScenario = {...scenario}; gameActive = true; lastSavedKey = "";
   landingPicker.hide();
   document.getElementById("game-header").classList.remove("versteckt");
@@ -935,7 +944,7 @@ function persistLastGame(force=false) {
     const key=`${state.rueckgaengig_version}|${state.phase}|${state.am_zug}|${singleplayer?.session?.data_revision}|${JSON.stringify(neuwurfUi)}`;
     if(!force&&key===lastSavedKey)return;
     localStorage.setItem(resumeKey,JSON.stringify({format:1,scenario:activeScenario,round:state.runde,
-      engine:String(bridge.spiel_speichern()),singleplayer,reroll:neuwurfUi}));
+      engine:String(bridge.spiel_speichern()),initialEngine,singleplayer,reroll:neuwurfUi}));
     lastSavedKey=key;updateResumeButton();
   } catch(error) { console.warn("Lokaler Spielstand konnte nicht gesichert werden.",error); }
 }
@@ -948,7 +957,9 @@ async function resumeLastGame() {
     if(!scenario||saved.format!==1)throw new Error("Dieser Spielstand ist nicht mehr verfügbar.");
     if(!bridge){if(!enginePromise)enginePromise=ladeEngine().catch(e=>{enginePromise=null;throw e;});await enginePromise;}
     gameActive=false;Singleplayer.stop("resume");GameDialogs.reset();menuPausedAt=null;
+    window.GameExperience?.reset();
     const state=pyToJs(bridge.spiel_laden(saved.engine));
+    initialEngine=typeof saved.initialEngine==='string'?saved.initialEngine:null;
     aktuellerZustand=state;rueckgaengigId=state.rueckgaengig_id;
     await Singleplayer.restore(saved.singleplayer);
     activeScenario=saved.scenario;gameActive=true;lastSavedKey="";
@@ -962,15 +973,16 @@ async function resumeLastGame() {
 }
 
 GameDialogs.connect({
+  canReplay:()=>Boolean(initialEngine),
   onPause(){Singleplayer.suspend();persistLastGame(true);menuPausedAt=Date.now();},
   onResume(){
     if(menuPausedAt!==null&&bridge)bridge.uhr_verschieben((Date.now()-menuPausedAt)/1000);
     menuPausedAt=null;lastSavedKey="";Singleplayer.resume();
     if(gameActive&&bridge)render(pyToJs(bridge.zustand()));
   },
-  async onRestart(){
-    if(Singleplayer.active())await Singleplayer.restart();
-    else if(activeScenario)await neuesSpiel(activeScenario);
+  async onRestart(options){
+    if(Singleplayer.active())await Singleplayer.restart(options);
+    else if(activeScenario)await neuesSpiel(activeScenario,options);
   },
   onMainMenu:zurueckZumMenue,
 });

@@ -1,0 +1,28 @@
+#neues-spiel-btn[hidden], #round-ready[hidden], .game-log-dot[hidden], #game-notice[hidden] { display: none !important; }
+#game-log-button { position: relative; display: grid; place-items: center; width: 36px; min-height: 36px; padding: .3rem; }
+.game-log-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: #f5d368; }
+#game-log { text-align: left; padding: 1rem; }
+.game-log-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.game-log-heading h2 { font-size: 1.2rem; }
+.game-log-heading button { min-width: 44px; min-height: 44px; border: 1px solid #c3d3cf; border-radius: 50%; color: #235562; background: transparent; }
+.game-log-list { padding: 0; margin: .75rem 0 0; list-style: none; max-height: 65dvh; overflow-y: auto; }
+.game-log-list li { display: flex; gap: .65rem; padding: .75rem .15rem; border-top: 1px solid #dce6df; font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
+.game-log-list time { flex-shrink: 0; color: #718882; font-size: .7rem; padding-top: .15rem; }
+.game-log-list .fehler { color: #a13e31; }
+#meldung-leiste { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#game-notice { position: fixed; z-index: 110; top: calc(62px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: min(92vw,380px); padding: .85rem 1rem; color: #85392e; background: #fff5ed; border: 1px solid #dab4a6; border-radius: 12px; box-shadow: 0 5px 25px #173c4530; font-size: .85rem; }
+/* A quiet turn strip; only the completed round floats above the board. */
+#aktionen-leiste { border: 0; border-radius: 0; padding: .1rem .3rem; color: #315a61; background: transparent; box-shadow: none; }
+#round-ready { position: fixed; z-index: 30; right: max(.65rem,calc((100vw - 620px)/2)); bottom: calc(.65rem + env(safe-area-inset-bottom)); width: min(250px,calc(100vw - 24px)); padding: .8rem; border: 1px solid #bed7cd; border-radius: 17px; color: #194c54; background: #f8fff9f5; box-shadow: 0 7px 30px #193f4840; backdrop-filter: blur(8px); animation: round-ready-in .25s ease-out; }
+.round-ready-caption { display: flex; align-items: center; gap: .5rem; margin-bottom: .55rem; font-size: .84rem; }
+.round-ready-caption > span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: #fff; background: #44846c; }
+#round-ready button { width: 100%; min-height: 44px; border: 0; border-radius: 10px; padding: .65rem .8rem; color: #fff; background: #235562; font-size: .84rem; }
+#round-ready button:disabled { opacity: .65; }
+.motion-die, .motion-plane { position: fixed; z-index: 85; pointer-events: none; will-change: transform,opacity; }
+.motion-die { display: grid; place-items: center; border: 2px solid #d4f3ff; border-radius: 6px; color: #fff; background: radial-gradient(circle at 30% 20%,#48ceff,#1650af 70%); box-shadow: 0 5px 12px #12374565,inset 0 1px #fff8; font-size: 1rem; font-weight: 900; }
+.motion-die.kopilot { border-color: #ffdf98; background: radial-gradient(circle at 30% 20%,#ffe184,#e17d1b 70%); }
+.motion-die.black { border-color: #9dabad; background: #18343b; }
+.motion-plane { color: #f4fcff; text-shadow: 0 0 6px #238dbb,1px 1px #235562; line-height: 1; }
+@keyframes round-ready-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media(prefers-reduced-motion:reduce) { #round-ready { animation: none; } }
+.motion-die.intern { color: #29472a; border-color: #73984a; background: #ddedc0; }

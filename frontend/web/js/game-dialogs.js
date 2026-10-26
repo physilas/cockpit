@@ -6,7 +6,7 @@ window.GameDialogs = (() => {
     if (dialog) return;
     dialog=document.createElement('dialog');dialog.id='game-dialog';dialog.className='game-dialog';
     dialog.setAttribute('aria-labelledby','game-dialog-title');
-    dialog.addEventListener('cancel',e=>{e.preventDefault();if(screen?.confirm)show(screen.parent);else close();});
+    dialog.addEventListener('cancel',e=>{e.preventDefault();if(dialog.dataset.busy==='true')return;if(screen?.confirm)show(screen.parent);else close();});
     document.body.appendChild(dialog);
   }
   function close(resume=true) {
@@ -22,6 +22,15 @@ window.GameDialogs = (() => {
       : next.result ? next.message : 'Bereit für den nächsten Zug?';
     dialog.innerHTML=`<div class="game-dialog-icon" aria-hidden="true">${next.confirm?'?':next.result?(next.status==='gewonnen'?'🛬':'✈'):'✈'}</div><h2 id="game-dialog-title">${esc(title)}</h2><p>${esc(text)}</p><div class="game-dialog-actions"></div><p class="game-dialog-error" role="alert"></p>`;
     const actions=dialog.querySelector('.game-dialog-actions');
+    if(next.confirm && next.action==='restart') {
+      const choice=document.createElement('label');choice.className='game-restart-seed';
+      choice.innerHTML='<input id="restart-same-seed" type="checkbox"><span>Mit exakt demselben Seed spielen</span>';
+      if(adapter?.canReplay?.()===false) {
+        choice.querySelector('input').disabled=true;
+        choice.title='Bei diesem älteren Spielstand ist der ursprüngliche Zufallszustand nicht gespeichert.';
+      }
+      actions.before(choice);
+    }
     const add=(label,action,primary=false)=>{
       const b=document.createElement('button');b.type='button';b.textContent=label;
       if(primary)b.className='primary';
@@ -32,7 +41,16 @@ window.GameDialogs = (() => {
     if(next.confirm) {
       add('Abbrechen',()=>show(next.parent));
       add(next.action==='restart'?'Neu starten':'Zum Hauptmenü',async()=>{
-        close(false);await adapter[next.action==='restart'?'onRestart':'onMainMenu']();
+        const sameSeed=dialog.querySelector('#restart-same-seed')?.checked===true;
+        // Keep the board protected while an AI model is loading. A failed
+        // restart stays reviewable here and preserves the running game.
+        const buttons=[...actions.querySelectorAll('button')];
+        dialog.dataset.busy='true';
+        buttons.forEach(button=>{button.disabled=true;});
+        try {
+          await adapter[next.action==='restart'?'onRestart':'onMainMenu']({sameSeed});
+          close(false);
+        } finally {delete dialog.dataset.busy;buttons.forEach(button=>{button.disabled=false;});}
       },true);
     } else if(next.result) {
       add('Erneut spielen',()=>confirm('restart'),true);

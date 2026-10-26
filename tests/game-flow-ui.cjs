@@ -64,15 +64,31 @@ const waitUntil=async(fn)=>{for(let i=0;i<80;i++){if(await fn())return;await new
   await page.getByRole('button',{name:'Neustart',exact:true}).click();await page.getByRole('button',{name:'Neu starten',exact:true}).click();
   await page.waitForTimeout(500);
   await page.waitForFunction(()=>aktuellerZustand.runde===1&&aktuellerZustand.status==='laeuft'&&aktuellerZustand.felder.ruder.pilot==null);
+  const clearInitialTraffic=()=>page.evaluate(()=>{
+   pyodide.runPython('while b._spiel.phase=="verkehr":b._spiel.wirf_verkehrswuerfel()');
+   resetVerkehrUi();render(pyToJs(bridge.zustand()));Singleplayer.suspend();
+  });
+  await clearInitialTraffic();
+  const replayDice=await page.evaluate(()=>[aktuellerZustand.pilot_wuerfel,aktuellerZustand.kopilot_wuerfel]);
+  const replayUndo=await page.evaluate(()=>aktuellerZustand.rueckgaengig_id);
+  await page.locator('#menue-btn').click();await page.getByRole('button',{name:'Neustart',exact:true}).click();
+  assert.equal(await page.locator('#restart-same-seed').isChecked(),false);
+  await page.locator('#restart-same-seed').check();await page.getByRole('button',{name:'Neu starten',exact:true}).click();
+  await page.waitForFunction(previous=>!GameDialogs.open()&&aktuellerZustand.rueckgaengig_id!==previous,replayUndo);
+  await clearInitialTraffic();
+  assert.deepEqual(await page.evaluate(()=>[aktuellerZustand.pilot_wuerfel,aktuellerZustand.kopilot_wuerfel]),replayDice);
+  assert.ok((await records(page)).every(row=>!JSON.stringify(row).includes('initialEngine')),'Private replay snapshot never enters AI learning records');
+  console.log('✓ Actual AI restart replays identical dice without uploading the private restart state');
   await page.evaluate(()=>{
-   pyodide.runPython('while b._spiel.phase=="verkehr":b._spiel.wirf_verkehrswuerfel()\nb._spiel.pilot_wuerfel[0].augenzahl=3');
+   pyodide.runPython('while b._spiel.phase=="verkehr":b._spiel.wirf_verkehrswuerfel()\nb._spiel.am_zug="pilot"\nb._spiel.pilot_wuerfel[0].augenzahl=3');
    resetVerkehrUi();render(pyToJs(bridge.zustand()));
-   nachAktion(spielAktion({kind:'place',role:'pilot',die:0,target:'ruder'}));Singleplayer.suspend();
+   const result=spielAktion({kind:'place',role:'pilot',die:0,target:'ruder'});if(!result.ergebnis.erfolg)throw new Error(JSON.stringify(result.ergebnis)+':'+result.zustand.phase);nachAktion(result);Singleplayer.suspend();
   });
   await leaveGame(page);
   assert.equal(await page.locator('#resume-last-game').isVisible(),true);
   await page.reload();await page.locator('#resume-last-game').click();
-  await page.locator('#spiel-ui').waitFor({state:'visible',timeout:90000});await page.evaluate(()=>Singleplayer.suspend());
+  await page.waitForFunction(()=>!document.getElementById('resume-last-game').disabled,null,{timeout:90000});
+  assert.equal(await page.locator('#spiel-ui').isVisible(),true,await page.locator('#resume-last-label').innerText());await page.evaluate(()=>Singleplayer.suspend());
   assert.equal(await page.evaluate(()=>aktuellerZustand.szenario_id),'ATL-yellow');
   assert.ok(await page.evaluate(()=>aktuellerZustand.felder.ruder.pilot));
   assert.deepEqual(await page.evaluate(()=>aktuellerZustand.faehigkeitskarten),['control']);

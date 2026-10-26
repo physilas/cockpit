@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="css/reroll.css">
 <link rel="stylesheet" href="css/singleplayer.css">
 <link rel="stylesheet" href="css/game-dialogs.css">
+  <link rel="stylesheet" href="css/game-experience.css">
 <style>
   /* ── Startmenü ── */
   #start-menu {
@@ -81,7 +82,7 @@
     </div>
     <div id="spiel-auswahl">
       <button id="rueckgaengig-btn" aria-label="Rückgängig" title="Letzten Spielschritt rückgängig machen" disabled>↶</button>
-      <button id="neues-spiel-btn">Landung</button>
+      <button id="neues-spiel-btn" hidden>Landung</button>
       <button id="menue-btn" class="menu-btn">☰ Menü</button>
     </div>
   </header>
@@ -207,14 +208,14 @@
       <span id="s-runde">-</span>
       <span id="am-zug-anzeige"></span>
       <div id="realtime-instrument" class="versteckt"></div>
-      <div class="aktionen-buttons">
-        <button id="rundenende-btn">Runde beenden</button>
-      </div>
+      <div id="round-ready" class="round-ready" hidden><div class="round-ready-caption"><span aria-hidden="true">✓</span><strong>Alles gesetzt</strong></div><div class="aktionen-buttons">
+        <button id="rundenende-btn" disabled>Nächste Runde →</button>
+      </div></div>
     </section>
 
     <section id="verkehr-panel" class="versteckt" aria-label="Schwarze Verkehrswürfel" aria-live="polite"></section>
     <section id="flight-modules" class="versteckt" aria-label="Zusatzmodule und Fähigkeiten"></section>
-    <section id="meldung-leiste"></section>
+    <section id="meldung-leiste" role="status" aria-live="polite"></section>
     <section id="ai-feedback" class="versteckt" aria-label="KI-Feedback"></section>
     <section id="ai-session-bar" class="versteckt" aria-label="KI-Protokoll"></section>
 
@@ -234,6 +235,7 @@
   <script src="js/learning-cloud.js"></script>
   <script src="js/singleplayer.js"></script>
   <script src="js/game-dialogs.js"></script>
+  <script src="js/game-experience.js"></script>
   <script src="js/app.js?v=compact-distance-v2"></script>
   <script>
     if ("serviceWorker" in navigator) {
