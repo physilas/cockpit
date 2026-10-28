@@ -390,14 +390,16 @@ function starteHosting() {
 
   peer.on("connection", c => {
     if(partnerConnected&&conn?.open){c.close();return;}
-    conn = c;
+    conn = c;partnerConnected=false;guestProtocolReady=false;lobby.guestReady=false;
     conn.on("open", () => {
+      if(conn!==c)return;
       partnerConnected = true;
       setHostStatus("Mitspieler verbunden ✓", "ok");
       document.getElementById("verbindungs-status")?.classList.add("ok");
       if(!lobby.started){showLobby();sendLobby();}
     });
     conn.on("data", raw => {
+      if(conn!==c)return;
       try {
         const msg = JSON.parse(raw);
         if(msg&&typeof msg==="object"){
@@ -409,6 +411,7 @@ function starteHosting() {
       }
     });
     conn.on("close", () => {
+      if(conn!==c)return;
       partnerConnected=false;guestProtocolReady=false;lobby.guestReady=false;setMeldung("Verbindung zum Mitspieler unterbrochen.", "fehler");
     });
   });

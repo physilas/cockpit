@@ -26,3 +26,12 @@ Erste vollständige Python-Suite nach Abschluss von „Beste KI“: **700 Tests 
 **Korrektur:** Erfolgreiches Undo übernimmt den tatsächlichen Partiestatus und öffnet eine wieder laufende Aufzeichnung. Die betroffene Rundenauswertung wird neu berechnet. Spätere Absprachen bleiben als verworfene Historie erhalten und werden nicht ausgeführt oder als letzter Rundenbericht angezeigt. Veraltete Vorschlagsentwürfe werden verworfen. Die aktuelle bereits vereinbarte Strategie bleibt während der Runde gültig; ihr Synchronisationsstatus folgt den tatsächlich noch liegenden Fahrwerk-/Klappenwürfeln.
 
 **Prüfung:** `node tests/singleplayer-undo.cjs` scheiterte vor der Korrektur am unveränderten Verluststatus. Danach geprüft: erfolgloses Undo verändert nichts; Wiederöffnung, neue Ergebnisberechnung nach anderem Flugweg, keine wiederbelebte Zukunftsabsprache, echte/aufgehobene Synchronisation und Rücksprung in die Verkehrsphase.
+
+
+## 4. Multiplayer: verspätete Ereignisse eines ersetzten Kanals
+
+**Fehler:** Ein Ersatzkanal erbte zunächst den Protokollstatus der alten Verbindung. Spät eintreffende `close`, `data` oder `open`-Ereignisse des alten Kanals konnten danach den neuen Verbindungsstatus überschreiben oder alte Nachrichten gegen die neue Verbindung verarbeiten.
+
+**Korrektur:** Jeder neue Kanal beginnt ohne Protokollfreigabe und ohne alte Gast-Bereitschaft. Die Host-Callbacks verarbeiten Ereignisse ausschließlich, solange ihr eigener Kanal noch der aktuelle ist.
+
+**Prüfung:** Im realen Callback-Ablauf des Node-Tests alten Kanal schließen, Ersatzkanal öffnen und begrüßen, danach verspätetes Schließen, falsche Protokollnachricht und Öffnen des alten Kanals einspeisen. Die neue Verbindung bleibt verbunden/freigegeben und erhält keine zusätzlichen alten Zustandsnachrichten. Der Test scheiterte vor der Korrektur bereits am geerbten Protokollstatus.

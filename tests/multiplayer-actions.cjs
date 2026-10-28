@@ -182,3 +182,21 @@ assert.deepEqual(sent.at(-1).zustand.pilot_wuerfel,state.pilot_wuerfel);
 assert.deepEqual(sent.at(-1).zustand.kopilot_wuerfel,[null,null,null,null]);
 assert.equal(run('choosingLanding'),false);
 console.log('✓ Real host connection callbacks keep the active board and restore either flight-role assignment');
+
+// A closed channel can report its close/data events after its replacement has
+// opened. Those late events must not disconnect or authenticate the new guest.
+const previousConnection=context.fixtureConn;
+previousConnection.open=false;
+context.replacementConn={open:true,handlers:{},on(event,fn){this.handlers[event]=fn;},send:json=>sent.push(JSON.parse(json))};
+run('peer.handlers.connection(replacementConn);');
+assert.equal(run('guestProtocolReady'),false,'New channel inherited the previous protocol authentication');
+context.replacementConn.handlers.open();
+context.replacementConn.handlers.data(JSON.stringify({typ:'lobby_hello',version:3}));
+assert.equal(run('partnerConnected&&guestProtocolReady'),true);
+const replacementMessages=sent.length;
+previousConnection.handlers.close();
+previousConnection.handlers.data(JSON.stringify({typ:'lobby_hello',version:2}));
+previousConnection.handlers.open();
+assert.equal(run('partnerConnected&&guestProtocolReady'),true,'Late old-channel event reset the live connection');
+assert.equal(sent.length,replacementMessages,'Late old-channel data was processed for the replacement');
+console.log('✓ Superseded connection callbacks cannot reset or impersonate the current guest');
