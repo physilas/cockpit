@@ -6,6 +6,7 @@ hypothetical dice too. Plans are receding-horizon proposals: only the first
 engine-legal action is executed. Unknown future bonuses are not credited.
 """
 from dataclasses import dataclass
+from itertools import combinations,product
 import math
 
 from .actions import Action, ROLES
@@ -245,6 +246,9 @@ def capacity_penalty(view):
     else:
         need['pilot'] += int(not any(view['brake_progress']))
         shared = 0
+    if view.get('_fuel_capacity'):
+        from .fuel_capacity import necessary_fuel_fields
+        shared+=necessary_fuel_fields(view)['minimum_payments']
     own, other = view['role'], ROLES[1-ROLES.index(view['role'])]
     own_controls = sum(view['board'][i] is None for i in (ROLES.index(own),ROLES.index(own)+2))
     partner_controls = sum(view['board'][i] is None for i in (ROLES.index(other),ROLES.index(other)+2))
@@ -293,7 +297,8 @@ def public_movement_target(view):
         target=2
     if target==2:
         crossing=(here,cells[view['distance']-1])
-        if max(c['min'] for c in crossing)>min(c['max'] for c in crossing):
+        if (sum(c['planes'] for c in crossing)>radios
+                or max(c['min'] for c in crossing)>min(c['max'] for c in crossing)):
             target=1
     modules=view['modules_state']['modules']
     wind=0
@@ -393,6 +398,13 @@ def assignment_groups(root,view,*,strict=True,include_optional=False):
     groups={}
     extra_range=(range(4-sum(view['brake_progress']))
                  if root['last_round'] and own==1 and 'ice' not in modules else (0,))
+    gear_options=[()]
+    if (root.get('_partner_gears') and own==1 and not root['last_round'] and not root['holding']
+            and target==0):
+        missing=[i for i,done in enumerate(view['gear']) if not done]
+        controls=sum(view['board'][i] is None for i in (0,2))
+        spare=max(0,root['partner_remaining']-controls-len(view.get('_partner_tasks',())))
+        gear_options.extend(subset for n in range(1,min(spare,len(missing))+1) for subset in combinations(missing,n))
     for pr in range(1,7):
         for pt in range(1,7):
             if partner_r and partner_r['value']!=pr or partner_t and partner_t['value']!=pt:
@@ -400,9 +412,10 @@ def assignment_groups(root,view,*,strict=True,include_optional=False):
             rudder=predict_rudder(root,**{f'{root["role"]}_value':r['value'],f'{ROLES[other]}_value':pr})
             if rudder['stalled'] or root['last_round'] and rudder['attitude']!=0:
                 continue
-            for extra in extra_range:
+            for extra,gear_subset in product(extra_range,gear_options):
                 physics={**view,'board':list(root['board']),
                          'track':[dict(cell,planes=0) for cell in view['track']]}
+                physics['aero_blue']+=len(gear_subset)
                 if view.get('_leak_paid'):
                     physics['board'][2:4]=view['board'][2:4]
                 fuel_tasks=()
@@ -447,6 +460,7 @@ def assignment_groups(root,view,*,strict=True,include_optional=False):
                 if impossible or len(required)>radios:
                     continue
                 required.extend(fuel_tasks)
+                required.extend(GEAR[i] for i in gear_subset)
                 if root['last_round'] or include_optional:
                     required.extend(view.get('_partner_tasks',()))
                 if extra:
@@ -523,10 +537,10 @@ def final_value(root,view,cache,*,details=False):
     return primary+.01*coherent+.001*emergency+secondary
 
 
-def plan_round(view, allowed, *, beam=24,coordination=False,early_ice=False):
+def plan_round(view, allowed, *, beam=24,coordination=False,early_ice=False,fuel_capacity=False,partner_gears=False):
     if (type(beam) is not int or not 1<=beam<=128 or len(allowed)!=len(MODULE_ACTIONS)
             or any(type(flag) is not bool for flag in allowed) or type(coordination) is not bool
-            or type(early_ice) is not bool):
+            or any(type(flag) is not bool for flag in (early_ice,fuel_capacity,partner_gears))):
         raise ValueError('Use a bounded beam and the Boolean schema-3 engine mask.')
     state = view['modules_state']
     if view['reroll'] or state['swap'] or state['pending'] and state['pending']['value'] is None:
@@ -535,6 +549,8 @@ def plan_round(view, allowed, *, beam=24,coordination=False,early_ice=False):
         from .round_responsibility import public_responsibilities
         view={**view,'_public_responsibilities':public_responsibilities(view,public_movement_target(view))}
     if early_ice:view={**view,'_early_ice':True}
+    if fuel_capacity:view={**view,'_fuel_capacity':True}
+    if partner_gears:view={**view,'_partner_gears':True}
     pending = state['pending']
     root = Plan(view,virtual=pending['value'] if pending else 0,source=pending['source'] if pending else '')
     frontier, completed, fallback, cache = [root], {}, {}, {}
@@ -636,13 +652,15 @@ def plan_round(view, allowed, *, beam=24,coordination=False,early_ice=False):
 
 
 class ContractAgent:
-    def __init__(self, airport, blueprint, *, beam=24,coordination=False,prospective_rerolls=False,early_ice=False):
+    def __init__(self, airport, blueprint, *, beam=24,coordination=False,prospective_rerolls=False,early_ice=False,fuel_capacity=False,partner_gears=False):
         from .safety_guard import ShieldedBlueprint
         self.airport,self.blueprint,self.beam=airport,ShieldedBlueprint(airport,blueprint),beam
-        if any(type(flag) is not bool for flag in (coordination,prospective_rerolls,early_ice)):
+        if any(type(flag) is not bool for flag in (coordination,prospective_rerolls,early_ice,fuel_capacity,partner_gears)):
             raise ValueError('Use explicit Boolean strategy options.')
         self.coordination,self.prospective_rerolls=coordination,prospective_rerolls
         self.early_ice=early_ice
+        self.fuel_capacity=fuel_capacity
+        self.partner_gears=partner_gears
         self.last_report={}
 
     def select(self,view,mask):
@@ -650,7 +668,8 @@ class ContractAgent:
         from .module_capacity import reserve_controls
         safe,safety=coherent_safe_actions(self.airport,view,mask)
         safe=reserve_controls(view,safe)
-        ranks=plan_round(view,safe,beam=self.beam,coordination=self.coordination,early_ice=self.early_ice)
+        ranks=plan_round(view,safe,beam=self.beam,coordination=self.coordination,early_ice=self.early_ice,
+                         fuel_capacity=self.fuel_capacity,partner_gears=self.partner_gears)
         baseline,_=self.blueprint.rank(view,safe)
         chosen=baseline
         if ranks:
@@ -667,7 +686,8 @@ class ContractAgent:
         reroll_values={}
         if self.prospective_rerolls and not safety['unavoidable_closing_loss']:
             from .reroll_advice import reroll_selection,worthwhile_landing_reroll
-            options=dict(coordination=self.coordination,early_ice=self.early_ice)
+            options=dict(coordination=self.coordination,early_ice=self.early_ice,fuel_capacity=self.fuel_capacity,
+                         partner_gears=self.partner_gears)
             if view['reroll']:
                 selected,reroll_values=reroll_selection(view,safe,beam=min(12,self.beam),options=options)
                 if selected is not None:chosen=selected
@@ -678,6 +698,8 @@ class ContractAgent:
                               planning_mode=ranks.mode,
                               coordination=self.coordination,prospective_rerolls=self.prospective_rerolls,
                               early_ice=self.early_ice,
+                              fuel_capacity=self.fuel_capacity,
+                              partner_gears=self.partner_gears,
                               reroll_values=reroll_values,
                               objective='public_static_round_assignment',approximate=True)
         return chosen

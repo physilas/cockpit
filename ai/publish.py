@@ -80,6 +80,8 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         if model.config.get('kind')!='guided_residual' or model_schema(model)['version']!=3:
             raise ValueError('New public strategies require a guided schema-3 model.')
         expected_planner=public_strategy_fingerprint(profile)
+        if config.get('max_steps')!=256 or report.get('max_steps')!=256:
+            raise ValueError('New public strategy evidence must match the tested256-decision observation budget.')
     if (report.get('weights_sha256') != weight_fingerprint(model)
             or type(report.get('assistance_version')) is not int
             or report.get('assistance_version') != profile

@@ -22,7 +22,7 @@ class StrategyPublishTests(unittest.TestCase):
                 model,payload=load_checkpoint(checkpoint)
                 payload['train_config']['assistance_version']=profile
                 save_checkpoint(checkpoint,model,train_config=payload['train_config'],total_steps=0)
-                report.update(assistance_version=profile,planner_sha256=old)
+                report.update(assistance_version=profile,planner_sha256=old,max_steps=256)
                 evaluation.write_text(json.dumps(report))
                 with self.assertRaisesRegex(ValueError,'case-based'):
                     publish(checkpoint,evaluation,'wrong-qualification','Wrong',root=root)

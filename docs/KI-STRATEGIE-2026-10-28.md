@@ -467,3 +467,53 @@ Spiele mit identischen kohärenten Masken. Unbenutzte Entwicklungsseeds
 14.955.050 +100*i. Drei BC-Schüler (50 Epochen,200 Epochen,200 Epochen mit
 Symmetrie), bester Selbstspiel- und Populationsstand sowie Quelle. Auswahl
 weiterhin Entwicklung; kalter Bestätigungsbereich nicht angerührt.
+
+## Abgeschlossene Variantenwahl gegen 08:00 Berlin
+
+Die oben als laufend bezeichnete NN-Prüfung ist abgeschlossen: Quelle89/270,
+BC50 91/270, BC200 89/270, BC200 mit Symmetrie86/270, Selbstspiel87/270,
+Partnerpopulation88/270. Das zusätzliche Lernen wird damit nicht als
+Stärkeverbesserung veröffentlicht. Die sehr gute Imitationsgenauigkeit allein
+hat nicht genügt. Auf den Wind-/Eisrouten gewann keine dieser schnellen
+NN-Varianten eine der zusammen50 Partien je Variante.
+
+Weitere abgeschlossene Entwicklungstests, jeweils27 konkrete Routenfälle
+mit fünf gepaarten Partien:
+
+| Versuch | Standard | Variante | Entscheidung |
+|---|---:|---:|---|
+| V4: höherer Eisbonus | 50/135 | 50/135 | bleibt aus |
+| V4: zusätzliche Treibstoff-Kapazitätskosten | 50/135 | 50/135 | bleibt aus |
+| V5: Beam24 →48 | 52/135 | 54/135 | zu kleiner Vorteil, etwa1,45-fache Rechenzeit |
+| V6: Beam24 →48 nach öffentlicher Funkkorrektur | 52/135 | 52/135 | Beam24 bleibt |
+| V6: hypothetische Partner-Fahrwerke | 52/135 | 51/135 | bleibt aus |
+
+Die Varianten haben unterschiedliche Entwicklungsseeds und teilweise
+unterschiedliche Quellenstände. Die Zahlen nicht zu einem scheinbar
+homogenen Gesamtversuch zusammenfassen. Alle vollständigen JSON-Berichte
+und Einzelanalysen liegen unter `ai/experiments/fresh-strategy-2026-10-28/`.
+
+Der gewählte Stand wird als separates Profil13 vorbereitet, Name
+**Crew5 · Navigator**. Seine NN-Tensoren entsprechen weiterhin exakt der
+Crew4-Quelle. Neu ist die öffentliche physikalische Handplanung mit
+gemeinsamem Kaffee-/Würfelbudget und einer exakt nach JavaScript portierten
+Arbitration. `selection-before-confirmation.md` legt Auswahl und Prüfplan vorab
+fest. Noch keine Aussage über die Ergebnisse der kalten Bestätigung.
+
+Der Cross-Play-Versuch prüft die alten Crews1/3/4 als unveränderte Partner,
+beide Rollen,27 Routenfälle und drei gepaarte Spiele je Bedingung. Das prüft
+Zusammenspiel; es ist kein weiterer Trainingslauf und keine Übertragung
+dieser Quoten auf menschliche Mitspieler.
+
+Der erste Cross-Play ist abgeschlossen:152/486 für die alte geschützte
+Strategie gegen136/486 für den direkten Planer,20 gepaarte Verbesserungen
+und36 Verschlechterungen. In beiden Varianten keine vom Sofortschutz
+erkannten vermeidbaren Verlustzüge. Das ist eine erkennbare Schwäche der
+neuen Konvention bei unbekannten Partnern und wird nicht als positive
+Zusammenarbeitsevidenz dargestellt. Vor dem Einfrieren wird deshalb eine
+reaktive Hypothese geprüft: sichere vertraute Grundstrategie, bis der Partner
+einen Ruder- oder Schubwürfel öffentlich platziert; anschließend ganze
+verbleibende eigene Hand unter diesem öffentlichen Zwang planen.
+
+Die Suite vor dieser zusätzlichen Hypothese ist erneut vollständig bestanden:
+**609 Tests in117,449s**. Die neue Hypothese ist davon noch nicht abgedeckt.

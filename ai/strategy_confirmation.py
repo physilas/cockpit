@@ -10,6 +10,7 @@ import fcntl
 import json
 import multiprocessing
 from pathlib import Path
+import time
 
 from .checkpoints import load_checkpoint,weight_fingerprint
 from .coherent_advice import CoherentBlueprint
@@ -48,9 +49,12 @@ def freeze(checkpoint,profile,baseline,seed,games):
     candidate,payload=load_checkpoint(checkpoint);control,_=load_checkpoint(baseline)
     if payload['train_config'].get('assistance_version')!=profile:
         raise ValueError('The frozen checkpoint must declare the selected public profile.')
+    if (payload['train_config'].get('max_steps')!=256 or
+            payload['train_config'].get('planner_sha256')!=public_strategy_fingerprint(profile)):
+        raise ValueError('Candidate configuration must match the tested256-decision public policy.')
     return dict(version=1,kind='frozen_public_strategy_confirmation',candidate_checkpoint=checkpoint,
         candidate_file_sha256=file_sha(checkpoint),candidate_weights_sha256=weight_fingerprint(candidate),
-        profile=profile,baseline_checkpoint=baseline,baseline_file_sha256=file_sha(baseline),
+        profile=profile,max_steps=256,baseline_checkpoint=baseline,baseline_file_sha256=file_sha(baseline),
         baseline_weights_sha256=weight_fingerprint(control),baseline_policy='shielded_legacy_profile12',
         public_strategy_sha256=public_strategy_fingerprint(profile),seed=seed,games=games,seed_stride=100,
         confirmation_code_sha256=file_sha(__file__),
@@ -98,10 +102,13 @@ def play(task):
                   round_reward=0.,sync_weight=0.,task_weight=0.)
     records=[]
     for ordinal in range(games):
-        env.reset(seed=seed+ordinal);total=0.;decisions=unsafe=stranding=0;previous_stranded=0
+        env.reset(seed=seed+ordinal);total=0.;decisions=unsafe=stranding=range_dead_events=0
+        previous_stranded=0;previous_range_dead=False;decision_times=[]
         while not env.done:
             view,raw=env.view(),env.action_mask()
+            tick=time.monotonic()
             action=agent.select(view,raw)
+            decision_times.append(time.monotonic()-tick)
             if not raw[action]:raise RuntimeError('Frozen policy left the native engine mask.')
             _,audit=coherent_safe_actions(airport,view,raw)
             unsafe+=int(str(action) in audit['rejected'] and not audit['fallback']);decisions+=1
@@ -109,9 +116,16 @@ def play(task):
             public=env.view()
             count=sum(c['planes'] for c in public['track'] if c['distance']>public['distance'])
             stranding+=int(count>previous_stranded);previous_stranded=count
+            maximum=2 if 'wind' in public['modules_state']['modules'] else (
+                int(12>=public['aero_blue'])+int(12>=public['aero_orange']))
+            range_dead=public['distance']>maximum*max(0,public['height']//1000)
+            range_dead_events+=int(range_dead and not previous_range_dead)
+            previous_range_dead=range_dead
         record=env.episode_record(seed+ordinal,'both',total)
         record.update(decisions=decisions,avoidable_immediate_losses=unsafe,
-                      stranded_plane_events=stranding,stranded_planes=previous_stranded)
+                      stranded_plane_events=stranding,stranded_planes=previous_stranded,
+                      irreversible_range_events=range_dead_events,
+                      decision_seconds=sum(decision_times),max_decision_seconds=max(decision_times,default=0.))
         records.append(record)
     return dict(case=case,case_key=case_key(case),mode=mode,clock_model='engine_wall_clock',
                 **summarize_episodes(records))
@@ -147,7 +161,7 @@ def run(manifest_path,output,workers):
     report['complete']=True;atomic_json(output,report)
     evidence=dict(complete=True,release_evidence=False,evaluation_kind='held_out_confirmation_development_preview',
         qualification_used=True,qualification_granted=False,weights_sha256=manifest['candidate_weights_sha256'],
-        assistance_version=manifest['profile'],planner_sha256=manifest['public_strategy_sha256'],
+        assistance_version=manifest['profile'],max_steps=manifest['max_steps'],planner_sha256=manifest['public_strategy_sha256'],
         frozen_manifest_sha256=file_sha(manifest_path),cases={})
     for case in manifest['cases']:
         key=case_key(case);row=report['results'][key+'/candidate']

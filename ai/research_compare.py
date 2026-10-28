@@ -64,14 +64,19 @@ def run_task(task):
     elif effective == 'uct':
         from .information_search import InformationSearchAgent
         make_agent = lambda: InformationSearchAgent(airport, blueprint, **_information_config)
-    elif effective in ('contract','coordinated','prospective','combined','earlyice'):
+    elif effective in ('contract','coordinated','prospective','combined','earlyice','resource','wide','partner','partnerwide'):
         from .contract_planner import ContractAgent
-        make_agent = lambda: ContractAgent(airport,blueprint,beam=_contract_beam,
+        make_agent = lambda: ContractAgent(airport,blueprint,beam=_contract_beam*(2 if effective in ('wide','partnerwide') else 1),
             coordination=effective in ('coordinated','combined'),
-            prospective_rerolls=effective in ('prospective','combined'),early_ice=effective=='earlyice')
+            prospective_rerolls=effective in ('prospective','combined'),
+            early_ice=effective in ('earlyice','resource'),fuel_capacity=effective=='resource',
+            partner_gears=effective in ('partner','partnerwide'))
     elif effective=='public':
         from .public_contract import PublicContractAgent
         make_agent=lambda:PublicContractAgent(airport,_model,beam=_contract_beam)
+    elif effective=='responsive':
+        from .response_contract import ResponseContractAgent
+        make_agent=lambda:ResponseContractAgent(airport,_model,beam=_contract_beam)
     elif effective == 'advice':
         from .contract_environment import ContractBlueprint
         make_agent = lambda: ContractBlueprint(airport,_contract_model,beam=_contract_beam)
@@ -98,7 +103,7 @@ def run_task(task):
             action = agent.select(view, raw)
             decision_times.append(time.monotonic() - tick)
             decisions += 1
-            if effective in ('round', 'game', 'uct', 'contract','coordinated','prospective','combined','public','earlyice'):
+            if effective in ('round', 'game', 'uct', 'contract','coordinated','prospective','combined','public','responsive','earlyice','resource','wide','partner','partnerwide'):
                 overrides += int(action != agent.last_report['baseline'])
                 paired_samples += agent.last_report.get('samples', 0)
                 simulations += agent.last_report.get('simulations', 0)
@@ -145,7 +150,7 @@ def research_fingerprint():
     digest.update(Path(__file__).with_name('contract_planner.py').read_bytes())
     digest.update(Path(__file__).with_name('coherent_safety.py').read_bytes())
     for name in ('assignment_belief.py','contract_advice.py','contract_environment.py','round_responsibility.py',
-                 'reroll_advice.py','public_contract.py','coherent_advice.py'):
+                 'reroll_advice.py','public_contract.py','coherent_advice.py','fuel_capacity.py','response_contract.py'):
         digest.update(name.encode());digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()
 
@@ -157,7 +162,7 @@ def main():
     p.add_argument('--airports', nargs='*')
     p.add_argument('--one-card-set-per-route', action='store_true')
     p.add_argument('--modes', nargs='+', choices=('baseline','shield','round','game','uct','contract','advice',
-                   'coordinated','prospective','combined','public','earlyice'),default=['baseline','shield','round'])
+                   'coordinated','prospective','combined','public','responsive','earlyice','resource','wide','partner','partnerwide'),default=['baseline','shield','round'])
     p.add_argument('--contract-beam', type=int, default=24)
     p.add_argument('--guide-margin',type=float,choices=(4.,8.,12.),default=12.)
     p.add_argument('--profile', choices=('legacy','robust','coherent'),default='legacy')
@@ -175,6 +180,8 @@ def main():
     args = p.parse_args()
     if not 1 <= args.workers <= 8 or not 1 <= args.games <= 100 or not 1<=args.contract_beam<=128:
         p.error('Use 1..8 workers and 1..100 games per exact case.')
+    if set(args.modes)&{'wide','partnerwide'} and args.contract_beam>64:
+        p.error('Wide mode doubles the beam; use at most64.')
     cases = catalogue_cases()
     if args.airports:
         unknown = set(args.airports) - {row['airport'] for row in cases}

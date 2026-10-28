@@ -1,0 +1,63 @@
+{
+  "complete": true,
+  "source": "crossplay-v1.json",
+  "release_evidence": false,
+  "qualification_used": false,
+  "scope": "AI partner cross-play; no human win-rate claim.",
+  "groups": {
+    "crew1/pilot": {
+      "games": 81,
+      "baseline_wins": 25,
+      "candidate_wins": 22,
+      "improved": 2,
+      "regressed": 5,
+      "baseline_unsafe": 0,
+      "candidate_unsafe": 0
+    },
+    "crew1/kopilot": {
+      "games": 81,
+      "baseline_wins": 23,
+      "candidate_wins": 24,
+      "improved": 3,
+      "regressed": 2,
+      "baseline_unsafe": 0,
+      "candidate_unsafe": 0
+    },
+    "crew3/pilot": {
+      "games": 81,
+      "baseline_wins": 22,
+      "candidate_wins": 21,
+      "improved": 5,
+      "regressed": 6,
+      "baseline_unsafe": 0,
+      "candidate_unsafe": 0
+    },
+    "crew3/kopilot": {
+      "games": 81,
+      "baseline_wins": 28,
+      "candidate_wins": 24,
+      "improved": 3,
+      "regressed": 7,
+      "baseline_unsafe": 0,
+      "candidate_unsafe": 0
+    },
+    "crew4/pilot": {
+      "games": 81,
+      "baseline_wins": 26,
+      "candidate_wins": 20,
+      "improved": 4,
+      "regressed": 10,
+      "baseline_unsafe": 0,
+      "candidate_unsafe": 0
+    },
+    "crew4/kopilot": {
+      "games": 81,
+      "baseline_wins": 28,
+      "candidate_wins": 25,
+      "improved": 3,
+      "regressed": 6,
+      "baseline_unsafe": 0,
+      "candidate_unsafe": 0
+    }
+  }
+}

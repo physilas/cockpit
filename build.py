@@ -60,6 +60,7 @@ PYTHON_DATEIEN = [
     "ai/joint_round.py",
     "ai/round_responsibility.py",
     "ai/reroll_advice.py",
+    "ai/fuel_capacity.py",
 ]
 
 UI_SCHEMA = "backend/ui_schema.json"

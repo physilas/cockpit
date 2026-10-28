@@ -39,6 +39,9 @@ def play(task):
     _development_seed(seed,games)
     airport=case['airport']
     if mode=='public':learner=PublicContractAgent(airport,_model)
+    elif mode=='responsive':
+        from .response_contract import ResponseContractAgent
+        learner=ResponseContractAgent(airport,_model)
     elif mode=='coherent':learner=CoherentBlueprint(airport,_model)
     else:learner=ShieldedBlueprint(airport,GuidedBlueprint(_model))
     teammate=GuidedBlueprint(_partners[partner])
@@ -72,7 +75,7 @@ def main():
     p.add_argument('--source',default='ai/releases/crew4-allroutes-2026-10-26-v1/best.pt')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--partners',type=int,nargs='+',choices=(1,2,3,4),default=[1,3,4])
-    p.add_argument('--modes',nargs='+',choices=('shield','public','coherent'),default=['shield','public'])
+    p.add_argument('--modes',nargs='+',choices=('shield','public','responsive','coherent'),default=['shield','public'])
     p.add_argument('--all-cards',action='store_true')
     p.add_argument('--games',type=int,default=5)
     p.add_argument('--seed',type=int,default=14983050)

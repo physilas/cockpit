@@ -64,12 +64,16 @@ def paired_analysis(report, baseline, candidate):
         variance_total+=sum(x['variance_of_mean'] or 0 for x in entries)/count**2
     delta=mean(r['paired_delta'] for r in routes.values())
     se=math.sqrt(variance_total)/len(routes)
-    return dict(complete=True,release_evidence=False,qualification_used=False,
+    held_out=report.get('evidence_kind')=='held_out_confirmation'
+    return dict(complete=True,release_evidence=False,qualification_used=held_out,qualification_granted=False,
+        evidence_kind='held_out_confirmation' if held_out else 'development_comparison',
         baseline=baseline,candidate=candidate,route_count=len(routes),case_count=len(cases),
         baseline_route_mean=mean(r['baseline_rate'] for r in routes.values()),
         candidate_route_mean=mean(r['candidate_rate'] for r in routes.values()),paired_route_delta=delta,
         descriptive_normal_interval=[delta-1.96*se,delta+1.96*se] if intervals_available else None,
-        interval_limit='Fixed development cohort; independent seed-pairs within each case assumed. No selection or multiple-comparison correction.',
+        interval_limit=('Fixed frozen confirmation cohort; policy selected beforehand. ' if held_out else
+                        'Fixed development cohort; no selection correction. ')+
+                       'Independent seed-pairs within each case assumed; descriptive normal interval, no multiple-comparison correction.',
         improved=sum(x['improved'] for entries in by_route.values() for x in entries),
         regressed=sum(x['regressed'] for entries in by_route.values() for x in entries),routes=routes)
 
@@ -78,7 +82,9 @@ def markdown(data):
     lines=['# Routenvergleich', '',
         f"{data['baseline']} → {data['candidate']}; {data['route_count']} Routen, {data['case_count']} konkrete Fälle.",
         f"Gleichgewichtetes Routenmittel: {data['baseline_route_mean']:.1%} → {data['candidate_route_mean']:.1%}.",
-        'Entwicklungsevidenz; keine unabhängige Qualifikation.', '',
+        ('Unabhängige Bestätigung der zuvor eingefrorenen Strategie; keine Freigabe einer Mindestquote pro Route.'
+         if data.get('evidence_kind')=='held_out_confirmation' else
+         'Entwicklungsevidenz; keine unabhängige Qualifikation.'), '',
         '| Route | Fälle | Siege vorher | Siege nachher | Spiele je Spieler | Runde vorher → nachher |',
         '|---|---:|---:|---:|---:|---:|']
     for airport,r in data['routes'].items():

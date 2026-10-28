@@ -10,7 +10,7 @@ SOURCES=('strategy_fingerprint.py','strategy_bridge.py','strategy_environment.py
          'coherent_advice.py','coherent_safety.py','safety_guard.py','belief_simulator.py',
          'contract_planner.py','assignment_belief.py','public_contract.py','round_responsibility.py',
          'reroll_advice.py','public_hand_prior.py','joint_landing_prior.py','joint_round.py',
-         'rollout_search.py','agents.py','nn_model.py','checkpoints.py','export_browser.py')
+         'rollout_search.py','agents.py','nn_model.py','checkpoints.py','export_browser.py','fuel_capacity.py')
 
 
 def public_strategy_fingerprint(profile):

@@ -128,6 +128,30 @@ class ContractPlannerTests(unittest.TestCase):
         env.game.cockpit.aerodynamik_orange=12.5
         self.assertEqual(1,public_movement_target(env.view()))
 
+    def test_double_movement_does_not_promise_four_radios_in_three_slots(self):
+        env=ModuleEnv('MUC');env.reset(seed='train:two-cell-radio-bound')
+        view=env.view();view['height']=4000;view['distance']=5
+        for cell in view['track']:cell['planes']=2 if cell['distance'] in (5,4) else 0
+        self.assertEqual(1,public_movement_target(view))
+
+    def test_partner_gear_hypotheses_can_make_a_windy_stop_possible(self):
+        from ai.module_physics import WIND_RING
+        env=ModuleEnv('LOG_GIG_YELLOW',abilities=['adaptation'])
+        env.reset(seed='train:partner-gear-bound')
+        root=env.view('kopilot');root.update(partner_remaining=3,coffee=0,own_dice=[0,1,2,3])
+        root['board'][0]={'value':3,'owner':'pilot'}
+        root['board'][1]={'value':3,'owner':'kopilot'}
+        root['attitude']=0
+        root['modules_state'].update(wind_position=WIND_RING.index(3),wind_value=3)
+        for cell in root['track']:cell['planes']=4 if cell['distance']==root['distance'] else 0
+        view=deepcopy(root);view['board'][3]={'value':1,'owner':'kopilot'}
+        self.assertEqual(0,public_movement_target(root))
+        self.assertEqual(0,final_value(root,view,{},details=True)[0])
+        forecast={**root,'_partner_gears':True}
+        self.assertGreater(final_value(forecast,view,{},details=True)[0],0)
+        self.assertEqual([False]*3,view['gear'])
+        self.assertEqual(4.5,view['aero_blue'])
+
     def test_impossible_ice_half_is_not_rewarded_as_progress(self):
         env=ModuleEnv('LOG_KEF_YELLOW',abilities=['adaptation'])
         env.reset(seed=14000207)

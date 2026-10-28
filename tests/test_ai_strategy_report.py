@@ -1,7 +1,7 @@
 from copy import deepcopy
 import unittest
 
-from ai.strategy_report import paired_analysis
+from ai.strategy_report import paired_analysis,markdown
 
 
 class StrategyReportTests(unittest.TestCase):
@@ -30,6 +30,14 @@ class StrategyReportTests(unittest.TestCase):
         data['results']['A|/new']['episodes'][0]['seed']=3
         with self.assertRaises(ValueError):
             paired_analysis(data,'old','new')
+
+    def test_frozen_confirmation_remains_distinct_from_quality_approval(self):
+        report=self.fixture();report['evidence_kind']='held_out_confirmation'
+        data=paired_analysis(report,'old','new')
+        self.assertTrue(data['qualification_used'])
+        self.assertFalse(data['qualification_granted'])
+        self.assertFalse(data['release_evidence'])
+        self.assertIn('Unabhängige Bestätigung',markdown(data))
 
     def test_incomplete_and_duplicate_records_are_rejected(self):
         data=self.fixture()

@@ -11,6 +11,7 @@
 <option value="LOG_HND_RED">HND rot · Praktikant/Kerosin</option><option value="LOG_PBH_RED">PBH rot · Echtzeit</option>
 </select>
 <button id="run" disabled>12 Entscheidungen prüfen</button>
+<label><input type="checkbox" id="fullgame"> Ganze Partie bis zum Ende prüfen</label>
 <pre id="status">Umgebung noch nicht geladen.</pre>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 <script src="../frontend/web/js/engine-src.js"></script>
@@ -39,11 +40,12 @@ runButton.onclick=async()=>{
  runButton.disabled=true;
  const airport=document.querySelector('#route').value;
  const cards={MUC:[],LOG_KEF_YELLOW:['adaptation'],LOG_GIG_YELLOW:['adaptation'],LOG_PRG_GREEN:['adaptation','control'],LOG_HND_RED:['adaptation'],LOG_PBH_RED:['adaptation','control']}[airport];
- const report={airport,cards,seed:`probe:browser-runtime:${airport}:${ordinal++}`,profile:13,decisions:[],clock:'engine_wall_clock',release_evidence:false};
+ const limit=document.querySelector('#fullgame').checked?256:12;
+ const report={airport,cards,seed:`probe:browser-runtime:${airport}:${ordinal++}`,profile:13,limit,decisions:[],clock:'engine_wall_clock',release_evidence:false};
  try{
   runtime.globals.set('_probe_airport',airport);runtime.globals.set('_probe_cards',JSON.stringify(cards));runtime.globals.set('_probe_seed',report.seed);
   runtime.runPython(`_probe_env=ModuleEnv(_probe_airport,abilities=json.loads(_probe_cards),assistance_version=0)\n_probe_env.reset(seed=_probe_seed)\nbridge._spiel=_probe_env.game`);
-  for(let i=0;i<12;i++){
+  for(let i=0;i<limit;i++){
    status.textContent=JSON.stringify(report,null,2);await new Promise(requestAnimationFrame);
    if(runtime.runPython('_probe_env.done'))break;
    const start=performance.now();
