@@ -7,6 +7,7 @@ The stop switch remains until an explicit `clear-stop` command.
 import argparse
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import signal
@@ -19,13 +20,23 @@ STOP=ROOT/'runs/STOP_AI_TRAINING'
 STATUS=ROOT/'runs/ai-job.json'
 
 
+def write_status(state):
+    temporary=STATUS.with_suffix('.tmp')
+    temporary.write_text(json.dumps(state,indent=2)+'\n')
+    temporary.replace(STATUS)
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--max-temperature', type=float, default=None,
                    help='Require live HID readings; pause the owned process group 3 C below this limit.')
+    p.add_argument('--max-runtime', type=float, default=None,
+                   help='Stop this one owned job after this many wall-clock seconds, including cooling.')
     p.add_argument('action',choices=('run','stop','clear-stop','status'))
     p.add_argument('command',nargs=argparse.REMAINDER)
     args=p.parse_args()
+    if args.max_runtime is not None and (not math.isfinite(args.max_runtime) or args.max_runtime<=0):
+        p.error('Runtime limit must be finite and positive.')
     LOCK.parent.mkdir(parents=True,exist_ok=True)
     if args.action=='stop':
         STOP.touch()
@@ -53,15 +64,21 @@ def main():
             except Exception:
                 sensor.close()
                 raise
-        child=subprocess.Popen(command,cwd=ROOT,start_new_session=True)
+        try:child=subprocess.Popen(command,cwd=ROOT,start_new_session=True)
+        except Exception:
+            if sensor:sensor.close()
+            raise
+        monotonic_start=time.monotonic()
         state={'wrapper_pid':os.getpid(),'child_pid':child.pid,'command':command,'started_at':time.time(),'state':'running'}
-        STATUS.write_text(json.dumps(state,indent=2)+'\n')
+        write_status(state)
         stopping=False
         paused=False
         try:
             while child.poll() is None:
-                if STOP.exists():
+                expired=args.max_runtime is not None and time.monotonic()-monotonic_start>=args.max_runtime
+                if STOP.exists() or expired:
                     stopping=True
+                    state['stop_reason']='time_limit' if expired else 'user_stop'
                     if paused:os.killpg(child.pid,signal.SIGCONT)
                     os.killpg(child.pid,signal.SIGINT)
                     try:child.wait(timeout=15)
@@ -79,7 +96,10 @@ def main():
                                  peak_temperature_c=max(state.get('peak_temperature_c',0),max(readings.values())),
                                  temperature_limit_c=args.max_temperature,
                                  sampled_at=time.time())
-                    STATUS.write_text(json.dumps(state,indent=2)+'\n')
+                    hottest=max(readings,key=readings.get)
+                    if readings[hottest]>=state['peak_temperature_c']:
+                        state['peak_sensor']=hottest
+                    write_status(state)
                 time.sleep(.5)
             code=child.wait()
         except KeyboardInterrupt:
@@ -104,7 +124,9 @@ def main():
         finally:
             if sensor:sensor.close()
             state.update(state='failed' if state['state']=='failed' else 'stopped' if stopping else 'finished',finished_at=time.time(),returncode=child.poll())
-            STATUS.write_text(json.dumps(state,indent=2)+'\n')
+            write_status(state)
+            with STATUS.with_name(STATUS.stem+'-history.jsonl').open('a') as stream:
+                stream.write(json.dumps(state)+'\n')
         raise SystemExit(0 if stopping else code)
 
 

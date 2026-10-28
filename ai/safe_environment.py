@@ -40,6 +40,9 @@ class SafeResearchEnv(ModuleEnv):
         # Preserve earlier strategic advice as a finite prior, rather than
         # permanently forbidding a useful deviation the learner could discover.
         super()._assist(mask)
+        self._reference_mask = [bool(a and r) for a, r in zip(mask, self._reference_mask)]
+        if not any(self._reference_mask):
+            self._reference_mask = list(mask)
         return mask
 
     def step(self, action):

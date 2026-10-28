@@ -1,11 +1,12 @@
 from copy import deepcopy
 import random
 import unittest
+from unittest.mock import patch
 
 from ai.belief_simulator import BeliefSimulator, fork_simulation, simulation_step
 from ai.module_training_eval import _official_cases
 from ai.modules import ModuleEnv, MODULE_ACTIONS
-from ai.rollout_search import RolloutSearchAgent, SearchConfig, candidates
+from ai.rollout_search import GuidedBlueprint, RolloutSearchAgent, SearchConfig, candidates
 
 
 class FirstLegal:
@@ -100,3 +101,12 @@ class BeliefSearchTests(unittest.TestCase):
         view['track'][0]['traffic'] += 1
         with self.assertRaises(ValueError):
             BeliefSimulator('MUC', view).sample(1)
+
+    def test_empty_legacy_advice_after_new_shield_keeps_legal_nonempty_prior(self):
+        env = ModuleEnv('MUC')
+        env.reset(seed=14000132)
+        raw = env.action_mask()
+        with patch('ai.module_guidance.module_guidance', return_value=([False]*len(raw), [False]*len(raw))):
+            allowed, reference = GuidedBlueprint(None).masks(env.view(), raw)
+        self.assertEqual(raw, allowed)
+        self.assertEqual(raw, reference)

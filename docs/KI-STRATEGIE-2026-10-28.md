@@ -150,3 +150,138 @@ bleibt bindend.
 Entwicklungsseeds des Vorvergleichs: 14.900.000 + 100*i, i=0..6, je drei
 Spiele; Wiederholung ist keine neue unabhängige Evidenz. Bisher reservierte
 Abschlusskohorten ab 15.400.000 nicht zum Debuggen oder zur Auswahl verwenden.
+
+## Fortschritt nach der ersten Stunde
+
+Commit `12bede5` ist lokal vorhanden. Der Push nach `origin/main` wurde vom
+automatischen Approval-Review zweimal abgelehnt, auch nach Bestätigung des
+öffentlichen, dem Nutzer gehörenden Repositories `physilas/cockpit` über den
+GitHub-Connector. Eine präzise asynchrone Rückfrage an den Nutzer ist offen:
+Veröffentlichung der geprüften KI-/Test-/Entwicklungsberichte dieses Laufs in
+diesem öffentlichen Repository auf main. Ohne neue menschliche Antwort keinen
+weiteren Push versuchen und keinen anderen Übertragungsweg verwenden. Lokale
+Arbeit bleibt erlaubt.
+
+Abgeschlossene neue Vergleiche:
+
+* `shield-routes-v3.json`: alle 27 spielbaren Routen, je ein explizites
+  Kartenset, zehn Spiele je Baseline/Schutz, 540 Partien. Baseline 89/270,
+  Schutz 90/270. Erkannte sofort verlierende Entscheidungen bei vorhandener
+  Alternative 133 → 0. Das ist eine unmittelbare Aktionskennzahl; sie behauptet
+  nicht, dass sämtliche später verlorenen Partien noch gewinnbar waren.
+* `search-hard-v4.json`: sieben schwierige Modul-/Kartenfälle, je vier
+  Spiele pro Schutz/Rundensuche/Information-State-UCT, 84 Partien. Jeweils
+  1/28 Siege. Mittlere Runde 3,50 / 5,46 / 4,50. Kein Gewinnnachweis durch
+  tiefe Suche. Nicht unbesehen als erfolgreichen Lehrer destillieren.
+* `routes-v2.json` bleibt ausdrücklich unvollständig. Der Lauf deckte eine
+  leere alte Referenz nach Verengung durch den neuen Schutz auf. Rückfall auf
+  verbliebene legale Aktionen korrigiert und getestet. Executor beendet bei
+  Fehler jetzt eigene Worker, statt auf sämtliche lange Suchaufträge zu warten.
+
+`ai.train_robust` wurde technisch in beiden Modi geprüft: Selbstspiel 813
+Lernentscheidungen; Population 3.232 Entscheidungen mit tatsächlich allen
+Crews 1/2/3 plus aktuellem Selbstspiel in beiden Rollen. Partneraktionen sind
+nicht im Lernpuffer, Zählersummen stimmen. Neue Optimizer, Quellen unverändert.
+Die 20-Minuten-Selbstspielphase unter
+`runs/robust-2026-10-28/self-20min` hat 89.456 Entscheidungen/4.170 Partien
+erreicht und befindet sich beim Schreiben dieses Standes in der abschließenden
+Validierung. Die bisher beste kleine Validierung lag nach 24.128 Schritten bei
+50/135 statt initial 49/135; später sank sie wieder. Kein belastbarer
+Lernfortschritt. Geplanter fairer Gegenversuch: gleiches 1.200-Sekunden-Budget,
+Quelle und Validierung, `--partner-mode population`, eigener Trainingsseed.
+Eine einzelne solche Gegenprobe beweist keine allgemeine Überlegenheit.
+
+Neuer, noch nicht auf Spielstärke geprüfter Ansatz: `ai.contract_planner`
+plant die gesamte eigene Hand, einschließlich Kaffee/Anpassung und genau
+einmaliger Nutzung ausgegebener Zusatzwürfel. Beide Rollen bekommen denselben
+aus öffentlichen Zählwerten abgeleiteten Bewegungsvertrag. Ein übervoller
+Verkehrsstau verlangt Stillstand und Funk; ansonsten Höhe/Entfernung folgen
+und stark Verkehr erzeugende Felder bei ausreichender Funkkapazität schneller
+verlassen. Gegensätzliche Kurven, irreversible Langsamkeit nach zu frühem
+Klappenausbau und zurückgelassene nicht mehr erreichbare Flugzeuge werden
+berücksichtigt. Partnerkontrollen, notwendiger Funk und Treibstoff konkurrieren
+im statischen IID-Handmodell um verschiedene Würfel und einen Kaffeepool.
+Dies ist eine eigene heuristische Übertragung der Literatur, keine exakte
+dezentrale Lösung oder kalibrierte Gewinnwahrscheinlichkeit. Erste Rechenproben
+lagen bei ungefähr 10–30 ms pro Handplanung. Neue Projektionstests vergleichen
+Module, Kosten und Belegungen mit der echten Engine. Praktikant darf keinen
+Kaffee erzeugen; halbe Eispaare sind kein dauerhafter Ausbau.
+
+`contract_advice.py` und `contract_environment.py` trennen den öffentlichen
+Berater von NN-Gewichten und bieten eine gemeinsame Grundlage für später
+identische native-/Browser-Entscheidungen. Noch keine Browserregistrierung,
+kein Modell oder altes Profil ersetzt. `research_compare` kennt nun auch
+`--modes contract` und protokolliert neu zurückgelassene Flugzeuge sowie
+irreversible Entfernungsdefizite; alte Berichte haben diese Spalten nicht.
+
+`search_demonstrations.py` ist für **Trainingsseeds** vorbereitet: öffentliche
+Kontrakt- oder UCT-Lehrerlabels mit exakten Masken, optional auf Zuständen des
+Schülers oder einer Mischung beider. Noch keine erfolgreiche Lehrer-/Schüler-
+Verbesserung behaupten. Relevante weitere Literatur:
+[DAgger, Ross et al. 2011](https://proceedings.mlr.press/v15/ross11a.html)
+motiviert Labels auf den vom Schüler tatsächlich erreichten Zuständen;
+[Expert Iteration, Anthony et al. 2017](https://arxiv.org/abs/1705.08439)
+motiviert die Trennung von Planung und Verallgemeinerung. Deren veröffentlichte
+Ergebnisse belegen keine Übertragbarkeit auf dieses konkrete verdeckte Spiel.
+
+Nächste Priorität nach Ende des aktuellen Jobs: den Kontraktplaner schnell
+auf allen 27 Routen gegen den geschützten Ausgangsspieler messen. Nur bei
+brauchbarem Ergebnis die komplette 192-Fall-Matrix und danach frische Seeds
+verwenden; dann gegebenenfalls Lehrer-/Schülerphase und neues Browserprofil.
+Die Temperaturregelung hat bisher höchstens rund 73,7 °C gemeldet.
+
+## Stand nach zwei Stunden
+
+Beide gleichen 1.200-Sekunden-Trainingsphasen sind vollständig beendet:
+
+| Phase | Lernentscheidungen | Partien | Initial / beste / letzte Validierung |
+|---|---:|---:|---:|
+| Selbstspiel | 89.456 | 4.170 | 49 / 50 / 46 von 135 |
+| Population 1/2/3/Selbstspiel | 92.286 | 4.208 | 49 / 51 / 48 von 135 |
+
+In der Population wurden beide Rollen mit jedem Partner tatsächlich trainiert.
+Die Optimizer waren neu, die geerbte eingefrorene Quelle blieb unverändert.
+Ein einzelner Lauf pro Modus und ein beziehungsweise zwei zusätzliche Siege
+sind keine robuste Verbesserung. Die besten Stände sind nur lokale Kandidaten;
+spätere Stände wurden wieder schwächer. Kein veröffentlichtes Modell ersetzt.
+
+`contract-routes-v1.json` (27 Routen, ein Kartenset, fünf Spiele je Spieler)
+war insgesamt schlechter: Schutz 46/135, erster Kontrakt 40/135. Auf KEF gelb
+kam er zwar jedes Mal bis Runde 7, konnte aber nicht bremsen. Die konkrete
+Ursache war häufig zu wenig früh abgeschlossene Eisbremsen; eine halbe Paarung
+verfällt am Rundenende. Wenn die Landung bereits wegen fehlender Pflichtfelder
+unmöglich war, verschwanden im bisherigen binären Wert außerdem alle sinnvollen
+Unterschiede zwischen guten und schlechten Flugkontrollen.
+
+Der zweite Planer berücksichtigt explizite hypothetische Partner-Eiszüge
+zwischen eigenen Zügen, verbraucht deren unterschiedliche Würfel und denselben
+Kaffeepool in der Aufgabenverteilung, hält unterschiedliche erste Ziele im
+Suchstrahl und belohnt frühe öffentliche Kontrollfestlegung. Bei ausschließlich
+unerfüllbaren Rundenzielen verwendet er eine gesonderte physikalische
+Rückfallbewertung: möglichst waagerecht, langsam genug, ohne Treibstoffverlust.
+Ein optimistischer öffentlicher Endrunden-Zähltest verhindert nutzlose Neuwürfe
+bei bereits sicher unerfüllbaren Pflichtfeldern. Diese Grenzen ignorieren
+Augenzahlen/Reihenfolge und können nur Unmöglichkeit feststellen.
+
+`coherent_safety.py` erweitert den alten Sofortschutz für genau einen letzten
+Würfel: nur wenn selbst alle durch Kaffee/Anpassung/Neuwurf optimistisch
+erreichbaren Augenzahlen keine rettende native Platzierung erlauben, wird die
+Partie durch Platzieren beendet. Das verhindert sinnloses Verzögern durch
+Hilfsaktionen. Keine künstliche Spielbeendigung, keine Änderung der Regeln.
+Die neue Auditkennzahl verwendet diese strengere Bedeutung; ältere Berichte
+mit dem alten Sofortschutz nicht ungekennzeichnet damit vergleichen.
+
+`contract-routes-v2.json` ist vollständig: Schutz 50/135, Kontrakt 53/135.
+KEF gelb 0 → 2 Siege, TGU gelb 0 → 3, YUL grün 3 → 5; ATL gelb und LHR gelb
+je 2 beziehungsweise 1 → 0. Auf sechs schweren Modulrouten steigt die mittlere
+erreichte Runde deutlich, auf anderen gibt es Rückschritte. Nur fünf gepaarte
+Partien je konkretem Fall; keine belastbare allgemeine Stärkeaussage.
+`contract-routes-v2-analysis.json` und `.md` weisen sämtliche Routen aus.
+
+Der laufende `contract-matrix-v2.json` vergleicht alle 192 Fälle mit fünf
+gepaarten Spielen je Fall: alter geschützter Spieler, direkte Kontraktwahl
+und endliche Kontraktempfehlung mit unveränderten Tensoren/Guide-Margin 12.
+Letztere Konfiguration ist ausdrücklich eine neue Policy, kein neu trainiertes
+Netz. Seeds 14.930.000 + 100*i, i=0..191; drei Modi, 2.880 Partien.
+Alle Varianten unter realer Engine-Uhr, auch Echtzeitrouten. Quellen während
+dieses Vergleichs eingefroren. Noch kein Ergebnis, keine Veröffentlichung.

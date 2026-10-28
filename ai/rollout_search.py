@@ -34,6 +34,14 @@ class GuidedBlueprint:
             else:
                 from .leak_advice import leak_reference
                 reference = leak_reference(view, allowed)
+        # Historical planners were written for the full engine mask. A new
+        # shield can remove their entire preferred continuation. Keep the
+        # shield's legal alternatives instead of creating an empty NN prior.
+        if not any(allowed):
+            allowed = list(raw)
+        reference = [bool(a and r) for a, r in zip(allowed, reference)]
+        if not any(reference):
+            reference = list(allowed)
         return allowed, reference
 
     def select(self, view, raw):
