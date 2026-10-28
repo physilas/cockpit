@@ -5,8 +5,10 @@ newly trained when only the public planning policy changed.
 """
 import argparse
 from copy import deepcopy
+import gzip
 import json
 from pathlib import Path
+import shutil
 
 import torch
 
@@ -33,6 +35,7 @@ def prepare(source,folder,profile):
         source_checkpoint=str(source),source_weights_sha256=original,source_phase_steps=payload.get('total_steps',0),
         assistance_version=profile,schema_version=3,action_mask_version=2,
         max_steps=256,
+        public_response_gate='after_partner_control_except_wind_ice_intern' if profile==13 else None,
         planner_sha256=public_strategy_fingerprint(profile),supported_modules=list(MODULES),supported_cards=list(CARDS),
         ability_count='case_specific',supported_cases=[{'airport':r['airport'],'abilities':r['abilities']} for r in cases],
         supported_airports=sorted({r['airport'] for r in cases}),recommended=False,
@@ -51,7 +54,8 @@ def prepare(source,folder,profile):
     return target
 
 
-def finalize(manifest_path,evidence_path,release_id,name,crew_number):
+def finalize(manifest_path,evidence_path,release_id,name,crew_number,*,recommended=False):
+    if type(recommended) is not bool:raise ValueError('Recommendation must be an explicit Boolean.')
     manifest=json.loads(Path(manifest_path).read_text());check_manifest(manifest)
     evidence=json.loads(Path(evidence_path).read_text())
     expected={case_key(r) for r in catalogue_cases()}
@@ -63,9 +67,15 @@ def finalize(manifest_path,evidence_path,release_id,name,crew_number):
         raise ValueError('Finalization requires the complete frozen confirmation for all192 cases, including zero wins.')
     target,catalog=publish_preview(manifest['candidate_checkpoint'],evidence_path,release_id,name)
     payload=torch.load(target,map_location='cpu',weights_only=True)
-    payload['train_config'].update(recommended=True,crew_number=crew_number,ui_hidden=False)
+    payload['train_config'].update(recommended=recommended,crew_number=crew_number,ui_hidden=False)
     torch.save(payload,target)
     catalog=export_models(ROOT/'ai/releases',ROOT/'frontend/web',checkpoints=[target],merge=True)
+    # Preserve the exact frozen input bytes as well as the separately labelled
+    # browser release. Restore this archive to the manifest's candidate path
+    # when auditing its original file hash; release metadata changes no tensors.
+    with Path(manifest['candidate_checkpoint']).open('rb') as source, (target.parent/'confirmation-input.pt.gz').open('wb') as output:
+        with gzip.GzipFile(filename='',mode='wb',fileobj=output,mtime=0) as compressed:
+            shutil.copyfileobj(source,compressed)
     description=('Öffentlicher Handplaner' if manifest['profile']==13 else 'Kohärente neuronale Crew')
     tensor_note=('Für Profil13 sind die NN-Tensoren die unveränderte dokumentierte Quelle; '
                  'der neue Teil ist die gemeinsame physikalische Handplanung und Arbitration.'
@@ -83,6 +93,10 @@ def finalize(manifest_path,evidence_path,release_id,name,crew_number):
         'und keine Zusage menschlicher Gewinnraten.\n\n'
         f"Quelle: `{manifest['candidate_checkpoint']}`. Öffentliche Strategie: "
         f"`{manifest['public_strategy_sha256']}`.\n")
+    with (target.parent/'README.md').open('a') as stream:
+        stream.write('\n`confirmation-input.pt.gz` enthält die exakten eingefrorenen Eingabebytes. '
+                     'Für eine Manifestprüfung an den dort genannten Kandidatenpfad entpacken; '
+                     'der veröffentlichte best.pt trägt zusätzlich die sichtbaren Release-Metadaten.\n')
     (target.parent/'confirmation-protocol.json').write_text(json.dumps(manifest,indent=2)+'\n')
     return target,catalog
 
@@ -94,13 +108,14 @@ def main():
     p.add_argument('--manifest',type=Path);p.add_argument('--evidence',type=Path)
     p.add_argument('--release-id',default='crew5-planner-2026-10-28-v1')
     p.add_argument('--name',default='Crew 5 · Navigator');p.add_argument('--crew-number',type=int,default=5)
+    p.add_argument('--recommend',action='store_true',help='Explicitly recommend this preview after reviewing its confirmation.')
     args=p.parse_args()
     if args.action=='prepare':
         if args.folder is None:p.error('A new candidate folder is required.')
         print(prepare(args.source,args.folder,args.profile))
     else:
         if args.manifest is None or args.evidence is None or args.crew_number<1:p.error('Manifest, full evidence and Crew number are required.')
-        print(finalize(args.manifest,args.evidence,args.release_id,args.name,args.crew_number)[0])
+        print(finalize(args.manifest,args.evidence,args.release_id,args.name,args.crew_number,recommended=args.recommend)[0])
 
 
 if __name__=='__main__':main()

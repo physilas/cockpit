@@ -1,4 +1,5 @@
 import hashlib
+import gzip
 import json
 from pathlib import Path
 import tempfile
@@ -10,6 +11,7 @@ import torch
 from ai.checkpoints import load_checkpoint,save_checkpoint,weight_fingerprint
 from ai.nn_model import ActorCritic,GuidedResidualActorCritic
 from ai.publish_strategy import prepare,finalize
+from ai.preview_matrix_eval import catalogue_cases
 
 
 class PublicStrategyPreparationTests(unittest.TestCase):
@@ -40,3 +42,23 @@ class PublicStrategyPreparationTests(unittest.TestCase):
             with patch('ai.publish_strategy.check_manifest'),patch('ai.publish_strategy.publish_preview') as publish:
                 with self.assertRaises(ValueError):finalize(manifest,evidence,'new','New',5)
                 publish.assert_not_called()
+
+    def test_finalization_preserves_exact_confirmation_input_and_does_not_imply_recommendation(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);source=root/'candidate.pt';source.write_bytes(b'exact frozen input\x00\x01')
+            release=root/'ai/releases/new';release.mkdir(parents=True);target=release/'best.pt'
+            torch.save({'train_config':{'quality':{'approved':False},'preview':{'enabled':True}}},target)
+            manifest=root/'frozen.json';evidence=root/'evidence.json'
+            manifest.write_text(json.dumps(dict(games=10,profile=13,candidate_checkpoint=str(source),public_strategy_sha256='frozen-policy')))
+            evidence.write_text(json.dumps(dict(complete=True,release_evidence=False,qualification_used=True,
+                qualification_granted=False,frozen_manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),
+                cases={r['airport']+'|'+','.join(sorted(r['abilities'])):{'games':10} for r in catalogue_cases()})))
+            with patch('ai.publish_strategy.check_manifest'),patch('ai.publish_strategy.ROOT',root),\
+                    patch('ai.publish_strategy.publish_preview',return_value=(target,{})),\
+                    patch('ai.publish_strategy.export_models',return_value={'models':[]}):
+                actual,_=finalize(manifest,evidence,'new','New',5)
+            config=torch.load(actual,weights_only=True)['train_config']
+            self.assertFalse(config['recommended']);self.assertFalse(config['quality']['approved'])
+            self.assertEqual(5,config['crew_number'])
+            self.assertEqual(source.read_bytes(),gzip.decompress((release/'confirmation-input.pt.gz').read_bytes()))
+            self.assertEqual(json.loads(manifest.read_text()),json.loads((release/'confirmation-protocol.json').read_text()))
