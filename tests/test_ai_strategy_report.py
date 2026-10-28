@@ -39,6 +39,15 @@ class StrategyReportTests(unittest.TestCase):
         self.assertFalse(data['release_evidence'])
         self.assertIn('Unabhängige Bestätigung',markdown(data))
 
+    def test_visible_standard_routes_are_separate_from_legacy_fixtures(self):
+        report=self.fixture();report['config']['cases'][0]['case_scope']='official_matrix'
+        for key,row in report['results'].items():
+            if key.startswith('B|') and key.endswith('/new'):row['episodes'][1]['status']='verloren'
+        data=paired_analysis(report,'old','new')
+        self.assertEqual(1,data['standard_route_count'])
+        self.assertEqual(1.,data['standard_candidate_route_mean'])
+        self.assertEqual(.75,data['candidate_route_mean'])
+
     def test_incomplete_and_duplicate_records_are_rejected(self):
         data=self.fixture()
         data['complete']=False

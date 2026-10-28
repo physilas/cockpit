@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "model": "crew5-planner-2026-10-28-v1/best.pt",
+  "mode": "play",
+  "route": "LOG_YUL_GREEN",
+  "human_role": "kopilot",
+  "visible_standard_routes": 21,
+  "observed_ai_decisions": 1,
+  "observed_action": "Fahrwerksteil mit Wert6 ausgefahren",
+  "next_role": "kopilot",
+  "browser_errors": [],
+  "scope": "Normal UI start and first action only; six full technical games recorded separately.",
+  "screenshot": "navigator-browser-check.jpg"
+}

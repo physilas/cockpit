@@ -1,0 +1,10 @@
+{
+  "exploratory": true,
+  "release_evidence": false,
+  "counts": {
+    "candidate_only_range_event": 147,
+    "candidate_only_and_later_round": 118,
+    "baseline_only_range_event": 38
+  },
+  "limitation": "Final-round summaries cannot establish why a range event arose. Longer survival changes exposure; this does not erase the increased raw range-event count."
+}

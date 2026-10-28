@@ -1,6 +1,6 @@
 # Vorabregel für den zusätzlichen Blueprint-Vergleich
 
-Festgelegt28.10.2026 gegen10:34 Berlin, während die erste Bestätigung läuft.
+Festgelegt28.10.2026 gegen09:34 Berlin (CET, UTC+1), während die erste Bestätigung läuft.
 Bis zu dieser Regel wurden daraus nur Fortschrittszähler und Temperaturen
 gelesen, keine Siege, Quoten oder Fehlermetriken. Die Strategiequellen und
 der Evaluator dieser Bestätigung werden nicht geändert.

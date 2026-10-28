@@ -13,7 +13,8 @@ class CanonicalModelTests(unittest.TestCase):
     def test_actual_four_exports_match_pytorch_and_case_contract(self):
         torch.set_num_threads(1)
         catalog=json.loads((ROOT/'frontend/web/js/ai-models.js').read_text().split(' = ',1)[1].strip().rstrip(';'))
-        models=[m for m in catalog['models'] if not m.get('ui_hidden') and (m.get('preview',{} ) or {}).get('enabled')]
+        models=[m for m in catalog['models'] if not m.get('ui_hidden')
+                and (m.get('preview',{} ) or {}).get('enabled') and m.get('crew_number') in (1,2,3,4)]
         self.assertEqual([m['name'] for m in models],['Crew 1','Crew 2','Crew 3','Crew 4'])
         total=0
         for entry in models:

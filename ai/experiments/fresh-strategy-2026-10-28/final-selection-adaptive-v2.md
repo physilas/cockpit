@@ -1,6 +1,6 @@
 # Endgültige Auswahl vor unabhängiger Bestätigung
 
-Festgelegt am28.10.2026 gegen10:13 Berlin, vor Beanspruchung kalter Seeds.
+Festgelegt am28.10.2026 gegen09:13 Berlin (CET, UTC+1), vor Beanspruchung kalter Seeds.
 Dieser Entscheid ersetzt die ausdrücklich vorläufige erste Auswahl.
 
 Profil13 mit Beam24 und exakt unveränderten Crew4-NN-Tensoren. Bei Wind,

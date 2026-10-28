@@ -12,7 +12,7 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and shutil.which('node'),'Torch and Node required for exact policy parity')
 class PublicContractModelTests(unittest.TestCase):
-    def test_96_actual_browser_decisions_match_the_native_adaptive_planner(self):
+    def _assert_96_actual_browser_decisions_match_native(self,crew):
         from backend import bridge
         from ai.checkpoints import load_checkpoint
         from ai.public_contract import PublicContractAgent
@@ -22,7 +22,7 @@ class PublicContractModelTests(unittest.TestCase):
         from ai.strategy_bridge import strategy_decision
         torch.set_num_threads(1)
         root=Path(__file__).resolve().parents[1]
-        model,_=load_checkpoint(root/'ai/releases/crew4-allroutes-2026-10-26-v1/best.pt')
+        model,_=load_checkpoint(root/f'ai/releases/crew{crew}-allroutes-2026-10-26-v1/best.pt')
         frames=[];expected=[]
         for airport,cards in (('MUC',[]),('LOG_KEF_YELLOW',['adaptation']),
                               ('LOG_PRG_YELLOW',['control','working-together']),('LOG_ATL_GREEN',[])):
@@ -46,3 +46,9 @@ process.stdout.write(JSON.stringify(f.frames.map(d=>({chosen:p.select(d),first:p
         self.assertEqual(96,len(actual))
         self.assertEqual(expected,[row['chosen'] for row in actual])
         self.assertEqual(expected,[row['first'] for row in actual])
+
+    def test_96_actual_browser_decisions_match_the_native_adaptive_planner(self):
+        self._assert_96_actual_browser_decisions_match_native(4)
+
+    def test_96_crew3_browser_decisions_match_the_native_adaptive_planner(self):
+        self._assert_96_actual_browser_decisions_match_native(3)

@@ -468,7 +468,7 @@ Spiele mit identischen kohärenten Masken. Unbenutzte Entwicklungsseeds
 Symmetrie), bester Selbstspiel- und Populationsstand sowie Quelle. Auswahl
 weiterhin Entwicklung; kalter Bestätigungsbereich nicht angerührt.
 
-## Abgeschlossene Variantenwahl gegen 08:00 Berlin
+## Abgeschlossene Variantenwahl gegen 07:00 Berlin
 
 Die oben als laufend bezeichnete NN-Prüfung ist abgeschlossen: Quelle89/270,
 BC50 91/270, BC200 89/270, BC200 mit Symmetrie86/270, Selbstspiel87/270,
@@ -518,10 +518,10 @@ verbleibende eigene Hand unter diesem öffentlichen Zwang planen.
 Die Suite vor dieser zusätzlichen Hypothese ist erneut vollständig bestanden:
 **609 Tests in117,449s**. Die neue Hypothese ist davon noch nicht abgedeckt.
 
-## Fortsetzung gegen 10:00 Berlin
+## Fortsetzung gegen 09:00 Berlin
 
 Ein Browser-Werkzeugaufruf zum Speichern einer PNG-Datei hing bis zur
-Unterbrechung durch den Nutzer gegen09:58 Berlin. Der bereits gestartete
+Unterbrechung durch den Nutzer gegen08:58 Berlin. Der bereits gestartete
 Rechenvergleich wurde währenddessen regulär beendet; danach lief kein
 weiterer Lern- oder Vergleichsjob. Diese Wartezeit ist keine Entwicklungs-
 oder Trainingszeit. Der Nutzer erlaubt weitere zwei Stunden und bestätigt
@@ -544,7 +544,7 @@ Variante, noch nicht für eine gesicherte Verbesserung.
 bereits sichtbaren Crews auf allen21 Standardrouten. Sie basiert auf den
 unveränderten Veröffentlichungsberichten, nicht auf dem neuen kurzen V7-Test.
 
-## Eingefrorener Kandidat gegen10:20 Berlin
+## Eingefrorener Kandidat gegen09:20 Berlin
 
 Der direkte V2-Partnernachlauf ist vollständig und nutzt exakt dieselben
 Seeds, Partner und Quellen wie der reaktive V2-Versuch:159/486 Kontrolle,
@@ -571,3 +571,35 @@ anhand kalter Ergebnisse. Eingefrorene Quellen und Evaluator währenddessen
 nicht ändern. Erst nach vollständigem Bericht kann die separate Crew5 als
 ehrlich gekennzeichnete Vorschau veröffentlicht werden. Exakte Eingabebytes
 werden zusätzlich komprimiert im Release erhalten; neue Tensoren sind es nicht.
+
+## Abschließender Stand
+
+Der Zusatzvergleich der NN-Grundlagen erfüllt die vorab festgelegte
+Wechselregel nicht: Crew4-Basis44/135, Crew3-Basis42/135. Crew4 bleibt die
+Grundlage. Erst danach wurden die unabhängigen Quoten gelesen. Der kalte
+Vergleich ist vollständig:171/1920 Siege Kontrolle gegen231/1920 Kandidat;
+gleichgewichtetes Mittel der21 sichtbaren Standardrouten14,02 % →20,25 %.
+Alle27 registrierten Routen einschließlich der sechs historischen Teststrecken:
+32,00 % →37,22 %. Standardrouten mit mindestens einem Sieg13 →18.
+
+Gegenkorrekturen beim Kaffee499 →14, Stranding-Ereignisse365 →99.
+Öffentliche Restentfernungsgrenzen dagegen53 →162; diesen schlechteren
+Indikator nicht verstecken. Bei118 von147 nur beim Kandidaten auftretenden
+solchen Fällen wurde eine spätere Runde erreicht als von der Kontrolle;
+das ändert die Exposition, beweist aber keine Ursache und entschuldigt keine
+konkrete Fehlentscheidung. GIG rot, HND rot und PBH schwarz bleiben ohne Sieg.
+Kein vom Sofortschutz erkannter vermeidbarer unmittelbarer Verlustzug und
+kein Schrittlimit-Abbruch in beiden Varianten; keine Optimalitätsgarantie.
+
+Crew5 · Navigator wurde als zusätzliche Entwicklungsvorschau exportiert,
+ohne bisherige Empfehlungen zu ersetzen. Alle alten Modell-Metadaten und
+Dateihashes sind unverändert.622 Tests in120,865s bestanden; darin zusätzliche
+Torch/JS-Parität für beide geprüften NN-Grundlagen und Integritätsprüfungen
+des tatsächlichen Releases. Eine zusätzliche normale YUL-Partie über das
+Spielmenü gestartet: Crew5 sichtbar,21 Routen verfügbar, erste KI-Platzierung
+ausgeführt, Co-Pilot danach am Zug, keine Browserfehler. Prüfbild im
+Experimentordner. Bericht und vollständige Fünf-Crews-Tabelle dort.
+
+Zeitangaben Berlin am28.10. sind CET (UTC+1); zuvor versehentlich mitUTC+2
+beschriftete Zwischenüberschriften wurden berichtigt. Maßgeblich für die
+Reihenfolge bleiben UTC-Werkzeugzeiten, Git-Commits und Jobprotokolle.

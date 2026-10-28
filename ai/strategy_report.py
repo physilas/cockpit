@@ -65,11 +65,15 @@ def paired_analysis(report, baseline, candidate):
     delta=mean(r['paired_delta'] for r in routes.values())
     se=math.sqrt(variance_total)/len(routes)
     held_out=report.get('evidence_kind')=='held_out_confirmation'
+    standard={c['airport'] for c in cases if c.get('case_scope')=='official_matrix'}
     return dict(complete=True,release_evidence=False,qualification_used=held_out,qualification_granted=False,
         evidence_kind='held_out_confirmation' if held_out else 'development_comparison',
         baseline=baseline,candidate=candidate,route_count=len(routes),case_count=len(cases),
         baseline_route_mean=mean(r['baseline_rate'] for r in routes.values()),
         candidate_route_mean=mean(r['candidate_rate'] for r in routes.values()),paired_route_delta=delta,
+        standard_route_count=len(standard),
+        standard_baseline_route_mean=mean(routes[a]['baseline_rate'] for a in standard) if standard else None,
+        standard_candidate_route_mean=mean(routes[a]['candidate_rate'] for a in standard) if standard else None,
         descriptive_normal_interval=[delta-1.96*se,delta+1.96*se] if intervals_available else None,
         interval_limit=('Fixed frozen confirmation cohort; policy selected beforehand. ' if held_out else
                         'Fixed development cohort; no selection correction. ')+
@@ -87,6 +91,10 @@ def markdown(data):
          'Entwicklungsevidenz; keine unabhängige Qualifikation.'), '',
         '| Route | Fälle | Siege vorher | Siege nachher | Spiele je Spieler | Runde vorher → nachher |',
         '|---|---:|---:|---:|---:|---:|']
+    if data.get('standard_route_count'):
+        lines[4:4]=[f"Davon{data['standard_route_count']} sichtbare Standardrouten: "
+                    f"{data['standard_baseline_route_mean']:.1%} → {data['standard_candidate_route_mean']:.1%}. "
+                    'Separater Katalog-Ausschnitt; das vorab festgelegte Gesamtmittel bleibt oben.', '']
     for airport,r in data['routes'].items():
         lines.append(f"| {airport} | {r['cases']} | {r['baseline_wins']} | {r['candidate_wins']} | {r['games']} | {r['baseline_round']:.2f} → {r['candidate_round']:.2f} |")
     return '\n'.join(lines)+'\n'
