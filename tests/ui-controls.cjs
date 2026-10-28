@@ -24,3 +24,7 @@ state=l.route(state,'LHR-green',[]);assert(!state.hostRole&&!state.guestRole);
 assert.throws(()=>l.role(state,'guest','admin'));
 assert(!l.canStart({...state,hostRole:'pilot',guestRole:'pilot',hostReady:true,guestReady:true}));
 console.log('✓ Equivalent feedback actions, different retry target, role-independent lobby, stale confirmation and ready resets');
+const untimed=l.route(l.create(),'PBH-red',['control','synchronisation'],false);
+assert.equal(untimed.timed,false);assert.equal(untimed.hostReady,false);assert.equal(untimed.guestReady,false);
+assert.equal(l.route(untimed,'PBH-red',[]).timed,true);
+assert.throws(()=>l.route(untimed,'PBH-red',[],'false'));

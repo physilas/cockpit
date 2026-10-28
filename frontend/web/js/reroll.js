@@ -69,7 +69,7 @@ const NeuwurfDialog = (() => {
     dialog.querySelector("h2").textContent = ergebnis ? "Neu gewürfelt!" : "Gemeinsam neu würfeln";
     dialog.querySelector("#neuwurf-hinweis").textContent = ergebnis
       ? "Die leuchtend markierten Würfel wurden neu gewürfelt."
-      : "Wählt eure Würfel aus und bestätigt jeweils. Sobald beide bereit sind, wird automatisch gewürfelt.";
+      : "Würfel antippen und jeweils bestätigen.";
     const spieler = dialog.querySelector(".neuwurf-spieler");
     spieler.replaceChildren();
     for (const rolle of rollen) {
@@ -117,7 +117,7 @@ const NeuwurfDialog = (() => {
         confirm.type = "button";
         confirm.className = "neuwurf-bestaetigen" + (bereit ? " bereit" : "");
         confirm.dataset.focus = `${rolle}-confirm`;
-        confirm.textContent = bereit ? "Auswahl ändern" : anzahl ? "Auswahl bestätigen" : "Ohne Neuwurf bestätigen";
+        confirm.textContent = bereit ? "✓ Bestätigt · ändern" : anzahl ? `${anzahl} neu würfeln` : "Alle behalten";
         confirm.addEventListener("click", () => options.onConfirm(rolle));
         section.appendChild(confirm);
       }
@@ -125,7 +125,7 @@ const NeuwurfDialog = (() => {
     }
     dialog.querySelector(".neuwurf-status").textContent = ui.meldung || (ergebnis
       ? "Das Popup schließt gleich automatisch."
-      : rollen.some(rolle => ui.bestaetigt[rolle]) ? "Warte auf die zweite Bestätigung …" : "Ein gemeinsamer Neuwurf kostet 1 Plättchen.");
+      : rollen.some(rolle => ui.bestaetigt[rolle]) ? "Warte auf die zweite Bestätigung …" : "Nur wenn Würfel neu gewürfelt werden, kostet es 1 Plättchen.");
     dialog.querySelector(".neuwurf-abbrechen").hidden = ergebnis;
     dialog.querySelector(".neuwurf-ansehen").hidden = ergebnis;
     if (!dialog.open && !blick) dialog.showModal();

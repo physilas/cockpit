@@ -17,6 +17,7 @@
 let pyodide = null;
 let bridge = null;
 let aiBridge = null;
+let playOptions = null;
 let ausgewaehlterWuerfel = null;
 let kaffeeMenuOffenFuer = null;
 let aktuellerZustand = null;
@@ -51,6 +52,7 @@ import sys
 sys.path.insert(0, "/cockpit")
 `);
   bridge = pyodide.pyimport("backend.bridge");
+  playOptions = pyodide.pyimport("play_options");
   aiBridge = pyodide.pyimport("ai.browser_bridge");
 }
 
@@ -191,7 +193,7 @@ function renderAttitude(fluglage) {
 }
 
 function renderTracks(zustand) {
-  TRACK_UNIT_PX = zustand.module.includes("intern") ? Math.max(18,Math.min(36,Math.floor((innerHeight-590-(zustand.zusatzaktion?32:0))/Math.max(7,zustand.entfernung+1)))) : 36;
+  TRACK_UNIT_PX = CockpitLayout.unit(zustand);
   document.getElementById("altitude-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
   document.getElementById("distance-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
 
@@ -396,6 +398,7 @@ function render(zustand) {
     rundenendeBtn.disabled = false;
   }
   window.GameExperience?.finish(zustand,motion,{reroll:neuwurfUi.phase!==0});
+  CockpitLayout.fit(zustand, () => render(aktuellerZustand));
   Singleplayer.afterRender(zustand);
   if (gameActive) {
     GameDialogs.result(zustand, zustand.status === "gewonnen" ? "Eure Crew hat die Landung geschafft." : grundText(zustand.verlust_grund));
@@ -720,9 +723,8 @@ function neuwurfBestaetigen(rolle) {
   neuwurfUi.meldung = "";
   if (neuwurfUi.bestaetigt.pilot && neuwurfUi.bestaetigt.kopilot) {
     if (!neuwurfUi.auswahl.pilot.length && !neuwurfUi.auswahl.kopilot.length) {
-      neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
-      NeuwurfDialog.ohneWuerfelBestaetigen(aktuellerZustand, neuwurfUi);
-      neuwurfUi.meldung = "Wählt zusammen mindestens einen Würfel aus.";
+      neuwurfReset();
+      setzeMeldung("Alle Würfel behalten. Das Neuwurf-Plättchen bleibt erhalten.", "erfolg");
     } else {
       const antwort = pyToJs(bridge.benutze_neuwurf(neuwurfUi.auswahl.pilot, neuwurfUi.auswahl.kopilot));
       if (antwort.ergebnis.erfolg) {
@@ -789,24 +791,16 @@ async function rundenendeKlick() {
   }
 }
 
-// Die Spielansicht startet an ihrem unteren Rand. So liegen die gerade
-// benötigten Cockpit-Felder und die Rundenaktion im Blick; Strecke und Höhe
-// bleiben durch normales Hochscrollen erreichbar. Zwei Frames warten, bis
-// das frisch gerenderte Board seine endgültige Höhe hat.
+// Start with the whole fitted board visible. Small windows can scroll inside
+// the cockpit while the header remains outside the scrolling area.
 function spielfeldUntenAusrichten() {
-  const ausrichten = () => {
-    const spielUi = document.getElementById("spiel-ui");
-    if (!spielUi || spielUi.classList.contains("versteckt")) return;
-    if (verkehrDialogUi.aktiv) {
-      richteVerkehrStreckeAus();
-      return;
-    }
-    spielUi.scrollIntoView({ block: "end", inline: "nearest", behavior: "auto" });
-  };
-  requestAnimationFrame(() => requestAnimationFrame(ausrichten));
-  // Die Track-Höhen werden direkt nach dem Rendern gesetzt. Der zweite,
-  // kurze Durchlauf fängt diese nachträgliche Layout-Berechnung ab.
-  window.setTimeout(ausrichten, 120);
+  requestAnimationFrame(() => {
+    const main = document.getElementById("spiel-ui");
+    if (!main || main.classList.contains("versteckt")) return;
+    if (verkehrDialogUi.aktiv) richteVerkehrStreckeAus();
+    else if (matchMedia('(max-width: 600px)').matches) main.scrollTop = 0;
+    else main.scrollIntoView({block: "start", inline: "nearest", behavior: "auto"});
+  });
 }
 
 let enginePromise = null;
@@ -832,7 +826,7 @@ async function neuesSpiel(scenario, options = {}) {
   neuwurfReset();
   const zustand = options.sameSeed && initialEngine
     ? pyToJs(bridge.spiel_laden(initialEngine))
-    : pyToJs(bridge.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || [])));
+    : pyToJs(playOptions.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || []), scenario.timed !== false));
   initialEngine = String(bridge.spiel_speichern());
   activeScenario = {...scenario}; gameActive = true; lastSavedKey = "";
   landingPicker.hide();
