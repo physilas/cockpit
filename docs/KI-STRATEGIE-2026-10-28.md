@@ -517,3 +517,29 @@ verbleibende eigene Hand unter diesem öffentlichen Zwang planen.
 
 Die Suite vor dieser zusätzlichen Hypothese ist erneut vollständig bestanden:
 **609 Tests in117,449s**. Die neue Hypothese ist davon noch nicht abgedeckt.
+
+## Fortsetzung gegen 10:00 Berlin
+
+Ein Browser-Werkzeugaufruf zum Speichern einer PNG-Datei hing bis zur
+Unterbrechung durch den Nutzer gegen09:58 Berlin. Der bereits gestartete
+Rechenvergleich wurde währenddessen regulär beendet; danach lief kein
+weiterer Lern- oder Vergleichsjob. Diese Wartezeit ist keine Entwicklungs-
+oder Trainingszeit. Der Nutzer erlaubt weitere zwei Stunden und bestätigt
+ausdrücklich den Push in das zuvor benannte öffentliche Repository.
+
+Der Stand mit vier Entwicklungscommits wurde nach regulärem Merge des
+zwischenzeitlichen entfernten Archiv-Commits auf `main` gepusht, Merge
+`5010aef`. Uncommittete Nutzerdateien blieben ausgeschlossen.
+
+Reaktiver Cross-Play V2:159/486 Siege der Kontrolle gegen153/486 der
+reaktiven Variante,26 Verbesserungen gegen32 Verschlechterungen. Andere
+Seeds als V1: daraus keinen direkten kausalen Vergleich mit dessen136/486
+ableiten. Deshalb wird der direkte Planer zusätzlich auf exakt den V2-Seeds
+geprüft. Selbstspiel V7 auf27 Routenfällen, je fünf Spiele: Schutz51/135,
+direkt48/135, reaktiv54/135. Kaffeekorrekturen in Gegenrichtung3/0/1;
+Stranding-Ereignisse24/4/4. Das spricht für weitere Prüfung der reaktiven
+Variante, noch nicht für eine gesicherte Verbesserung.
+
+`current-crews-route-table.md` enthält die vollständige Tabelle der vier
+bereits sichtbaren Crews auf allen21 Standardrouten. Sie basiert auf den
+unveränderten Veröffentlichungsberichten, nicht auf dem neuen kurzen V7-Test.
