@@ -30,3 +30,17 @@ class AbilityPublicationTests(unittest.TestCase):
             with self.assertRaises(ValueError):validate(broken,manifest)
             broken=deepcopy(report);del broken['results'][case_key(case)+'/baseline']
             with self.assertRaises(ValueError):validate(broken,manifest)
+
+    def test_unaffected_realtime_cases_use_real_clock_without_fake_identity(self):
+        manifest,report,case=self.fixture()
+        realtime=dict(airport='LOG_TLL_YELLOW',abilities=['adaptation'],modules=['realtime'])
+        manifest['cases'].append(realtime)
+        for mode in ('baseline','candidate'):
+            row=deepcopy(report['results'][case_key(case)+'/'+mode]);row['case']=realtime;row['wins']=0;row['win_rate']=0.
+            for i,e in enumerate(row['episodes']):
+                e.update(seed=f'confirmation:test:{case_key(realtime)}:{i}',status='verloren',decisions=2 if mode=='baseline' else 3)
+            report['results'][case_key(realtime)+'/'+mode]=row
+        with patch('ai.ability_publish.freeze',return_value=manifest),patch('ai.ability_publish.catalogue_cases',return_value=manifest['cases']):
+            self.assertEqual(5,validate(report,manifest)['candidate']['ability_wins'])
+            report['results'][case_key(realtime)+'/candidate']['execution_method']='identical_policy_reuse'
+            with self.assertRaises(ValueError):validate(report,manifest)

@@ -46,6 +46,7 @@ def compare_totals(report):
         result[mode]=dict(games=len(episodes),wins=sum(e['status']=='gewonnen' for e in episodes),
             equal_route_win_rate=sum(sum(v)/len(v) for v in by_route.values())/len(by_route),
             synchronisation_bonuses=sum(e['synchronisation_bonuses'] for e in episodes),
+            ability_wins=sum(e['status']=='gewonnen' for row in rows if 'wind' in row['case']['modules'] or 'synchronisation' in row['case']['abilities'] for e in row['episodes']),
             switch_refills=sum(e['switch_refills'] for e in episodes),
             coffee_reversals=sum(e['coffee_reversals'] for e in episodes),
             stranded_plane_events=sum(e['stranded_plane_events'] for e in episodes),
@@ -82,14 +83,14 @@ def validate(report, manifest):
         candidate_row=report['results'][case_key(case)+'/candidate']
         if candidate_row['execution_method']=='identical_policy_reuse' and pair[0]!=pair[1]:
             raise ValueError('Identity reuse must retain exact control episode evidence.')
-        if 'wind' not in case['modules'] and 'synchronisation' not in case['abilities']:
-            # Runtime varies; the complete sequence length, outcome and counters may not.
+        if identity_eligible:
+            # Identical policy and deterministic engine; real-time clocks are excluded.
             for a,b in zip(*pair):
                 for key in ('status','reason','decisions','coffee_reversals','synchronisation_bonuses','switch_refills'):
                     if a.get(key)!=b.get(key):raise ValueError('Unchanged case regressed: '+case_key(case)+'/'+key)
     totals=compare_totals(report)
     a,b=totals['baseline'],totals['candidate']
-    if (b['wins']<a['wins']+5 or b['equal_route_win_rate']<=a['equal_route_win_rate']
+    if (b['wins']<a['wins']+5 or b['ability_wins']<a['ability_wins']+5 or b['equal_route_win_rate']<=a['equal_route_win_rate']
             or b['avoidable_immediate_losses'] or b['truncations']):
         raise ValueError('The frozen confirmation did not pass the predeclared improvement gate.')
     return totals
@@ -98,6 +99,9 @@ def validate(report, manifest):
 def publish(manifest_path, report_path, release_id='crew6-abilities-2026-10-28-v1'):
     manifest=json.loads(Path(manifest_path).read_text());report=json.loads(Path(report_path).read_text())
     totals=validate(report,manifest)
+    marker=Path(manifest_path).with_suffix('.started')
+    if marker.read_text().strip()!=hashlib.sha256(Path(manifest_path).read_bytes()).hexdigest():
+        raise ValueError('The original confirmation start marker is required.')
     model,payload=load_checkpoint(manifest['checkpoint'])
     if (payload['train_config'].get('assistance_version')!=15
             or payload['train_config'].get('planner_sha256')!=ability_fingerprint()):

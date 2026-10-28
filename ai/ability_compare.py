@@ -110,7 +110,9 @@ def freeze(checkpoint, games, cohort, focus=False, confirmation=False, baseline_
     for name in build.PYTHON_DATEIEN + ['ai/ability_planner.py','ai/ability_policy.py','ai/ability_browser.py']:
         if sources.get(name)!=Path(name).read_text():
             raise ValueError('Browser bundle is stale: '+name)
-    model = load_checkpoint(checkpoint)[0]
+    model,payload = load_checkpoint(checkpoint)
+    if confirmation and (payload["train_config"].get("assistance_version")!=15 or payload["train_config"].get("planner_sha256")!=ability_fingerprint()):
+        raise ValueError("Confirmation requires a prepared current profile-15 candidate.")
     inherited=None
     if baseline_report is not None:
         if confirmation:raise ValueError('Confirmation cannot inherit a development baseline.')
@@ -121,8 +123,10 @@ def freeze(checkpoint, games, cohort, focus=False, confirmation=False, baseline_
     from .strategy_fingerprint import public_strategy_fingerprint
     return dict(version=1,max_steps=256,baseline_strategy_sha256=public_strategy_fingerprint(13),baseline_report=str(baseline_report) if baseline_report else None,baseline_report_sha256=hashlib.sha256(Path(baseline_report).read_bytes()).hexdigest() if baseline_report else None,checkpoint=str(checkpoint),weights_sha256=weight_fingerprint(model),
                 planner_sha256=ability_fingerprint(),evaluation_sha256=source_sha(),
+                checkpoint_file_sha256=hashlib.sha256(Path(checkpoint).read_bytes()).hexdigest(),
+                publication_validator_sha256=hashlib.sha256(Path("ai/ability_publish.py").read_bytes()).hexdigest(),
                 cases=selected_cases(focus),games=games,cohort=cohort,focus=focus,confirmation=confirmation,
-                modes=['baseline','candidate'],selection_rule='At least5 extra wins and a higher equal-route mean in full confirmation; zero avoidable immediate losses/truncations; unchanged cases identical. No tuning on confirmation outcomes.',
+                modes=['baseline','candidate'],selection_rule='At least 5 extra wins both overall and in affected wind/synchronisation cases, plus a higher equal-route mean; zero avoidable immediate losses/truncations; unchanged non-realtime cases identical. Realtime cases use actual wall clocks. No tuning on confirmation outcomes.',
                 qualification_granted=False)
 
 

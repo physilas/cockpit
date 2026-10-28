@@ -262,10 +262,17 @@ def deadline_value(root, view):
     return -600.*sum(max(0,needs[role]-capacity[role])**2 for role in (0,1))
 
 
-def ability_value(root, view, *, exact=False):
+def _wind_pair_key(view):
+    # The root is constant for one search; these are all changing forecast inputs.
+    return (tuple(field["value"] if field else 0 for field in view["board"][:4]),
+            view["aero_blue"],view["aero_orange"],view["gear"].count(False),
+            view["flaps"].count(False),tuple(view["brake_progress"]),view["modules_state"]["ice_progress"])
+
+
+def ability_value(root, view, *, exact=False, wind_values=None):
     value = synchronisation_value(root, view, exact=exact) + deadline_value(root,view)
     if 'wind' in root['modules_state']['modules'] and not root['last_round']:
-        values = wind_pair_values(root, view)
+        values = wind_pair_values(root, view) if wind_values is None else wind_values
         if exact:
             groups, known = assignment_groups(root, view)
             value += weighted_task_value([(pairs,tasks,values) for pairs,tasks in groups],
@@ -294,6 +301,15 @@ def plan_ability_round(view, allowed, *, beam=24,coordination=False,early_ice=Fa
     frontier, completed, fallback, cache = [root], {}, {}, {}
     primary_available = False
     primary_value=0.
+    wind_cache={}
+
+    def value_for(node_view, *, exact=False):
+        values=None
+        if "wind" in state["modules"] and not view["last_round"]:
+            key=_wind_pair_key(node_view)
+            if key not in wind_cache:wind_cache[key]=wind_pair_values(view,node_view)
+            values=wind_cache[key]
+        return ability_value(view,node_view,exact=exact,wind_values=values)
 
     def record(node):
         nonlocal primary_available,primary_value
@@ -301,7 +317,7 @@ def plan_ability_round(view, allowed, *, beam=24,coordination=False,early_ice=Fa
         primary_available |= primary>0
         primary_value=max(primary_value,primary)
         commitment = ability_commitment(view,node.first_slot)
-        ability = ability_value(view,node.view,exact=True)
+        ability = value_for(node.view,exact=True)
         normal = primary+.01*coherent+.001*emergency+secondary+commitment+ability
         # If no complete plan can satisfy the contract, retain the best
         # physical flight and useful work. A missed task must not erase the
@@ -354,7 +370,7 @@ def plan_ability_round(view, allowed, *, beam=24,coordination=False,early_ice=Fa
                             if assumed:
                                 variants.append(assumed)
                             for variant in variants:
-                                rough = ability_value(view,variant.view) + progress_value(view,variant.view)-capacity_penalty(variant.view)+ability_commitment(view,variant.first_slot)
+                                rough = value_for(variant.view) + progress_value(view,variant.view)-capacity_penalty(variant.view)+ability_commitment(view,variant.first_slot)
                                 own = ROLES.index(view['role'])
                                 if variant.view['board'][own] and variant.view['board'][own+2]:
                                     rough += .02*final_value(view,variant.view,cache)

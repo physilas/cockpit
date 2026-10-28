@@ -5,7 +5,7 @@ from .strategy_fingerprint import public_strategy_fingerprint
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ('ai/ability_fingerprint.py','ai/ability_planner.py','ai/ability_policy.py',
-           'ai/ability_browser.py','frontend/web/js/app.js','build_pwa.py')
+           'ai/ability_browser.py')
 
 
 def ability_fingerprint():

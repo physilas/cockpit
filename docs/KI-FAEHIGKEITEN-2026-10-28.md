@@ -60,10 +60,9 @@ verbrauchen.
 
 Vor einer neuen Crew sind mindestens fünf Partien auf jedem der 192 registrierten
 Strecken/Kartenfälle vorgesehen. Die vorab festgelegte Hürde verlangt mindestens
-fünf zusätzliche Siege, einen höheren nach Routen gleich gewichteten Mittelwert,
+fünf zusätzliche Siege insgesamt und in den betroffenen Wind-/Synchronisationsfällen, einen höheren nach Routen gleich gewichteten Mittelwert,
 keine erkannten vermeidbaren unmittelbaren Verluste und keine Abbrüche wegen
-Schrittlimits. Fälle ohne Wind und ohne Synchronisation müssen unverändert
-spielen. Auch Nullquoten werden veröffentlicht; das ist keine Zusage einer
+Schrittlimits. Fälle ohne Wind und ohne Synchronisation verwenden exakt die alte Strategie. Ohne Echtzeitmodul wird der identische Verlauf übernommen; Echtzeitfälle werden mit tatsächlicher Wanduhr separat gespielt, da die Zeit unabhängig vom Algorithmus schwanken kann. Auch Nullquoten werden veröffentlicht; das ist keine Zusage einer
 Mindestgewinnrate auf jeder Route.
 
 ## Literatur und Grenzen
@@ -78,3 +77,17 @@ zeigen, warum zusätzliche Belohnungen unerwünschte Strategien erzeugen können
 Das Bonus-Sammeln über grüne Schalter ist ein konkreter Anlass, Nutzen und
 verbrauchte Ressourcen gemeinsam zu bewerten. Der hiesige begrenzte Planer
 beansprucht keine theoretische Garantie der Policy-Invarianz aus diesem Papier.
+
+
+[Hu et al., Other-Play](https://proceedings.mlr.press/v119/hu20a.html) beschreiben,
+wie reines Selbstspiel schwer übertragbare Absprachen lernen kann. [Strouse et
+al., Fictitious Co-Play](https://arxiv.org/abs/2110.08176) verwenden verschiedene
+Partner und historische Trainingsstände, um die Zusammenarbeit mit unbekannten
+Partnern zu verbessern. Das spricht für die Idee wechselnder Crews; wahlloses
+gegenseitiges Training garantiert aber keine Verbesserung.
+
+Zusätzlich ist deshalb ein festgelegter Vergleich von Crew 6 als Pilot oder
+Co-Pilot mit unveränderter Crew 5 auf den 19 Entwicklungsfällen vorgesehen:
+je drei Startfolgen für Crew 5/5 und beide gemischten Besetzungen. Die Startfolgen
+sind von der Bestätigung getrennt. Diese Diagnose trainiert keine Gewichte und
+ist kein Ersatz für eine Untersuchung mit menschlichen Spielern.

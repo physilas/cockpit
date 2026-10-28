@@ -146,3 +146,17 @@ class AbilityPlannerTests(unittest.TestCase):
             allowed[match]=allowed[announce]=True
             ranks=plan_ability_round(root,allowed,beam=24)
             self.assertEqual(match,max(ranks,key=ranks.get),(role,ranks))
+
+    def test_wind_cache_keeps_full_plan_scores_and_reduces_forecast_work(self):
+        from unittest.mock import patch
+        import ai.ability_planner as planner
+        env,_=self.view(card='control',airport='LOG_GIG_YELLOW')
+        compute=planner.wind_pair_values
+        with patch.object(planner,'wind_pair_values',wraps=compute) as cached:
+            actual=planner.plan_ability_round(env.view(),env.action_mask())
+            cached_calls=cached.call_count
+        with patch.object(planner,'_wind_pair_key',side_effect=lambda view:object()),patch.object(planner,'wind_pair_values',wraps=compute) as uncached:
+            expected=planner.plan_ability_round(env.view(),env.action_mask())
+        self.assertEqual(expected,actual)
+        self.assertEqual(expected.primary_available,actual.primary_available)
+        self.assertLess(cached_calls,uncached.call_count)

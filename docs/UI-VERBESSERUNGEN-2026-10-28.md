@@ -10,7 +10,7 @@ Crews stehen absteigend nach Generation; Crew 5 ist zunächst vorausgewählt. An
 
 Im Multiplayer wird zuerst ein Raum erstellt. Beide Spieler wählen in einer gemeinsamen Lobby die Strecke und anschließend die Rollen. Der Host kann auch Co-Pilot sein. Änderungen setzen die Bereitschaft zurück; erst zwei aktuelle Bestätigungen starten das Spiel. Die Verbindung bestimmt die Rolle einer eingehenden Aktion.
 
-Updates erkennen eine neue bereitgestellte App-Version. Sie laden zunächst die neue Oberfläche vollständig. Ein Hinweis bietet die Aktivierung im Hauptmenü an. Laufende Spiele werden nicht neu geladen. Vor dem Wechsel werden Spielstand und Aufzeichnungen gesichert; bei vorhandenem vollständigem Offline-Paket wird auch dessen neue Version vorbereitet. Unveränderte, über SHA-256 adressierte KI-Dateien bleiben im gemeinsamen Cache. GitHub-Pushes werden dadurch nach erfolgreicher Pages-Bereitstellung sichtbar.
+Updates erkennen eine neue bereitgestellte App-Version. Sie laden zunächst die neue Oberfläche vollständig. Ein Hinweis bietet die Aktivierung im Hauptmenü an. Laufende Spiele werden nicht neu geladen. Vor dem Wechsel werden Spielstand und Aufzeichnungen gesichert; bei vorhandenem vollständigem Offline-Paket wird auch dessen neue Version vorbereitet. Unveränderte, über SHA-256 adressierte KI-Dateien bleiben im gemeinsamen Cache. GitHub-Pushes werden dadurch nach erfolgreicher Pages-Bereitstellung sichtbar. Auch der einmalige Wechsel von einem alten Service Worker ohne Updateprotokoll bietet im Hauptmenü einen abschließenden Reload an; bei gemischten alten/neuen Seitendateien verhindert die sichtbare Menüprüfung eine Unterbrechung laufender Spiele.
 
 ## Geprüft
 
