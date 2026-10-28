@@ -21,6 +21,8 @@ STATUS=ROOT/'runs/ai-job.json'
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--max-temperature', type=float, default=None,
+                   help='Require live HID readings; pause the owned process group 3 C below this limit.')
     p.add_argument('action',choices=('run','stop','clear-stop','status'))
     p.add_argument('command',nargs=argparse.REMAINDER)
     args=p.parse_args()
@@ -42,30 +44,66 @@ def main():
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:p.error('Another managed heavy AI job is already active.')
         if STOP.exists():p.error('Training was stopped. Resume requires an explicit clear-stop.')
+        sensor=gate=None
+        if args.max_temperature is not None:
+            from .thermal import ComputerTemperatures, ThermalGate
+            gate=ThermalGate(args.max_temperature)
+            sensor=ComputerTemperatures()
+            try:gate.update(sensor.read())
+            except Exception:
+                sensor.close()
+                raise
         child=subprocess.Popen(command,cwd=ROOT,start_new_session=True)
         state={'wrapper_pid':os.getpid(),'child_pid':child.pid,'command':command,'started_at':time.time(),'state':'running'}
         STATUS.write_text(json.dumps(state,indent=2)+'\n')
         stopping=False
+        paused=False
         try:
             while child.poll() is None:
                 if STOP.exists():
                     stopping=True
+                    if paused:os.killpg(child.pid,signal.SIGCONT)
                     os.killpg(child.pid,signal.SIGINT)
                     try:child.wait(timeout=15)
                     except subprocess.TimeoutExpired:
                         os.killpg(child.pid,signal.SIGTERM)
                     break
+                if sensor:
+                    readings=sensor.read()
+                    should_pause=gate.update(readings)
+                    if should_pause != paused:
+                        os.killpg(child.pid,signal.SIGSTOP if should_pause else signal.SIGCONT)
+                        paused=should_pause
+                    state.update(state='cooling' if paused else 'running',
+                                 temperature_c=max(readings.values()),
+                                 peak_temperature_c=max(state.get('peak_temperature_c',0),max(readings.values())),
+                                 temperature_limit_c=args.max_temperature,
+                                 sampled_at=time.time())
+                    STATUS.write_text(json.dumps(state,indent=2)+'\n')
                 time.sleep(.5)
             code=child.wait()
         except KeyboardInterrupt:
             stopping=True
+            if paused:os.killpg(child.pid,signal.SIGCONT)
             os.killpg(child.pid,signal.SIGINT)
             try:code=child.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 os.killpg(child.pid,signal.SIGTERM)
                 code=child.wait()
+        except Exception:
+            # A lost sensor must never silently leave a heavy job unmonitored.
+            if child.poll() is None:
+                if paused:os.killpg(child.pid,signal.SIGCONT)
+                os.killpg(child.pid,signal.SIGTERM)
+                try:child.wait(timeout=15)
+                except subprocess.TimeoutExpired:
+                    os.killpg(child.pid,signal.SIGKILL)
+                    child.wait()
+            state['state']='failed'
+            raise
         finally:
-            state.update(state='stopped' if stopping else 'finished',finished_at=time.time(),returncode=child.poll())
+            if sensor:sensor.close()
+            state.update(state='failed' if state['state']=='failed' else 'stopped' if stopping else 'finished',finished_at=time.time(),returncode=child.poll())
             STATUS.write_text(json.dumps(state,indent=2)+'\n')
         raise SystemExit(0 if stopping else code)
 
