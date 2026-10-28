@@ -50,7 +50,7 @@ import sys
 sys.path.insert(0, "/cockpit")
 `);
   bridge = pyodide.pyimport("backend.bridge");
-  aiBridge = pyodide.pyimport("ai.browser_bridge");
+  aiBridge = pyodide.pyimport("ai.ability_browser");
 }
 
 function pyToJs(pyResult) {

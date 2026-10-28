@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>Ability planner WASM check</title>
+<style>body{font:16px system-ui;max-width:780px;margin:2rem auto;padding:1rem;color:#173e46;background:#f7f9f7}button{padding:1rem;font:inherit}pre{white-space:pre-wrap;line-height:1.5}</style>
+<h1>Fähigkeiten und Wind: echte Browser-Laufzeit</h1>
+<p>Technische Kontrollpartien mit Python/WASM und der normalen JavaScript-KI. Keine Gewinnratenbewertung.</p>
+<button id="run">WASM-Prüfung starten</button><pre id="result" role="status">Noch nicht gestartet.</pre>
+<script src="../frontend/web/vendor/pyodide/0.26.1/pyodide.js"></script>
+<script src="../frontend/web/js/engine-src.js"></script>
+<script src="../frontend/web/js/ai-models.js"></script>
+<script src="../frontend/web/js/ai-policy.js"></script>
+<script>
+const button=document.querySelector('#run'),output=document.querySelector('#result');
+button.onclick=async()=>{
+ button.disabled=true;output.textContent='Lokale Python/WASM-Laufzeit wird geladen …';
+ try{
+  const python=await loadPyodide({indexURL:new URL('../frontend/web/vendor/pyodide/0.26.1/',location.href).href});
+  await python.loadPackage('pyyaml');
+  for(const [name,source] of Object.entries(ENGINE_SRC)){
+   python.FS.mkdirTree('/cockpit/'+name.substring(0,name.lastIndexOf('/')));
+   python.FS.writeFile('/cockpit/'+name,source);
+  }
+  python.runPython(`import sys,json\nsys.path.insert(0,'/cockpit')\nfrom ai.modules import ModuleEnv\nfrom ai.ability_browser import decision\nfrom backend import bridge\ndef probe_start(airport,cards,seed):\n global probe_env\n probe_env=ModuleEnv(airport,abilities=json.loads(cards),assistance_version=0,max_steps=256)\n probe_env.reset(seed=seed)\n bridge._spiel=probe_env.game\ndef probe_decision():\n return decision(probe_env.current_role,json.dumps(probe_env.reroll),probe_env.steps,256,15,3)\ndef probe_step(action):\n raw=probe_env.action_mask()\n if not raw[action]:raise ValueError('Illegal browser action')\n probe_env.step(action)\n return dict(done=probe_env.done,truncated=probe_env.truncated,status=probe_env.game.status,steps=probe_env.steps,reason=probe_env.game.verlust_grund)\n`);
+  const entry=COCKPIT_AI_CATALOG.models.find(m=>m.id.startsWith('crew6-abilities-'))||COCKPIT_AI_CATALOG.models.find(m=>m.id==='crew5-planner-2026-10-28-v1/best.pt');
+  const data=await fetch(new URL('../frontend/web/'+entry.url,location.href)).then(r=>{if(!r.ok)throw Error('Model download failed');return r.json();});
+  const policy=CockpitPolicy.create(data,{schema:entry.schema});
+  const start=python.globals.get('probe_start'),decide=python.globals.get('probe_decision'),step=python.globals.get('probe_step');
+  const results=[];
+  for(const [airport,cards] of [['LOG_KUL_YELLOW',['synchronisation']],['LOG_GIG_YELLOW',['control']],['LOG_KEF_YELLOW',['synchronisation']],['LOG_PRG_GREEN',['adaptation','synchronisation']]]){
+   const seed='technical:ability-browser:v1:'+airport+':'+cards.join(',');
+   start(airport,JSON.stringify(cards),seed);let finished=false,state,maximum=0;const actions=[];
+   output.textContent=JSON.stringify({complete:false,airport,results},null,2);
+   while(!finished){
+    const tick=performance.now(),proxy=decide(),decision=proxy.toJs({dict_converter:Object.fromEntries});proxy.destroy();
+    const chosen=policy.select(decision);maximum=Math.max(maximum,(performance.now()-tick)/1000);
+    if(!decision.action_mask[chosen])throw Error('Outside engine mask');
+    actions.push(chosen);const outcome=step(chosen);state=outcome.toJs({dict_converter:Object.fromEntries});outcome.destroy();finished=state.done;
+    if(actions.length>256||state.truncated)throw Error('Truncation');
+    await new Promise(resolve=>setTimeout(resolve,0));
+   }
+   const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(actions))))].map(x=>x.toString(16).padStart(2,'0')).join('');
+   results.push({airport,cards,seed,status:state.status,reason:state.reason,decisions:actions.length,maximum_seconds:maximum,actions_sha256:digest});
+  }
+  output.textContent=JSON.stringify({complete:true,model:entry.id,results},null,2);
+ }catch(error){output.textContent='FEHLER: '+error.stack;button.disabled=false;}
+};
+</script>

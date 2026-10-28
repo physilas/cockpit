@@ -1,0 +1,268 @@
+{
+  "complete": true,
+  "cohort": "development:ability-v2:2026-10-28",
+  "games_per_case": 5,
+  "all_cases": {
+    "baseline": {
+      "games": 95,
+      "wins": 8,
+      "synchronisation_bonuses": 81,
+      "switch_refills": 15,
+      "regular_switch_refills": 14,
+      "bonus_switch_refills": 1,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 3,
+      "irreversible_range_events": 13,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 1.8085920000000897
+    },
+    "candidate": {
+      "games": 95,
+      "wins": 16,
+      "synchronisation_bonuses": 143,
+      "switch_refills": 4,
+      "regular_switch_refills": 4,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 0,
+      "irreversible_range_events": 10,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 3.119181000000026
+    }
+  },
+  "official": {
+    "baseline": {
+      "games": 95,
+      "wins": 8,
+      "synchronisation_bonuses": 81,
+      "switch_refills": 15,
+      "regular_switch_refills": 14,
+      "bonus_switch_refills": 1,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 3,
+      "irreversible_range_events": 13,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 1.8085920000000897
+    },
+    "candidate": {
+      "games": 95,
+      "wins": 16,
+      "synchronisation_bonuses": 143,
+      "switch_refills": 4,
+      "regular_switch_refills": 4,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 0,
+      "irreversible_range_events": 10,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 3.119181000000026
+    }
+  },
+  "synchronization_cases": {
+    "baseline": {
+      "games": 75,
+      "wins": 6,
+      "synchronisation_bonuses": 81,
+      "switch_refills": 14,
+      "regular_switch_refills": 13,
+      "bonus_switch_refills": 1,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 3,
+      "irreversible_range_events": 10,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 1.0924420000000055
+    },
+    "candidate": {
+      "games": 75,
+      "wins": 15,
+      "synchronisation_bonuses": 143,
+      "switch_refills": 3,
+      "regular_switch_refills": 3,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 0,
+      "irreversible_range_events": 7,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 3.119181000000026
+    }
+  },
+  "wind_cases": {
+    "baseline": {
+      "games": 40,
+      "wins": 3,
+      "synchronisation_bonuses": 23,
+      "switch_refills": 6,
+      "regular_switch_refills": 6,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 0,
+      "irreversible_range_events": 4,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 1.8085920000000897
+    },
+    "candidate": {
+      "games": 40,
+      "wins": 1,
+      "synchronisation_bonuses": 36,
+      "switch_refills": 2,
+      "regular_switch_refills": 2,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 0,
+      "irreversible_range_events": 7,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 3.119181000000026
+    }
+  },
+  "equal_route_delta": 0.12000000000000001,
+  "paired_stratified_bootstrap_95": [
+    0.04666666666666667,
+    0.19333333333333333
+  ],
+  "inference_limit": "Small per-case samples; paired bootstrap describes this cohort, not a per-route guarantee.",
+  "routes": [
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 0,
+      "baseline_rate": 0.2,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "cases": 2,
+      "games": 10,
+      "baseline_wins": 0,
+      "candidate_wins": 1,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.1
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "cases": 2,
+      "games": 10,
+      "baseline_wins": 1,
+      "candidate_wins": 0,
+      "baseline_rate": 0.1,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 0,
+      "candidate_wins": 0,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "cases": 2,
+      "games": 10,
+      "baseline_wins": 1,
+      "candidate_wins": 0,
+      "baseline_rate": 0.1,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 3,
+      "baseline_rate": 0.2,
+      "candidate_rate": 0.6
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 0,
+      "candidate_wins": 1,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.2
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 0,
+      "candidate_wins": 1,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.2
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 0,
+      "candidate_wins": 0,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 0,
+      "candidate_wins": 0,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 0,
+      "candidate_wins": 1,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.2
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 5,
+      "baseline_rate": 0.2,
+      "candidate_rate": 1.0
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 2,
+      "baseline_rate": 0.2,
+      "candidate_rate": 0.4
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "cases": 2,
+      "games": 10,
+      "baseline_wins": 1,
+      "candidate_wins": 0,
+      "baseline_rate": 0.1,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 2,
+      "baseline_rate": 0.2,
+      "candidate_rate": 0.4
+    }
+  ]
+}

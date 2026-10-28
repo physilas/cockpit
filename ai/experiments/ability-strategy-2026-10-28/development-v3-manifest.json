@@ -1,0 +1,256 @@
+{
+  "version": 1,
+  "max_steps": 256,
+  "baseline_strategy_sha256": "ce2982ade0e9692d9d3d53614eb4a2499bbb78a94edebceada491af52128cade",
+  "baseline_report": "ai/experiments/ability-strategy-2026-10-28/development-v2.json",
+  "baseline_report_sha256": "cd4e6fe8abc134a996d5a2b100d6f62e36c933b1e7810a8c0b25b33dc628e5fa",
+  "checkpoint": "ai/releases/crew5-planner-2026-10-28-v1/best.pt",
+  "weights_sha256": "3673cafcb4c8e8dd0ad3f900c8fbb461f821bb486afdf0091d8b968cfd00c15b",
+  "planner_sha256": "27d4809e88737d3e8cc8401b7f6b14d647a430da8e666e37c617553678d15595",
+  "evaluation_sha256": "33823080bf8844e5085301a52a8c8d8b1c74b77aaaa49049831942b8dda483f5",
+  "cases": [
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "leak",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "leak",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "intern",
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "ice",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "ice",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "ice",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    }
+  ],
+  "games": 5,
+  "cohort": "development:ability-v2:2026-10-28",
+  "focus": true,
+  "confirmation": false,
+  "modes": [
+    "baseline",
+    "candidate"
+  ],
+  "selection_rule": "At least5 extra wins and a higher equal-route mean in full confirmation; zero avoidable immediate losses/truncations; unchanged cases identical. No tuning on confirmation outcomes.",
+  "qualification_granted": false
+}
