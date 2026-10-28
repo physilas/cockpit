@@ -9,3 +9,12 @@ Erste vollständige Python-Suite nach Abschluss von „Beste KI“: **700 Tests 
 **Korrektur:** Eine neue Verbindung lässt das aktive Cockpit des Hosts offen. Nach erfolgreichem Protokollabgleich erhält der Gast den bestehenden, für seine aktuelle Flugrolle gefilterten Spielzustand einschließlich eines eventuell offenen Neuwurfs. Kein neuer Engine-Start und kein vorzeitiger Versand privater Würfel an inkompatible Clients.
 
 **Prüfung:** `node tests/multiplayer-actions.cjs` reproduziert tatsächliche Host-Verbindungsereignisse, Begrüßung, beide Rollenverteilungen, unveränderte Partie und private Partnerwürfel. Außerdem Rolle/Revision, Neuwurf, beidseitiges Behalten, Undo und Fehlerbehandlung. Der alte VM-Test wurde um die inzwischen erforderliche Lobby-Abhängigkeit und die getrennten Host-/Flugrollen ergänzt.
+
+
+## 2. KI-Feedback: falsche Beschriftung von Fähigkeiten
+
+**Fehler:** Anpassung, Voraussicht und alle Zusammenarbeitsaktionen fielen in denselben Textzweig wie die Auswahl für einen gemeinsamen Neuwurf. Dadurch beschrieb das Feedback die falsche Aktion.
+
+**Korrektur:** Jede Fähigkeit erhält einen passenden Text, einschließlich Würfelnummer, Tauschbeginn/-abbruch und ausdrücklichem Behalten aller Würfel. Bewertungsdaten und Aktionskennungen bleiben identisch.
+
+**Prüfung:** Produktionsfunktion im Node-Vertragstest für jede Fähigkeit und die Neuwurf-/Rundenaktionen geprüft; die exakte Auswahl der besten KI für alle 186 Fälle in beiden Modi wird dabei erneut geprüft.

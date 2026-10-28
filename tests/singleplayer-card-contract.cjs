@@ -10,7 +10,7 @@ const catalog=context.window.COCKPIT_AI_CATALOG,routes=context.window.LANDING_CA
 const moduleSchema=catalog.models.find(model=>model.schema?.version===3).schema;
 // Expose only pure helpers in this in-memory test copy; production API stays private.
 const instrumented=read('frontend/web/js/singleplayer.js').replace('connect(adapter) { api = adapter; }',
-  'test: {supportedCases,supportsRoute,supportsCase,supportsFeedback,bestChoice,routeRate,automaticModel,actionId,setSetup(value){setup=value;}}, connect(adapter) { api = adapter; }');
+  'test: {supportedCases,supportsRoute,supportsCase,supportsFeedback,bestChoice,routeRate,automaticModel,actionId,label,setSetup(value){setup=value;}}, connect(adapter) { api = adapter; }');
 vm.runInNewContext(instrumented,context);
 const api=context.window.Singleplayer.test,route=routes.find(row=>row.engine_code==='LOG_ATL_YELLOW');
 const model={schema:moduleSchema,supported_airports:['LOG_ATL_YELLOW'],preview:{enabled:true,supported_cases:[
@@ -74,6 +74,11 @@ for(const mode of ['play','feedback']){
   }
  }
 }
+for(const [kind,expected] of Object.entries({adaptation:'Anpassung: Würfel 3 umdrehen',anticipation:'Voraussicht: Würfel 3 neu werfen',
+ swap_start:'Zusammenarbeit: Würfeltausch vorschlagen',swap_choose:'Zusammenarbeit: Würfel 3 tauschen',swap_cancel:'Zusammenarbeit: Würfeltausch abbrechen',
+ bonus_roll:'Schwarzen Zusatzwürfel werfen',round_end:'Runde beenden',reroll_start:'Gemeinsamen Neuwurf starten',reroll_select:'Neuwurf: alle Würfel behalten'}))
+ assert.equal(api.label({kind,die:2,subset:0}),expected);
+console.log('✓ Every active ability has its own correct feedback label; keeping all dice is explicit');
 const calls=[],events=[];
 let active=true,controlled='kopilot';
 const runtime={syncTeachingClock(){},aktuellerZustand:{am_zug:'pilot',kooperation:{id:7,wartet_auf:'kopilot',auswahl:{pilot:1,kopilot:3}}},

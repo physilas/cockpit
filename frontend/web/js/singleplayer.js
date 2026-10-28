@@ -505,7 +505,15 @@ window.Singleplayer = (() => {
     if (action.kind === "bonus_roll") return "Schwarzen Zusatzwürfel werfen";
     if (action.kind === "bonus_coffee") return `Kaffee: Zusatzwürfel ${action.delta > 0 ? "+" : ""}${action.delta}`;
     if (action.kind === "coffee") return `Kaffee: Würfel ${action.die + 1} ${action.delta > 0 ? "+" : ""}${action.delta}`;
-    return action.kind === "reroll_start" ? "Gemeinsamen Neuwurf starten" : "Würfel für den Neuwurf auswählen";
+    if (action.kind === "adaptation") return `Anpassung: Würfel ${action.die + 1} umdrehen`;
+    if (action.kind === "anticipation") return `Voraussicht: Würfel ${action.die + 1} neu werfen`;
+    if (action.kind === "swap_start") return "Zusammenarbeit: Würfeltausch vorschlagen";
+    if (action.kind === "swap_choose") return `Zusammenarbeit: Würfel ${action.die + 1} tauschen`;
+    if (action.kind === "swap_cancel") return "Zusammenarbeit: Würfeltausch abbrechen";
+    if (action.kind === "round_end") return "Runde beenden";
+    if (action.kind === "reroll_start") return "Gemeinsamen Neuwurf starten";
+    if (action.kind === "reroll_select") return action.subset === 0 ? "Neuwurf: alle Würfel behalten" : "Würfel für den Neuwurf auswählen";
+    return action.kind;
   }
 
   const ratingText = value => value === 0 ? "Neutral" : `${value > 0 ? "+" : "−"}${Math.abs(value)}`;
