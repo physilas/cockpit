@@ -16,7 +16,7 @@ const context={indexedDB,document:{addEventListener(){},getElementById:element},
 context.window=context;vm.createContext(context);
 for(const file of ['ai-models','landing-catalog','best-ai'])vm.runInContext(fs.readFileSync(`frontend/web/js/${file}.js`,'utf8'),context);
 const source=fs.readFileSync('frontend/web/js/singleplayer.js','utf8').replace('connect(adapter) { api = adapter; }',
- 'test:{setSession(row){session=row;},persist,storedSessions,flush:()=>saveQueue,retained:()=>memory.size}, connect(adapter) { api = adapter; }');
+ 'test:{setSession(row){session=row;},persist,storedSessions,flush:()=>saveQueue,retained:()=>memory.size,problem:()=>storageError}, connect(adapter) { api = adapter; }');
 vm.runInContext(source,context);const api=context.Singleplayer.test;
 const record=id=>({id,mode:'play',events:[],status:'active'});
 (async()=>{
@@ -24,13 +24,15 @@ const record=id=>({id,mode:'play',events:[],status:'active'});
  assert.equal(rows.size,20);assert.equal(api.retained(),0,'Successfully saved full sessions accumulate in RAM');
  assert.equal((await api.storedSessions()).length,20,'Releasing RAM lost exportable records');
  const failed=record('failed');abortNext=true;api.setSession(failed);api.persist();await api.flush();
- assert(!rows.has('failed'));assert.equal(api.retained(),1);
+ assert(!rows.has('failed'));assert.equal(api.retained(),1);assert(api.problem());
  assert((await api.storedSessions()).some(row=>row.id==='failed'),'A failed transaction lost its export fallback');
  api.setSession(record('later-success'));api.persist();await api.flush();assert.equal(api.retained(),1,'Unrelated successful write discarded a failed record');
+ assert(api.problem(),'An unrelated successful save hid another unsaved session');
+ await assert.rejects(context.Singleplayer.flushForUpdate(),'App update would discard the unsaved export fallback');
  // Queue two revisions before either transaction finishes. The older write
  // must never release a newer unsaved snapshot under the same session ID.
  failed.events.push({id:0});api.setSession(failed);api.persist();failed.events.push({id:1});api.persist();
- await api.flush();assert.equal(rows.get('failed').events.length,2);assert.equal(api.retained(),0);
+ await api.flush();assert.equal(rows.get('failed').events.length,2);assert.equal(api.retained(),0);assert.equal(api.problem(),'');await context.Singleplayer.flushForUpdate();
  assert.equal((await api.storedSessions()).find(row=>row.id==='failed').events.length,2);
  const overlap=record('overlap');abortRevision={id:'overlap',revision:2};api.setSession(overlap);api.persist();overlap.events.push({id:0});api.persist();
  await api.flush();assert.equal(rows.get('overlap').data_revision,1);assert.equal(api.retained(),1,'Older commit released a newer aborted revision');

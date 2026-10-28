@@ -47,4 +47,13 @@ Erste vollständige Python-Suite nach Abschluss von „Beste KI“: **700 Tests 
 
 ## Abschlussprüfung dieses Durchlaufs
 
-700 Python-Tests bestanden. Syntax von 293 eigenen Python-Dateien und 57 JavaScript-Dateien einschließlich generierter Bundles geprüft; doppelte HTML-IDs und fehlende lokale Skripte ausgeschlossen. Die unabhängigen JavaScript-Suites prüfen Modellwahl, Feedback, Undo, Speicherung, Planung, Fähigkeiten, Neuwurf, Multiplayer, Offline-Paket sowie Cloud-Ingestion und Archiv mit SQLite. Browserprüfung des neuen Standards einschließlich echtem KI-Zug und Fortsetzen nach Update erfolgt; sämtliche fünf Bugfixes besitzen gezielte Regressionstests. Die Prüfung erhebt keinen Anspruch, jeden möglichen Fehler gefunden zu haben.
+700 Python-Tests bestanden. Syntax von 293 eigenen Python-Dateien und 58 JavaScript-Dateien einschließlich generierter Bundles geprüft; doppelte HTML-IDs und fehlende lokale Skripte ausgeschlossen. Die unabhängigen JavaScript-Suites prüfen Modellwahl, Feedback, Undo, Speicherung, Planung, Fähigkeiten, Neuwurf, Multiplayer, Offline-Paket sowie Cloud-Ingestion und Archiv mit SQLite. Browserprüfung des neuen Standards einschließlich echtem KI-Zug und Fortsetzen nach Update erfolgt; sämtliche sechs Bugfixes besitzen gezielte Regressionstests. Die Prüfung erhebt keinen Anspruch, jeden möglichen Fehler gefunden zu haben.
+
+
+## 6. Aufzeichnungen: Speicherwarnung und Update-Freigabe
+
+**Fehler:** Ein späterer erfolgreicher Schreibvorgang einer anderen Partie löschte die globale Speicherwarnung, obwohl eine vorherige Partie nur im RAM-Fallback lag. Auch die Prüfung vor einem App-Update sah dann keinen Fehler und konnte das Neuladen mit ungesicherten Aufzeichnungen zulassen.
+
+**Korrektur:** Fehlgeschlagene Partien werden bis zu ihrem eigenen erfolgreichen Schreibvorgang nachgehalten. Ein Erfolg bei einer anderen Partie hebt deren Warnung und den Schutz vor einem verlustreichen App-Neuladen nicht auf.
+
+**Prüfung:** Der asynchrone Speichertest reproduzierte die verschwundene Warnung. Jetzt bleiben Warnung und fehlgeschlagene Update-Vorbereitung erhalten, bis dieselbe Partie erfolgreich gespeichert wurde; danach ist das Update wieder freigegeben.

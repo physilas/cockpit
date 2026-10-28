@@ -73,6 +73,7 @@ window.Singleplayer = (() => {
   let routePicker = null, pickerKey = "";
   let timer = null, generation = 0, paused = "", starting = false, storageError = "";
   let feedbackIndex = null, saveQueue = Promise.resolve(), memory = new Map();
+  const failedSaves = new Set();
   let feedbackHeaderObserver = null;
   let feedbackInfoOpen = false;
   let feedbackUndoStack = [];
@@ -126,8 +127,9 @@ window.Singleplayer = (() => {
       // Keep only unsaved fallbacks in RAM. An older completed write must
       // not release a newer revision that is still waiting for its transaction.
       if(memory.get(data.id)?.data_revision===data.data_revision)memory.delete(data.id);
-      storageError = "";
-    }).catch(() => { storageError = "Lokales Speichern fehlgeschlagen. Bitte deine Daten exportieren."; })
+      failedSaves.delete(data.id);
+      storageError = failedSaves.size ? "Lokales Speichern fehlgeschlagen. Bitte deine Daten exportieren." : "";
+    }).catch(() => { failedSaves.add(data.id);storageError = "Lokales Speichern fehlgeschlagen. Bitte deine Daten exportieren."; })
       .then(() => { updateStatus(); scheduleCloud(); });
   }
 
