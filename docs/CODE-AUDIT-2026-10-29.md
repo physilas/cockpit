@@ -18,3 +18,11 @@ Erste vollständige Python-Suite nach Abschluss von „Beste KI“: **700 Tests 
 **Korrektur:** Jede Fähigkeit erhält einen passenden Text, einschließlich Würfelnummer, Tauschbeginn/-abbruch und ausdrücklichem Behalten aller Würfel. Bewertungsdaten und Aktionskennungen bleiben identisch.
 
 **Prüfung:** Produktionsfunktion im Node-Vertragstest für jede Fähigkeit und die Neuwurf-/Rundenaktionen geprüft; die exakte Auswahl der besten KI für alle 186 Fälle in beiden Modi wird dabei erneut geprüft.
+
+## 3. Rückgängig: abgeschlossene Aufzeichnung und veraltete Rundenpläne
+
+**Fehler:** Beim Rückgängigmachen eines verlorenen Spielschritts kehrte die Engine ins laufende Spiel zurück, aber die Lernaufzeichnung behielt `verloren` und ihre Abschlusszeit. Bereits berechnete Rundenergebnisse wurden nicht verworfen; spätere Absprachen und Vorschläge konnten nach dem Zurückspringen weiter auf dem alten öffentlichen Zustand beruhen.
+
+**Korrektur:** Erfolgreiches Undo übernimmt den tatsächlichen Partiestatus und öffnet eine wieder laufende Aufzeichnung. Die betroffene Rundenauswertung wird neu berechnet. Spätere Absprachen bleiben als verworfene Historie erhalten und werden nicht ausgeführt oder als letzter Rundenbericht angezeigt. Veraltete Vorschlagsentwürfe werden verworfen. Die aktuelle bereits vereinbarte Strategie bleibt während der Runde gültig; ihr Synchronisationsstatus folgt den tatsächlich noch liegenden Fahrwerk-/Klappenwürfeln.
+
+**Prüfung:** `node tests/singleplayer-undo.cjs` scheiterte vor der Korrektur am unveränderten Verluststatus. Danach geprüft: erfolgloses Undo verändert nichts; Wiederöffnung, neue Ergebnisberechnung nach anderem Flugweg, keine wiederbelebte Zukunftsabsprache, echte/aufgehobene Synchronisation und Rücksprung in die Verkehrsphase.

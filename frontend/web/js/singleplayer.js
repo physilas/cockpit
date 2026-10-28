@@ -620,7 +620,7 @@ window.Singleplayer = (() => {
   }
 
   const briefingEnabled=()=>hasAI()&&session.round_planning_enabled===true;
-  const currentRoundEntry=()=>session?.round_plans?.findLast(entry=>entry.round===api.state()?.runde);
+  const currentRoundEntry=()=>session?.round_plans?.findLast(entry=>!entry.voided&&entry.round===api.state()?.runde);
   const currentRoundPlan=()=>currentRoundEntry()?.plan||null;
 
   function renderRoundPlan(state) {
@@ -632,7 +632,7 @@ window.Singleplayer = (() => {
     if(!briefingEnabled())return;
     if(entry&&state.zusatzaktion?.quelle==="synchronisation"&&!entry.synchronisation){entry.synchronisation=true;persist();}
     for(const previous of session.round_plans||[]) {
-      if(!previous.result&&(previous.round<state.runde||state.status!=="laeuft")){
+      if(!previous.voided&&!previous.result&&(previous.round<state.runde||state.status!=="laeuft")){
         previous.outcome=RoundPlanning.outcome(previous,state);previous.result=RoundPlanning.result(previous,state);persist();
       }
     }
@@ -640,7 +640,7 @@ window.Singleplayer = (() => {
     let saved=session.briefing_draft;
     if(!saved||saved.round!==state.runde){
       const proposal=api.proposeRound();
-      proposal.previousResult=session.round_plans?.findLast(row=>row.result)?.result||"";
+      proposal.previousResult=session.round_plans?.findLast(row=>!row.voided&&row.result)?.result||"";
       saved=session.briefing_draft={round:state.runde,proposal,draft:null};persist();
     }
     RoundPlanning.show(saved.proposal,saved.draft,{
@@ -649,7 +649,7 @@ window.Singleplayer = (() => {
       onConfirm(plan,draft,proposal){
         const before=clone(session.round_plans||[]);
         const accepted={round:state.runde,plan,draft,proposal,accepted_at:new Date().toISOString(),communication_policy:plan?"briefing-v1":null};
-        session.round_plans=[...(session.round_plans||[]).filter(row=>row.round!==state.runde),accepted];
+        session.round_plans=[...(session.round_plans||[]).filter(row=>row.round!==state.runde||row.voided),accepted];
         try{
           const rolled=api.startPlannedRound(plan);
           if(rolled.phase!=="platzieren")throw new Error("Die Runde konnte noch nicht gestartet werden.");
@@ -837,6 +837,18 @@ window.Singleplayer = (() => {
     if (!session || !answer.ergebnis.erfolg) return;
     feedbackUndoStack = [];
     feedbackIndex = null;
+    const state=answer.zustand;
+    session.status=state.status === "laeuft" ? "active" : state.status;
+    if(state.status === "laeuft")delete session.finished_at;
+    for(const entry of session.round_plans||[]){
+      if(entry.round>state.runde || entry.round===state.runde&&state.phase!=="platzieren")entry.voided=true;
+      if(entry.round===state.runde&&!entry.voided){
+        delete entry.result;delete entry.outcome;
+        entry.synchronisation=Boolean(state.faehigkeitskarten?.includes("synchronisation")
+          &&["fahrwerk","landeklappen"].every(key=>state.felder?.[key]?.some(Boolean)));
+      }
+    }
+    if(session.briefing_draft?.round>=state.runde)session.briefing_draft=null;
     const id = session.engine_stack.pop();
     if (id !== undefined) {
       const event = session.events[id]; event.voided = true;
