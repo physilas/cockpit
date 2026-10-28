@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-28",
+  "policy": "briefing-v1",
+  "policy_sha256": "8f705fcf350ff4927c00318687a825c3d63f3420f07ec0a4ce359721e5495718",
+  "frozen_profile15_sha256": "28cd015ce89acd78fc6a6a73c45942290b978be795931a2cec77da57fb748f53",
+  "weights_changed": false,
+  "python_tests": {
+    "count": 37,
+    "seconds": 32.241,
+    "result": "passed",
+    "modules": [
+      "test_ai_briefing",
+      "test_ai_ability_planner",
+      "test_ai_ability_browser",
+      "test_ai_coordinator_release",
+      "test_play_options",
+      "test_offline_pack"
+    ]
+  },
+  "javascript_checks": [
+    "ability-dice-controls.cjs",
+    "round-planning-controls.cjs",
+    "ui-controls.cjs",
+    "reroll-retain.cjs",
+    "offline-pack.cjs"
+  ],
+  "checkpoint_parity": {
+    "accepted_plan_decisions": 12,
+    "crews": 6,
+    "unchanged_profile15_decisions": 32
+  },
+  "browser": {
+    "viewport": [
+      393,
+      724
+    ],
+    "additional_viewports": [
+      [
+        393,
+        852
+      ],
+      [
+        320,
+        740
+      ]
+    ],
+    "routes": [
+      "YUL-green",
+      "PBH-red",
+      "KEF-black"
+    ],
+    "yul_feedback_round_geometry_unchanged": true,
+    "kef_reroll_and_flip_geometry_unchanged": true,
+    "realtime_briefing_wait_seconds": 295,
+    "realtime_before_roll": "—",
+    "realtime_after_confirmation": "1:00",
+    "offline_native_install": true,
+    "offline_native_update": true,
+    "offline_reload_resume_with_server_stopped": true,
+    "unconfirmed_own_goals_preserved_on_reload": [
+      0,
+      "coffee",
+      "level"
+    ],
+    "real_offline_crew6_action": "rudder",
+    "minimum_track_row_px": 28,
+    "aircraft_size_px": 18,
+    "aircraft_renderer_counts_checked": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      8,
+      12,
+      20
+    ],
+    "physical_iphone_test": false
+  },
+  "temperature": {
+    "limit_c": 75,
+    "peak_c": 55.12812423706055,
+    "evidence": "temperature.json"
+  },
+  "ui_sha256": {
+    "js/round-planning.js": "21787a142cd2daf380733ae5bea8b9d8d8a3a170b603d60050e3b1c0954e9c88",
+    "js/modules.js": "be80c1514cfa4286d622e31f1497095bbe0e130df0f3a6bc7cc474a54a0719c0",
+    "js/traffic.js": "c4503f4d83a965418ac5b7d7d732a75034de2599bbc1e02d3a91c7ed655aad8d",
+    "js/cockpit-layout.js": "75eae96701c8792c46628fe90eabb3dcd4e948d925e4abe0eb461415d1ef9de3",
+    "css/cockpit-layout.css": "85010a7fbfa94007863c2dcefdfcb558db8033bc407c1ff6ddbf803bbc1d9b4e",
+    "js/build-info.js": "3876c3b84e1022bcb6e0ddaab453d6ea05bb35357d52b8715a892419e2c71f25",
+    "js/offline-assets.js": "e7ce2a6d61ec3ff4f40ba927760fd19e6f2dc59808d6a8c25a0d5ec70afae400"
+  },
+  "win_rate_evaluation": null,
+  "limitation": "Technical and interaction validation; no new win-rate claim for briefing-v1."
+}

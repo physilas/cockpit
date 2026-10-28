@@ -17,6 +17,8 @@
 <link rel="stylesheet" href="css/singleplayer.css">
 <link rel="stylesheet" href="css/game-dialogs.css">
   <link rel="stylesheet" href="css/game-experience.css">
+  <link rel="stylesheet" href="css/cockpit-layout.css">
+  <link rel="stylesheet" href="css/round-planning.css">
 <style>
   /* ── Startmenü ── */
   #start-menu {
@@ -88,6 +90,7 @@
       <div id="flight-summary" class="versteckt"></div>
     </div>
     <div id="spiel-auswahl">
+      <button id="round-plan-summary" type="button" hidden>Plan</button>
       <button id="rueckgaengig-btn" aria-label="Rückgängig" title="Letzten Spielschritt rückgängig machen" disabled>↶</button>
       <button id="neues-spiel-btn" hidden>Landung</button>
       <button id="menue-btn" class="menu-btn">☰ Menü</button>
@@ -243,6 +246,7 @@
   <script src="js/feedback-actions.js"></script>
   <script src="js/cockpit-controls.js"></script>
   <script src="js/cockpit-layout.js"></script>
+  <script src="js/round-planning.js"></script>
   <script src="js/singleplayer.js"></script>
   <script src="js/game-dialogs.js"></script>
   <script src="js/game-experience.js"></script>

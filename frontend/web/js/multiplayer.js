@@ -193,7 +193,7 @@ async function ladeEngine() {
 // ── Spielstart (Host) ────────────────────────────────────────────────────────
 let initialEngine = null; // Host-local state/RNG; never sent to the partner.
 function newEngineGame(sameSeed=false) {
-  window.GameExperience?.reset();
+  window.GameExperience?.reset();CockpitLayout.reset();
   const z=sameSeed && initialEngine ? pyToJs(bridge.spiel_laden(initialEngine))
     : pyToJs(playOptions.neues_spiel(gewaehlterFlughafen,JSON.stringify(gewaehlteKarten),zeitlimit));
   initialEngine=String(bridge.spiel_speichern());

@@ -1,0 +1,29 @@
+#round-plan-dialog { width:min(390px,calc(100vw - 24px)); max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); padding:18px; overflow:auto; border:1px solid #91aba9; border-radius:18px; color:#173e46; background:#f5f8f5; box-shadow:0 12px 48px #102a4466; }
+#round-plan-dialog::backdrop { background:#0b243977; }
+.round-plan-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:14px; border-bottom:1px solid #c7d9d3; }
+.round-plan-heading p { margin:0 0 4px; color:#5b7477; font-size:.72rem; }
+#round-plan-dialog h2 { margin:0; font-size:1.1rem; }
+#round-plan-dialog h3 { margin:16px 0 10px; font-size:1rem; }
+#round-plan-dialog .round-plan-proposal { margin-top:12px; font-size:1.25rem; line-height:1.35; }
+.round-plan-step,.round-plan-note,.round-plan-previous { margin:14px 0 0; color:#5b7477; font-size:.76rem; line-height:1.5; }
+.round-plan-reason { font-size:.87rem; line-height:1.5; margin:10px 0 20px; }
+#round-plan-dialog button { min-height:44px; padding:9px 12px; border:1px solid #a9bfbb; border-radius:9px; color:#204d57; background:#e5eee9; font:inherit; font-size:.83rem; touch-action:manipulation; }
+#round-plan-dialog .round-plan-primary { background:#205763; border-color:#205763; color:white; }
+#round-plan-dialog button:disabled { opacity:.5; }
+#round-plan-dialog button:focus-visible,#round-plan-dialog select:focus-visible { outline:3px solid #be8e28; outline-offset:2px; }
+.round-plan-votes { display:flex; gap:10px; margin:12px 0; }
+.round-plan-votes button { flex:1; }
+.round-plan-nav { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
+.round-plan-footer { border-top:1px solid #c7d9d3; margin-top:16px; padding-top:10px; }
+#round-plan-dialog .round-plan-footer button { border-color:transparent; background:transparent; width:100%; font-size:.76rem; }
+.round-plan-own { display:grid; gap:14px; margin:18px 0; }
+.round-plan-own label { display:grid; gap:6px; font-size:.85rem; }
+.round-plan-own select { width:100%; min-height:44px; padding:8px; border:1px solid #91aba9; border-radius:8px; color:#173e46; background:white; font:inherit; font-size:16px; }
+.round-plan-body > button { display:block; width:100%; margin-top:8px; }
+.round-plan-list { list-style:none; margin:12px 0 16px; padding:0; }
+.round-plan-list li { display:grid; gap:4px; padding:10px 0; border-bottom:1px solid #d6e2dc; }
+.round-plan-list span { font-size:.73rem; color:#5b7477; }
+.round-plan-list strong { font-size:.91rem; }
+.round-plan-error { color:#a13e31; font-size:.83rem; line-height:1.4; }
+.round-plan-error:empty { display:none; }
+#round-plan-summary { min-width:34px; padding-inline:5px; font-size:.69rem; }

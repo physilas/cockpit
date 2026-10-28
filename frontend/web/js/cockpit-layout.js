@@ -1,12 +1,16 @@
 /* Fit navigation strips into the real viewport; keep dice and fields tappable. */
 window.CockpitLayout = (() => {
-  let mobileUnit = 36, frame = null, refresh = null, current = null;
+  let mobileUnit = 36, frame = null, refresh = null, current = null, fittedKey = null;
   const compact = () => matchMedia('(max-width: 600px)').matches;
   function viewport() {
     document.documentElement.style.setProperty('--cockpit-vh', `${Math.round(window.visualViewport?.height || innerHeight)}px`);
   }
   function fit(state, rerender) {
     current = state; refresh = rerender; viewport();
+    const header=document.getElementById('game-header')||document.getElementById('spiel-header');
+    if(header)document.documentElement.style.setProperty('--cockpit-header-height',`${header.offsetHeight}px`);
+    const key=`${state.szenario_id}:${state.runde}:${innerWidth}:${Math.round(window.visualViewport?.height||innerHeight)}`;
+    if(key===fittedKey)return;
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(() => {
       const main = document.getElementById('spiel-ui');
@@ -16,9 +20,10 @@ window.CockpitLayout = (() => {
       const chrome = Math.max(...columns.map(col => col.offsetHeight - col.querySelector('.vtrack').offsetHeight));
       const bottom = Math.max(...[...main.children].map(el => el.getBoundingClientRect().bottom));
       const content = bottom - main.getBoundingClientRect().top + main.scrollTop + parseFloat(getComputedStyle(main).paddingBottom);
-      const other = content - strips.offsetHeight;
+      const other = content - strips.offsetHeight + (state.module.includes('intern')?34:0);
       const rows = Math.max(1, state.hoehe / 1000 + 1, state.entfernung + 1);
-      const next = Math.max(18, Math.min(36, Math.floor((main.clientHeight - other - chrome - 2) / rows)));
+      const next = Math.max(28, Math.min(36, Math.floor((main.clientHeight - other - chrome - 2) / rows)));
+      fittedKey=key;
       if (next !== mobileUnit) { mobileUnit = next; rerender(); }
     });
   }
@@ -29,8 +34,9 @@ window.CockpitLayout = (() => {
   return {
     unit(state) {
       if (compact()) return mobileUnit;
-      return state.module.includes('intern') ? Math.max(18, Math.min(36, Math.floor((innerHeight - 590 - (state.zusatzaktion ? 32 : 0)) / Math.max(7, state.entfernung + 1)))) : 36;
+      return state.module.includes('intern') ? Math.max(28, Math.min(36, Math.floor((innerHeight - 624) / Math.max(7, state.entfernung + 1)))) : 36;
     },
     fit,
+    reset(){fittedKey=null;mobileUnit=36;current=null;refresh=null;cancelAnimationFrame(frame);},
   };
 })();

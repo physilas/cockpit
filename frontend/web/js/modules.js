@@ -1,5 +1,6 @@
 /* Shared cockpit instruments. The Python snapshot remains the source of rules. */
 window.FlightModules = (() => {
+  let pickerDialog = null;
   let current = null, choice = null, revealed = null, context = '', detail = null, timerAnchor = null;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const name = role => role === 'pilot' ? 'Pilotin' : 'Co-Pilot';
@@ -144,6 +145,10 @@ window.FlightModules = (() => {
     const b = d.querySelector('.sync-roll-button');
     b.textContent = rolled ? 'Im Cockpit platzieren' : syncUi.busy ? 'Würfelt …' : allowed(p.rolle) ? 'Werfen' : `Warte auf ${name(p.rolle)} …`;
     b.disabled = !allowed(p.rolle) || syncUi.busy || options.reroll;
+    let coffee = d.querySelector('.sync-coffee');
+    if (!coffee) {coffee=document.createElement('div');coffee.className='sync-coffee';d.querySelector('.sync-roll-button').before(coffee);}
+    coffee.replaceChildren();
+    if (rolled && allowed(p.rolle)) (p.kaffee_deltas || []).forEach(delta => button(coffee,`☕ ${signed(delta)}`,() => act(p.rolle,'bonus_kaffee',{delta}),options.reroll,'sync-coffee-button'));
     d.querySelector('.sync-undo-button').disabled = !z.rueckgaengig_moeglich || syncUi.busy || options.reroll;
     let reminder = document.getElementById('sync-reminder');
     if (!reminder) {
@@ -323,9 +328,15 @@ window.FlightModules = (() => {
   function cardState(id, z) {
     const role = current.options.role || z.am_zug;
     if (id === 'adaptation') return z.anpassung_verfuegbar[role] ? 'Bereit' : 'Verbraucht';
-    if (id === 'anticipation') return z.voraussicht_verfuegbar && role === z.am_zug ? 'Bereit' : 'Später';
+    if (id === 'anticipation') return z.voraussicht_verfuegbar && role === z.am_zug ? 'Rundenstart' : 'Verbraucht / später';
     if (id === 'working-together') return z.kooperation_verfuegbar ? 'Bereit' : 'Später';
-    return 'Auto';
+    if (id === 'control' || id === 'mastery') {
+      const fields = id === 'control' ? z.felder.ruder : z.felder.triebwerk;
+      const pair = fields && ['pilot','kopilot'].map(r => fields[r]?.wert);
+      if (pair?.every(v => v != null)) return pair[0] === pair[1] ? '✓ Gleiche Würfel' : 'Werte verschieden';
+      return id === 'control' ? 'Ruder gleich → ☕' : 'Schub gleich → ↻';
+    }
+    return 'Automatisch';
   }
   function renderCards(z) {
     const el = mount('ability-strip', z.faehigkeitskarten.length > 0);
@@ -401,43 +412,78 @@ window.FlightModules = (() => {
         roles.forEach(r => button(body, `Tausch starten · ${name(r)}`, () => act(r,'kooperation_start'), !active || !z.kooperation_verfuegbar).dataset.focus = r);
       } else if (id === 'adaptation' || id === 'anticipation') {
         roles.forEach(r => {
-          const available = id === 'adaptation' ? z.anpassung_verfuegbar[r] : z.voraussicht_verfuegbar && r === z.am_zug;
-          button(body, `${name(r)} · ${available ? 'Würfel wählen' : 'Zurzeit nicht verfügbar'}`, () => {choice = {role:r,type:id}; revealed = null; closeDetail(); options.conceal();}, !active || !available).dataset.focus = r;
+          const available = abilityAvailable(z,options,r,id);
+          button(body, `${name(r)} · ${available ? 'Würfel wählen' : 'Zurzeit nicht verfügbar'}`, () => openPicker(r,id), !active || !available).dataset.focus = r;
         });
       } else para('Diese Fähigkeit wird automatisch ausgelöst.');
     }
     if (focused) [...d.querySelectorAll('[data-focus]')].find(b => b.dataset.focus === focused)?.focus();
   }
 
-  function renderPending(z, options) {
-    const root = document.getElementById('flight-modules'); root.replaceChildren();
-    const active = z.status === 'laeuft' && z.phase === 'platzieren';
-    const section = (title, text) => {
-      const el = document.createElement('section'); el.className = 'module-pending';
-      el.innerHTML = `<h2>${esc(title)}</h2><p>${esc(text)}</p>`; root.appendChild(el); return el;
-    };
-    if (z.zusatzaktion && z.zusatzaktion.quelle !== 'intern') {
-      const p = z.zusatzaktion;
-      const el = section(`Synchronisation${p.wert != null ? ` · ${p.wert}` : ''}`, p.wert == null ? `${name(p.rolle)} würfelt zuerst den schwarzen Zusatzwürfel.` : allowed(p.rolle) ? `${name(p.rolle)}: hervorgehobenes Feld im Cockpit antippen.` : `${name(p.rolle)} platziert den Zusatzwürfel …`);
-      button(el,p.wert == null ? 'Würfeldialog öffnen' : 'Zusatzwürfel ansehen',showSync);
-      (p.kaffee_deltas || []).forEach(delta => button(el, `☕ ${signed(delta)}`, () => act(p.rolle, 'bonus_kaffee', {delta}), !active || !allowed(p.rolle)));
-      if (p.wert != null && !p.ziele.length) el.insertAdjacentHTML('beforeend','<p>Kein erlaubtes Ziel mehr verfügbar.</p>');
-    }
-    const picker = choice;
-    if (picker && active) {
-      const el = section('Fähigkeit: Würfel wählen', `${name(picker.role)} wählt einen eigenen freien Würfel.`);
-      if (!allowed(picker.role)) {
-        el.insertAdjacentHTML('beforeend', `<p>Warte auf ${name(picker.role)} …</p>`);
-      } else if (revealed !== picker.role) {
-        button(el, `${name(picker.role)}: Würfel anzeigen`, () => {revealed = picker.role; render(z,options);});
-      } else {
-        z[`${picker.role}_wuerfel`].forEach((v,i) => {
-          if (z[`${picker.role}_wuerfel_frei`][i]) button(el, `${i + 1}: ${v}`, () => {choice = revealed = null; act(picker.role,picker.type,{wuerfel_index:i});}, false, `module-button ${picker.role}`);
-        });
+  function abilityAvailable(z, options, role, type) {
+    if (z.status !== 'laeuft' || z.phase !== 'platzieren' || z.zusatzaktion || z.kooperation || options.reroll || role !== z.am_zug || !allowed(role)) return false;
+    if (!z[`${role}_wuerfel_frei`].some(Boolean)) return false;
+    return type === 'anticipation' ? z.voraussicht_verfuegbar : type === 'adaptation' ? z.anpassung_verfuegbar[role] : z.kooperation_verfuegbar;
+  }
+  function openPicker(role, type) {
+    if (!abilityAvailable(current.z,current.options,role,type)) return;
+    choice = {role,type,index:null}; revealed = current.options.role ? role : null;
+    closeDetail(); current.options.conceal();
+  }
+  function closePicker() {
+    choice = revealed = null;
+    if (pickerDialog?.open) pickerDialog.close();
+  }
+  function renderAbilityTools(z, options) {
+    for (const role of ['pilot','kopilot']) {
+      const tray = document.getElementById(`wuerfel-${role}`)?.closest('.dice-tray');
+      if (!tray) continue;
+      tray.querySelector('.ability-tools')?.remove();
+      const tools = document.createElement('div'); tools.className = 'ability-tools';
+      tray.appendChild(tools);
+      // Private hand controls belong only to the human's own current turn.
+      if (options.role && options.role !== role) continue;
+      for (const type of z.faehigkeitskarten.filter(id => ['anticipation','adaptation','working-together'].includes(id))) {
+        if (!abilityAvailable(z,options,role,type)) continue;
+        const card = window.LANDING_CATALOG.abilities.find(a => a.id === type);
+        const b = button(tools,cardIcons[type], () => type === 'working-together' ? act(role,'kooperation_start') : openPicker(role,type),false,'ability-quick');
+        b.setAttribute('aria-label',`${card.name} · ${name(role)}`); b.title = `${card.name} verwenden`;
+        b.setAttribute('aria-haspopup','dialog');
       }
-      if (!z.kooperation) button(el,'Abbrechen', () => {choice = revealed = null; render(z,options);});
     }
-    root.classList.toggle('versteckt', !root.childElementCount);
+  }
+  function renderPicker(z,options) {
+    if (!choice || !abilityAvailable(z,options,choice.role,choice.type)) {closePicker(); return;}
+    if (!pickerDialog) {
+      pickerDialog = document.createElement('dialog'); pickerDialog.id = 'ability-dice-dialog';
+      pickerDialog.setAttribute('aria-labelledby','ability-dice-title');
+      pickerDialog.setAttribute('aria-describedby','ability-dice-hint');
+      pickerDialog.addEventListener('cancel',e => {e.preventDefault();closePicker();});
+      document.body.appendChild(pickerDialog);
+    }
+    const d = pickerDialog, picker = choice, isFlip = picker.type === 'adaptation';
+    const focus = d.contains(document.activeElement) ? document.activeElement.dataset.focus : null;
+    d.innerHTML = `<h2 id="ability-dice-title">${isFlip ? '⇄ Anpassung' : '↻ Voraussicht'}</h2><p id="ability-dice-hint">${name(picker.role)} · ${isFlip ? 'Einmal pro Partie einen Würfel umdrehen.' : 'Vor dem ersten Zug einen Würfel neu werfen.'}</p>`;
+    const own = revealed === picker.role;
+    if (!own) button(d,'Würfel ansehen',() => {revealed=picker.role;renderPicker(current.z,current.options);},false,'ability-reveal');
+    const dice = document.createElement('div'); dice.className = `ability-dice-hand ${picker.role}`; d.appendChild(dice);
+    z[`${picker.role}_wuerfel`].forEach((value,i) => {
+      const free = z[`${picker.role}_wuerfel_frei`][i], selected = picker.index === i;
+      const wrap = document.createElement('div'); wrap.className = 'ability-die-slot'; dice.appendChild(wrap);
+      const b = button(wrap, own ? value : '?', () => {picker.index = selected ? null : i; renderPicker(current.z,current.options);},!own || !free,`wuerfel${selected ? ' neuwurf-ausgewaehlt' : ''}${!free ? ' platziert' : ''}`);
+      b.setAttribute('aria-pressed',String(selected)); b.setAttribute('aria-label',`${name(picker.role)}, Würfel ${i+1}: ${own ? value : 'verdeckt'}${selected ? ', ausgewählt' : ''}`); b.dataset.focus = `die-${i}`;
+      const hint = document.createElement('small'); hint.textContent = !free ? 'gelegt' : own && isFlip ? `${value} → ${7-value}` : selected ? '↻ gewählt' : 'behalten'; wrap.appendChild(hint);
+    });
+    const chosen = picker.index !== null;
+    const apply = button(d,chosen ? isFlip ? 'Würfel umdrehen' : 'Würfel neu werfen' : 'Nicht neu würfeln',() => {
+      if (!chosen) {closePicker();return;}
+      const {role,type,index} = choice; closePicker(); act(role,type,{wuerfel_index:index});
+    },false,'ability-dice-confirm'); apply.dataset.focus='confirm';
+    if (isFlip && !chosen) apply.textContent='Würfel behalten';
+    if (chosen) button(d,isFlip ? 'Würfel behalten' : 'Nicht neu würfeln',closePicker,false,'ability-dice-cancel');
+    const note = document.createElement('p');note.className='ability-dice-note';note.textContent='Ohne Auswahl bleibt die Fähigkeit verfügbar.';d.appendChild(note);
+    if (!d.open) d.showModal();
+    if (focus) [...d.querySelectorAll('[data-focus]')].find(b => b.dataset.focus===focus && !b.disabled)?.focus({preventScroll:true});
   }
   function render(z, options) {
     const scenarioChanged = current?.z.szenario_id !== z.szenario_id;
@@ -448,7 +494,7 @@ window.FlightModules = (() => {
     if (context !== key) {choice = revealed = null; context = key;}
     renderFuel(z); renderWind(z); renderIce(z); renderIntern(z); renderCards(z); renderRealtime(z);
     renderBonusTargets(z,options);
-    renderPending(z,options); renderDetail(); renderSync(z,options); renderTrade(z,options); updateTimer();
+    document.getElementById('flight-modules').classList.add('versteckt'); renderAbilityTools(z,options); renderPicker(z,options); renderDetail(); renderSync(z,options); renderTrade(z,options); updateTimer();
   }
   function updateTimer() {
     if (!current) return;
@@ -464,5 +510,5 @@ window.FlightModules = (() => {
     el.classList.toggle('urgent', Boolean(z.timer_deadline_ms) && seconds <= 10);
   }
   setInterval(() => {updateTimer(); if (current?.z.timer_deadline_ms && current.z.status === 'laeuft') current.options.onTick?.();}, 200);
-  return {render, renderBrakes, rerollHTML, identifyField, reset() {resetTrade(); resetSync(); clearBonusTargets(); closeDetail(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
+  return {render, renderBrakes, rerollHTML, identifyField, reset() {resetTrade(); resetSync(); clearBonusTargets(); closeDetail(); closePicker(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
 })();

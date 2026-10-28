@@ -15,9 +15,9 @@ RUNTIME = "vendor/pyodide/0.26.1/"
 SHELL = [
     "index.html", "manifest.json", "bildnachweise.html", "multiplayer.html",
     *[f"css/{name}.css" for name in ("style", "landings", "modules", "reroll",
-        "singleplayer", "game-dialogs", "game-experience")],
+        "singleplayer", "game-dialogs", "game-experience", "cockpit-layout", "round-planning")],
     *[f"js/{name}.js" for name in ("modules", "reroll", "ai-models", "ai-policy",
-        "cloud-config", "learning-cloud", "singleplayer", "game-dialogs",
+        "cloud-config", "learning-cloud", "singleplayer", "round-planning", "game-dialogs",
         "game-experience", "landing-catalog", "landings", "engine-src",
         "game-schema", "traffic", "build-info", "app", "multiplayer", "offline", "feedback-actions", "cockpit-controls", "cockpit-layout", "multiplayer-lobby", "app-updates")],
     *[f"icons/icon-fly-team-{size}.png" for size in (180, 192, 512)],
@@ -28,6 +28,8 @@ SHELL = [
 
 
 def inventory():
+    if len(SHELL) != len(set(SHELL)):
+        raise ValueError("Duplicate shell URL: the browser would reject cache.addAll().")
     catalog = json.loads((WEB / "js/ai-models.js").read_text().split(" = ", 1)[1].rstrip(";\n"))
     models = [m for m in catalog["models"] if not m.get("ui_hidden")
               and (m.get("quality", {}).get("approved") or m.get("preview", {}).get("enabled"))]
@@ -52,7 +54,7 @@ def inventory():
 def build_pwa():
     original = list(build.PYTHON_DATEIEN)
     build.PYTHON_DATEIEN.append("play_options.py")
-    build.PYTHON_DATEIEN.extend(["ai/ability_planner.py", "ai/ability_policy.py", "ai/ability_browser.py"])
+    build.PYTHON_DATEIEN.extend(["ai/ability_planner.py", "ai/ability_policy.py", "ai/ability_browser.py", "ai/briefing.py", "ai/briefing_planner.py", "ai/briefing_browser.py"])
     try:
         build.build()
     finally:

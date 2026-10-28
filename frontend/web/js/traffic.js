@@ -25,22 +25,13 @@ function flugzeugZufall(feld, flugzeug, salt) {
 function renderEntfernungsFlugzeuge(z, trackUnit) {
   const container = document.getElementById("distance-obstacles");
   container.replaceChildren();
-  const counts = (z.flugzeuge || []).filter((n, i) => n > 0 && z.laenge - 1 - i <= z.entfernung);
-  const maxCount = Math.max(1, ...counts);
-  const track = document.getElementById("distance-track");
-  track.style.setProperty("--traffic-cols", Math.min(3, maxCount));
-  track.style.setProperty("--traffic-rows", Math.ceil(maxCount / 3));
-  track.style.setProperty("--traffic-height", `${trackUnit - 16}px`);
   (z.flugzeuge || []).forEach((anzahl, i) => {
     const entfernung = z.laenge - 1 - i;
     if (anzahl <= 0 || entfernung > z.entfernung) return;
     const feld = document.createElement("span");
     feld.className = "vtrack-aircraft";
     feld.dataset.distance = entfernung;
-    feld.style.top = (entfernung * trackUnit + 8) + "px";
-    const hoehe = trackUnit - 10 - (entfernung === z.entfernung ? 6 : 0);
-    feld.style.height = `${hoehe}px`;
-    feld.style.setProperty("--aircraft-height", `${hoehe}px`);
+    feld.style.top = ((entfernung + .5) * trackUnit) + "px";
     if (z.flugzeugwuerfel?.[i]) feld.classList.add("with-traffic");
     const label = `${anzahl} ${anzahl === 1 ? "Flugzeug" : "Flugzeuge"} auf Entfernung ${entfernung}`;
     feld.title = label;
@@ -48,29 +39,18 @@ function renderEntfernungsFlugzeuge(z, trackUnit) {
     feld.setAttribute("aria-label", label);
     const gruppe = document.createElement("span");
     gruppe.className = "aircraft-group";
-    const zeilen = Math.ceil(anzahl / 3);
-    const spalten = Math.ceil(anzahl / zeilen);
-
-
-    for (let k = 0; k < anzahl; k += spalten) {
-      const zeile = document.createElement("span");
-      zeile.className = "aircraft-row";
-      for (let n = k; n < Math.min(k + spalten, anzahl); n++) {
-        // Feste Zellenabstände verhindern Überlappung; CSS reserviert die Hüllfläche der ±6° Drehung.
-        const pose = document.createElement("span");
-        pose.className = "aircraft-pose";
-        const inZeile = Math.min(spalten, anzahl - k);
-        pose.style.setProperty("--plane-x", (n - k + .5) / inZeile);
-        pose.style.setProperty("--plane-y", (k / spalten + .5) / zeilen);
-        pose.style.setProperty("--plane-angle", `${Math.round(flugzeugZufall(i, n, 3) * 12 - 6)}deg`);
-        const flugzeug = document.createElement("span");
-        flugzeug.className = "aircraft-icon";
-        flugzeug.textContent = "✈";
-        flugzeug.setAttribute("aria-hidden", "true");
-        pose.appendChild(flugzeug);
-        zeile.appendChild(pose);
-      }
-      gruppe.appendChild(zeile);
+    // Physical tokens keep their size. Dense traffic fans sideways beyond the tile.
+    gruppe.style.width = `${18 + (anzahl - 1) * 14}px`;
+    for (let n = 0; n < anzahl; n++) {
+      const pose = document.createElement("span");
+      pose.className = "aircraft-pose";
+      pose.style.setProperty("--plane-x", anzahl === 1 ? .5 : n / (anzahl - 1));
+      pose.style.setProperty("--plane-y", .5);
+      pose.style.setProperty("--plane-angle", `${Math.round(flugzeugZufall(i, n, 3) * 12 - 6)}deg`);
+      const flugzeug = document.createElement("span");
+      flugzeug.className = "aircraft-icon"; flugzeug.textContent = "✈";
+      flugzeug.setAttribute("aria-hidden", "true");
+      pose.appendChild(flugzeug); gruppe.appendChild(pose);
     }
     feld.appendChild(gruppe);
     container.appendChild(feld);

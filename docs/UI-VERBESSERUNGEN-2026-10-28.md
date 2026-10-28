@@ -38,3 +38,25 @@ Updates erkennen eine neue bereitgestellte App-Version. Sie laden zunächst die 
 Geprüft: echte Pass-&-Play-Bedienung im Browser, beide leeren Bestätigungen mit erhaltenem Plättchen; Layout bei 393 × 852 mit simulierten Safe-Area-Werten 59/34, 393 × 724 und 320 × 740 ohne vertikalen oder horizontalen Überlauf des Grundspiel-Cockpits. Paro Elite ohne Zeitlimit wurde nach drei Verkehrswürfen bis zur Platzierungsphase gestartet: keine Timeranzeige, Kennzeichnung „Ohne Zeitlimit“, Cockpit passt in die iPhone-Ansicht. Das Startmenü einschließlich Fortsetzen und Offline-Download passt bei 393 × 852 und 393 × 724. Safe-Area-Simulation ersetzt keinen Test des iOS-Systemnebels auf dem Gerät.
 
 Automatisiert: `node tests/reroll-retain.cjs` prüft die echten Handler für Pass & Play, Multiplayer und Singleplayer einschließlich Trainingsereignissen. `tests/test_play_options.py` prüft Timer-Standard, dauerhafte Abschaltung, Save/Resume und Undo. Bestehende UI- und Offline-Prüfungen bestehen.
+
+
+## Stabiles Cockpit und Fähigkeitskarten
+
+Die Leisten werden nur beim Runden- oder Ansichtswechsel eingepasst. Würfelansicht, Kaffeeauswahl, KI-Bewertung und Synchronisationshinweise verändern die Brettgröße während einer Runde nicht. Die Kaffeeplätze bleiben auch belegt gleich breit. Auf Keflavík und anderen dichten Strecken sind die Leistenfelder mindestens 28 Pixel hoch; bei zu geringer Bildschirmhöhe bleibt das Cockpit scrollbar. Flugzeuge behalten 18 Pixel Größe unabhängig von der Anzahl und fächern sich seitlich über die Feldgrenze auf. Sehr große Gruppen dürfen sich überlappen; die genaue Anzahl bleibt als zugängliche Beschriftung verfügbar.
+
+Alle sechs Karten wurden auf die neue Bedienung geprüft:
+
+| Karte | Integration |
+| --- | --- |
+| Voraussicht | Symbol bei der aktiven Hand am Rundenstart; kompakter Dialog mit genau einem Würfel oder „Nicht neu würfeln“. Behalten verbraucht die Fähigkeit nicht. |
+| Anpassung | Symbol bei der eigenen aktiven Hand; derselbe Dialog mit Vorschau, etwa „6 → 1“, und ausdrücklicher Bestätigung. |
+| Zusammenarbeit | Direktes Tauschsymbol bei der aktiven Hand; bestehender Dialog mit beidseitiger Bestätigung und geschützten Würfeln. |
+| Synchronisation | Eigenes Wurf-/Platzierungs-Popup und fester Hinweis über dem Cockpit; Kaffeeänderungen liegen jetzt am Zusatzwürfel im Popup. Das alte Panel unter dem Brett entfällt. |
+| Kontrolle | Automatisch; Kartenhinweis zeigt „Ruder gleich → ☕“ und den Vergleich bereits gelegter Würfel. Kein zusätzliches Pflichtpopup. |
+| Meisterschaft | Automatisch; entsprechender Hinweis „Schub gleich → ↻“. Belohnungsgrenzen bleiben in der Engine. |
+
+Browserprüfung auf 393 × 724: Keflavík Heroisch mit Voraussicht/Anpassung, zunächst verdeckte Pass-&-Play-Hand, Behalten und erneutes Öffnen, echter Einzelneuwurf, anschließend echte Drehung 6 → 1. Alle gemessenen Spielfeld- und Leistenpositionen vor/nach diesen Fähigkeiten identisch. In der vorherigen vollständigen KI-Feedbackrunde blieben sie auch bei Kaffeeauswahl/-verbrauch, Fahrwerk, Ruder, KI-Zügen und Rundenende identisch. Eine zusätzliche Seite mit dem echten Verkehrsrenderer prüft Gruppen von 1, 2, 3, 4, 6, 8, 12 und 20 Flugzeugen bei gleicher Symbolgröße. Das ersetzt keinen physischen iPhone-Test.
+
+Automatisiert: `tests/ability-dice-controls.cjs` prüft Einzelwahl, Abbruch ohne Engine-Aktion, Rollen- und Sichtschutz, Drehvorschau und blockierte Nebenaktionen. `tests/round-planning-controls.cjs` prüft 100 Platzierungsrenders ohne erneutes Einpassen und die lesbare Mindesthöhe.
+
+![Kompakte Voraussicht](pruefbilder/faehigkeitswuerfel-live-2026-10-28.jpg)

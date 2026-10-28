@@ -53,7 +53,7 @@ sys.path.insert(0, "/cockpit")
 `);
   bridge = pyodide.pyimport("backend.bridge");
   playOptions = pyodide.pyimport("play_options");
-  aiBridge = pyodide.pyimport("ai.ability_browser");
+  aiBridge = pyodide.pyimport("ai.briefing_browser");
 }
 
 function pyToJs(pyResult) {
@@ -359,7 +359,7 @@ function render(zustand) {
     const antwort = pyToJs(bridge.wirf_verkehrswuerfel());
     nachAktion(antwort);
     return antwort.ergebnis.erfolg;
-  }, () => render(pyToJs(bridge.wuerfeln_fuer_runde())));
+  }, () => { if(Singleplayer.briefingEnabled())render(pyToJs(bridge.zustand()));else render(pyToJs(bridge.wuerfeln_fuer_runde())); });
   renderCockpitBoard(zustand);
   renderWuerfel("pilot", zustand);
   renderWuerfel("kopilot", zustand);
@@ -786,7 +786,7 @@ async function rundenendeKlick() {
   setzeMeldung(antwort.ergebnis.meldung, "erfolg");
   diceVisible = null;
   render(antwort.zustand);
-  if (antwort.zustand.status === "laeuft" && !antwort.zustand.module.includes("realtime")) {
+  if (antwort.zustand.status === "laeuft" && !antwort.zustand.module.includes("realtime") && !Singleplayer.briefingEnabled()) {
     render(pyToJs(bridge.wuerfeln_fuer_runde()));
   }
 }
@@ -819,14 +819,14 @@ async function neuesSpiel(scenario, options = {}) {
     await enginePromise;
   }
   if (version !== navigationVersion) return;
-  GameDialogs.reset(); menuPausedAt = null; window.GameExperience?.reset();
+  GameDialogs.reset(); menuPausedAt = null; window.GameExperience?.reset(); CockpitLayout.reset();
   resetVerkehrUi();
   ausgewaehlterWuerfel = null;
   kaffeeMenuOffenFuer = null;
   neuwurfReset();
   const zustand = options.sameSeed && initialEngine
     ? pyToJs(bridge.spiel_laden(initialEngine))
-    : pyToJs(playOptions.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || []), scenario.timed !== false));
+    : pyToJs(playOptions.neues_spiel(scenario.engine_code, JSON.stringify(scenario.ability_ids || []), scenario.timed !== false, scenario.round_briefing === true));
   initialEngine = String(bridge.spiel_speichern());
   activeScenario = {...scenario}; gameActive = true; lastSavedKey = "";
   landingPicker.hide();
@@ -879,7 +879,12 @@ document.getElementById("menue-btn").addEventListener("click", () => GameDialogs
 Singleplayer.connect({
   state: () => aktuellerZustand,
   start: neuesSpiel, execute: spielAktion, showAnswer: nachAktion,
-  decision(role, reroll, steps, maxSteps, assistanceVersion = 0, schemaVersion = 1) { syncTeachingClock();return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps, assistanceVersion, schemaVersion)); },
+  decision(role, reroll, steps, maxSteps, assistanceVersion = 0, schemaVersion = 1, plan=null) { syncTeachingClock();return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps, assistanceVersion, schemaVersion, JSON.stringify(plan))); },
+  canBrief:()=>!verkehrDialogUi.aktiv,
+  proposeRound:()=>pyToJs(aiBridge.suggest()),
+  startPlannedRound:plan=>pyToJs(aiBridge.start_round(JSON.stringify(plan))),
+  showState:state=>render(state),
+  menu:()=>GameDialogs.menu(),
   refresh() { render(aktuellerZustand); },
   undoLast() { return pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version)); },
   checkpoint() { return String(bridge.spiel_speichern()); },
@@ -951,6 +956,7 @@ async function resumeLastGame() {
     gameActive=false;Singleplayer.stop("resume");GameDialogs.reset();menuPausedAt=null;
     window.GameExperience?.reset();
     const state=pyToJs(bridge.spiel_laden(saved.engine));
+    CockpitLayout.reset();
     initialEngine=typeof saved.initialEngine==='string'?saved.initialEngine:null;
     aktuellerZustand=state;rueckgaengigId=state.rueckgaengig_id;
     await Singleplayer.restore(saved.singleplayer);

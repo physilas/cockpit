@@ -46,6 +46,9 @@ const records=page=>page.evaluate(async()=>{
     pyodide.runPython(`b._spiel.am_zug=${JSON.stringify(ai)}`);
     render(pyToJs(bridge.zustand()));
    });
+   // Canonical crew checks intentionally exercise the unchanged autonomous policy.
+   const skipPlan=page.getByRole('button',{name:'Ohne Absprache würfeln',exact:true});
+   if(await skipPlan.isVisible())await skipPlan.click();
    for(let j=0;j<80;j++){if((await records(page)).some(r=>r.model?.id===playingModels[i].id&&r.events.some(e=>e.actor==='ai')))break;await page.waitForTimeout(100);}
    const saved=(await records(page)).find(r=>r.model?.id===playingModels[i].id);
    assert.ok(saved?.events.some(e=>e.actor==='ai'&&e.decision.observation.length===489&&e.decision.reference_action_mask.some(Boolean)));

@@ -210,7 +210,9 @@ window.Singleplayer = (() => {
   }
 
   function stop(reason = "menu") {
-    teaching=null;
+    teaching=null;RoundPlanning.close();
+    document.getElementById("spiel-ui").classList.remove("feedback-mode");
+    document.getElementById("round-plan-summary").hidden=true;
     generation++; clearTimeout(timer); timer = null;
     if (session) {
       commitFeedback(reason);
@@ -394,8 +396,8 @@ window.Singleplayer = (() => {
                  model: config.model && config.mode !== "examples" ? clone(config.model) : null,
                  schema_version: activeSchema().version, schema: activeSchema(), action_mask_version: catalog.action_mask_version,
                  consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
-                 status: "active", events: [], engine_stack: []};
-      await api.start({...scenario, ability_ids: [...config.abilities]}, restarting ? restartOptions : {});
+                 status: "active", round_planning_enabled:config.mode!=="examples", communication_policy:"briefing-v1", round_plans:[], events: [], engine_stack: []};
+      await api.start({...scenario, round_briefing:config.mode!=="examples", ability_ids: [...config.abilities]}, restarting ? restartOptions : {});
       if (version !== generation) return;
       root().classList.add("versteckt"); persist();
       navigator.storage?.persist?.().catch(() => {});
@@ -403,7 +405,7 @@ window.Singleplayer = (() => {
       if(restarting)throw error;
       stop("start_failed"); root().classList.remove("versteckt");
       document.getElementById("solo-error").textContent = error.message;
-    } finally { starting = false; if (document.getElementById("solo-model") && !root().classList.contains("versteckt")) updateMenu(); }
+    } finally { starting = false; if(session)api.refresh(); if (document.getElementById("solo-model") && !root().classList.contains("versteckt")) updateMenu(); }
   }
 
   function actionId(action) {
@@ -427,7 +429,8 @@ window.Singleplayer = (() => {
     const steps = session.events.filter(e => !e.voided && !e.withdrawn && e.action_id !== null).length;
     const assisted=api.decision(role, reroll ? {initiator: reroll.initiator, selections: reroll.selections} : null,
                         steps, setup.model?.max_steps || 256,
-                        hasAI() && role === aiRole() ? setup.model?.assistance_version || 0 : 0, activeSchema().version);
+                        hasAI() && role === aiRole() ? setup.model?.assistance_version || 0 : 0, activeSchema().version,
+                        hasAI()&&role===aiRole()?currentRoundPlan():null);
     if(teaching && role===aiRole()){
       const native=api.decision(role,reroll?{initiator:reroll.initiator,selections:reroll.selections}:null,steps,setup.model?.max_steps||256,0,activeSchema().version);
       return {...native,reference_action_mask:assisted.reference_action_mask||assisted.action_mask};
@@ -586,11 +589,51 @@ window.Singleplayer = (() => {
     if (el && session) el.textContent = storageError || `${session.events.filter(e => !e.voided && e.action_id !== null).length} Entscheidungen aufgezeichnet`;
   }
 
+  const briefingEnabled=()=>hasAI()&&session.round_planning_enabled===true;
+  const currentRoundEntry=()=>session?.round_plans?.findLast(entry=>entry.round===api.state()?.runde);
+  const currentRoundPlan=()=>currentRoundEntry()?.plan||null;
+
+  function renderRoundPlan(state) {
+    const main=document.getElementById("spiel-ui"),button=document.getElementById("round-plan-summary");
+    main.classList.toggle("feedback-mode",active()&&setup.mode==="feedback");
+    const entry=currentRoundEntry();button.hidden=!entry?.plan;
+    button.title=entry?.plan?entry.proposal.goals.map(goal=>goal.options.find(o=>o.value===entry.plan[goal.key])?.label).join(" · "):"";
+    button.onclick=()=>RoundPlanning.inspect(currentRoundEntry());
+    if(!briefingEnabled())return;
+    if(entry&&state.zusatzaktion?.quelle==="synchronisation"&&!entry.synchronisation){entry.synchronisation=true;persist();}
+    for(const previous of session.round_plans||[]) {
+      if(!previous.result&&(previous.round<state.runde||state.status!=="laeuft")){
+        previous.outcome=RoundPlanning.outcome(previous,state);previous.result=RoundPlanning.result(previous,state);persist();
+      }
+    }
+    if(starting||suspended||state.status!=="laeuft"||state.phase!=="vorbereitung"||!api.canBrief())return;
+    let saved=session.briefing_draft;
+    if(!saved||saved.round!==state.runde){
+      const proposal=api.proposeRound();
+      proposal.previousResult=session.round_plans?.findLast(row=>row.result)?.result||"";
+      saved=session.briefing_draft={round:state.runde,proposal,draft:null};persist();
+    }
+    RoundPlanning.show(saved.proposal,saved.draft,{
+      onMenu:()=>api.menu(),
+      onChange(draft){session.briefing_draft.draft=draft;persist();api.refresh();},
+      onConfirm(plan,draft,proposal){
+        const before=clone(session.round_plans||[]);
+        const accepted={round:state.runde,plan,draft,proposal,accepted_at:new Date().toISOString(),communication_policy:plan?"briefing-v1":null};
+        session.round_plans=[...(session.round_plans||[]).filter(row=>row.round!==state.runde),accepted];
+        try{
+          const rolled=api.startPlannedRound(plan);
+          if(rolled.phase!=="platzieren")throw new Error("Die Runde konnte noch nicht gestartet werden.");
+          session.briefing_draft=null;persist();RoundPlanning.close();api.showState(rolled);
+        }catch(error){session.round_plans=before;throw error;}
+      },
+    });
+  }
+
   function afterRender(state) {
     const bar = document.getElementById("ai-session-bar");
     bar.classList.toggle("versteckt", !active() || (!paused && !storageError));
     if (!active()) return;
-    renderFeedback();
+    renderFeedback();renderRoundPlan(state);
     if (state.status !== "laeuft") { clearTimeout(timer); timer = null; }
     bar.innerHTML = `${storageError ? `<p role="alert">${esc(storageError)}</p><button id="ai-game-export">Aufzeichnungen sichern</button>` : ""}${paused ? '<button id="ai-resume">KI fortsetzen</button>' : ""}<p class="ai-paused" role="alert">${esc(paused)}</p>`;
     document.getElementById("ai-game-export")?.addEventListener("click", exportData);
@@ -779,7 +822,8 @@ window.Singleplayer = (() => {
   return {
     connect(adapter) { api = adapter; }, active, hasAI, aiRole, showMenu, stop, beforeAction, afterAction, afterRender, undo,
     canUndoFeedback, undoFeedback,
-    suspend(){suspended=true;generation++;clearTimeout(timer);timer=null;},
+    briefingEnabled,
+    suspend(){RoundPlanning.close();suspended=true;generation++;clearTimeout(timer);timer=null;},
     resume(){suspended=Boolean(teaching);},
     restart:options=>launch(true,options),
     backup(){return session ? clone({setup:{mode:setup.mode,humanRole:setup.humanRole,modelId:setup.model?.id,abilities:setup.abilities},session,reroll,feedbackIndex,feedbackUndoStack,teaching}) : null;},
@@ -790,7 +834,7 @@ window.Singleplayer = (() => {
       if(saved.setup.mode!=="examples"&&!model)throw new Error("Das gespeicherte KI-Modell ist nicht verfügbar.");
       let loaded=null;
       if(model){const response=await fetch(model.url);if(!response.ok)throw new Error("KI-Modell konnte nicht geladen werden.");loaded=CockpitPolicy.create(await response.json(),{schema:model.schema||catalog.schema});}
-      setup={...saved.setup,model};policy=loaded;session=clone(saved.session);session.status="active";delete session.finished_at;
+      setup={...saved.setup,model};policy=loaded;session=clone(saved.session);if(saved.setup.mode!=="examples")session.round_planning_enabled=true;session.status="active";delete session.finished_at;
       const previous=(await storedSessions()).find(row=>row.id===session.id);
       session.data_revision=Math.max(session.data_revision||0,previous?.data_revision||0)+1;
       reroll=saved.reroll;feedbackIndex=saved.feedbackIndex;feedbackUndoStack=saved.feedbackUndoStack||[];teaching=saved.teaching||null;

@@ -12,6 +12,15 @@ class OfflinePackTests(unittest.TestCase):
         data = json.loads(saved.split(" = ", 1)[1].rstrip(";\n"))
         self.assertEqual(data, build_pwa.inventory(), "Run make build after app changes")
 
+    def test_duplicate_shell_entries_cannot_break_browser_installation(self):
+        from unittest.mock import patch
+        import build_pwa
+        with patch.object(build_pwa, 'SHELL', ['index.html', 'index.html']):
+            with self.assertRaises(ValueError):
+                build_pwa.inventory()
+        data=build_pwa.inventory()
+        self.assertEqual(len(data['shell']),len({item['url'] for item in data['shell']}))
+
     def test_pack_deduplicates_weights_and_excludes_training_models(self):
         data = build_pwa.inventory()
         models = data["models"]

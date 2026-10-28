@@ -1,0 +1,46 @@
+/* Keep the same control geometry for the whole round, in every play mode. */
+#spiel-ui, #spiel-ui * { overflow-anchor:none; }
+#spiel-ui .wuerfel-reihe { position:relative; padding-top:34px; }
+#spiel-ui .wuerfel-reihe > .view-btn, #spiel-ui .wuerfel-reihe > .hide-btn { position:absolute; top:0; left:50%; transform:translateX(-50%); margin:0; }
+#spiel-ui .wuerfel-slot { position:relative; }
+#spiel-ui .wuerfel-slot > .coffee-open { position:absolute; right:-8px; bottom:-3px; z-index:6; margin:0; width:28px; height:28px; }
+body > header.has-sync-reminder { flex-wrap:nowrap; }
+#sync-reminder { position:fixed; z-index:32; top:calc(var(--cockpit-header-height, 42px) + 6px); right:max(8px,calc((100vw - 620px)/2)); width:auto; max-width:min(270px,calc(100vw - 16px)); margin:0; box-shadow:0 3px 10px #173c4530; }
+/* The rating toolbar reserves one row even before the first AI move. Details
+   and teaching controls float in that row instead of pushing the board down. */
+#spiel-ui.feedback-mode::before { content:""; display:block; height:52px; flex:0 0 52px; }
+#spiel-ui.feedback-mode > #ai-feedback { position:fixed; z-index:24; top:calc(var(--cockpit-header-height,42px) + 3px); left:50%; transform:translateX(-50%); margin:0; max-width:calc(100vw - 12px); }
+/* Old occupied-coffee selectors were more specific than the mobile size. */
+#spiel-ui #konzentration-reihe .feld-zelle { width:42px; height:42px; }
+@media(max-width:460px) { #spiel-ui #konzentration-reihe .feld-zelle { width:40px; height:40px; } }
+body:has(#spiel-ui.feedback-mode) #sync-reminder { top:calc(var(--cockpit-header-height,42px) + 56px); }
+
+/* Keep long routes readable; physical aircraft may overhang their tile. */
+#distance-track { overflow:visible; }
+#distance-track .vtrack-grid, #distance-track .vtrack-fill-remaining { border-radius:5px; }
+#distance-obstacles { z-index:5; }
+#distance-labels { z-index:7; }
+.vtrack-distancelabel { padding:1px 2px; border-radius:3px; background:#09284ce6; }
+.vtrack-aircraft { height:18px; transform:translateY(-50%); overflow:visible; }
+.aircraft-group { --fitted-plane-size:18px; --plane-envelope:22px; flex:none; max-width:calc(100% + 24px); height:18px; }
+.vtrack-traffic { z-index:8; background:#09284ce6; border-radius:2px; }
+.vtrack-heightlabel { font-size:12px; letter-spacing:0; }
+
+/* Ability actions float beside the current hand and never resize the cockpit. */
+.dice-tray { position:relative; }
+.ability-tools { position:absolute; z-index:9; top:-20px; left:50%; transform:translateX(-50%); display:flex; gap:2px; }
+.ability-quick { width:30px; height:34px; padding:0; border:1px solid #f8d16b; border-radius:8px; color:#183f48; background:#fff2bd; font-size:23px; box-shadow:0 2px 4px #173e4540; }
+#ability-dice-dialog { width:min(340px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); padding:16px; overflow:auto; border:2px solid #64878a; border-radius:14px; color:#193d45; background:#f5f8ef; text-align:center; }
+#ability-dice-dialog::backdrop { background:#0b252980; }
+#ability-dice-dialog h2 { margin:0 0 8px; font-size:20px; }
+#ability-dice-dialog p { font-size:13px; line-height:1.4; }
+.ability-dice-hand { display:flex; justify-content:center; gap:14px; padding:16px 0; }
+.ability-die-slot { display:grid; justify-items:center; gap:8px; }
+.ability-die-slot .wuerfel { width:44px; height:44px; font-size:20px; }
+.ability-die-slot small { font-size:11px; }
+#ability-dice-dialog > button { min-height:44px; width:100%; border:1px solid #5a8186; border-radius:7px; margin:4px 0; font-weight:700; }
+.ability-dice-confirm { color:white; background:#235b66; }
+.ability-dice-cancel,.ability-reveal { color:#23454c; background:#e1ebe5; }
+#ability-dice-dialog .ability-dice-note { margin:8px 0 0; font-size:11px; color:#547276; }
+.sync-coffee { display:flex; flex-wrap:wrap; justify-content:center; gap:4px; }
+.sync-coffee-button { min-height:40px; padding:5px 10px; border:1px solid #537d84; border-radius:6px; }
