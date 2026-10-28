@@ -1,6 +1,6 @@
 /* Public goals before rolling; move ratings remain separate learning records. */
 window.RoundPlanning = (() => {
-  let dialog=null, current=null, submitting=false;
+  let dialog=null, current=null, submitting=false, peeking=false, returnButton=null;
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const copy=value=>JSON.parse(JSON.stringify(value));
   function draftFor(proposal,saved) {
@@ -15,6 +15,8 @@ window.RoundPlanning = (() => {
   const plan=(proposal,draft)=>({version:1,round:proposal.round,...draft.values});
   function mount() {
     if(dialog)return;
+    returnButton=document.createElement('button');returnButton.id='round-plan-return';returnButton.type='button';returnButton.hidden=true;
+    returnButton.textContent='Zurück zur Rundenabsprache';returnButton.addEventListener('click',()=>{peeking=false;returnButton.hidden=true;if(current){render();dialog.showModal();}});document.body.appendChild(returnButton);
     dialog=document.createElement('dialog');dialog.id='round-plan-dialog';dialog.setAttribute('aria-labelledby','round-plan-title');
     dialog.addEventListener('cancel',event=>{event.preventDefault();if(current?.inspect)close();});
     dialog.addEventListener('change',event=>{
@@ -27,6 +29,7 @@ window.RoundPlanning = (() => {
       const b=event.target.closest('button[data-plan-action]');if(!b||submitting)return;
       const action=b.dataset.planAction,c=current;if(!c)return;
       if(action==='close'){close();return;}
+      if(action==='peek'){peeking=true;dialog.close();returnButton.hidden=false;returnButton.focus({preventScroll:true});return;}
       if(action==='menu'){c.callbacks.onMenu();return;}
       const d=c.draft,g=c.proposal.goals[d.index];
       if(action==='yes'){d.accepted[d.index]=true;if(d.index===2)d.mode='summary';else d.index++;}
@@ -57,11 +60,11 @@ window.RoundPlanning = (() => {
   function render(focusAction=null) {
     const c=current;if(!c)return;
     if(c.inspect){
-      dialog.innerHTML=`<div class="round-plan-heading"><h2 id="round-plan-title">Rundenplan · Runde ${c.entry.round}</h2></div>${summary(c.entry.proposal,c.entry.draft)}<p class="round-plan-note">Nach dem Würfeln bleibt die Absprache fest. Je nach Wurf kann die KI davon abweichen.</p>${c.entry.result?`<p>${esc(c.entry.result)}</p>`:''}<button type="button" class="round-plan-primary" data-plan-action="close">Zurück zum Spiel</button>`;
+      dialog.innerHTML=`<div class="round-plan-heading"><h2 id="round-plan-title">Rundenplan · Runde ${c.entry.round}</h2></div>${summary(c.entry.proposal,c.entry.draft)}<p class="round-plan-note">Nach dem Würfeln bleibt die Absprache fest. Je nach Wurf kann die KI davon abweichen.</p>${c.entry.result?`<p>${esc(c.entry.result)}</p>`:''}<button type="button" class="round-plan-primary" data-plan-action="close">Zurück zum Spiel</button><button type="button" data-plan-action="peek">Spielfeld ansehen</button>`;
       return;
     }
     const {proposal:p,draft:d}=c,g=p.goals[d.index],selected=choice(g,d);
-    const btn=(action,text,primary=false)=>`<button type="button" ${submitting?'disabled':''} class="${primary?'round-plan-primary':''}" data-plan-action="${action}">${text}</button>`;
+    const btn=(action,text,primary=false)=>`<button type="button" ${submitting?'disabled':''} class="${primary?'round-plan-primary':action==='peek'?'neuwurf-ansehen':''}" data-plan-action="${action}">${text}</button>`;
     let body;
     if(d.mode==='own'){
       body=`<h3>Meine Ansage</h3><div class="round-plan-own">${p.goals.map(goal=>`<label>${esc(goal.title)}${goal.options.length>1?`<select name="${goal.key}">${goal.options.map((o,i)=>`<option value="${i}" ${o.value===d.values[goal.key]?'selected':''}>${esc(o.label)}</option>`).join('')}</select>`:`<strong>${esc(goal.options[0].label)}</strong>`}</label>`).join('')}</div>${btn('apply-own','Ansage übernehmen',true)}${btn('review','Zurück zu den Vorschlägen')}`;
@@ -70,7 +73,7 @@ window.RoundPlanning = (() => {
     }else{
       body=`<p class="round-plan-step">Vorschlag ${d.index+1} von 3 · ${esc(g.title)}</p><h3 class="round-plan-proposal">${esc(selected.label)}</h3><p class="round-plan-reason">${esc(selected.reason)}</p><div class="round-plan-votes">${btn('yes','👍 Passt',true)}${g.options.length>1?btn('no','👎 Anders'):''}</div><div class="round-plan-nav">${d.index?btn('back','← Vorheriger Vorschlag'):''}${btn('own','Meine Ansage')}</div>`;
     }
-    dialog.innerHTML=`<div class="round-plan-heading"><div><p>Vor dem Würfeln</p><h2 id="round-plan-title">Runde ${p.round} · Unser Plan</h2></div>${btn('menu','Menü')}</div>${p.previousResult?`<p class="round-plan-previous">${esc(p.previousResult)}</p>`:''}<div class="round-plan-body">${body}</div><div role="alert" class="round-plan-error"></div><div class="round-plan-footer">${btn('skip','Ohne Absprache würfeln')}</div>`;
+    dialog.innerHTML=`<div class="round-plan-heading"><div><p>Vor dem Würfeln</p><h2 id="round-plan-title">Runde ${p.round} · Unser Plan</h2></div>${btn('menu','Menü')}</div>${p.previousResult?`<p class="round-plan-previous">${esc(p.previousResult)}</p>`:''}<div class="round-plan-body">${body}</div><div role="alert" class="round-plan-error"></div><div class="round-plan-footer">${btn('peek','Spielfeld ansehen')}${btn('skip','Ohne Absprache würfeln')}</div>`;
     if(dialog.open){
       const target=dialog.querySelector(focusAction?`[data-plan-action="${focusAction}"]`:d.mode==='own'?'select':d.mode==='summary'?'[data-plan-action="confirm"]':'[data-plan-action="yes"]');
       target?.focus({preventScroll:true});
@@ -79,12 +82,12 @@ window.RoundPlanning = (() => {
   function show(proposal,saved,callbacks) {
     mount();
     const key=`${proposal.public_state.szenario_id}:${proposal.round}`;
-    if(current?.key===key&&!current.inspect&&dialog.open){current.callbacks=callbacks;return;}
-    current={key,proposal:copy(proposal),draft:draftFor(proposal,saved),callbacks};submitting=false;render();
+    if(current?.key===key&&!current.inspect&&(dialog.open||peeking)){current.callbacks=callbacks;return;}
+    peeking=false;returnButton.hidden=true;current={key,proposal:copy(proposal),draft:draftFor(proposal,saved),callbacks};submitting=false;render();
     if(!dialog.open)dialog.showModal();
   }
-  function close(){if(dialog?.open)dialog.close();current=null;submitting=false;}
-  function inspect(entry){if(!entry?.plan)return;mount();current={inspect:true,entry:copy(entry)};render();if(!dialog.open)dialog.showModal();}
+  function close(){if(dialog?.open)dialog.close();if(returnButton)returnButton.hidden=true;current=null;submitting=false;peeking=false;}
+  function inspect(entry){if(!entry?.plan)return;mount();peeking=false;returnButton.hidden=true;current={inspect:true,entry:copy(entry)};render();if(!dialog.open)dialog.showModal();}
   function outcome(entry,state){
     const start=entry.proposal.public_state;
     const sum=values=>(values||[]).reduce((n,v)=>n+Number(v),0);

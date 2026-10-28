@@ -23,3 +23,23 @@ const end={...start,runde:3,status:'laeuft',entfernung:3,fahrwerk_ausgefahren:[t
 const entry={round:2,plan:{movement_preference:1,focus:'tasks'},proposal:{public_state:start}};
 const outcome=ui.window.RoundPlanning.outcome(entry,end);assert.equal(outcome.tasks_completed,2);assert.equal(outcome.planes_removed,2);assert.equal(outcome.movement,1);assert.equal(outcome.fuel_spent,null);assert(!Object.hasOwn(outcome.public_after,'pilot_wuerfel'));
 assert(ui.window.RoundPlanning.result(entry,end).includes('2 Aufgaben an Fahrwerk & Klappen'));
+// Exercise the actual dialog handlers: a renderer update while peeking must
+// neither reopen the popup nor discard the partially agreed round plan.
+class PeekElement {
+ constructor(tag){this.tag=tag;this.open=false;this.hidden=false;this.handlers={};this.children=[];}
+ setAttribute(){} addEventListener(k,fn){this.handlers[k]=fn;} appendChild(el){this.children.push(el);return el;}
+ showModal(){this.open=true;} close(){this.open=false;} focus(){} contains(){return false;}
+ querySelector(){return {focus(){}};}
+}
+const peekBody=new PeekElement('body'),peekUI={window:{},console,document:{body:peekBody,createElement:tag=>new PeekElement(tag)}};
+vm.createContext(peekUI);vm.runInContext(fs.readFileSync('frontend/web/js/round-planning.js','utf8'),peekUI);
+let savedDraft;const pp={...p,public_state:{szenario_id:'YUL'}};const callbacks={onChange:d=>savedDraft=d};
+peekUI.window.RoundPlanning.show(pp,null,callbacks);
+const back=peekBody.children.find(e=>e.tag==='button'),dialog=peekBody.children.find(e=>e.tag==='dialog');
+const action=a=>dialog.handlers.click({target:{closest:()=>({dataset:{planAction:a}})}});
+action('yes');assert.equal(savedDraft.index,1);action('peek');assert(!dialog.open);assert(!back.hidden);
+for(let i=0;i<100;i++)peekUI.window.RoundPlanning.show(pp,savedDraft,callbacks);
+assert(!dialog.open,'Inspecting the board must survive unrelated renders');
+back.handlers.click();assert(dialog.open);assert(back.hidden);assert(dialog.innerHTML.includes('Vorschlag 2 von 3'));
+peekUI.window.RoundPlanning.close();assert(!dialog.open&&back.hidden);
+console.log('✓ Round-plan peek/return keeps agreements and remains closed across 100 background renders.');

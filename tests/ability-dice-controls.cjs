@@ -4,12 +4,12 @@ class El {
  constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.open=false;this.attrs={};}
  appendChild(x){this.children.push(x);return x;} setAttribute(k,v){this.attrs[k]=v;}
  addEventListener(k,fn){this[k]=fn;} showModal(){this.open=true;} close(){this.open=false;}
- contains(){return false;} querySelectorAll(){return [];}
+ focus(){} contains(){return false;} querySelectorAll(){return [];}
  set innerHTML(v){this.html=v;this.children=[];} get innerHTML(){return this.html;}
 }
 const actions=[],document={activeElement:null,body:new El('body'),createElement:t=>new El(t)};
 const z={status:'laeuft',phase:'platzieren',am_zug:'pilot',voraussicht_verfuegbar:true,anpassung_verfuegbar:{pilot:true,kopilot:true},kooperation_verfuegbar:true,pilot_wuerfel:[1,2,5,6],kopilot_wuerfel:[2,3,4,5],pilot_wuerfel_frei:[true,true,false,true],kopilot_wuerfel_frei:[true,true,true,true]};
-const box={document,current:{z,options:{role:'pilot',conceal(){}}},choice:null,revealed:null,pickerDialog:null,
+const box={document,clearBoardPeek(){},peekBoard(){},boardPeek:null,current:{z,options:{role:'pilot',conceal(){}}},choice:null,revealed:null,pickerDialog:null,
  name:r=>r,allowed:r=>!box.current.options.role||box.current.options.role===r,closeDetail(){},act:(...a)=>actions.push(a),
  button(parent,label,cb,disabled=false,cls=''){const b=new El('button');Object.assign(b,{textContent:label,click:cb,disabled,className:cls});parent.appendChild(b);return b;}};
 vm.createContext(box);vm.runInContext(source.slice(source.indexOf('  function abilityAvailable('),source.indexOf('  function render(z, options)')),box);
@@ -36,3 +36,13 @@ z.felder={ruder:{pilot:{wert:4},kopilot:{wert:4}},triebwerk:{pilot:{wert:3},kopi
 assert.equal(box.cardState('control',z),'✓ Gleiche Würfel');assert.equal(box.cardState('mastery',z),'Werte verschieden');
 z.felder.ruder.kopilot=null;assert.equal(box.cardState('control',z),'Ruder gleich → ☕');assert.equal(box.cardState('synchronisation',z),'Automatisch');
 console.log('✓ Passive card progress uses public placed dice; no claim of a reward when the resource pool is full.');
+
+box.boardReturn=null;box.boardPeek=null;box.render=(z,o)=>box.renderPicker(z,o);box.tradeUi={revealed:null};
+vm.runInContext(source.slice(source.indexOf('  function clearBoardPeek('),source.indexOf('  let current =')),box);
+z.voraussicht_verfuegbar=true;box.current.options.role='pilot';box.openPicker('pilot','anticipation');box.renderPicker(z,box.current.options);
+buttons().find(b=>b.dataset.focus==='die-1').click();box.peekBoard('picker',box.pickerDialog);
+assert(!box.pickerDialog.open&&!box.boardReturn.hidden);assert.equal(box.choice.index,1);
+box.renderPicker(z,box.current.options);assert(!box.pickerDialog.open);
+box.boardReturn.click();assert(box.pickerDialog.open&&box.boardReturn.hidden);assert.equal(box.choice.index,1);
+box.closePicker();assert(box.boardReturn.hidden);
+console.log('✓ Ability board peek preserves the selected die and returns to the same selection.');

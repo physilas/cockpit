@@ -60,3 +60,12 @@ Browserprüfung auf 393 × 724: Keflavík Heroisch mit Voraussicht/Anpassung, zu
 Automatisiert: `tests/ability-dice-controls.cjs` prüft Einzelwahl, Abbruch ohne Engine-Aktion, Rollen- und Sichtschutz, Drehvorschau und blockierte Nebenaktionen. `tests/round-planning-controls.cjs` prüft 100 Platzierungsrenders ohne erneutes Einpassen und die lesbare Mindesthöhe.
 
 ![Kompakte Voraussicht](pruefbilder/faehigkeitswuerfel-live-2026-10-28.jpg)
+
+
+## Spielfeld aus Dialogen ansehen
+
+Rundenabsprache, Fähigkeitsauswahl, Kartendetails und Zusammenarbeit bieten jetzt „Spielfeld ansehen“; Synchronisation und gemeinsamer Neuwurf hatten diese Funktion bereits. Ein Rückkehrknopf im selben Stil wie beim Neuwurf öffnet den bisherigen Dialog wieder. Die Rundenabsprache behält Zustimmungen und die Würfelauswahl behält den ausgewählten Index. In Pass & Play wird die Hand beim Blick aufs Brett erneut verdeckt. Voraussicht verwendet exakt dieselbe CSS-Auswahlmarkierung wie der normale Neuwurf.
+
+Im echten Telefon-Browser geprüft: Voraussicht-Würfel 2 ausgewählt, Spielfeld angesehen, zurückgekehrt und weiterhin Würfel 2 ausgewählt; Kartendetails mit Rückkehr; nach dem ersten bestätigten Rundenvorschlag das Spielfeld angesehen und anschließend bei Vorschlag 2 weitergemacht. Die automatisierten Steuerungsprüfungen decken auch 100 Hintergrundrenders während der Spielfeldansicht ab.
+
+![Voraussicht mit normaler Neuwurf-Markierung](pruefbilder/voraussicht-neuwurf-markierung-2026-10-28.jpg)

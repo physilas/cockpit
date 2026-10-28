@@ -1,6 +1,22 @@
 /* Shared cockpit instruments. The Python snapshot remains the source of rules. */
 window.FlightModules = (() => {
-  let pickerDialog = null;
+  let pickerDialog = null, boardPeek = null, boardReturn = null;
+  function clearBoardPeek(kind) {
+    if (!kind || boardPeek===kind) {boardPeek=null;if(boardReturn)boardReturn.hidden=true;}
+  }
+  function peekBoard(kind, dialog) {
+    boardPeek=kind;
+    if (kind==='trade') tradeUi.revealed=null;
+    if (kind==='picker'&&!current.options.role) revealed=null;
+    dialog.close();
+    if (!boardReturn) {
+      boardReturn=document.createElement('button');boardReturn.id='ability-board-return';boardReturn.type='button';document.body.appendChild(boardReturn);
+      boardReturn.addEventListener('click',()=>{const kind=boardPeek;clearBoardPeek();if(!current)return;if(kind==='detail')openDetail(detail);else render(current.z,current.options);});
+    }
+    boardReturn.textContent=kind==='trade'?'Zurück zum Würfeltausch':kind==='picker'?'Zurück zur Würfelauswahl':'Zurück zur Fähigkeitskarte';
+    boardReturn.hidden=false;boardReturn.focus({preventScroll:true});
+  }
+
   let current = null, choice = null, revealed = null, context = '', detail = null, timerAnchor = null;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const name = role => role === 'pilot' ? 'Pilotin' : 'Co-Pilot';
@@ -12,6 +28,7 @@ window.FlightModules = (() => {
 
   const tradeUi = {dialog:null,key:null,revealed:null,closed:new Set()};
   function resetTrade() {
+    clearBoardPeek('trade');
     if (tradeUi.dialog?.open) tradeUi.dialog.close();
     tradeUi.key = tradeUi.revealed = null; tradeUi.closed.clear();
   }
@@ -19,7 +36,7 @@ window.FlightModules = (() => {
     const k = z.kooperation, result = k ? null : z.kooperation_ergebnis;
     const key = `${z.szenario_id}:${z.runde}:${(k || result)?.id}:${z.rueckgaengig_id || 0}`;
     if ((!k && !result) || z.status !== 'laeuft' || z.zusatzaktion || (result && tradeUi.closed.has(key))) {
-      if (tradeUi.dialog?.open) tradeUi.dialog.close();
+      if (tradeUi.dialog?.open) tradeUi.dialog.close();clearBoardPeek('trade');
       return;
     }
     if (tradeUi.key !== key) {tradeUi.key = key; tradeUi.revealed = null; closeDetail();}
@@ -35,7 +52,7 @@ window.FlightModules = (() => {
       });
       document.body.appendChild(d); tradeUi.dialog = d;
     }
-    if (result && d.dataset.phase === 'result' && d.dataset.resultKey === key) return;
+    if (result && d.dataset.phase === 'result' && d.dataset.resultKey === key) {if(!d.open&&boardPeek!=='trade')d.showModal();return;}
     const focused = d.contains(document.activeElement) ? document.activeElement.dataset.focus : null;
     d.dataset.phase = result ? 'result' : 'choice'; d.dataset.resultKey = result ? key : '';
     d.replaceChildren();
@@ -93,7 +110,8 @@ window.FlightModules = (() => {
       button(d,'Abbrechen', () => act(options.role || k.wartet_auf,'kooperation_abbrechen',{kooperation_id:k.id}),false,'trade-cancel');
     }
     if (z.rueckgaengig_moeglich) button(d,'↶ Rückgängig', () => document.dispatchEvent(new Event('cockpit-undo')),false,'trade-undo');
-    if (!d.open) d.showModal();
+    button(d,'Spielfeld ansehen',()=>peekBoard('trade',d),false,'trade-peek neuwurf-ansehen');
+    if (!d.open&&boardPeek!=='trade') d.showModal();
     if (focused) [...d.querySelectorAll('[data-focus]')].find(b => b.dataset.focus === focused && !b.disabled)?.focus({preventScroll:true});
   }
 
@@ -363,17 +381,17 @@ window.FlightModules = (() => {
     if (!d) {
       d = document.createElement('dialog'); d.id = 'module-detail';
       d.setAttribute('aria-labelledby','module-detail-title'); document.body.appendChild(d);
-      d.addEventListener('close', () => { detail = null; });
+      d.addEventListener('close', () => {if(boardPeek!=='detail')detail = null;});
       d.addEventListener('click', e => { if (e.target === d) closeDetail(); });
     }
     return d;
   }
   function closeDetail() {
-    detail = null;
+    clearBoardPeek('detail');detail = null;
     const d = document.getElementById('module-detail'); if (d?.open) d.close();
   }
   function openDetail(type) {
-    detail = type; renderDetail(); const d = detailDialog(); if (!d.open) d.showModal();
+    clearBoardPeek('detail');detail = type; renderDetail(); const d = detailDialog(); if (!d.open) d.showModal();
   }
   function renderDetail() {
     if (!detail || !current) return;
@@ -417,6 +435,7 @@ window.FlightModules = (() => {
         });
       } else para('Diese Fähigkeit wird automatisch ausgelöst.');
     }
+    button(body,'Spielfeld ansehen',()=>peekBoard('detail',d),false,'ability-peek neuwurf-ansehen');
     if (focused) [...d.querySelectorAll('[data-focus]')].find(b => b.dataset.focus === focused)?.focus();
   }
 
@@ -431,7 +450,7 @@ window.FlightModules = (() => {
     closeDetail(); current.options.conceal();
   }
   function closePicker() {
-    choice = revealed = null;
+    clearBoardPeek('picker');choice = revealed = null;
     if (pickerDialog?.open) pickerDialog.close();
   }
   function renderAbilityTools(z, options) {
@@ -482,7 +501,8 @@ window.FlightModules = (() => {
     if (isFlip && !chosen) apply.textContent='Würfel behalten';
     if (chosen) button(d,isFlip ? 'Würfel behalten' : 'Nicht neu würfeln',closePicker,false,'ability-dice-cancel');
     const note = document.createElement('p');note.className='ability-dice-note';note.textContent='Ohne Auswahl bleibt die Fähigkeit verfügbar.';d.appendChild(note);
-    if (!d.open) d.showModal();
+    button(d,'Spielfeld ansehen',()=>peekBoard('picker',d),false,'ability-peek neuwurf-ansehen');
+    if (!d.open&&boardPeek!=='picker') d.showModal();
     if (focus) [...d.querySelectorAll('[data-focus]')].find(b => b.dataset.focus===focus && !b.disabled)?.focus({preventScroll:true});
   }
   function render(z, options) {
@@ -510,5 +530,5 @@ window.FlightModules = (() => {
     el.classList.toggle('urgent', Boolean(z.timer_deadline_ms) && seconds <= 10);
   }
   setInterval(() => {updateTimer(); if (current?.z.timer_deadline_ms && current.z.status === 'laeuft') current.options.onTick?.();}, 200);
-  return {render, renderBrakes, rerollHTML, identifyField, reset() {resetTrade(); resetSync(); clearBonusTargets(); closeDetail(); closePicker(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
+  return {render, renderBrakes, rerollHTML, identifyField, reset() {clearBoardPeek(); resetTrade(); resetSync(); clearBonusTargets(); closeDetail(); closePicker(); choice = revealed = null; context = ''; current = timerAnchor = null;}};
 })();
