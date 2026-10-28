@@ -69,3 +69,14 @@ Rundenabsprache, Fähigkeitsauswahl, Kartendetails und Zusammenarbeit bieten jet
 Im echten Telefon-Browser geprüft: Voraussicht-Würfel 2 ausgewählt, Spielfeld angesehen, zurückgekehrt und weiterhin Würfel 2 ausgewählt; Kartendetails mit Rückkehr; nach dem ersten bestätigten Rundenvorschlag das Spielfeld angesehen und anschließend bei Vorschlag 2 weitergemacht. Die automatisierten Steuerungsprüfungen decken auch 100 Hintergrundrenders während der Spielfeldansicht ab.
 
 ![Voraussicht mit normaler Neuwurf-Markierung](pruefbilder/voraussicht-neuwurf-markierung-2026-10-28.jpg)
+
+Zusätzlich nativ geprüft: Zusammenarbeit auf Prag mit getrennt aufgedeckten Händen, beidseitiger Bestätigung und tatsächlichem Tausch 6 ↔ 3. „Spielfeld ansehen“ und die Rückkehr funktionieren sowohl bei der noch offenen Auswahl als auch beim anschließend zwischengespeicherten Tauschergebnis.
+
+
+## Beste KI · 29.10.2026
+
+Die Standardauswahl „Beste KI“ wählt für die genaue Strecke und das Kartenset die höchste vorhandene Testquote aus den sechs verfügbaren Crews. Bei Gleichstand: größere Stichprobe, bestätigter Status, jüngere Crew. Die konkrete Crew, Kartensetkennung und ursprünglichen Zähler werden mit der Partie gespeichert. Fortsetzen lädt dieselbe Crew; ein Neustart darf anhand des aktuellen Katalogs neu auswählen. Das virtuelle Angebot benötigt keine zusätzlichen Modellgewichte und ist im Offline-Paket enthalten.
+
+Die Spannen der Strecken- und Kartenansicht werden aus den jeweiligen Gewinnern gebildet. Bei vollständigem Kartenset steht die exakte Quote der ausgewählten Crew. Das sind Entwicklungsergebnisse ohne Rundenabsprache, keine unabhängig bestätigte Siegchance mit menschlichen Partnern.
+
+Prüfung: alle 186 sichtbaren Fälle in beiden KI-Modi, höchste exakte Quote und korrekte Zähler; alle sechs Crews werden je nach Fall gewählt. Im echten Browser: Standardauswahl, 21 Strecken, Rio/Meisterschaft → Crew 6 mit 2/5, Rio/Anpassung → Crew 5 mit 2/10, echter erster KI-Zug und Fortsetzen nach Service-Worker-Update. Prüfbild: [Beste KI](pruefbilder/beste-ki-2026-10-29.jpg). Offline-Inventar und Integritätsprüfung bestanden (30,64 MB). Vollständige Python-Suite: 700 Tests bestanden.

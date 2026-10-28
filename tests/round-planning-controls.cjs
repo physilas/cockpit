@@ -43,3 +43,32 @@ assert(!dialog.open,'Inspecting the board must survive unrelated renders');
 back.handlers.click();assert(dialog.open);assert(back.hidden);assert(dialog.innerHTML.includes('Vorschlag 2 von 3'));
 peekUI.window.RoundPlanning.close();assert(!dialog.open&&back.hidden);
 console.log('✓ Round-plan peek/return keeps agreements and remains closed across 100 background renders.');
+
+// Ranked AI alternatives exclude impossible goals. Exhaustion asks for a human
+// plan rather than repeating a rejected strategy or inventing a bad fallback.
+const ranked={...pp,round:3,goals:pp.goals.map(g=>({...g}))};
+ranked.goals[0]={...ranked.goals[0],selected:2,ai_suggestions:[2]};
+peekUI.window.RoundPlanning.show(ranked,null,callbacks);action('no');
+assert.equal(savedDraft.mode,'own');assert.equal(savedDraft.values.movement_preference,2);
+assert.equal(savedDraft.rejected.at(-1).value,2);peekUI.window.RoundPlanning.close();
+ranked.round=4;ranked.goals[0]={...ranked.goals[0],selected:1,ai_suggestions:[1,2]};
+peekUI.window.RoundPlanning.show(ranked,null,callbacks);action('no');
+assert.equal(savedDraft.values.movement_preference,2);assert.equal(savedDraft.mode,'dialog');
+action('no');assert.equal(savedDraft.mode,'own');assert.equal(savedDraft.values.movement_preference,2);
+peekUI.window.RoundPlanning.close();
+console.log('✓ Thumbs down follows ranked feasible goals, preserves own choices and never repeats rejected alternatives.');
+
+const flexible={...p,plan_version:2,goals:p.goals.map(g=>({...g,selected:null,options:[...g.options,{value:null,label:'Situativ'}]}))};
+const flexibleDraft=ui.window.RoundPlanning.draftFor(flexible,null);
+assert.equal(ui.window.RoundPlanning.plan(flexible,flexibleDraft).version,2);
+assert.equal(ui.window.RoundPlanning.plan(flexible,flexibleDraft).movement_preference,null);
+const flexibleResult=ui.window.RoundPlanning.result({...entry,plan:{movement_preference:null,focus:null}},end);
+assert(flexibleResult.includes('(flexibel)'));assert(!flexibleResult.includes('null'));
+console.log('✓ Flexible strategy goals keep version2 and display human-readable round results.');
+
+const stationary={...pp,round:5,plan_version:2,goals:pp.goals.map(g=>({...g}))};
+stationary.goals[0]={key:'movement_preference',selected:null,ai_suggestions:[null,0],options:[{value:0},{value:null}]};
+peekUI.window.RoundPlanning.show(stationary,null,callbacks);action('no');
+assert.equal(savedDraft.mode,'own');assert.equal(savedDraft.values.movement_preference,null);
+peekUI.window.RoundPlanning.close();
+console.log('✓ At a fixed position, rejection never offers the equivalent automatic/zero-distance goal again.');

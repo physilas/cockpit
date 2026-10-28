@@ -1,0 +1,58 @@
+"""Public-only, pre-roll round-policy features and portable tiny-network inference.
+
+No Torch, hidden dice, airport identity, RNG state or future outcomes are inputs.
+The learned policy selects goals; the existing fair hand planner executes them.
+"""
+import math
+from .briefing import proposals
+
+HEADS = (('movement_preference',(0,1,2)),('focus',('radio','tasks','coffee','fuel')),
+         ('coordination',('level','brakes','synchronisation','wind')))
+MODULES=('kerosene','leak','wind','ice','intern','realtime')
+CARDS=('working-together','synchronisation','mastery','control','anticipation','adaptation')
+FEATURES=('distance','height','attitude','coffee','fuel','fuel_present','rerolls','wind_position','wind_value',
+          'ice','intern','blue','orange','holding','last_round','pace','traffic_total') + tuple('module.'+m for m in MODULES) + tuple('card.'+c for c in CARDS) + tuple(f'{kind}.{i}' for kind,n in [('gear',3),('flaps',4),('brakes',3)] for i in range(n)) + tuple(f'next.{i}.{kind}' for i in range(7) for kind in ('planes','traffic','min','max'))
+OFFSETS=(0,3,7,11)
+
+
+def encode(state):
+    fuel=state.get('kerosin');distance=state['entfernung'];height=state['hoehe']
+    out=[distance/12,height/7000,state['fluglage']/3,state['kaffeetassen']/3,(fuel or 0)/20,float(fuel is not None),
+         state.get('neuwurf_plaettchen',0)/3,state.get('wind_position',0)/20,state.get('wind_wert',0)/3,
+         state.get('eis_fortschritt',0)/4,len(state.get('praktikant',[]))/6,
+         state.get('aerodynamik_blau',4.5)/12,state.get('aerodynamik_orange',8.5)/12,
+         float(state['warteschleife']),float(state['letzte_runde']),distance/max(1,height/1000)/2,sum(state['flugzeuge'])/12]
+    out += [float(m in state['module']) for m in MODULES]+[float(c in state['faehigkeitskarten']) for c in CARDS]
+    out += [float(v) for key in ('fahrwerk_ausgefahren','landeklappen_ausgefahren','bremsen_aktiviert') for v in state[key]]
+    for ahead in range(7):
+        index=state['laenge']-1-distance+ahead
+        def at(key,default):
+            values=state.get(key,[]);return values[index] if 0<=index<len(values) else default
+        out += [at('flugzeuge',0)/4,at('flugzeugwuerfel',0)/2,at('kurven_min',-2)/2,at('kurven_max',2)/2]
+    if len(out)!=len(FEATURES) or not all(math.isfinite(v) for v in out):raise ValueError('Invalid public round features.')
+    return [max(-5.,min(5.,v)) for v in out]
+
+
+def inputs(state):
+    proposal=proposals(state);mask=[];prior=[]
+    for goal,(_,values) in zip(proposal['goals'],HEADS):
+        mask += [any(type(v) is type(o['value']) and v==o['value'] for o in goal['options']) for v in values]
+        prior += [1. if v==goal['selected'] else 0. for v in values]
+    return encode(state),mask,prior
+
+
+def logits(features,weights):
+    if weights['format']!=1 or weights['features']!=list(FEATURES):raise ValueError('Incompatible round policy.')
+    hidden=[math.tanh(sum(a*b for a,b in zip(row,features))+bias) for row,bias in zip(weights['hidden_weight'],weights['hidden_bias'])]
+    return [sum(a*b for a,b in zip(row,hidden))+bias for row,bias in zip(weights['actor_weight'],weights['actor_bias'])]
+
+
+def choose(state,weights=None):
+    features,mask,prior=inputs(state)
+    residual=logits(features,weights) if weights is not None else [0.]*11
+    result={'version':1,'round':state['runde']}
+    for head,(key,values) in enumerate(HEADS):
+        start=OFFSETS[head]
+        selected=max((i for i in range(len(values)) if mask[start+i]),key=lambda i:prior[start+i]+residual[start+i])
+        result[key]=values[selected]
+    return result

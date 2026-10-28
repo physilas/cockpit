@@ -1,0 +1,5 @@
+{
+  "reason": "Reference planner mask was not intersected with the newly restricted opening baseline mask; native Torch inference correctly rejected it. Partial results remain incomplete and are not qualification evidence.",
+  "fix": "Intersect reference mask with feasible baseline; fall back to baseline if no reference remains. Add regression assertion and fail-fast job diagnostics.",
+  "time": 1793226197.6846159
+}

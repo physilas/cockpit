@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "cohort": "training:public-round-policy-v2:20261028",
+  "episodes_planned": 126,
+  "routes": 21,
+  "seed": 282026,
+  "batch_games": 21,
+  "epochs_per_batch": 6,
+  "hidden_units": 48,
+  "public_features": 67,
+  "goal_logits": 11,
+  "optimizer": "Adam",
+  "learning_rate": 0.002,
+  "clip": 0.2,
+  "reward": "terminal landing +1, loss -1; no round or task rewards",
+  "training_clock": "frozen, no claims about real-time performance",
+  "future_evaluation_clock": "actual engine wall clock",
+  "human_feedback_used": false,
+  "source_sha256": {
+    "ai/round_strategy.py": "08acac242ae08c021d749c65d43d517e89186475203a871249120ff7913a4a4b",
+    "ai/round_strategy_training.py": "91ae19c0cbe4c392beaa25c06af56d9ed41be7cf7a3c50dca5d30ef22dfcbc61",
+    "ai/briefing.py": "8b7cb77b62dcf5d6b45658fd1391567fc209be3dbbba327103322fb2c07daf20",
+    "ai/briefing_browser.py": "ca7738ff611e4072fc21482b356f8624b87c897267afd21cdc208d76815068f9",
+    "ai/briefing_planner.py": "8a3153cb308b35029ec5d862a6ab1096e935db2fb1ab7f0ed1b8920e69680ff5",
+    "play_options.py": "8a8ab5aeb06e38ac9fadefde1e4b8741c1d413f58fbe125021aad01d8d249060"
+  },
+  "sources": [
+    "https://www.sciencedirect.com/science/article/pii/S0004370299000521",
+    "https://people.eecs.berkeley.edu/~russell/papers/icml99-shaping.pdf"
+  ],
+  "qualification_rule": "Frozen candidate on disjoint seeds versus default briefing and autonomous Crew6. At least 3 more wins than default; at least autonomous wins; no avoidable immediate losses or truncations. No tuning on confirmation outcomes.",
+  "exploration": "one goal in one round per game, paired with a same-seed greedy control; actor advantages are the terminal win difference; deterministic actions are critic-only",
+  "workers": 2,
+  "actual_training_games_planned": 252
+}

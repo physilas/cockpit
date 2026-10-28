@@ -12,7 +12,7 @@ window.RoundPlanning = (() => {
       rejected:compatible&&Array.isArray(saved.rejected)?saved.rejected.slice(-24):[]};
   }
   const choice=(goal,draft)=>goal.options.find(o=>o.value===draft.values[goal.key]);
-  const plan=(proposal,draft)=>({version:1,round:proposal.round,...draft.values});
+  const plan=(proposal,draft)=>({version:proposal.plan_version||1,round:proposal.round,...draft.values});
   function mount() {
     if(dialog)return;
     returnButton=document.createElement('button');returnButton.id='round-plan-return';returnButton.type='button';returnButton.hidden=true;
@@ -35,7 +35,13 @@ window.RoundPlanning = (() => {
       if(action==='yes'){d.accepted[d.index]=true;if(d.index===2)d.mode='summary';else d.index++;}
       if(action==='no'){
         d.rejected.push({key:g.key,value:d.values[g.key]});d.rejected=d.rejected.slice(-24);
-        const i=g.options.findIndex(o=>o.value===d.values[g.key]);d.values[g.key]=g.options[(i+1)%g.options.length].value;d.accepted[d.index]=false;
+        let suggestions=Array.isArray(g.ai_suggestions)?g.ai_suggestions.filter(value=>g.options.some(o=>o.value===value)):g.options.map(o=>o.value);
+        if(g.key==='movement_preference'&&g.options.some(o=>o.value===null)&&g.options.filter(o=>o.value!==null).length===1){
+          suggestions=suggestions.filter(value=>value===d.values[g.key]);
+        }
+        const next=suggestions.find(value=>!d.rejected.some(row=>row.key===g.key&&row.value===value));
+        if(next===undefined)d.mode='own';else d.values[g.key]=next;
+        d.accepted[d.index]=false;
       }
       if(action==='back'){d.index=Math.max(0,d.index-1);d.mode='dialog';}
       if(action==='own')d.mode='own';
@@ -103,7 +109,7 @@ window.RoundPlanning = (() => {
   function result(entry,state){
     const o=outcome(entry,state),focus=entry.plan?.focus;
     const detail=focus==='tasks'?`${o.tasks_completed} Aufgaben an Fahrwerk & Klappen`:focus==='radio'?`${o.planes_removed} Flugzeuge entfernt`:focus==='coffee'?`Kaffee ${o.coffee_change>=0?'+':''}${o.coffee_change}`:focus==='fuel'?`${o.fuel_spent} Kerosin verbraucht`:'';
-    return `Runde ${entry.round}: ${o.movement} ${o.movement===1?'Feld':'Felder'} weiter${entry.plan?` (Ziel ${entry.plan.movement_preference})`:''}${detail?` · ${detail}`:''}.`;
+    return `Runde ${entry.round}: ${o.movement} ${o.movement===1?'Feld':'Felder'} weiter${entry.plan?(entry.plan.movement_preference==null?' (flexibel)':` (Ziel ${entry.plan.movement_preference})`):''}${detail?` · ${detail}`:''}.`;
   }
   return {show,close,inspect,draftFor,plan,result,outcome};
 })();

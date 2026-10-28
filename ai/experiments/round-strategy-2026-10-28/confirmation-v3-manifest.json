@@ -1,0 +1,4774 @@
+{
+  "format": 1,
+  "legacy_profile15_sha256": "28cd015ce89acd78fc6a6a73c45942290b978be795931a2cec77da57fb748f53",
+  "briefing_executor_sha256": "8f705fcf350ff4927c00318687a825c3d63f3420f07ec0a4ce359721e5495718",
+  "cohort": "confirmation:public-round-v3-selected:20261028",
+  "weights": "ai/experiments/round-strategy-2026-10-28/training-v3-0084-weights.json",
+  "weights_sha256": "71e13648dcb9566e5293be24e7a19cfbdb8b214d925c6f6c0db6d081bf14fb13",
+  "checkpoint": "ai/releases/crew6-abilities-2026-10-28-v1/best.pt",
+  "checkpoint_sha256": "3821cdd96012adfe8e7f24b818c9d0244554a4156ff90002d03d4ff7c79993a8",
+  "sources": {
+    "ai/round_strategy.py": "f8cc3ea692d60f99546ad93c981e12c84f3abe90e87e99867b19fd08d62906d0",
+    "ai/round_strategy_training.py": "99aaef56b5449b1dd85b2501078bd3082534c5cd519f21b78d8bd9af0ef1ebff",
+    "ai/round_strategy_evaluate.py": "c26a5e5da7981e9dbfec034a5cb4916012b63b74b7f0d3ea4b7f8c0cc2a8ae44",
+    "ai/round_strategy_publish.py": "d47bdd4858b3c7d20b3201a70ead0c2d4d1dfddbd79067e669409a8ea48b344e",
+    "ai/round_strategy_browser.py": "b5b77bc7ac17d3c1dcb86fab5e1abd818525763f563c97f1a2b4e72e9855857a",
+    "ai/briefing.py": "8b7cb77b62dcf5d6b45658fd1391567fc209be3dbbba327103322fb2c07daf20",
+    "ai/briefing_browser.py": "ca7738ff611e4072fc21482b356f8624b87c897267afd21cdc208d76815068f9",
+    "ai/briefing_planner.py": "8a3153cb308b35029ec5d862a6ab1096e935db2fb1ab7f0ed1b8920e69680ff5",
+    "play_options.py": "8a8ab5aeb06e38ac9fadefde1e4b8741c1d413f58fbe125021aad01d8d249060"
+  },
+  "clock": "native engine wall time; thermal pauses remain part of elapsed time",
+  "per_route": 5,
+  "routes": [
+    "LOG_ATL_GREEN",
+    "LOG_ATL_YELLOW",
+    "LOG_GIG_RED",
+    "LOG_GIG_YELLOW",
+    "LOG_HND_GREEN",
+    "LOG_HND_RED",
+    "LOG_KEF_BLACK",
+    "LOG_KEF_YELLOW",
+    "LOG_KUL_BLACK",
+    "LOG_KUL_YELLOW",
+    "LOG_LHR_GREEN",
+    "LOG_LHR_YELLOW",
+    "LOG_OSL_GREEN",
+    "LOG_OSL_RED",
+    "LOG_PBH_BLACK",
+    "LOG_PBH_RED",
+    "LOG_PRG_GREEN",
+    "LOG_PRG_YELLOW",
+    "LOG_TGU_RED",
+    "LOG_TGU_YELLOW",
+    "LOG_YUL_GREEN"
+  ],
+  "jobs": [
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|mastery:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|mastery:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|adaptation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|control:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|control:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|anticipation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|control:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|control:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|anticipation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|adaptation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|mastery:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|control:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|mastery:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|control:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|adaptation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|adaptation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|control:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|anticipation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|anticipation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|mastery:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|anticipation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|adaptation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|mastery:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|anticipation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|adaptation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|anticipation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|adaptation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|anticipation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|adaptation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|anticipation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|mastery:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|adaptation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|control:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|control:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|anticipation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|control:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|adaptation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|anticipation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|anticipation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|control:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|mastery:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|synchronisation,working-together:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|adaptation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|adaptation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|anticipation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_YELLOW",
+        "modules": [
+          "ice"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_YELLOW|synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|synchronisation,working-together:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|anticipation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|control,synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|mastery:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|mastery,synchronisation:3",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|control:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|mastery:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|mastery:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_YELLOW|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|adaptation,synchronisation:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_RED",
+        "modules": [
+          "ice",
+          "leak"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_RED|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:4",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|adaptation,synchronisation:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "synchronisation",
+          "working-together"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|synchronisation,working-together:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_BLACK|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|mastery:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KEF_BLACK",
+        "modules": [
+          "ice",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KEF_BLACK|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|mastery:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|control:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_BLACK",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_BLACK|anticipation,synchronisation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|adaptation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|adaptation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|anticipation,synchronisation:2",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_RED",
+        "modules": [
+          "leak",
+          "wind"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_RED|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_GREEN|:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|synchronisation:0",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:4",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_YELLOW",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_YELLOW|:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|adaptation:2",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|control:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_GIG_YELLOW",
+        "modules": [
+          "wind"
+        ],
+        "abilities": [
+          "control"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_GIG_YELLOW|control:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_HND_RED",
+        "modules": [
+          "intern",
+          "kerosene"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_HND_RED|synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|mastery,synchronisation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|mastery:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_KUL_YELLOW",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_KUL_YELLOW|anticipation:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_YUL_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_YUL_GREEN|:1",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "mastery"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|mastery:4",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:3",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "adaptation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|adaptation,synchronisation:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_OSL_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_OSL_GREEN|:1",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_YELLOW|synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|control,synchronisation:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_GREEN",
+        "modules": [
+          "kerosene"
+        ],
+        "abilities": [
+          "anticipation",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_GREEN|anticipation,synchronisation:2",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_LHR_GREEN",
+        "modules": [],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_LHR_GREEN|:1",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:0",
+      "mode": "autonomous"
+    },
+    {
+      "case": {
+        "airport": "LOG_PBH_RED",
+        "modules": [
+          "kerosene",
+          "realtime"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PBH_RED|mastery,synchronisation:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_PRG_YELLOW",
+        "modules": [
+          "leak"
+        ],
+        "abilities": [
+          "control",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_PRG_YELLOW|control,synchronisation:0",
+      "mode": "learned"
+    },
+    {
+      "case": {
+        "airport": "LOG_ATL_GREEN",
+        "modules": [
+          "intern"
+        ],
+        "abilities": [],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_ATL_GREEN|:3",
+      "mode": "default"
+    },
+    {
+      "case": {
+        "airport": "LOG_TGU_RED",
+        "modules": [
+          "kerosene",
+          "wind"
+        ],
+        "abilities": [
+          "mastery",
+          "synchronisation"
+        ],
+        "minimum_win_rate": 0.3,
+        "case_scope": "official_matrix"
+      },
+      "seed": "confirmation:public-round-v3-selected:20261028:LOG_TGU_RED|mastery,synchronisation:3",
+      "mode": "learned"
+    }
+  ],
+  "rule": "At least 3 net wins over fixed briefing, paired one-sided binomial p<=0.1, no fewer wins than autonomous Crew6; no audited immediate loss or truncation; no lower wind/synchronisation win count than either control. No tuning on confirmation outcomes."
+}

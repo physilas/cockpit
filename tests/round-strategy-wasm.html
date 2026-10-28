@@ -1,0 +1,66 @@
+<!doctype html><meta charset="utf-8"><title>Strategienetz · Browserprüfung</title>
+<style>body{font:16px system-ui;max-width:750px;padding:24px;margin:auto;color:#193d45}button{padding:12px}pre{white-space:pre-wrap}</style>
+<h1>Strategienetz · Python/WASM</h1><p>Öffentliche Strategiezustände und künstlich erzeugte eigene Handbeobachtungen für den Aktionsvergleich.</p>
+<button id="run">Browser-Parität prüfen</button><pre id="result" role="status">Bereit</pre>
+<script src="/frontend/web/vendor/pyodide/0.26.1/pyodide.js"></script><script src="/frontend/web/js/engine-src.js"></script><script src="/frontend/web/js/ai-policy.js"></script>
+<script>
+document.querySelector('#run').onclick=async()=>{
+ const button=document.querySelector('#run'),out=document.querySelector('#result');button.disabled=true;out.textContent='Laufzeit laden …';
+ try{
+  const p=await loadPyodide({indexURL:'/frontend/web/vendor/pyodide/0.26.1/'});await p.loadPackage('pyyaml');
+  p.FS.mkdirTree('/cockpit/backend/landungen');
+  for(const[path,source]of Object.entries(ENGINE_SRC)){p.FS.mkdirTree('/cockpit/'+path.substring(0,path.lastIndexOf('/')));p.FS.writeFile('/cockpit/'+path,source);}
+  const fixtures=await(await fetch('/tmp/ui-2026-10-28/round-policy-fixtures.json')).json();
+  p.FS.writeFile('/fixtures.json',JSON.stringify(fixtures));
+  const response=await fetch('/frontend/web/'+fixtures.browser_weights_url);const raw=new Uint8Array(await response.arrayBuffer());
+  const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw)),b=>b.toString(16).padStart(2,'0')).join('');
+  if(sha!==fixtures.browser_weights_sha256)throw new Error('Wrong browser blueprint weights');
+  const policy=CockpitPolicy.create(JSON.parse(new TextDecoder().decode(raw)),{schema:fixtures.browser_schema});
+  p.globals.set('browser_select',rawDecision=>policy.select(JSON.parse(rawDecision)));
+  out.textContent='Gewichte, öffentliche Ziele und echte WASM-Aktionsfolgen vergleichen …';
+  out.textContent=p.runPython(`import sys,json,math
+sys.path.insert(0,'/cockpit')
+from ai.round_strategy import choose,logits
+from ai.round_strategy_browser import released_weights,suggest,decision
+from ai.modules import ModuleEnv
+from backend import bridge
+from play_options import neues_spiel
+fixtures=json.load(open('/fixtures.json'))
+weights,sha=released_weights()
+assert sha==fixtures['weights_sha256'], 'Wrong bundled weights'
+assert 'torch' not in sys.modules
+for row in fixtures['states']:
+    assert choose(row['state'],weights)==row['expected'], row['case']
+error=0.
+for row in fixtures['vectors']:
+    error=max(error,max(abs(a-b) for a,b in zip(logits(row['x'],weights),row['expected'])))
+assert error<1e-9,error
+state=neues_spiel('LOG_YUL_GREEN',briefing=True)
+proposal=suggest(15)
+assert {g['key']:g['selected'] for g in proposal['goals']}=={k:v for k,v in choose(state,weights).items() if k not in ('version','round')}
+assert proposal['strategy_selection']['weights_sha256']==sha
+assert proposal['plan_version']==2
+count=0;observation_error=0.
+for case in fixtures['action_cases']:
+    env=ModuleEnv(case['airport'],abilities=case['cards'],clock=lambda:0.)
+    env.reset(seed=case['seed']);round_id=None;plan=None
+    for expected in case['steps']:
+        assert not env.done,case['airport']
+        if round_id!=env.game.aktuelle_runde:
+            round_id=env.game.aktuelle_runde;plan=choose(env.game.zustand(),weights)
+        bridge._spiel=env.game
+        d=decision(reroll_json=json.dumps(env.reroll),steps=env.steps,assistance_version=15,schema_version=3,plan_json=json.dumps(plan))
+        for key in ('action_mask','reference_action_mask'):
+            assert d[key]==expected[key],(case['airport'],count,key)
+        assert d['public_plan']['baseline_mask']==expected['baseline_mask'],(case['airport'],count,'baseline')
+        observation_error=max(observation_error,max(abs(a-b) for a,b in zip(d['observation'],expected['observation'])))
+        assert observation_error<1e-9,(case['airport'],count,observation_error)
+        action=int(browser_select(json.dumps(d)))
+        assert action==expected['expected'],(case['airport'],count,action,expected['expected'])
+        env.step(action);count+=1
+bridge._spiel=None
+json.dumps({'result':'BESTANDEN','native_public_states':sum(row['kind']=='native-initial' for row in fixtures['states']),'public_constraint_scenarios':sum(row['kind']=='public-constraint-scenario' for row in fixtures['states']),'intermediate_public_vectors':len(fixtures['vectors']),'maximum_logit_error':error,'host_torch_maximum_error':fixtures['maximum_torch_error'],'native_to_real_wasm_action_decisions':count,'maximum_action_observation_error':observation_error,'torch_loaded':False,'real_pre_roll_bridge':True,'weights_sha256':sha},indent=2)
+`);
+ }catch(e){out.textContent='FEHLER: '+e.message;button.disabled=false;}
+};
+</script>

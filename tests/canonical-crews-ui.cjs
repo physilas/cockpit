@@ -1,4 +1,4 @@
-/* Six crews with Koordinator as default; 21 visible routes, all exact cases. */
+/* Six crews plus automatic Beste KI as default; 21 visible routes, all exact cases. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
 const {chooseMode,chooseModel,chooseRoute,chooseAbilities,leaveGame}=require('./singleplayer-setup.cjs');
 const url=(process.env.COCKPIT_TEST_URL||'http://127.0.0.1:8036')+'/frontend/web/';
@@ -13,14 +13,16 @@ const records=page=>page.evaluate(async()=>{
   await context.route('**/js/cloud-config.js',r=>r.fulfill({contentType:'application/javascript',body:'window.COCKPIT_LEARNING_CLOUD={};'}));
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url);await page.getByRole('button',{name:/Singleplayer/}).click();await chooseMode(page,'feedback');
-  const allModels=await page.locator('#solo-model option').evaluateAll(options=>options.map(o=>({id:o.value,text:o.textContent})));
+  const listedModels=await page.locator('#solo-model option').evaluateAll(options=>options.map(o=>({id:o.value,text:o.textContent})));
+  const allModels=listedModels.filter(m=>m.id!=='best-ai');
+  assert.equal(listedModels.length,7);assert.equal(listedModels[0].text,'Beste KI');
   const models=allModels.filter(m=>/^crew[1-4]-allroutes-/.test(m.id));
   const navigator=allModels.find(m=>m.id==='crew5-planner-2026-10-28-v1/best.pt');
   const coordinator=allModels.find(m=>m.id==='crew6-abilities-2026-10-28-v1/best.pt');
   assert.ok(navigator);assert.ok(coordinator);assert.equal(allModels.length,6);
   assert.deepEqual(allModels.map(m=>m.text.split(' · ')[0]),['Crew 6','Crew 5','Crew 4','Crew 3','Crew 2','Crew 1']);
   assert.equal(models.length,4);assert.deepEqual(models.map(m=>m.text.split(' · ')[0]),['Crew 4','Crew 3','Crew 2','Crew 1']);
-  assert.equal(await page.locator('#solo-model').inputValue(),coordinator.id);
+  assert.equal(await page.locator('#solo-model').inputValue(),'best-ai');
   for(const model of allModels){
    const data=await page.evaluate(id=>COCKPIT_AI_CATALOG.models.find(m=>m.id===id),model.id);
    const isNavigator=model.id===navigator.id||model.id===coordinator.id;
@@ -67,6 +69,6 @@ const records=page=>page.evaluate(async()=>{
    await page.getByRole('button',{name:'Zum Hauptmenü',exact:true}).click();
   }
   assert.deepEqual(errors,[]);await context.close();
-  console.log('✓ Six crews with Koordinator as default; every exact route/card case including zero rates; real browser weights/decisions in both roles; intern fit; difficult-route zero start token');
+  console.log('✓ Six crews plus automatic Beste KI as default; every exact route/card case including zero rates; real browser weights/decisions in both roles; intern fit; difficult-route zero start token');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

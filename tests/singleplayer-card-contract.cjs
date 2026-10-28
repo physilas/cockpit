@@ -4,11 +4,13 @@ const read=path=>fs.readFileSync(new URL(`../${path}`,`file://${__filename}`),'u
 const context={window:{addEventListener(){}},document:{addEventListener(){}},LearningCloud:{enabled:()=>false},setTimeout:()=>0,clearTimeout(){}};
 vm.runInNewContext(read('frontend/web/js/ai-models.js'),context);
 vm.runInNewContext(read('frontend/web/js/landing-catalog.js'),context);
+vm.runInNewContext(read('frontend/web/js/best-ai.js'),context);
+context.CockpitBestAI=context.window.CockpitBestAI;
 const catalog=context.window.COCKPIT_AI_CATALOG,routes=context.window.LANDING_CATALOG.scenarios;
 const moduleSchema=catalog.models.find(model=>model.schema?.version===3).schema;
 // Expose only pure helpers in this in-memory test copy; production API stays private.
 const instrumented=read('frontend/web/js/singleplayer.js').replace('connect(adapter) { api = adapter; }',
-  'test: {supportedCases,supportsRoute,supportsCase,supportsFeedback,actionId,setSetup(value){setup=value;}}, connect(adapter) { api = adapter; }');
+  'test: {supportedCases,supportsRoute,supportsCase,supportsFeedback,bestChoice,routeRate,automaticModel,actionId,setSetup(value){setup=value;}}, connect(adapter) { api = adapter; }');
 vm.runInNewContext(instrumented,context);
 const api=context.window.Singleplayer.test,route=routes.find(row=>row.engine_code==='LOG_ATL_YELLOW');
 const model={schema:moduleSchema,supported_airports:['LOG_ATL_YELLOW'],preview:{enabled:true,supported_cases:[
@@ -59,9 +61,22 @@ for(const bad of [{games:20,wins:0,win_rate:.05},{games:20,wins:21,win_rate:1.05
 api.setSetup({mode:'play',model:{schema:moduleSchema}});
 for(let die=0;die<4;die++) for(const kind of ['adaptation','anticipation','swap_choose'])
   assert.equal(api.actionId({kind,role:'pilot',die}),moduleSchema.actions.findIndex(action=>action.kind===kind && action.die===die));
+// Exercise production eligibility and displayed exact rates, not just the ranking helper.
+for(const mode of ['play','feedback']){
+ api.setSetup({mode,model:api.automaticModel});
+ for(const route of routes){
+  assert.equal(api.supportsRoute(api.automaticModel,route),true);
+  for(const row of api.supportedCases(api.automaticModel,route)){
+   const winner=api.bestChoice(route,row.abilities),rate=api.routeRate(route,row.abilities);
+   assert(winner);assert.equal(api.supportsCase(api.automaticModel,route,row.abilities),true);
+   assert.equal(rate.value,`${(winner.result.win_rate*100).toLocaleString('de-DE',{maximumFractionDigits:1})} %`);
+   assert(rate.title.includes(`${winner.result.wins}/${winner.result.games} Partien`));
+  }
+ }
+}
 const calls=[],events=[];
 let active=true,controlled='kopilot';
-const runtime={aktuellerZustand:{am_zug:'pilot',kooperation:{id:7,wartet_auf:'kopilot',auswahl:{pilot:1,kopilot:3}}},
+const runtime={syncTeachingClock(){},aktuellerZustand:{am_zug:'pilot',kooperation:{id:7,wartet_auf:'kopilot',auswahl:{pilot:1,kopilot:3}}},
   pyToJs:value=>value,Singleplayer:{active:()=>active,canControl:role=>!active || role===controlled,
     beforeAction:action=>action,afterAction:action=>events.push(action)},
   bridge:{kooperation_waehlen_bestaetigen(...args){calls.push(['atomic',...args]);return {ergebnis:{erfolg:true}};},

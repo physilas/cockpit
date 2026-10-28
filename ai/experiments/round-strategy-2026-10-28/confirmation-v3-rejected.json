@@ -1,0 +1,10 @@
+{
+  "reason": "Independent development audit: learned round goals violate a necessary remaining-distance bound in otherwise reachable states. Candidate rejected regardless of confirmation win counts; no partial win counts used for tuning.",
+  "affected_development_cases": [
+    "LOG_TGU_RED|control,synchronisation round6: distance2 height1000 goal1",
+    "LOG_HND_RED|synchronisation round5: distance4 height2000 goal1",
+    "LOG_ATL_GREEN| round4: distance6 height3000 goal1"
+  ],
+  "cohort": "confirmation:public-round-v3-selected:20261028",
+  "time": 1793220328.998899
+}

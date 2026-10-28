@@ -1,0 +1,31 @@
+{
+  "cohort": "development:public-round-v5-selection:20261028",
+  "per_route": 2,
+  "routes": 21,
+  "modes_per_seed": 7,
+  "planned_games": 294,
+  "weights_sha256": {
+    "ai/experiments/round-strategy-2026-10-28/training-v3-0084-weights.json": "71e13648dcb9566e5293be24e7a19cfbdb8b214d925c6f6c0db6d081bf14fb13",
+    "ai/experiments/round-strategy-2026-10-28/training-v4-0126-weights.json": "f0d2629a5eb45c5019d0cfd0d47f48aa369773d42392a97590fb196cff3d790d",
+    "ai/experiments/round-strategy-2026-10-28/training-v5-0014-weights.json": "1f7c98c4019e27f5a7db5bfe1e8d1e21d3a01fd023fb0b1008e9705cedd5ae0b",
+    "ai/experiments/round-strategy-2026-10-28/training-v5-0028-weights.json": "100e3afab80bc74e179723bfd30088707be2348181d60c208444f2e4c209f0aa",
+    "ai/experiments/round-strategy-2026-10-28/training-v5-0042-weights.json": "41a063faee58226f638cf15acd88b68616571b512ecc69eaf85502eac621a9bf"
+  },
+  "source_sha256": {
+    "ai/briefing_planner_v2.py": "14354679cad9de9bb55663ccb0b8a28c844f9c3bef79b02db57693028c7fe9b7",
+    "ai/briefing_browser_v2.py": "66c804690f8c669fb320c64c0bfff8c7d8dfb5819f52c34aa2145d05ec5963c4",
+    "ai/round_strategy_integrity.py": "d1f18fc8fe7fb04ff94a65436eb90bb04b525ed9ef0460a799b35156c93a41c9",
+    "ai/round_strategy_constraints.py": "6e5284c5ca20a9bf3d351cdfb6ebb84659be1da569ccdf9f2fe87ef917267f3c",
+    "ai/round_strategy.py": "be34a20f5e3f9d6e1987f416027615c501e658d26f268e3f3f6443ddf6fd184a",
+    "ai/round_strategy_training.py": "a68d4b3cec24292bcb08ac165eb821e7f37ceaa7e21d08510b73b05bede43231",
+    "ai/round_strategy_evaluate.py": "6877ed4fe325575be666dbbec8ebe4ba48f3e27368ebc0612718d33bbcb39a4e",
+    "ai/round_strategy_publish.py": "6e92ec7c57ad123c327ed1fffbc5c7dc1d7417f35ed339f44dd0f8cf728fea63",
+    "ai/round_strategy_browser.py": "bd0d39ce0602c49ed008c9dc4093d8f60fcf263ffe23840d47d31d7d64b7e54f",
+    "ai/round_strategy_select.py": "502201f16b37a1435fa7386e2bfafc53ec0de6f71d783a71f4b7d74142eb3939"
+  },
+  "selection_rule": "Most wins, then fewer audited immediate losses, then earlier trained checkpoint. Fresh independent confirmation remains mandatory.",
+  "executor": "learned candidates: briefing-v2; fixed goals: frozen briefing-v1; autonomous: frozen Crew6",
+  "clock": "native wall clock including thermal pauses",
+  "workers": 2,
+  "scheduling": "taskpolicy utility with pause65/resume60/limit75"
+}

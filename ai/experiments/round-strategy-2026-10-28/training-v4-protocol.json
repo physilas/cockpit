@@ -1,0 +1,41 @@
+{
+  "version": 4,
+  "cohort": "training:public-round-policy-v4:20261028",
+  "episodes_planned": 126,
+  "routes": 21,
+  "seed": 282026,
+  "batch_games": 7,
+  "epochs_per_batch": 6,
+  "hidden_units": 48,
+  "public_features": 67,
+  "goal_logits": 11,
+  "optimizer": "Adam",
+  "learning_rate": 0.002,
+  "clip": 0.2,
+  "reward": "native terminal outcome plus Phi(next)-Phi(now); gamma=1; terminal potential zero, full return equals native outcome minus starting potential",
+  "training_clock": "frozen; independent confirmation uses native wall clock",
+  "future_evaluation_clock": "actual engine wall clock",
+  "human_feedback_used": false,
+  "source_sha256": {
+    "ai/round_strategy_constraints.py": "6e5284c5ca20a9bf3d351cdfb6ebb84659be1da569ccdf9f2fe87ef917267f3c",
+    "ai/round_strategy.py": "be34a20f5e3f9d6e1987f416027615c501e658d26f268e3f3f6443ddf6fd184a",
+    "ai/round_strategy_training.py": "72bcf62acfc9ec2e73b9e6f0404b861eb1f9b63ba390ad51533f276216c79d32",
+    "ai/briefing.py": "8b7cb77b62dcf5d6b45658fd1391567fc209be3dbbba327103322fb2c07daf20",
+    "ai/briefing_browser.py": "ca7738ff611e4072fc21482b356f8624b87c897267afd21cdc208d76815068f9",
+    "ai/briefing_planner.py": "8a3153cb308b35029ec5d862a6ab1096e935db2fb1ab7f0ed1b8920e69680ff5",
+    "play_options.py": "8a8ab5aeb06e38ac9fadefde1e4b8741c1d413f58fbe125021aad01d8d249060"
+  },
+  "sources": [
+    "https://www.sciencedirect.com/science/article/pii/S0004370299000521",
+    "https://people.eecs.berkeley.edu/~russell/papers/icml99-shaping.pdf"
+  ],
+  "qualification_rule": "Frozen candidate on disjoint seeds versus default briefing and autonomous Crew6. At least 3 more wins than default; at least autonomous wins; no avoidable immediate losses or truncations. No tuning on confirmation outcomes.",
+  "exploration": "Greedy control first; select one actually reached round and a head with at least two permitted goals; 80% alternative mixture with exact behavior likelihood and importance weighting",
+  "workers": 2,
+  "actual_training_games_planned": 252,
+  "actor_advantage": "paired one-round TD difference plus 2 times paired terminal win difference",
+  "warm_start": "ai/experiments/round-strategy-2026-10-28/training-v3-0084-weights.json",
+  "critic": "Reset to zero; new Adam optimizer; actor warm-start only",
+  "public_constraints": "Necessary remaining-distance bound; no completed tasks/brakes/ice, empty-airspace radio, exhausted synchronization pair or unchangeable final-round wind goal. Original fixed-goal and autonomous controls unchanged.",
+  "warm_start_sha256": "71e13648dcb9566e5293be24e7a19cfbdb8b214d925c6f6c0db6d081bf14fb13"
+}

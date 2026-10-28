@@ -1,0 +1,19 @@
+{
+  "cohort": "development:public-round-v5-selection:20261028",
+  "purpose": "Matched development replay after first-public-control correction. Seeds deliberately reused from development only, not independent qualification.",
+  "per_route": 2,
+  "modes": 3,
+  "planned_games": 126,
+  "candidate": "ai/experiments/round-strategy-2026-10-28/training-v5-0014-weights.json",
+  "change": "Preserve autonomous public-partner-control opening on unaffected routes; keep only feasible prefixes for the accepted movement when possible. Wind/sync/ice/intern boundary remains unchanged.",
+  "rule": "Diagnostic before any fresh independent confirmation; no confirmation seeds have been used for v5/v6.",
+  "output": "development-v6-fast.json",
+  "restart_reason": "Native reference-mask contract corrected; user requested higher throughput with external cooling.",
+  "thermal": {
+    "limit_c": 75,
+    "pause_c": 70,
+    "resume_c": 65,
+    "sampling_seconds": 0.25
+  },
+  "workers": 2
+}

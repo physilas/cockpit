@@ -5,15 +5,23 @@ window.Singleplayer = (() => {
   const roleNames = {pilot: "Pilotin", kopilot: "Co-Pilot"};
   const qualifiedModels = () => catalog.models.filter(m => m.ui_hidden !== true && m.quality?.approved === true);
   const isPreview = model => model?.preview?.enabled === true;
+  const automaticModel={id:CockpitBestAI.id,name:"Beste KI",automatic:true,crew_number:1000000};
+  const isAutomatic=model=>model?.id===CockpitBestAI.id;
   const crewNumber = model => model.crew_number || Number(model.id.match(/^crew(\d+)-/)?.[1]) || 0;
   const crewNames = {1:"Pionier",2:"Horizont",3:"Mentor",4:"Kursmeister",5:"Navigator",6:"Koordinator"};
-  const crewName = model => crewNames[crewNumber(model)] ? `Crew ${crewNumber(model)} · ${crewNames[crewNumber(model)]}` : model.name || model.run;
-  const selectableModels = () => catalog.models.filter(m => m.ui_hidden !== true && (m.quality?.approved === true || isPreview(m))).sort((a,b)=>crewNumber(b)-crewNumber(a));
+  const crewName = model => isAutomatic(model)?"Beste KI":crewNames[crewNumber(model)] ? `Crew ${crewNumber(model)} · ${crewNames[crewNumber(model)]}` : model.name || model.run;
+  const crewModels = () => catalog.models.filter(m => m.ui_hidden !== true && (m.quality?.approved === true || isPreview(m))).sort((a,b)=>crewNumber(b)-crewNumber(a));
+  const selectableModels=()=>[automaticModel,...crewModels()];
   const modelLabel = crewName;
   const supports = (model, airport) => Boolean(model && (model.supported_airports || [model.airport]).includes(airport));
-  const hasCaseManifest = model => isPreview(model) && Object.prototype.hasOwnProperty.call(model.preview, "supported_cases");
+  const hasCaseManifest = model => (isAutomatic(model)||isPreview(model) && Object.prototype.hasOwnProperty.call(model.preview, "supported_cases"));
   const caseKey = (airport, cards) => `${airport}|${[...cards].sort().join(",")}`;
   const supportedCases = (model, route) => {
+    if(isAutomatic(model)){
+      const rows=crewModels().flatMap(crew=>supportedCases(crew,route));
+      if(route&&!route.ability_count&&crewModels().some(crew=>supportsCase(crew,route,[])))rows.push({airport:route.engine_code,abilities:[]});
+      return [...new Map(rows.map(row=>[caseKey(row.airport,row.abilities),row])).values()].filter(row=>bestChoice(route,row.abilities));
+    }
     if (!route || !isPreview(model) || model.schema?.version !== 3 || !supports(model, route.engine_code)
         || !Array.isArray(model.preview.supported_cases)
         || (model.preview.positive_only !== undefined && typeof model.preview.positive_only !== "boolean")) return [];
@@ -31,27 +39,33 @@ window.Singleplayer = (() => {
       seen.add(key); return true;
     }).map(row => ({airport:row.airport,abilities:[...row.abilities].sort()}));
   };
-  const supportsRoute = (model, route) => Boolean(route && supports(model, route.engine_code)
+  const supportsRoute = (model, route) => isAutomatic(model)?crewModels().some(crew=>supportsRoute(crew,route)):Boolean(route && supports(model, route.engine_code)
     && ((route.ability_count || hasCaseManifest(model)) ? supportedCases(model, route).length : true));
-  const supportsCase = (model, route, cards) => Boolean(route && Array.isArray(cards) && supportsRoute(model, route)
+  const supportsCase = (model, route, cards) => isAutomatic(model)?Boolean(bestChoice(route,cards)):Boolean(route && Array.isArray(cards) && supportsRoute(model, route)
     && ((route.ability_count || hasCaseManifest(model)) ? supportedCases(model, route).some(row => caseKey(row.airport,row.abilities) === caseKey(route.engine_code,cards)) : cards.length === 0));
   function routeRate(route, cards=[]) {
     const model=setup.model;
     if(setup.mode==='examples' || !model) return null;
-    const results=(route.ability_count || hasCaseManifest(model))
+    const automatic=isAutomatic(model);
+    const choices=automatic?supportedCases(model,route).filter(row=>cards.every(id=>row.abilities.includes(id))).map(row=>bestChoice(route,row.abilities)).filter(Boolean):[];
+    const results=automatic?choices.map(row=>row.result):(route.ability_count || hasCaseManifest(model))
       ? supportedCases(model,route).filter(row=>cards.every(id=>row.abilities.includes(id)))
         .map(row=>model.preview.case_results[caseKey(row.airport,row.abilities)])
       : [(isPreview(model)?model.preview.route_results:model.quality?.route_results)?.[route.engine_code]];
     const tested=results.filter(r=>Number.isFinite(r?.win_rate)&&r.win_rate>=0&&r.win_rate<=1);
     if(!tested.length) return null;
     const rates=tested.map(r=>r.win_rate),low=Math.min(...rates),high=Math.max(...rates);
+    const provisional=automatic?choices.some(row=>isPreview(row.model)):isPreview(model);
     const percent=n=>(n*100).toLocaleString('de-DE',{maximumFractionDigits:1});
-    return {label:'KI-Selbstspiel',value:`${percent(low)}${low===high?'':`–${percent(high)}`} %`,
-      title:`${isPreview(model)?'Entwicklungstest, nicht unabhängig qualifiziert. ':'Gemessener Testwert. '}${tested.length>1?`${tested.length} erlaubte Kartensets; Spanne der Einzelquoten. `:''}${tested.length===1&&Number.isInteger(tested[0].wins)?`${tested[0].wins}/${tested[0].games} Partien. `:''}Keine Vorhersage für menschliche Mitspieler.`};
+    return {label:automatic?'Beste KI':'KI-Selbstspiel',value:`${percent(low)}${low===high?'':`–${percent(high)}`} %`,
+      title:`${automatic&&choices.length===1?`${crewName(choices[0].model)}. `:''}${provisional?'Entwicklungstest, nicht unabhängig qualifiziert. ':'Gemessener Testwert. '}${tested.length>1?`${tested.length} erlaubte Kartensets; Spanne der Einzelquoten. `:''}${tested.length===1&&Number.isInteger(tested[0].wins)?`${tested[0].wins}/${tested[0].games} Partien. `:''}Ohne Rundenabsprache gemessen; keine Vorhersage für menschliche Mitspieler.`};
   }
-  const supportsFeedback = (model, route, cards = null) => Boolean(route && supportsRoute(model, route)
+  const supportsFeedback = (model, route, cards = null) => isAutomatic(model)?(cards===null?crewModels().some(crew=>supportsFeedback(crew,route)):Boolean(bestChoice(route,cards,"feedback"))):Boolean(route && supportsRoute(model, route)
     && ((route.ability_count || hasCaseManifest(model)) ? model.schema?.version === 3 && (cards === null || supportsCase(model,route,cards))
       : !route.modules.length || (model.schema?.version === 3 && route.modules.length === 1 && ["kerosene", "intern"].includes(route.modules[0]))));
+  const bestChoice=(route,cards,mode=setup?.mode)=>CockpitBestAI.choose(crewModels(),route,cards,
+    (model,r,c)=>supportsCase(model,r,c)&&(mode!=="feedback"||supportsFeedback(model,r,c)));
+  const measuredResult=(model,route,cards=[])=>isAutomatic(model)?bestChoice(route,cards)?.result:CockpitBestAI.result(model,route,cards);
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clone = value => JSON.parse(JSON.stringify(value));
   let api, setup = null, session = null, policy = null, reroll = null;
@@ -254,7 +268,7 @@ window.Singleplayer = (() => {
       <p class="solo-storage-note" id="solo-storage-status"></p></details></div></section></div>`;
     routePicker=null;pickerKey="";
     setup = {mode: "play", humanRole: "pilot", model: null};
-    // Newest validated selectable crew first; saved games keep their original ID.
+    // Automatic best measured crew by default; saved games keep their concrete model ID.
     const firstRoute = window.LANDING_CATALOG.scenarios.find(s => !s.modules.length && !s.ability_count);
     const initial=selectableModels().find(model=>supportsRoute(model,firstRoute));
     if (initial) document.getElementById("solo-model").value = initial.id;
@@ -324,7 +338,7 @@ window.Singleplayer = (() => {
     routeSelector.innerHTML = routes.map(s => `<option value="${esc(s.id)}">${esc(s.code)} · ${esc(s.name)}${s.modules.map(module => ` · ${esc(window.LANDING_CATALOG.modules[module]?.name || module)}`).join("")}${s.ability_count ? ` · ${s.ability_count} ${s.ability_count === 1 ? "Karte" : "Karten"}` : ""}${s.kind === "custom" ? " · Eigene Strecke" : ""}</option>`).join("");
     routeSelector.value = routes.find(s => s.id === previousRoute)?.id || routes[0]?.id || "";
     const selectedRoute = routes.find(s => s.id === routeSelector.value);
-    document.getElementById("solo-model-description").textContent = !setup.model ? "Keine KI verfügbar."
+    document.getElementById("solo-model-description").textContent = isAutomatic(setup.model)?"Wählt je Landung und Fähigkeitskarten die Crew mit der besten vorhandenen Testquote.":!setup.model ? "Keine KI verfügbar."
       : `${isPreview(setup.model) ? "Testmodell · noch nicht unabhängig qualifiziert. " : ""}${routes.length} ${routes.length === 1 ? "Landung verfügbar" : "Landungen verfügbar"}.`;
     document.getElementById("solo-next").disabled = starting || !setup.model || !routes.length;
     const cardSelector = document.getElementById("solo-abilities"), previousCase = cardSelector.value;
@@ -338,14 +352,14 @@ window.Singleplayer = (() => {
     setup.caseKey = selectedRoute ? caseKey(selectedRoute.engine_code,setup.abilities) : "";
     if(picked)cardSelector.value=setup.caseKey;
     document.getElementById("solo-abilities-label").hidden = examples || !selectedRoute?.ability_count;
-    const preview = isPreview(setup.model);
-    const testResult = selectedRoute?.ability_count || hasCaseManifest(setup.model) ? setup.model?.preview?.case_results?.[setup.caseKey]
-      : (preview ? setup.model.preview.route_results : setup.model?.quality?.route_results)?.[selectedRoute?.engine_code];
+    const choice=isAutomatic(setup.model)&&selectedRoute?bestChoice(selectedRoute,setup.abilities):null;
+    const preview = isPreview(choice?.model || setup.model);
+    const testResult=setup.model&&selectedRoute?measuredResult(setup.model,selectedRoute,setup.abilities):null;
     const successRate=testResult?.win_rate;
     document.getElementById("solo-description").textContent = examples
       ? "Ihr spielt beide Rollen wie bei Pass & Play. Eure Aktionen und der Spielausgang werden als Beispiele aufgezeichnet."
       : !setup.model ? "Für diese Strecke ist noch keine KI verfügbar."
-      : `${selectedRoute?.code || ""} · ${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Dein Klick speichert sofort; Rückgängig nimmt die letzte Bewertung zurück. Keine Auswahl ist neutral." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen${Number.isInteger(testResult?.games)&&Number.isInteger(testResult?.wins)?` (${testResult.wins}/${testResult.games} Partien)`:""}.` : ""}`;
+      : `${selectedRoute?.code || ""} · ${choice?`Beste KI: ${crewName(choice.model)}. `:""}${preview ? "Testversion: Entwicklungsstand, noch nicht unabhängig qualifiziert. " : ""}${setup.mode === "feedback" ? "Bewerte KI-Aktionen oben mit 👎 oder 👍. Dein Klick speichert sofort; Rückgängig nimmt die letzte Bewertung zurück. Keine Auswahl ist neutral." : "Die KI übernimmt die zweite Rolle. Ihre freien Würfel bleiben verdeckt."}${Number.isFinite(successRate) ? ` ${preview ? "Entwicklungstest" : "Getestet"} im KI-Selbstspiel: ${(successRate*100).toLocaleString("de-DE", {maximumFractionDigits:1})} % erfolgreiche Landungen${Number.isInteger(testResult?.games)&&Number.isInteger(testResult?.wins)?` (${testResult.wins}/${testResult.games} Partien)`:""}.` : ""}`;
     const start=document.getElementById("solo-start");
     if(start)start.disabled = starting || !selectedRoute || (!examples && !setup.model)
       || (!examples && !supportsCase(setup.model,selectedRoute,setup.abilities))
@@ -376,6 +390,13 @@ window.Singleplayer = (() => {
     const baseScenario = window.LANDING_CATALOG.scenarios.find(s => s.id === (restarting?oldScenario:document.getElementById("solo-route").value));
     const scenario = baseScenario && {...baseScenario, timed: restarting ? session?.scenario?.timed !== false : routePicker?.timed() !== false};
     if (!scenario) { document.getElementById("solo-error").textContent = "Die Strecke dieses Modells ist nicht verfügbar."; return; }
+    if(config.mode!=="examples"&&(isAutomatic(config.model)||restarting&&config.automaticModel)){
+      const chosen=bestChoice(scenario,config.abilities,config.mode);
+      if(!chosen){document.getElementById("solo-error").textContent="Für diese Kombination liegt kein geeigneter Testwert vor.";return;}
+      config.model=chosen.model;config.automaticModel=true;
+      config.modelSelection={id:CockpitBestAI.id,model_id:chosen.model.id,case_key:chosen.case_key,measured_result:clone(chosen.result)};
+    }
+
     if (config.mode !== "examples" && (!config.model || !supportsCase(config.model,scenario,config.abilities))) return;
     if (!restarting && scenario.ability_count && document.getElementById("solo-abilities").value !== caseKey(scenario.engine_code,config.abilities)) return;
     if (config.mode === "feedback" && !supportsFeedback(config.model, scenario, config.abilities)) return;
@@ -394,6 +415,7 @@ window.Singleplayer = (() => {
       session = {id: crypto.randomUUID(), created_at: new Date().toISOString(), mode: config.mode,
                  scenario: {id: scenario.id, timed: scenario.timed !== false, engine_code: scenario.engine_code,ability_ids:[...config.abilities],case_key:caseKey(scenario.engine_code,config.abilities)}, human_role: config.mode === "examples" ? null : config.humanRole,
                  model: config.model && config.mode !== "examples" ? clone(config.model) : null,
+                 model_selection:config.automaticModel?clone(config.modelSelection):null,
                  schema_version: activeSchema().version, schema: activeSchema(), action_mask_version: catalog.action_mask_version,
                  consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
                  status: "active", round_planning_enabled:config.mode!=="examples", communication_policy:"briefing-v1", round_plans:[], events: [], engine_stack: []};
@@ -826,7 +848,7 @@ window.Singleplayer = (() => {
     suspend(){RoundPlanning.close();suspended=true;generation++;clearTimeout(timer);timer=null;},
     resume(){suspended=Boolean(teaching);},
     restart:options=>launch(true,options),
-    backup(){return session ? clone({setup:{mode:setup.mode,humanRole:setup.humanRole,modelId:setup.model?.id,abilities:setup.abilities},session,reroll,feedbackIndex,feedbackUndoStack,teaching}) : null;},
+    backup(){return session ? clone({setup:{mode:setup.mode,humanRole:setup.humanRole,modelId:setup.model?.id,abilities:setup.abilities,automaticModel:setup.automaticModel===true,modelSelection:setup.modelSelection},session,reroll,feedbackIndex,feedbackUndoStack,teaching}) : null;},
     async restore(saved){
       suspended=false;paused="";
       if(!saved){session=null;policy=null;reroll=null;return;}
