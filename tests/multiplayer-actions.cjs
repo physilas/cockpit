@@ -6,7 +6,7 @@ const path = require('node:path');
 const root = path.join(__dirname,'..');
 const elements = new Map(), events = new Map(), timers = new Map();
 const element = id => {
-  if (!elements.has(id)) elements.set(id, {classList:{toggle(){}},addEventListener(type,fn){this[type]=fn;}});
+  if (!elements.has(id)) elements.set(id, {classList:{toggle(){},add(){}},addEventListener(type,fn){this[type]=fn;}});
   return elements.get(id);
 };
 const state = {
@@ -45,8 +45,10 @@ const context = vm.createContext({
 });
 const run = code => vm.runInContext(code,context);
 run(fs.readFileSync(path.join(root,'frontend/web/js/reroll.js'),'utf8'));
+run(fs.readFileSync(path.join(root,'frontend/web/js/multiplayer-lobby.js'),'utf8'));
+run('const MultiplayerLobby=window.MultiplayerLobby;');
 run(fs.readFileSync(path.join(root,'frontend/web/js/multiplayer.js'),'utf8'));
-run('bridge=fixtureBridge; pyodideReady=true; myRole="pilot"; conn=fixtureConn; render=()=>{}; starte_Beitreten=()=>{};');
+run('bridge=fixtureBridge; pyodideReady=true; isHost=true; myRole="pilot"; lobby={...lobby,hostRole:"pilot",guestRole:"kopilot"}; conn=fixtureConn; render=()=>{}; starte_Beitreten=()=>{};');
 events.get('DOMContentLoaded')();
 assert.equal(typeof element('rueckgaengig-btn').click,'function','Join-link skips undo binding');
 assert.equal(run('hostAktion({typ:"verkehr_start",version:7},"pilot")'),false);
@@ -62,7 +64,7 @@ let snapshot = sent.at(-1).zustand;
 assert.deepEqual(snapshot.pilot_wuerfel,[null,2,null,null],'Undo exposes partner free dice');
 assert.deepEqual(snapshot.kopilot_wuerfel,[5,4,3,2]);
 assert.equal(snapshot.rueckgaengig_id,2,'Undo not broadcast');
-run('myRole="kopilot";');
+run('isHost=false;myRole="kopilot";');
 element('rueckgaengig-btn').click();
 assert.equal(sent.at(-1).typ,'rueckgaengig','Join device undo button sends no action');
 assert.equal(sent.at(-1).version,7,'Undo sends no expected revision');
@@ -72,7 +74,7 @@ element('rueckgaengig-btn').click();
 assert.equal(sent.length,before,'Undo during unfinished private reroll');
 console.log('✓ Host role/revision guards, single automatic start, shared undo, privacy, join-link button and reroll guard');
 
-run('neuwurfUiReset();');
+run('isHost=true;myRole="pilot";neuwurfUiReset();');
 const act = (msg,role='kopilot') => run(`hostAktion(${JSON.stringify(msg)},${JSON.stringify(role)})`);
 const ui = () => JSON.parse(run('JSON.stringify(neuwurfUi)'));
 const rerolls = () => calls.filter(c => c[0] === 'reroll');
@@ -118,7 +120,8 @@ id = start();
 assert.equal(toggle(oldId,0,'pilot'),false,'Old popup action accepted');
 confirm(id,'pilot'); confirm(id,'kopilot');
 assert.equal(state.neuwurf_plaettchen,1,'Empty selections consumed a token');
-assert.deepEqual(ui().bestaetigt,{pilot:false,kopilot:false});
+assert.equal(ui().phase,0,'Both keeping dice closes the negotiation');
+id=start();
 toggle(id,0,'pilot'); confirm(id,'pilot');
 act({typ:'neuwurf_cancel',id});
 assert.equal(ui().phase,0);
@@ -146,3 +149,36 @@ assert.equal(ui().phase,2,'Only the nonempty hand confirms');
 assert.deepEqual(rerolls().at(-1),['reroll',[],[0]]);
 closeResult();
 console.log('✓ Empty partner hand automatically confirms without spending or inventing dice');
+
+
+// Rejoining an ongoing flight must restore the role-filtered authoritative
+// state, never open a started lobby with no way to continue.
+state.pilot_wuerfel_frei=[true,false,true,true];
+state.kopilot_wuerfel_frei=[true,true,true,true];
+run('lobby={...lobby,started:true};guestProtocolReady=false;');
+const reconnectStart=sent.length;
+run('handleLobby({typ:"lobby_hello",version:2},"guest")');
+assert.equal(run('guestProtocolReady'),false);
+assert.equal(sent.slice(reconnectStart).some(row=>row.typ==='zustand'),false,'Incompatible protocol received private game state');
+run('handleLobby({typ:"lobby_hello",version:3},"guest")');
+assert.equal(run('guestProtocolReady'),true);
+assert.equal(sent.at(-1).typ,'zustand');
+assert.equal(sent.at(-1).role,'kopilot');
+assert.deepEqual(sent.at(-1).zustand.pilot_wuerfel,[null,2,null,null]);
+assert.deepEqual(sent.at(-1).zustand.kopilot_wuerfel,state.kopilot_wuerfel);
+assert.equal(run('lobby.started'),true,'Rejoining reset the running flight');
+console.log('✓ Rejoining an ongoing flight restores the same role and private state only after protocol negotiation');
+
+
+context.Peer=class {constructor(){this.handlers={};}on(event,fn){this.handlers[event]=fn;}};
+context.fixtureConn.handlers={};context.fixtureConn.on=function(event,fn){this.handlers[event]=fn;};
+run('showLobby=()=>fixtureBridge.showLobbyCalls++;fixtureBridge.showLobbyCalls=0;starteHosting();');
+run('lobby={...lobby,started:true,hostRole:"kopilot",guestRole:"pilot"};myRole="kopilot";choosingLanding=false;peer.handlers.connection(fixtureConn);');
+context.fixtureConn.handlers.open();
+assert.equal(context.fixtureBridge.showLobbyCalls,0,'Replacement connection hid the host flight behind the lobby');
+context.fixtureConn.handlers.data(JSON.stringify({typ:'lobby_hello',version:3}));
+assert.equal(sent.at(-1).role,'pilot');
+assert.deepEqual(sent.at(-1).zustand.pilot_wuerfel,state.pilot_wuerfel);
+assert.deepEqual(sent.at(-1).zustand.kopilot_wuerfel,[null,null,null,null]);
+assert.equal(run('choosingLanding'),false);
+console.log('✓ Real host connection callbacks keep the active board and restore either flight-role assignment');

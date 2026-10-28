@@ -117,7 +117,13 @@ function maybeStartLobby(){
 }
 function handleLobby(msg,who){
   if(!isHost)return;
-  if(msg.typ==="lobby_hello"){guestProtocolReady=msg.version===3;sendLobby();return;}
+  if(msg.typ==="lobby_hello"){
+    guestProtocolReady=msg.version===3;
+    // A replacement connection joins the existing flight after negotiating
+    // the protocol. Sending only a started lobby would strand the guest.
+    if(guestProtocolReady&&lobby.started&&pyodideReady)sendState();else sendLobby();
+    return;
+  }
   if(who==="guest"&&!guestProtocolReady||lobby.started)return;
   try{
     if(msg.typ==="lobby_route"){
@@ -389,7 +395,7 @@ function starteHosting() {
       partnerConnected = true;
       setHostStatus("Mitspieler verbunden ✓", "ok");
       document.getElementById("verbindungs-status")?.classList.add("ok");
-      showLobby();sendLobby();
+      if(!lobby.started){showLobby();sendLobby();}
     });
     conn.on("data", raw => {
       try {
