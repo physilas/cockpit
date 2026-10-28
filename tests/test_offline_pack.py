@@ -16,7 +16,7 @@ class OfflinePackTests(unittest.TestCase):
         data = build_pwa.inventory()
         models = data["models"]
         assets = data["assets"]
-        self.assertEqual(len(models), 5)
+        self.assertEqual(len(models), 6)
         self.assertEqual(len({model["url"] for model in models}), 4)
         self.assertEqual(len({asset["url"] for asset in assets}), len(assets))
         self.assertEqual({model["url"] for model in models},

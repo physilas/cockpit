@@ -99,7 +99,7 @@ function showLobby(){
   for(const id of ["spiel-header","flight-summary","spiel-ui"])document.getElementById(id).classList.add("versteckt");
   showScreen("screen-lobby");updateRoleBadge();
   const scenario=LANDING_CATALOG.scenarios.find(s=>s.id===lobby.route);
-  document.getElementById("lobby-route").textContent=scenario?`${scenario.code} · ${scenario.name}${lobby.cards.length?" · "+lobby.cards.map(id=>LANDING_CATALOG.abilities.find(c=>c.id===id)?.name||id).join(", "):""}`:"Wählt gemeinsam eure Landung.";
+  document.getElementById("lobby-route").textContent=scenario?`${scenario.code} · ${scenario.name}${scenario.modules.includes("realtime") && lobby.timed === false ? " · Ohne Zeitlimit" : ""}${lobby.cards.length?" · "+lobby.cards.map(id=>LANDING_CATALOG.abilities.find(c=>c.id===id)?.name||id).join(", "):""}`:"Wählt gemeinsam eure Landung.";
   document.getElementById("lobby-roles").hidden=!scenario;
   document.getElementById("lobby-connection").textContent=partnerConnected?"Ihr seid verbunden. Beide können Strecke und Rollen auswählen.":"Warte auf Mitspieler …";
   const role=isHost?lobby.hostRole:lobby.guestRole,ready=isHost?lobby.hostReady:lobby.guestReady;
@@ -112,18 +112,18 @@ function sendLobby(){if(isHost&&conn?.open)conn.send(JSON.stringify({typ:"lobby"
 function maybeStartLobby(){
   if(!isHost||!guestProtocolReady||!partnerConnected||!pyodideReady||!MultiplayerLobby.canStart(lobby))return;
   const scenario=LANDING_CATALOG.scenarios.find(s=>s.id===lobby.route);if(!scenario)return;
-  lobby.started=true;myRole=lobby.hostRole;gewaehlterFlughafen=scenario.engine_code;gewaehlteKarten=[...lobby.cards];
+  lobby.started=true;myRole=lobby.hostRole;gewaehlterFlughafen=scenario.engine_code;gewaehlteKarten=[...lobby.cards];zeitlimit=lobby.timed !== false;
   updateRoleBadge();startGame();
 }
 function handleLobby(msg,who){
   if(!isHost)return;
-  if(msg.typ==="lobby_hello"){guestProtocolReady=msg.version===2;sendLobby();return;}
+  if(msg.typ==="lobby_hello"){guestProtocolReady=msg.version===3;sendLobby();return;}
   if(who==="guest"&&!guestProtocolReady||lobby.started)return;
   try{
     if(msg.typ==="lobby_route"){
       const scenario=LANDING_CATALOG.scenarios.find(s=>s.id===msg.route),cards=msg.cards;
       if(!scenario||!Array.isArray(cards)||new Set(cards).size!==cards.length||cards.length!==scenario.ability_count||!cards.every(id=>LANDING_CATALOG.abilities.some(c=>c.id===id)))return;
-      lobby=MultiplayerLobby.route(lobby,scenario.id,cards);
+      lobby=MultiplayerLobby.route(lobby,scenario.id,cards,msg.timed !== false);
     }else if(msg.typ==="lobby_role")lobby=MultiplayerLobby.role(lobby,who,msg.role);
     else if(msg.typ==="lobby_ready")lobby=MultiplayerLobby.ready(lobby,who,msg.ready,msg.revision);
     else return;
@@ -136,12 +136,13 @@ function lobbyAction(message){if(isHost)handleLobby(message,"host");else if(conn
 let gewaehlterFlughafen = "LOG_YUL_GREEN";
 let choosingLanding = false;
 let gewaehlteKarten = [];
+let playOptions = null, zeitlimit = true;
 const landingPicker = Landings.mount(document.getElementById("landing-selection"), {
   mode: "Multiplayer · Lobby",
   startLabel: "Diese Strecke gemeinsam wählen →",
   onBack(){landingPicker.hide();showLobby();},
   onStart(scenario){
-    const message={typ:"lobby_route",route:scenario.id,cards:scenario.ability_ids||[]};
+    const message={typ:"lobby_route",route:scenario.id,cards:scenario.ability_ids||[],timed:scenario.timed !== false};
     landingPicker.hide();
     if(isHost)handleLobby(message,"host");else conn?.send(JSON.stringify(message));
     showLobby();
@@ -179,6 +180,7 @@ async function ladeEngine() {
     }
     pyodide.runPython(`import sys; sys.path.insert(0, "/cockpit")`);
     bridge = pyodide.pyimport("backend.bridge");
+    playOptions = pyodide.pyimport("play_options");
     setP(100); txt && (txt.textContent = "Bereit ✓");
     pyodideReady = true;
     if(partnerConnected){sendLobby();maybeStartLobby();}
@@ -193,7 +195,7 @@ let initialEngine = null; // Host-local state/RNG; never sent to the partner.
 function newEngineGame(sameSeed=false) {
   window.GameExperience?.reset();
   const z=sameSeed && initialEngine ? pyToJs(bridge.spiel_laden(initialEngine))
-    : pyToJs(bridge.neues_spiel(gewaehlterFlughafen,JSON.stringify(gewaehlteKarten)));
+    : pyToJs(playOptions.neues_spiel(gewaehlterFlughafen,JSON.stringify(gewaehlteKarten),zeitlimit));
   initialEngine=String(bridge.spiel_speichern());
   return z;
 }
@@ -314,9 +316,7 @@ function hostAktion(msg, absender) {
         neuwurfUi.meldung = "";
         if (neuwurfUi.bestaetigt.pilot && neuwurfUi.bestaetigt.kopilot) {
           if (!neuwurfUi.auswahl.pilot.length && !neuwurfUi.auswahl.kopilot.length) {
-            neuwurfUi.bestaetigt = {pilot: false, kopilot: false};
-            NeuwurfDialog.ohneWuerfelBestaetigen(z, neuwurfUi);
-            neuwurfUi.meldung = "Wählt zusammen mindestens einen Würfel aus.";
+            neuwurfUiReset();
           } else {
             const r = pyToJs(bridge.benutze_neuwurf(neuwurfUi.auswahl.pilot, neuwurfUi.auswahl.kopilot));
             zeigeErgebnis(r.ergebnis);
@@ -434,11 +434,11 @@ function starte_Beitreten(code) {
       setJoinStatus("Verbunden ✓ – warte auf Spielstart …", "ok");
       showScreen("screen-wait");
       partnerConnected=true;
-      conn.send(JSON.stringify({typ:"lobby_hello",version:2}));
+      conn.send(JSON.stringify({typ:"lobby_hello",version:3}));
     });
     conn.on("data", raw => {
       let msg;try{msg=JSON.parse(raw);}catch{return;}
-      if(msg.typ==="lobby"&&msg.lobby?.version===2){lobby=msg.lobby;myRole=lobby.guestRole;choosingLanding=true;showLobby();return;}
+      if(msg.typ==="lobby"&&msg.lobby?.version===3){lobby=msg.lobby;myRole=lobby.guestRole;choosingLanding=true;showLobby();return;}
       if (msg.typ === "landung_waehlen") {
         neuwurfUiReset();
         resetVerkehrUi();
@@ -553,7 +553,7 @@ function renderAttitude(fluglage) {
 }
 
 function renderTracks(z) {
-  TRACK_UNIT_PX = z.module.includes("intern") ? Math.max(18,Math.min(36,Math.floor((innerHeight-590-(z.zusatzaktion?32:0))/Math.max(7,z.entfernung+1)))) : 36;
+  TRACK_UNIT_PX = CockpitLayout.unit(z);
   document.getElementById("altitude-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
   document.getElementById("distance-track").style.setProperty("--track-unit-px", TRACK_UNIT_PX + "px");
 
@@ -733,6 +733,7 @@ function render(z) {
     if(rBtn)rBtn.disabled=!ichDran;
   }
   window.GameExperience?.finish(z,motion,{reroll:neuwurfUi.phase!==0});
+  CockpitLayout.fit(z, () => render(aktuellerZustand));
   if(z.status==="laeuft")GameDialogs.result(z,"");
 }
 

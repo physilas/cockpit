@@ -1,8 +1,8 @@
 /* Host/guest are connection roles; pilot/copilot are selected flight roles. */
 window.MultiplayerLobby = (() => {
   const other=role=>role==='pilot'?'kopilot':role==='kopilot'?'pilot':null;
-  const create=()=>({version:2,revision:0,route:null,cards:[],hostRole:null,guestRole:null,hostReady:false,guestReady:false,started:false});
-  function route(state,id,cards){return {...create(),revision:state.revision+1,route:id,cards:[...cards]};}
+  const create=()=>({version:3,revision:0,route:null,cards:[],timed:true,hostRole:null,guestRole:null,hostReady:false,guestReady:false,started:false});
+  function route(state,id,cards,timed=true){if(typeof timed!=="boolean")throw Error("Ungültiges Zeitlimit");return {...create(),revision:state.revision+1,route:id,cards:[...cards],timed};}
   function role(state,who,value){
     if(!state.route||!['host','guest'].includes(who)||!other(value))throw Error('Ungültige Rollenauswahl');
     return {...state,revision:state.revision+1,hostRole:who==='host'?value:other(value),guestRole:who==='guest'?value:other(value),hostReady:false,guestReady:false};

@@ -1,0 +1,14 @@
+{
+  "source": "Finished ai.job_control metadata observed before final-tests job started",
+  "state": "finished",
+  "started_at": 1793201242.308518,
+  "finished_at": 1793202597.0437,
+  "returncode": 0,
+  "temperature_limit_c": 75.0,
+  "pause_at_c": 65.0,
+  "resume_at_c": 60.0,
+  "peak_temperature_c": 58.97187423706055,
+  "final_temperature_c": 54.33124923706055,
+  "peak_sensor": "SMC TCMz",
+  "workers": 1
+}

@@ -9,7 +9,7 @@ window.Singleplayer = (() => {
   const crewNames = {1:"Pionier",2:"Horizont",3:"Mentor",4:"Kursmeister",5:"Navigator",6:"Koordinator"};
   const crewName = model => crewNames[crewNumber(model)] ? `Crew ${crewNumber(model)} · ${crewNames[crewNumber(model)]}` : model.name || model.run;
   const selectableModels = () => catalog.models.filter(m => m.ui_hidden !== true && (m.quality?.approved === true || isPreview(m))).sort((a,b)=>crewNumber(b)-crewNumber(a));
-  const modelLabel = model => `${crewName(model)}${isPreview(model) ? " · Entwicklung" : ""}`;
+  const modelLabel = crewName;
   const supports = (model, airport) => Boolean(model && (model.supported_airports || [model.airport]).includes(airport));
   const hasCaseManifest = model => isPreview(model) && Object.prototype.hasOwnProperty.call(model.preview, "supported_cases");
   const caseKey = (airport, cards) => `${airport}|${[...cards].sort().join(",")}`;
@@ -371,7 +371,8 @@ window.Singleplayer = (() => {
     const oldScenario=session?.scenario?.id || api.state()?.szenario_id;
     let version = ++generation;
     const config = {...setup, abilities:[...(setup.abilities || [])], humanRole: restarting ? setup.humanRole : document.getElementById("solo-role").value};
-    const scenario = window.LANDING_CATALOG.scenarios.find(s => s.id === (restarting?oldScenario:document.getElementById("solo-route").value));
+    const baseScenario = window.LANDING_CATALOG.scenarios.find(s => s.id === (restarting?oldScenario:document.getElementById("solo-route").value));
+    const scenario = baseScenario && {...baseScenario, timed: restarting ? session?.scenario?.timed !== false : routePicker?.timed() !== false};
     if (!scenario) { document.getElementById("solo-error").textContent = "Die Strecke dieses Modells ist nicht verfügbar."; return; }
     if (config.mode !== "examples" && (!config.model || !supportsCase(config.model,scenario,config.abilities))) return;
     if (!restarting && scenario.ability_count && document.getElementById("solo-abilities").value !== caseKey(scenario.engine_code,config.abilities)) return;
@@ -389,7 +390,7 @@ window.Singleplayer = (() => {
       setup = config; policy = loadedPolicy;
       // Recording begins before the first render can schedule the AI.
       session = {id: crypto.randomUUID(), created_at: new Date().toISOString(), mode: config.mode,
-                 scenario: {id: scenario.id, engine_code: scenario.engine_code,ability_ids:[...config.abilities],case_key:caseKey(scenario.engine_code,config.abilities)}, human_role: config.mode === "examples" ? null : config.humanRole,
+                 scenario: {id: scenario.id, timed: scenario.timed !== false, engine_code: scenario.engine_code,ability_ids:[...config.abilities],case_key:caseKey(scenario.engine_code,config.abilities)}, human_role: config.mode === "examples" ? null : config.humanRole,
                  model: config.model && config.mode !== "examples" ? clone(config.model) : null,
                  schema_version: activeSchema().version, schema: activeSchema(), action_mask_version: catalog.action_mask_version,
                  consent: config.mode === "play" ? null : {version: "2026-10-18", accepted_at: new Date().toISOString()},
@@ -720,6 +721,14 @@ window.Singleplayer = (() => {
 
   function confirmReroll(role, subset, actor = "human", supplied = null) {
     if (!reroll || role !== nextRerollRole() || (hasAI() && actor === "human" && role !== setup.humanRole)) return;
+    const partner = role === "pilot" ? "kopilot" : "pilot";
+    // Both players may keep their dice. Close the negotiation without spending
+    // a token or recording an impossible empty engine action as training data.
+    if (subset === 0 && reroll.selections[partner]?.length === 0) {
+      cancelReroll();
+      api.notify?.("Alle Würfel behalten. Das Neuwurf-Plättchen bleibt erhalten.");
+      return;
+    }
     const d = supplied || decision(role);
     const a = {kind: "reroll_select", role, subset}, id = actionId(a);
     if (!d.action_mask[id]) { api.rerollMessage("Wählt zusammen mindestens einen verfügbaren Würfel aus."); return; }

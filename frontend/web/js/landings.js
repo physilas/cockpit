@@ -20,7 +20,7 @@
 
   function mount(root, options) {
     const scenarios = options.scenarios || catalog.scenarios;
-    let filter = "all", query = "", selected = null, detail = false, busy = false;
+    let filter = "all", query = "", selected = null, detail = false, busy = false, timed = true;
     let drafts = read("flyteam-loadout-drafts-v1", {});
     const stored = read("flyteam-selection-v1", {});
     selected = scenarios.find(s => s.id === stored.id) || scenarios[0];
@@ -69,6 +69,7 @@
         <div class="landing-detail-top" style="--level:${d.color}"><div class="landing-detail-visual"><div class="landing-detail-image">${imageHTML(s)}<span class="landing-level">${esc(d.label)}</span></div>${photoCredit(s)}</div><div class="landing-detail-intro"><span class="landing-eyebrow">${esc(s.country)} · ${s.kind === 'logbook' ? 'ORIGINALSTRECKE' : 'EIGENE STRECKE'}</span><h1 tabindex="-1">${esc(s.code)} <span>${esc(s.name)}</span></h1><p>${esc(s.description)}</p><div class="landing-card-modules">${moduleHTML(s)}${s.ability_count ? `<span class="landing-chip">☆ ${s.ability_count} ${s.ability_count === 1 ? "Fähigkeitskarte" : "Fähigkeitskarten"}</span>` : ''}</div>${s.kind === "logbook" ? `<p class="landing-detail-note">Originalstrecke aus deinem Spielmaterial. ${s.practice ? `<b>Übungsregeln: noch ohne ${s.modules.map(id => esc(catalog.modules[id].name)).join(", ")}${s.ability_count ? " und Karteneffekte" : ""}.</b>` : (s.modules.length || s.ability_count ? "Alle vorgesehenen Module und euer Kartenset sind aktiv." : "Diese Landung benötigt keine Zusatzmodule oder Fähigkeitskarten.")}</p>${s.source_note ? `<p class="landing-detail-note">${esc(s.source_note)}</p>` : ""}` : ""}</div></div>
         <section class="landing-route"><h2>Deine ${s.practice ? 'Übungsstrecke' : 'Strecke'}</h2><p>${s.track.length} Felder · Grundregeln${s.track.some(r => Number(r.split(' ')[1])) ? ' · Verkehrswürfel' : ''}${s.track.some(r => r.split(' ').slice(2).join(' ') !== '-2 2') ? ' · Kurven' : ''}</p><ol class="landing-route-strip">${s.track.map((row,i) => { const [planes,traffic,lo,hi] = row.split(' ').map(Number); return `<li><b>${i === s.track.length - 1 ? '⚑' : s.track.length - 1 - i}</b><span aria-label="${planes} Flugzeuge">${'✈'.repeat(planes) || '·'}</span><small>${traffic ? `⚄ ×${traffic}` : '—'}</small><small>${lo !== -2 || hi !== 2 ? `${lo} … ${hi}` : 'frei'}</small></li>`; }).join('')}</ol></section>
         <section class="landing-loadout" ${s.ability_count?'':'hidden'}><div class="landing-section-title"><h2>Fähigkeitskarten</h2><span>${cards.length} / ${s.ability_count} ausgewählt</span></div><p>${s.ability_count ? 'Wählt genau die angegebene Zahl unterschiedlicher Fähigkeiten. Euer Set wird auf diesem Gerät gespeichert und ist während des Flugs aktiv.' : 'Für diese Landung sieht das Logbuch keine Fähigkeitskarten vor.'}</p>${s.ability_count ? `<div class="landing-abilities">${catalog.abilities.map(a => `<button type="button" class="landing-ability" data-ability="${a.id}" aria-pressed="${cards.includes(a.id)}" ${!cards.includes(a.id) && cards.length >= s.ability_count ? 'disabled' : ''}><span class="landing-ability-mark">${cards.includes(a.id) ? '✓' : '+'}</span><strong>${esc(a.name)}</strong><small>${esc(a.original_name)}</small><p>${esc(a.description)}</p>${cards.length===s.ability_count-1&&!cards.includes(a.id)?rateHTML(s,[...cards,a.id],"landing-ability-rate"):""}</button>`).join('')}</div><p class="landing-detail-note">Die Fähigkeiten dieses Sets sind im Spiel aktiv. Die deutschen Namen sind Arbeitsübersetzungen.</p>` : ''}</section>
+        ${s.modules.includes('realtime') ? `<label class="landing-timer-option"><input type="checkbox" data-timed ${timed?'checked':''}><span>Mit Zeitlimit spielen<small>60 Sekunden pro Runde</small></span></label>` : ''}
         <div class="landing-launch"><div><b>${esc(s.code)} · ${esc(d.label)}</b><span>${s.kind === 'logbook' ? (s.practice ? 'Originalstrecke · Übungsregeln' : (s.modules.length ? `Originalstrecke · ${s.modules.map(id => catalog.modules[id].name).join(' · ')}` : 'Originalstrecke · Grundspiel')) : 'Partie mit eigener Strecke'}</span>${rateHTML(s,cards)}</div><button type="button" class="landing-start" data-action="start" ${busy || cards.length !== s.ability_count ? 'disabled' : ''}>${busy ? 'Wird vorbereitet …' : esc(options.startLabel || (s.practice ? 'Übungsflug starten →' : 'Spiel starten →'))}</button><p class="landing-launch-status" role="status" aria-live="polite"></p></div>`;
       const sets=options.cardSets?.(s);
       if(sets)details.querySelectorAll('[data-ability]').forEach(button=>{
@@ -82,6 +83,7 @@
       if (focus) { window.scrollTo(0,0); details.querySelector('h1').focus({preventScroll:true}); }
     }
     root.addEventListener('input', event => {
+      if (event.target.matches('[data-timed]')) timed = event.target.checked;
       if (event.target.matches('input[type="search"]')) { query = event.target.value; renderGrid(); }
     });
     root.addEventListener('click', async event => {
@@ -90,7 +92,7 @@
       if (busy && button.dataset.action !== 'back') return;
       if (button.dataset.filter) { filter = button.dataset.filter; renderGrid(); }
       if (button.dataset.scenario) {
-        selected = scenarios.find(s => s.id === button.dataset.scenario);
+        selected = scenarios.find(s => s.id === button.dataset.scenario); timed = true;
         write('flyteam-selection-v1', {id:selected.id}); detail = true; renderDetail(true);
       }
       if (button.dataset.ability) {
@@ -108,7 +110,7 @@
       if (button.dataset.action === 'start' && !busy) {
         if (selectedCards().length !== selected.ability_count || options.canStart&&!options.canStart(selected,selectedCards())) return;
         busy = true; renderDetail();
-        try { await options.onStart({...selected, ability_ids:selectedCards()}); }
+        try { await options.onStart({...selected, ability_ids:selectedCards(), timed}); }
         catch (error) { renderDetail(); details.querySelector('.landing-launch-status').textContent = `Start fehlgeschlagen: ${error.message}. Bitte erneut versuchen.`; }
         finally { busy = false; const start = details.querySelector('[data-action="start"]'); if (start) { start.disabled = selectedCards().length!==selected.ability_count || Boolean(options.canStart&&!options.canStart(selected,selectedCards())); start.textContent = options.startLabel || (selected.practice ? 'Übungsflug starten →' : 'Spiel starten →'); } }
       }
@@ -118,6 +120,7 @@
       show() { root.classList.remove('versteckt'); if (detail) renderDetail(); else renderGrid(); window.scrollTo(0,0); },
       hide() { root.classList.add('versteckt'); },
       selected() { return selected; },
+      timed: () => timed,
       cards: selectedCards,
       refresh() { if(detail)renderDetail();else renderGrid(); },
     };
@@ -128,14 +131,15 @@
     const summary = document.getElementById('flight-summary');
     if (summary && !document.getElementById('spiel-ui')?.classList.contains('versteckt')) {
       summary.classList.remove('versteckt');
-      const full = `${s ? `${s.code} · ${s.name} · ${difficulty(s).label}` : (z.flughafen_name || '')} · ${s?.kind === 'logbook' ? (z.uebung ? 'Übungsflug · Zusatzmodule und Karten inaktiv' : (s.modules.length ? `Originalstrecke · ${s.modules.map(id => catalog.modules[id].name).join(' · ')}` : 'Originalstrecke · Grundspiel')) : 'Eigene Strecke'}`;
-      const icons = !z.uebung && s?.modules.map(id => catalog.modules[id].icon).join(' ');
-      summary.textContent = s ? `${s.code} · ${s.kind === 'logbook' ? difficulty(s).label : 'Eigene Strecke'}${z.uebung ? ' · Übung' : (icons ? ` · ${icons}` : '')}` : (z.flughafen_name || 'Eigene Strecke');
+      const untimed = s?.modules.includes('realtime') && !z.module.includes('realtime');
+      const full = `${s ? `${s.code} · ${s.name} · ${difficulty(s).label}` : (z.flughafen_name || '')} · ${s?.kind === 'logbook' ? (z.uebung ? 'Übungsflug · Zusatzmodule und Karten inaktiv' : (s.modules.length ? `Originalstrecke · ${s.modules.filter(id => id !== 'realtime' || !untimed).map(id => catalog.modules[id].name).join(' · ')}${untimed ? ' · Ohne Zeitlimit' : ''}` : 'Originalstrecke · Grundspiel')) : 'Eigene Strecke'}`;
+      const icons = !z.uebung && s?.modules.filter(id => z.module.includes(id)).map(id => catalog.modules[id].icon).join(' ');
+      summary.textContent = s ? `${s.code} · ${s.kind === 'logbook' ? difficulty(s).label : 'Eigene Strecke'}${z.uebung ? ' · Übung' : (icons ? ` · ${icons}` : '')}${untimed ? ' · Ohne Zeitlimit' : ''}` : (z.flughafen_name || 'Eigene Strecke');
       summary.title = full;
       summary.setAttribute('aria-label', full);
     }
     if (s && z.status === 'gewonnen') {
-      const victories = read('flyteam-landings-v1', {}), key = `${z.mock || z.uebung ? "practice" : "route"}:${s.id}`;
+      const victories = read('flyteam-landings-v1', {}), key = `${z.mock || z.uebung || s.modules.includes('realtime') && !z.module.includes('realtime') ? "practice" : "route"}:${s.id}`;
       if (!victories[key]) { victories[key] = new Date().toISOString(); write('flyteam-landings-v1', victories); }
     }
   }

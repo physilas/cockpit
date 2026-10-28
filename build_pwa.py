@@ -19,7 +19,7 @@ SHELL = [
     *[f"js/{name}.js" for name in ("modules", "reroll", "ai-models", "ai-policy",
         "cloud-config", "learning-cloud", "singleplayer", "game-dialogs",
         "game-experience", "landing-catalog", "landings", "engine-src",
-        "game-schema", "traffic", "build-info", "app", "multiplayer", "offline", "feedback-actions", "cockpit-controls", "multiplayer-lobby", "app-updates")],
+        "game-schema", "traffic", "build-info", "app", "multiplayer", "offline", "feedback-actions", "cockpit-controls", "cockpit-layout", "multiplayer-lobby", "app-updates")],
     *[f"icons/icon-fly-team-{size}.png" for size in (180, 192, 512)],
     *[f"assets/landings/{code}-city.webp" for code in
       ("YUL", "LHR", "HND", "OSL", "ATL", "PRG", "GIG", "TGU", "KEF", "KUL", "PBH", "MUC", "FRA")],
@@ -51,6 +51,7 @@ def inventory():
 
 def build_pwa():
     original = list(build.PYTHON_DATEIEN)
+    build.PYTHON_DATEIEN.append("play_options.py")
     build.PYTHON_DATEIEN.extend(["ai/ability_planner.py", "ai/ability_policy.py", "ai/ability_browser.py"])
     try:
         build.build()

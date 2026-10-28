@@ -26,3 +26,15 @@ Updates erkennen eine neue bereitgestellte App-Version. Sie laden zunächst die 
 ![Kaffee auf schmalen Bildschirmen](pruefbilder/kaffee-mobil-2026-10-28.jpg)
 
 ![Eigener KI-Zug nach langer Echtzeitpause](pruefbilder/eigener-ki-zug-echtzeit-2026-10-28.jpg)
+
+## Weitere mobile Korrekturen
+
+- Die Crew-Auswahl zeigt nur Nummer und Zusatzname, ohne „Entwicklung“ im Namen. Die gemessenen Testwerte und ihre Hinweise bleiben erhalten.
+- Der Cockpit-Kopf und die Feedbackleiste sind deckend und ohne Unschärfefilter. Die iOS-Statusleiste verwendet den Standardmodus. Dynamische Safe-Area-Werte schützen Systemanzeigen; es werden keine festen Dynamic-Island-Abmessungen angenommen. Ein bereits installiertes iPhone-PWA kann seine Statusleisten-Einstellung bis zum erneuten Öffnen oder Hinzufügen behalten; die tatsächliche iOS-Systemdarstellung ist hier nicht auf einem physischen iPhone überprüft.
+- Die Navigationsleisten passen sich der verbleibenden Bildschirmhöhe an. Würfel und Spielfelder behalten ihre Bediengröße. Reicht die Höhe nicht, scrollt das Cockpit unter dem festen Kopf. Das Startmenü hat kleinere Abstände, Titel und Schaltflächen.
+- Ein wesentlich kleinerer Neuwurfdialog zeigt pro Person eine Würfelreihe. Beide dürfen „Alle behalten“ bestätigen: Dialog schließen, keine neuen Würfel, kein verbrauchtes Plättchen. Abgebrochene Auswahlereignisse werden nicht als gültige Trainingszüge gespeichert.
+- Bei Echtzeit-Strecken erscheint vor dem Start das standardmäßig gesetzte Häkchen „Mit Zeitlimit spielen“. Ohne Häkchen werden aktuelle und künftige Countdown-Fristen deaktiviert. Diese Wahl übersteht Rückgängig, Speichern, Fortsetzen und Neustart und wird im Multiplayer gemeinsam bestätigt. Solche Siege zählen als Übung; Lerndaten kennzeichnen die Variante mit `scenario.timed=false`.
+
+Geprüft: echte Pass-&-Play-Bedienung im Browser, beide leeren Bestätigungen mit erhaltenem Plättchen; Layout bei 393 × 852 mit simulierten Safe-Area-Werten 59/34, 393 × 724 und 320 × 740 ohne vertikalen oder horizontalen Überlauf des Grundspiel-Cockpits. Paro Elite ohne Zeitlimit wurde nach drei Verkehrswürfen bis zur Platzierungsphase gestartet: keine Timeranzeige, Kennzeichnung „Ohne Zeitlimit“, Cockpit passt in die iPhone-Ansicht. Das Startmenü einschließlich Fortsetzen und Offline-Download passt bei 393 × 852 und 393 × 724. Safe-Area-Simulation ersetzt keinen Test des iOS-Systemnebels auf dem Gerät.
+
+Automatisiert: `node tests/reroll-retain.cjs` prüft die echten Handler für Pass & Play, Multiplayer und Singleplayer einschließlich Trainingsereignissen. `tests/test_play_options.py` prüft Timer-Standard, dauerhafte Abschaltung, Save/Resume und Undo. Bestehende UI- und Offline-Prüfungen bestehen.

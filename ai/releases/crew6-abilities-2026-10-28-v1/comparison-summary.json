@@ -1,0 +1,26 @@
+{
+  "baseline": {
+    "games": 960,
+    "wins": 103,
+    "equal_route_win_rate": 0.3325925925925926,
+    "synchronisation_bonuses": 226,
+    "ability_wins": 29,
+    "switch_refills": 146,
+    "coffee_reversals": 2,
+    "stranded_plane_events": 43,
+    "avoidable_immediate_losses": 0,
+    "truncations": 0
+  },
+  "candidate": {
+    "games": 960,
+    "wins": 122,
+    "equal_route_win_rate": 0.34271604938271605,
+    "synchronisation_bonuses": 559,
+    "ability_wins": 48,
+    "switch_refills": 129,
+    "coffee_reversals": 7,
+    "stranded_plane_events": 40,
+    "avoidable_immediate_losses": 0,
+    "truncations": 0
+  }
+}

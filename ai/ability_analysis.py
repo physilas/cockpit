@@ -1,5 +1,6 @@
 """Descriptive paired analysis; never promotes a candidate or retunes a policy."""
 import argparse
+import hashlib
 import json
 import random
 from pathlib import Path
@@ -42,9 +43,17 @@ def analyze(report, repetitions=2000):
                 max_cpu_decision_seconds=max([e.get('max_cpu_decision_seconds',0) for e in episodes] or [0]))
         return result
     return dict(complete=True,cohort=report['config']['cohort'],games_per_case=games,
+                analysis_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                actual_played_games=report.get('actual_played_games'),
+                reused_identical_policy_games=report.get('reused_identical_policy_games'),
+                represented_policy_games=report.get('represented_policy_games'),
                 all_cases=summary(cases),official=summary(official),
                 synchronization_cases=summary([c for c in cases if 'synchronisation' in c['abilities']]),
                 wind_cases=summary([c for c in cases if 'wind' in c['modules']]),
+                realtime_cases=summary([c for c in cases if 'realtime' in c['modules']]),
+                affected_non_realtime_cases=summary([c for c in cases if 'realtime' not in c['modules'] and ('wind' in c['modules'] or 'synchronisation' in c['abilities'])]),
+                unaffected_realtime_cases=summary([c for c in cases if 'realtime' in c['modules'] and 'wind' not in c['modules'] and 'synchronisation' not in c['abilities']]),
+                clock_limit='Realtime uses engine wall clocks, including external scheduling and temperature-control pauses. Unaffected timed cases are separately played rather than assumed identical.',
                 equal_route_delta=delta,paired_stratified_bootstrap_95=[bootstrap[int(.025*repetitions)],bootstrap[int(.975*repetitions)]],
                 inference_limit='Small per-case samples; paired bootstrap describes this cohort, not a per-route guarantee.',routes=route_rows)
 

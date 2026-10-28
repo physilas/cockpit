@@ -91,3 +91,57 @@ Co-Pilot mit unveränderter Crew 5 auf den 19 Entwicklungsfällen vorgesehen:
 je drei Startfolgen für Crew 5/5 und beide gemischten Besetzungen. Die Startfolgen
 sind von der Bestätigung getrennt. Diese Diagnose trainiert keine Gewichte und
 ist kein Ersatz für eine Untersuchung mit menschlichen Spielern.
+
+
+## Unabhängige Bestätigung
+
+Der eingefrorene Stand bestand die vorab festgelegte Hürde: 103 → 122 Siege
+über je 960 repräsentierte Partien; auf den betroffenen Wind-/Synchronisationsfällen
+29 → 48. Tatsächlich gespielt wurden insgesamt 1.560 Partien. 360 identische
+Verläufe unveränderter Fälle ohne Echtzeit wurden analytisch übernommen.
+Die 21 Originalstrecken verbessern sich bei gleicher Routengewichtung um
+1,30 Prozentpunkte. Das ist ein moderater Schritt, kein allgemeines Top-Niveau.
+
+Synchronisation gewinnt deutlich: 23/275 → 41/275 erfolgreiche Landungen und
+226 → 559 gezählte Zusatzwurfaktionen. Bei Wind sind es nur 6/255 → 8/255 Siege.
+Kaffee-Gegenkorrekturen (2 → 7) und der vereinfachte Reichweitenindikator
+(76 → 121) bleiben offene Schwächen. Die [Routentabelle](KI-ROUTENVERGLEICH-2026-10-28.md)
+enthält sämtliche Originalstrecken, Stichprobengrößen und die Rohdatenverweise.
+
+Während einer zwischenzeitlichen hohen Chrome-/Grafiklast stieg das gemessene
+Sensormaximum auf 84,03 °C. Beide KI-Arbeiter waren dabei vollständig gestoppt
+(0 % CPU); die Temperaturüberwachung setzte erst nach Abkühlung unter 60 °C
+fort. Die Daten behalten diese reale Wanduhr einschließlich Temperaturpausen.
+Das unabhängige Ergebnis ist daher auch nach Echtzeit- und unveränderten
+Kontrollfällen getrennt ausgewiesen. Zukünftige Diagnosen nutzen zunächst
+nur einen Hintergrund-Arbeiter.
+
+Die vorhandenen Spielerdaten wurden nicht heimlich in neue Gewichte umgewandelt:
+Im zuletzt geprüften Archiv standen 28 explizite Schema-3-Bewertungen aus 13
+Sitzungen zur Verfügung; die bestehende Trainingsroutine verlangt mindestens
+64 verwertbare Bewertungen. Neue menschliche Korrekturen können künftig
+zusätzliche positive Beispiele liefern. Crew 6 verwendet unveränderte Gewichte.
+
+
+## Browser und Offline-Paket
+
+Vier vollständige technische Python/WASM-/JavaScript-Kontrollpartien wurden
+über die echte Browseroberfläche ausgeführt (226 Entscheidungen, keine
+ungültige Aktion oder Schrittlimittrunkierung). Die langsamste Entscheidung
+auf diesem Mac dauerte etwa 0,76 Sekunden. Das ist kein iPhone-Leistungstest
+und kein Gewinnratenbenchmark.
+
+Der reale Wechsel eines vollständig gespeicherten Fünf-Crew-Pakets auf die
+Sechs-Crew-Version behielt den Offline-Status. Alle sechs Crews benötigen
+weiterhin nur vier verschiedene Gewichtsdateien: zusammen 11.263.438 Bytes.
+Das gesamte Paket umfasst 30.578.696 Bytes zuzüglich Inventardatei. Die neue
+Crew lädt keine zusätzliche Kopie der identischen Gewichte herunter.
+Crew 6 steht im Auswahlmenü vor Crew 5; Crew 1 bleibt unten.
+
+![Crew 6 als Standard](pruefbilder/crew6-standard-2026-10-28.jpg)
+
+## Gemischte Crews: unabhängige Diagnose
+
+19 gezielt gewählte Wind-/Synchronisationsfälle, drei neue Startfolgen pro Fall, insgesamt 171 tatsächlich gespielte Partien. Crew 5/5 gewinnt 8/57, Crew 6 als Pilot neben Crew 5 gewinnt 4/57, Crew 6 als Co-Pilot neben Crew 5 gewinnt 10/57. Keine auditierten vermeidbaren Sofortverluste oder Schrittlimit-Abbrüche. Das ist eine kleine separate Diagnose, kein Nachweis für das Zusammenspiel mit Menschen und keine Trainingsrunde. Die Abweichung nach Rollen spricht dafür, künftig wechselnde Partner und gemeinsame öffentliche Ziele gezielt zu prüfen. Sie rechtfertigt keine Behauptung, Crew 6 sei mit jedem Partner besser. Die maximal gemessene Temperatur dieses Laufs betrug 58,97 °C.
+
+Die abschließende vollständige Python-Prüfung bestand mit 648 Tests in 629,9 Sekunden; die drei später ergänzten Zeitlimit-Tests bestehen zusätzlich. Temperaturmaximum dieses Testlaufs: 62,13 °C. Neue UI-Optionen verändern das eingefrorene autonome Profil nicht; die Bestätigung verwendet weiterhin die Originalregeln einschließlich Echtzeit.

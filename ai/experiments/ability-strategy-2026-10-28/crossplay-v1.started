@@ -1,0 +1,249 @@
+{
+  "cohort": "development:ability-crossplay:v1:2026-10-28",
+  "games": 3,
+  "cases": [
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "leak",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "modules": [
+        "leak",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "modules": [
+        "wind"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "modules": [
+        "intern",
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "ice",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "modules": [
+        "ice",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "modules": [
+        "ice"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "modules": [
+        "ice",
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "modules": [
+        "kerosene",
+        "realtime"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "modules": [
+        "leak"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "modules": [
+        "kerosene",
+        "wind"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "modules": [
+        "kerosene"
+      ],
+      "abilities": [
+        "adaptation",
+        "synchronisation"
+      ],
+      "minimum_win_rate": 0.3,
+      "case_scope": "official_matrix"
+    }
+  ],
+  "modes": [
+    "baseline",
+    "candidate_pilot",
+    "candidate_kopilot"
+  ],
+  "weights_sha256": "3673cafcb4c8e8dd0ad3f900c8fbb461f821bb486afdf0091d8b968cfd00c15b",
+  "planner_sha256": "28cd015ce89acd78fc6a6a73c45942290b978be795931a2cec77da57fb748f53",
+  "evaluation_sha256": "023f184fcb650b333802d49acdcfc4caffca2ef70ad1065bf8e425727cab037c",
+  "diagnostic_sha256": "ae2b54b9b9a7c4b8e3778fecf9bca226877eae94190a177b548f7864acc888e4",
+  "purpose": "Independent mixed-crew diagnostic; no training, candidate selection or qualification."
+}

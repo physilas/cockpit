@@ -1,0 +1,417 @@
+{
+  "complete": true,
+  "cohort": "confirmation:ability-v4:2026-10-28",
+  "games_per_case": 5,
+  "analysis_sha256": "734c171cf3ae320196a3758c23b2f14b6240733c651ed1a5bef1b9e21a0479ac",
+  "actual_played_games": 1560,
+  "reused_identical_policy_games": 360,
+  "represented_policy_games": 1920,
+  "all_cases": {
+    "baseline": {
+      "games": 960,
+      "wins": 103,
+      "synchronisation_bonuses": 226,
+      "switch_refills": 146,
+      "regular_switch_refills": 143,
+      "bonus_switch_refills": 3,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 43,
+      "irreversible_range_events": 76,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.0477739999998903
+    },
+    "candidate": {
+      "games": 960,
+      "wins": 122,
+      "synchronisation_bonuses": 559,
+      "switch_refills": 129,
+      "regular_switch_refills": 126,
+      "bonus_switch_refills": 3,
+      "coffee_reversals": 7,
+      "stranded_plane_events": 40,
+      "irreversible_range_events": 121,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.767595000000256
+    }
+  },
+  "official": {
+    "baseline": {
+      "games": 930,
+      "wins": 74,
+      "synchronisation_bonuses": 226,
+      "switch_refills": 86,
+      "regular_switch_refills": 83,
+      "bonus_switch_refills": 3,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 43,
+      "irreversible_range_events": 75,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.0477739999998903
+    },
+    "candidate": {
+      "games": 930,
+      "wins": 93,
+      "synchronisation_bonuses": 559,
+      "switch_refills": 69,
+      "regular_switch_refills": 66,
+      "bonus_switch_refills": 3,
+      "coffee_reversals": 7,
+      "stranded_plane_events": 40,
+      "irreversible_range_events": 120,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.767595000000256
+    }
+  },
+  "synchronization_cases": {
+    "baseline": {
+      "games": 275,
+      "wins": 23,
+      "synchronisation_bonuses": 226,
+      "switch_refills": 45,
+      "regular_switch_refills": 45,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 16,
+      "irreversible_range_events": 25,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 1.617801999999756
+    },
+    "candidate": {
+      "games": 275,
+      "wins": 41,
+      "synchronisation_bonuses": 559,
+      "switch_refills": 25,
+      "regular_switch_refills": 25,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 5,
+      "stranded_plane_events": 17,
+      "irreversible_range_events": 48,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.767595000000256
+    }
+  },
+  "wind_cases": {
+    "baseline": {
+      "games": 255,
+      "wins": 6,
+      "synchronisation_bonuses": 56,
+      "switch_refills": 11,
+      "regular_switch_refills": 11,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 15,
+      "irreversible_range_events": 13,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.0477739999998903
+    },
+    "candidate": {
+      "games": 255,
+      "wins": 8,
+      "synchronisation_bonuses": 136,
+      "switch_refills": 18,
+      "regular_switch_refills": 18,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 8,
+      "irreversible_range_events": 44,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.496556999999939
+    }
+  },
+  "realtime_cases": {
+    "baseline": {
+      "games": 225,
+      "wins": 5,
+      "synchronisation_bonuses": 49,
+      "switch_refills": 12,
+      "regular_switch_refills": 12,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 1,
+      "stranded_plane_events": 13,
+      "irreversible_range_events": 14,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 0.8670910000000731
+    },
+    "candidate": {
+      "games": 225,
+      "wins": 7,
+      "synchronisation_bonuses": 164,
+      "switch_refills": 9,
+      "regular_switch_refills": 9,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 2,
+      "stranded_plane_events": 13,
+      "irreversible_range_events": 24,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 1.9769940000001043
+    }
+  },
+  "affected_non_realtime_cases": {
+    "baseline": {
+      "games": 375,
+      "wins": 27,
+      "synchronisation_bonuses": 177,
+      "switch_refills": 40,
+      "regular_switch_refills": 40,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 0,
+      "stranded_plane_events": 19,
+      "irreversible_range_events": 27,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.0477739999998903
+    },
+    "candidate": {
+      "games": 375,
+      "wins": 44,
+      "synchronisation_bonuses": 395,
+      "switch_refills": 26,
+      "regular_switch_refills": 26,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 4,
+      "stranded_plane_events": 16,
+      "irreversible_range_events": 62,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 2.767595000000256
+    }
+  },
+  "unaffected_realtime_cases": {
+    "baseline": {
+      "games": 150,
+      "wins": 3,
+      "synchronisation_bonuses": 0,
+      "switch_refills": 5,
+      "regular_switch_refills": 5,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 1,
+      "stranded_plane_events": 7,
+      "irreversible_range_events": 8,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 0.8670910000000731
+    },
+    "candidate": {
+      "games": 150,
+      "wins": 3,
+      "synchronisation_bonuses": 0,
+      "switch_refills": 5,
+      "regular_switch_refills": 5,
+      "bonus_switch_refills": 0,
+      "coffee_reversals": 1,
+      "stranded_plane_events": 7,
+      "irreversible_range_events": 8,
+      "avoidable_immediate_losses": 0,
+      "truncations": 0,
+      "max_cpu_decision_seconds": 0.7773799999999937
+    }
+  },
+  "clock_limit": "Realtime uses engine wall clocks, including external scheduling and temperature-control pauses. Unaffected timed cases are separately played rather than assumed identical.",
+  "equal_route_delta": 0.013015873015873015,
+  "paired_stratified_bootstrap_95": [
+    0.0038095238095238095,
+    0.02253968253968254
+  ],
+  "inference_limit": "Small per-case samples; paired bootstrap describes this cohort, not a per-route guarantee.",
+  "routes": [
+    {
+      "airport": "LOG_ATL_GREEN",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 1,
+      "baseline_rate": 0.2,
+      "candidate_rate": 0.2
+    },
+    {
+      "airport": "LOG_ATL_YELLOW",
+      "cases": 6,
+      "games": 30,
+      "baseline_wins": 0,
+      "candidate_wins": 0,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_GIG_RED",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 1,
+      "candidate_wins": 1,
+      "baseline_rate": 0.013333333333333334,
+      "candidate_rate": 0.013333333333333334
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "cases": 6,
+      "games": 30,
+      "baseline_wins": 3,
+      "candidate_wins": 3,
+      "baseline_rate": 0.1,
+      "candidate_rate": 0.1
+    },
+    {
+      "airport": "LOG_HND_GREEN",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 2,
+      "candidate_wins": 2,
+      "baseline_rate": 0.4,
+      "candidate_rate": 0.4
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "cases": 6,
+      "games": 30,
+      "baseline_wins": 0,
+      "candidate_wins": 0,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_KEF_BLACK",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 0,
+      "candidate_wins": 1,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.013333333333333334
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "cases": 6,
+      "games": 30,
+      "baseline_wins": 4,
+      "candidate_wins": 4,
+      "baseline_rate": 0.13333333333333333,
+      "candidate_rate": 0.13333333333333333
+    },
+    {
+      "airport": "LOG_KUL_BLACK",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 1,
+      "candidate_wins": 0,
+      "baseline_rate": 0.013333333333333334,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_KUL_YELLOW",
+      "cases": 6,
+      "games": 30,
+      "baseline_wins": 0,
+      "candidate_wins": 1,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.03333333333333333
+    },
+    {
+      "airport": "LOG_LHR_GREEN",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 2,
+      "candidate_wins": 2,
+      "baseline_rate": 0.4,
+      "candidate_rate": 0.4
+    },
+    {
+      "airport": "LOG_LHR_YELLOW",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 2,
+      "candidate_wins": 2,
+      "baseline_rate": 0.4,
+      "candidate_rate": 0.4
+    },
+    {
+      "airport": "LOG_OSL_GREEN",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 1,
+      "candidate_wins": 1,
+      "baseline_rate": 0.2,
+      "candidate_rate": 0.2
+    },
+    {
+      "airport": "LOG_OSL_RED",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 0,
+      "candidate_wins": 0,
+      "baseline_rate": 0.0,
+      "candidate_rate": 0.0
+    },
+    {
+      "airport": "LOG_PBH_BLACK",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 1,
+      "candidate_wins": 1,
+      "baseline_rate": 0.013333333333333334,
+      "candidate_rate": 0.013333333333333334
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 3,
+      "candidate_wins": 6,
+      "baseline_rate": 0.04,
+      "candidate_rate": 0.08
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 25,
+      "candidate_wins": 30,
+      "baseline_rate": 0.3333333333333333,
+      "candidate_rate": 0.4
+    },
+    {
+      "airport": "LOG_PRG_YELLOW",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 11,
+      "candidate_wins": 13,
+      "baseline_rate": 0.14666666666666667,
+      "candidate_rate": 0.17333333333333334
+    },
+    {
+      "airport": "LOG_TGU_RED",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 2,
+      "candidate_wins": 3,
+      "baseline_rate": 0.02666666666666667,
+      "candidate_rate": 0.04
+    },
+    {
+      "airport": "LOG_TGU_YELLOW",
+      "cases": 15,
+      "games": 75,
+      "baseline_wins": 12,
+      "candidate_wins": 19,
+      "baseline_rate": 0.16,
+      "candidate_rate": 0.25333333333333335
+    },
+    {
+      "airport": "LOG_YUL_GREEN",
+      "cases": 1,
+      "games": 5,
+      "baseline_wins": 3,
+      "candidate_wins": 3,
+      "baseline_rate": 0.6,
+      "candidate_rate": 0.6
+    }
+  ]
+}
