@@ -35,3 +35,16 @@ Erste vollständige Python-Suite nach Abschluss von „Beste KI“: **700 Tests 
 **Korrektur:** Jeder neue Kanal beginnt ohne Protokollfreigabe und ohne alte Gast-Bereitschaft. Die Host-Callbacks verarbeiten Ereignisse ausschließlich, solange ihr eigener Kanal noch der aktuelle ist.
 
 **Prüfung:** Im realen Callback-Ablauf des Node-Tests alten Kanal schließen, Ersatzkanal öffnen und begrüßen, danach verspätetes Schließen, falsche Protokollnachricht und Öffnen des alten Kanals einspeisen. Die neue Verbindung bleibt verbunden/freigegeben und erhält keine zusätzlichen alten Zustandsnachrichten. Der Test scheiterte vor der Korrektur bereits am geerbten Protokollstatus.
+
+
+## 5. Aufzeichnungen: unnötiger RAM-Verbrauch nach erfolgreichem Speichern
+
+**Fehler:** Jede in dieser App-Sitzung aufgezeichnete Partie blieb als vollständige JSON-Kopie im Fallback-Speicher, auch nach abgeschlossener IndexedDB-Transaktion. Die Liste wuchs mit jeder Partie und duplizierte die bereits gespeicherten Daten im RAM.
+
+**Korrektur:** Nach erfolgreichem Transaktionsabschluss wird ausschließlich die gerade gespeicherte Revision aus dem RAM entfernt. Eine neuere noch ausstehende Revision und sämtliche fehlgeschlagenen Schreibvorgänge bleiben als exportierbare Fallbacks erhalten.
+
+**Prüfung:** Der asynchrone Transaktionstest `node tests/singleplayer-storage.cjs` behielt vorher nach 20 erfolgreichen Partien alle 20 Kopien im RAM. Nachher: keine überzähligen Kopien, weiterhin alle Exporte, Fallback nach Abbruch, Erhalt bei fremdem erfolgreichem Schreibvorgang und zwei überlappende Revisionen einschließlich eines Abbruchs der neueren Revision.
+
+## Abschlussprüfung dieses Durchlaufs
+
+700 Python-Tests bestanden. Syntax von 293 eigenen Python-Dateien und 57 JavaScript-Dateien einschließlich generierter Bundles geprüft; doppelte HTML-IDs und fehlende lokale Skripte ausgeschlossen. Die unabhängigen JavaScript-Suites prüfen Modellwahl, Feedback, Undo, Speicherung, Planung, Fähigkeiten, Neuwurf, Multiplayer, Offline-Paket sowie Cloud-Ingestion und Archiv mit SQLite. Browserprüfung des neuen Standards einschließlich echtem KI-Zug und Fortsetzen nach Update erfolgt; sämtliche fünf Bugfixes besitzen gezielte Regressionstests. Die Prüfung erhebt keinen Anspruch, jeden möglichen Fehler gefunden zu haben.

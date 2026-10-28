@@ -123,6 +123,9 @@ window.Singleplayer = (() => {
         transaction.oncomplete = resolve;
         transaction.onerror = transaction.onabort = () => reject(transaction.error);
       });
+      // Keep only unsaved fallbacks in RAM. An older completed write must
+      // not release a newer revision that is still waiting for its transaction.
+      if(memory.get(data.id)?.data_revision===data.data_revision)memory.delete(data.id);
       storageError = "";
     }).catch(() => { storageError = "Lokales Speichern fehlgeschlagen. Bitte deine Daten exportieren."; })
       .then(() => { updateStatus(); scheduleCloud(); });
