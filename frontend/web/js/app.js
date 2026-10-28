@@ -35,7 +35,7 @@ let neuwurfUi = NeuwurfDialog.neuerZustand();
 let neuwurfTimer = null;
 
 async function ladeEngine() {
-  pyodide = await loadPyodide();
+  pyodide = await loadPyodide({indexURL: new URL("vendor/pyodide/0.26.1/", document.baseURI).href});
   await pyodide.loadPackage("pyyaml");
 
   // ENGINE_SRC wird von engine-src.js bereitgestellt (auto-generiert durch build.py)

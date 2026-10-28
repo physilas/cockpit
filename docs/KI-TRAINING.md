@@ -125,7 +125,7 @@ Einen **fertigen, unveränderten** Checkpoint auf neuen Seeds prüfen und freige
   --evaluation runs/crew-basegame-next/qualification.json \
   --release-id crew-basegame-v2 --name 'Crew 2'
 
-.venv/bin/python build.py
+.venv/bin/python build_pwa.py
 ```
 
 Die Freigabe bricht ab, wenn eine modulfreie Strecke nicht qualifiziert ist

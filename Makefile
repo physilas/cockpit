@@ -3,7 +3,7 @@
 PYTHON ?= .venv/bin/python
 
 build:
-	$(PYTHON) build.py
+	$(PYTHON) build_pwa.py
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v

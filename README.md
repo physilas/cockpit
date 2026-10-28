@@ -104,7 +104,7 @@ python3 -m http.server 8000
 # dann im Browser: http://localhost:8000/frontend/web/
 ```
 Nach Änderungen an `backend/` oder `backend/ui_schema.json` zuerst
-`python3 build.py` (oder `make build`) ausführen. Auf GitHub Pages funktioniert das genauso, sobald das Repo dort gehostet
+`python3 build_pwa.py` (oder `make build`) ausführen. Auf GitHub Pages funktioniert das genauso, sobald das Repo dort gehostet
 wird (Pages-Quelle = Repo-Root reicht; `index.html` im Root leitet
 automatisch zu `frontend/web/index.html` weiter).
 
@@ -379,7 +379,7 @@ Modelle für die statische Webseite bereitstellen:
 
 ```bash
 .venv/bin/python -m ai.export_browser --runs-dir ai/releases
-.venv/bin/python build.py
+.venv/bin/python build_pwa.py
 ```
 
 Dieser Export erfasst die veröffentlichten Checkpoints aus `ai/releases/`. Die generierten
@@ -388,3 +388,10 @@ veröffentlicht werden. Modelle werden bei Auswahl geladen und im Browser ausgef
 Feedback und Demonstrationen sind zunächst Trainingsdaten; sie verändern die
 Gewichte noch nicht automatisch. Die Einrichtung mit einer privaten D1-Datenbank und
 einem Cloudflare Worker ist in [docs/KI-CLOUD.md](docs/KI-CLOUD.md) beschrieben.
+
+### KI ohne Internet auf dem iPhone
+
+Im Hauptmenü speichert **„Alle 5 Crews offline speichern“** die gesamte App samt
+Python-Laufzeit und KI-Modellen (ca. 30,5 MB). Zuerst zum Home-Bildschirm hinzufügen
+und den Download in dieser App ausführen. Anleitung und Speichergrößen:
+[Offline-KI](docs/OFFLINE-KI.md).

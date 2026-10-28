@@ -69,6 +69,12 @@
       📱 Multiplayer
       <span>Zwei Geräte, kein Server nötig</span>
     </button>
+    <section id="offline-pack" aria-label="Offline spielen">
+      <button id="offline-download" class="start-btn" type="button" disabled>Offline-Paket wird geprüft …</button>
+      <p id="offline-status" role="status" aria-live="polite"></p>
+      <progress id="offline-progress" hidden aria-label="Offline-Download"></progress>
+      <small>Auf dem iPhone zuerst zum Home-Bildschirm hinzufügen, dann in der App herunterladen. Beim Download die App geöffnet lassen.</small>
+    </section>
   </div>
 
   <section id="singleplayer-menu" class="versteckt" aria-label="Singleplayer"></section>
@@ -221,7 +227,7 @@
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+  <script src="vendor/pyodide/0.26.1/pyodide.js"></script>
   <script src="js/game-schema.js"></script>
   <script src="js/engine-src.js?v=compact-distance-v2"></script>
   <script src="js/traffic.js"></script>
@@ -237,6 +243,8 @@
   <script src="js/game-dialogs.js"></script>
   <script src="js/game-experience.js"></script>
   <script src="js/app.js?v=compact-distance-v2"></script>
+  <script src="js/offline-assets.js"></script>
+  <script src="js/offline.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })

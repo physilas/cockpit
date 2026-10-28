@@ -132,7 +132,7 @@ Die Webseite wird anschließend wie bisher gebaut und über GitHub Pages veröff
 
 ```bash
 .venv/bin/python -m ai.export_browser
-.venv/bin/python build.py
+.venv/bin/python build_pwa.py
 ```
 
 Die generierten Dateien unter `frontend/web/models/` und der Modellkatalog müssen

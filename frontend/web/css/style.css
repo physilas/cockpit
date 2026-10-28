@@ -511,3 +511,11 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
 
 .feld-zelle.source-synchronisation { background: #202b34; border-color: #eef3e7; color: white; }
 .feld-zelle.source-intern { background: #ddedc0; border-color: #73984a; color: #29472a; }
+
+/* Offline preparation lives in the main menu and stays compact on phones. */
+#offline-pack { width:100%; max-width:320px; text-align:center; }
+#offline-download { background:#d7e6e2; color:#173e46; border:1px solid #799b9e; font-size:.95rem; }
+#offline-download:disabled { opacity:1; cursor:default; }
+#start-menu #offline-status { color:#496469; font-size:.85rem; margin:.7rem 0; line-height:1.45; }
+#offline-pack small { display:block; color:#496469; font-size:.72rem; line-height:1.45; }
+#offline-progress { width:100%; margin:.5rem 0; }
