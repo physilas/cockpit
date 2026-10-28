@@ -12,10 +12,10 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and shutil.which('node'),'Torch and Node required for exact policy parity')
 class PublicContractModelTests(unittest.TestCase):
-    def test_96_actual_browser_decisions_match_the_native_direct_planner(self):
+    def test_96_actual_browser_decisions_match_the_native_adaptive_planner(self):
         from backend import bridge
         from ai.checkpoints import load_checkpoint
-        from ai.contract_planner import ContractAgent
+        from ai.public_contract import PublicContractAgent
         from ai.export_browser import _model_data
         from ai.modules import ModuleEnv
         from ai.rollout_search import GuidedBlueprint
@@ -28,7 +28,7 @@ class PublicContractModelTests(unittest.TestCase):
                               ('LOG_PRG_YELLOW',['control','working-together']),('LOG_ATL_GREEN',[])):
             env=ModuleEnv(airport,abilities=cards,clock=lambda:0.)
             env.reset(seed='train:public-js-parity:'+airport)
-            agent=ContractAgent(airport,GuidedBlueprint(model))
+            agent=PublicContractAgent(airport,model)
             for ordinal in range(24):
                 if env.done:env.reset(seed=f'train:public-js-parity:{airport}:{ordinal}')
                 chosen=agent.select(env.view(),env.action_mask())

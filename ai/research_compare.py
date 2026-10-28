@@ -73,7 +73,7 @@ def run_task(task):
             partner_gears=effective in ('partner','partnerwide'))
     elif effective=='public':
         from .public_contract import PublicContractAgent
-        make_agent=lambda:PublicContractAgent(airport,_model,beam=_contract_beam)
+        make_agent=lambda:PublicContractAgent(airport,_model,beam=_contract_beam,respond_to_partner=False)
     elif effective=='responsive':
         from .response_contract import ResponseContractAgent
         make_agent=lambda:ResponseContractAgent(airport,_model,beam=_contract_beam)

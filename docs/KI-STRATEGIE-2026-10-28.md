@@ -543,3 +543,31 @@ Variante, noch nicht für eine gesicherte Verbesserung.
 `current-crews-route-table.md` enthält die vollständige Tabelle der vier
 bereits sichtbaren Crews auf allen21 Standardrouten. Sie basiert auf den
 unveränderten Veröffentlichungsberichten, nicht auf dem neuen kurzen V7-Test.
+
+## Eingefrorener Kandidat gegen10:20 Berlin
+
+Der direkte V2-Partnernachlauf ist vollständig und nutzt exakt dieselben
+Seeds, Partner und Quellen wie der reaktive V2-Versuch:159/486 Kontrolle,
+148/486 direkt,153/486 rein reaktiv. Die modulare Zusammensetzung erreicht
+145/486 und ist damit ausdrücklich keine Verbesserung des alten Cross-Plays.
+Sie erhält im kurzen Selbstspiel54/135 und auf Wind/Eis/Praktikant die
+größere erreichte Rundenzahl des direkten Planers. Auswahl und Abwägung in
+`final-selection-adaptive-v2.md`; keine Behauptung allgemeiner Partnerrobustheit.
+
+613 Tests in113,211s bestanden, Peak66,21 °C. Tatsächliche Browserprüfung mit
+Pyodide und JS-Inferenz: sechs ganze Partien,318 erlaubte Entscheidungen,
+keine technischen Fehler, maximal0,8944s pro Entscheidung. MUC und GIG gelb
+gewonnen; KEF gelb mit unvollständigen Eisbremsen verloren, PRG grün mit
+fehlendem Fahrwerk/schräger Fluglage, HND rot und PBH rot mit Kollision.
+Das sind technische Entwicklungsproben mit stringbasierten Testseeds,
+keine unabhängigen Stärke- oder Menschquoten. Ein Temperaturmesspunkt
+währenddessen51,85 °C; kein kontinuierlicher Browser-Peak gemessen.
+
+Die endgültige kalte Bestätigung läuft unter `frozen-adaptive-v3.json` mit
+zehn gepaarten Partien je192 Fällen und Variante, zusammen3840 Spielen.
+Das zuerst erzeugte20er-ManifestV2 wurde nie gestartet. Reduktion vor dem
+ersten kalten Ergebnis wegen des verbleibenden Zeitfensters; keine Auswahl
+anhand kalter Ergebnisse. Eingefrorene Quellen und Evaluator währenddessen
+nicht ändern. Erst nach vollständigem Bericht kann die separate Crew5 als
+ehrlich gekennzeichnete Vorschau veröffentlicht werden. Exakte Eingabebytes
+werden zusätzlich komprimiert im Release erhalten; neue Tensoren sind es nicht.

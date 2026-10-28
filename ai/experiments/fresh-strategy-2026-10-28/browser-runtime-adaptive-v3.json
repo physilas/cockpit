@@ -1,0 +1,100 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "qualification_used": false,
+  "scope": "Six technical full-game browser smoke probes; no strength estimate or human win-rate claim.",
+  "clock_model": "engine_wall_clock",
+  "profile": 13,
+  "weights_sha256": "3673cafcb4c8e8dd0ad3f900c8fbb461f821bb486afdf0091d8b968cfd00c15b",
+  "public_strategy_sha256": "ce2982ade0e9692d9d3d53614eb4a2499bbb78a94edebceada491af52128cade",
+  "engine": "actual Pyodide/WASM plus JavaScript policy",
+  "all_actions_asserted_engine_legal": true,
+  "errors": 0,
+  "decisions": 318,
+  "mid_probe_temperature_c": 51.850006103515625,
+  "temperature_peak_continuously_measured": false,
+  "games": [
+    {
+      "airport": "MUC",
+      "cards": [],
+      "seed": "probe:browser-runtime:MUC:0",
+      "decisions": 64,
+      "status": "gewonnen",
+      "round": 7,
+      "max_seconds": 0.43119999980926516,
+      "mean_seconds": 0.08303281249850988,
+      "total_seconds": 5.3140999999046326
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "cards": [
+        "adaptation"
+      ],
+      "seed": "probe:browser-runtime:LOG_KEF_YELLOW:1",
+      "decisions": 64,
+      "status": "verloren",
+      "reason": "eisbremsen_unvollstaendig",
+      "round": 7,
+      "max_seconds": 0.4712999999523163,
+      "mean_seconds": 0.06308750000596046,
+      "total_seconds": 4.037600000381469
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "cards": [
+        "adaptation"
+      ],
+      "seed": "probe:browser-runtime:LOG_GIG_YELLOW:2",
+      "decisions": 66,
+      "status": "gewonnen",
+      "round": 7,
+      "max_seconds": 0.8943999998569488,
+      "mean_seconds": 0.08907272725755512,
+      "total_seconds": 5.878799998998638
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "cards": [
+        "adaptation",
+        "control"
+      ],
+      "seed": "probe:browser-runtime:LOG_PRG_GREEN:3",
+      "decisions": 73,
+      "status": "verloren",
+      "reason": "fahrwerk_unvollstaendig,nicht_waagerecht",
+      "round": 7,
+      "max_seconds": 0.1835,
+      "mean_seconds": 0.04190000000065322,
+      "total_seconds": 3.058700000047685
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "cards": [
+        "adaptation"
+      ],
+      "seed": "probe:browser-runtime:LOG_HND_RED:4",
+      "decisions": 23,
+      "status": "verloren",
+      "reason": "kollision",
+      "round": 2,
+      "max_seconds": 0.36679999995231627,
+      "mean_seconds": 0.07959130433331364,
+      "total_seconds": 1.8305999996662137
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "cards": [
+        "adaptation",
+        "control"
+      ],
+      "seed": "probe:browser-runtime:LOG_PBH_RED:5",
+      "decisions": 28,
+      "status": "verloren",
+      "reason": "kollision",
+      "round": 3,
+      "max_seconds": 0.08429999995231628,
+      "mean_seconds": 0.023003571442195343,
+      "total_seconds": 0.6441000003814696
+    }
+  ]
+}

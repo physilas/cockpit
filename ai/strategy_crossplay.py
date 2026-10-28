@@ -38,7 +38,7 @@ def play(task):
     case,partner,role,mode,games,seed=task
     _development_seed(seed,games)
     airport=case['airport']
-    if mode=='public':learner=PublicContractAgent(airport,_model)
+    if mode=='public':learner=PublicContractAgent(airport,_model,respond_to_partner=False)
     elif mode=='responsive':
         from .response_contract import ResponseContractAgent
         learner=ResponseContractAgent(airport,_model)

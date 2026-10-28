@@ -6,18 +6,34 @@ is imported by the input/arbitration functions.
 """
 import math
 
-from .actions import Action
+from .actions import Action,ROLES
 from .coherent_advice import profile12_masks
 from .coherent_safety import coherent_safe_actions
-from .contract_planner import IDS,landing_count_possible,plan_round
+from .contract_planner import IDS,PlanScores,landing_count_possible,plan_round
 from .module_capacity import reserve_controls
 from .safety_guard import safe_actions
 
 
-def public_contract_inputs(airport,view,raw,*,beam=24):
+def await_partner_control(view):
+    """Keep familiar announcements unless coupled modules need early planning.
+
+    Wind/ice physics and intern dice replacement need a coherent whole hand
+    from the first move. Other routes can first expose a familiar control
+    and then respond to the partner's public constraint. No hidden face cue.
+    """
+    if set(view['modules_state']['modules'])&{'wind','ice','intern'}:
+        return False
+    other=1-ROLES.index(view['role'])
+    return not any(view['board'][i] is not None for i in (other,other+2))
+
+
+def public_contract_inputs(airport,view,raw,*,beam=24,respond_to_partner=True):
+    if type(respond_to_partner) is not bool:raise ValueError('Use an explicit Boolean response option.')
     allowed,safety=coherent_safe_actions(airport,view,raw)
     allowed=reserve_controls(view,allowed)
-    ranks=plan_round(view,allowed,beam=beam)
+    waiting=respond_to_partner and await_partner_control(view)
+    ranks=PlanScores() if waiting else plan_round(view,allowed,beam=beam)
+    if waiting:ranks.mode='await_public_partner_control'
     # Exact old ShieldedBlueprint boundary, including its no-alternative
     # fallback. The outer coherent shield already handles futile last dice.
     baseline_safe,_=safe_actions(airport,view,allowed)
@@ -30,7 +46,7 @@ def public_contract_inputs(airport,view,raw,*,beam=24):
                 and not view['modules_state']['pending'] and not safety['unavoidable_closing_loss']
                 and landing_count_possible(view)):
             forced=reroll
-    elif not view['reroll'] and not view['modules_state']['pending'] and allowed[reroll]:
+    elif not waiting and not view['reroll'] and not view['modules_state']['pending'] and allowed[reroll]:
         forced=reroll
     plan=dict(version=1,baseline_mask=baseline_mask,scores={str(i):v for i,v in ranks.items()},
               best_action=best,forced_action=forced,tolerance=1.,planning_mode=ranks.mode)
@@ -52,13 +68,16 @@ def arbitrate_contract(baseline,allowed,plan):
 
 
 class PublicContractAgent:
-    def __init__(self,airport,model,*,beam=24):
+    def __init__(self,airport,model,*,beam=24,respond_to_partner=True):
         from .agents import ModelAgent
+        if type(respond_to_partner) is not bool:raise ValueError('Use an explicit Boolean response option.')
         self.airport,self.agent,self.beam=airport,ModelAgent(model),beam
+        self.respond_to_partner=respond_to_partner
         self.last_report={}
 
     def select(self,view,raw):
-        allowed,reference,plan=public_contract_inputs(self.airport,view,raw,beam=self.beam)
+        allowed,reference,plan=public_contract_inputs(self.airport,view,raw,beam=self.beam,
+                                                    respond_to_partner=self.respond_to_partner)
         baseline=self.agent.select(view,plan['baseline_mask'],reference_mask=reference)
         chosen=arbitrate_contract(baseline,allowed,plan)
         self.last_report=dict(baseline=baseline,chosen=chosen,ranks=plan['scores'],planning_mode=plan['planning_mode'])

@@ -1,0 +1,66 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "qualification_used": false,
+  "derivation": "Exact route-constant composition of existing game records; no new simulated games. Direct on wind/ice/intern, responsive otherwise.",
+  "source_reports": {
+    "crossplay-responsive-v2.json": "b72ff18a57650fd8d1e39251e0e48370b14ad9247f95ed03913e9c69e9b1a20b",
+    "crossplay-direct-v2.json": "1d742f7f916ab0a5719bd61e1b437c98f8f49608763fb3cccc696b4e5f871389"
+  },
+  "groups": {
+    "crew1/pilot": {
+      "games": 81,
+      "baseline_wins": 26,
+      "direct_wins": 23,
+      "responsive_wins": 21,
+      "adaptive_wins": 18,
+      "adaptive_improved": 2,
+      "adaptive_regressed": 10
+    },
+    "crew1/kopilot": {
+      "games": 81,
+      "baseline_wins": 29,
+      "direct_wins": 26,
+      "responsive_wins": 25,
+      "adaptive_wins": 26,
+      "adaptive_improved": 2,
+      "adaptive_regressed": 5
+    },
+    "crew3/pilot": {
+      "games": 81,
+      "baseline_wins": 25,
+      "direct_wins": 23,
+      "responsive_wins": 23,
+      "adaptive_wins": 22,
+      "adaptive_improved": 3,
+      "adaptive_regressed": 6
+    },
+    "crew3/kopilot": {
+      "games": 81,
+      "baseline_wins": 28,
+      "direct_wins": 26,
+      "responsive_wins": 29,
+      "adaptive_wins": 28,
+      "adaptive_improved": 4,
+      "adaptive_regressed": 4
+    },
+    "crew4/pilot": {
+      "games": 81,
+      "baseline_wins": 26,
+      "direct_wins": 24,
+      "responsive_wins": 26,
+      "adaptive_wins": 23,
+      "adaptive_improved": 3,
+      "adaptive_regressed": 6
+    },
+    "crew4/kopilot": {
+      "games": 81,
+      "baseline_wins": 25,
+      "direct_wins": 26,
+      "responsive_wins": 29,
+      "adaptive_wins": 28,
+      "adaptive_improved": 6,
+      "adaptive_regressed": 3
+    }
+  }
+}
