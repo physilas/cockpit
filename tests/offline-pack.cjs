@@ -7,7 +7,7 @@ const {webcrypto} = require('node:crypto');
 const root = path.resolve(__dirname, '../frontend/web');
 const origin = 'https://example.test/cockpit/';
 const maps = new Map(), handlers = {}, requests = [];
-let online = true, corrupt = null, quota = false;
+let online = true, corrupt = null, quota = false, skips=0;
 const key = request => typeof request === 'string' ? request : request.url;
 const fetchFile = async request => {
   const url = key(request); requests.push(url);
@@ -34,7 +34,7 @@ const caches = {
 };
 const context = vm.createContext({Request, Response, URL, caches, crypto:webcrypto,
   fetch:fetchFile, self:{location:{href:origin+'sw.js',origin:new URL(origin).origin},
-    addEventListener:(name, fn)=>{handlers[name]=fn;},skipWaiting:async()=>{},clients:{claim:async()=>{}}}});
+    addEventListener:(name, fn)=>{handlers[name]=fn;},skipWaiting:async()=>{skips++;},clients:{claim:async()=>{}}}});
 context.importScripts = (...names) => names.forEach(name => vm.runInContext(fs.readFileSync(path.join(root,name.replace('./','')),'utf8'),context));
 vm.runInContext(fs.readFileSync(path.join(root,'sw.js'),'utf8'),context);
 const pack=vm.runInContext('PACK',context);
@@ -48,6 +48,13 @@ async function message(type, version=pack.version) {
 async function get(url) {let result;handlers.fetch({request:new Request(url),respondWith:p=>{result=p;}});return result===undefined?undefined:await result;}
 (async()=>{
   await lifecycle('install');
+  assert.equal(skips,1,'first/legacy installation activates');
+  context.setTimeout=setTimeout;context.clearTimeout=clearTimeout;
+  context.MessageChannel=class {constructor(){this.port1={close(){}};this.port2={reply:data=>this.port1.onmessage({data})};}};
+  context.self.registration={active:{postMessage(data,ports){ports[0].reply({protocol:1});}}};
+  await lifecycle('install');assert.equal(skips,1,'managed update waits for user');
+  assert.equal((await message('UPDATE_CAPABILITIES')).at(-1).protocol,1);
+  await message('ACTIVATE_UPDATE');assert.equal(skips,2,'explicit update activates');
   assert.equal((await message('OFFLINE_STATUS')).at(-1).ready,false);
   assert.match((await message('OFFLINE_STATUS','old-version')).at(-1).error,/neu laden/);
   corrupt=pack.assets[1].url;

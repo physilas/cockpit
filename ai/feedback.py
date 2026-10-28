@@ -26,6 +26,7 @@ class Feedback:
     reference_masks: tuple | None
     session_ids: tuple
     manifest: dict
+    equivalent_actions: tuple | None = None
 
     def tensors(self, device='cpu'):
         """Build an auxiliary dataset without touching policy/critic weights."""
@@ -38,6 +39,10 @@ class Feedback:
         }
         if self.reference_masks is not None:
             result['reference_masks'] = torch.tensor(self.reference_masks, dtype=torch.bool, device=device)
+        if self.equivalent_actions is not None:
+            groups=torch.zeros_like(result['masks'])
+            for row,indices in enumerate(self.equivalent_actions):groups[row,list(indices)]=True
+            result['equivalent_masks']=groups
         return result
 
 
@@ -150,6 +155,7 @@ def load_feedback(paths, *, schema_version=3, airport=None, require_reference_ma
     excluded, roles, routes, rating_counts, models = Counter(), Counter(), Counter(), Counter(), Counter()
     latest = _latest_sessions(paths)
     legacy_scale = 0
+    groups=[];corrections=0
     for identity, (revision, snapshot, path) in sorted(latest.items()):
         session = snapshot['session']
         if session.get('mode') != 'feedback':
@@ -203,7 +209,12 @@ def load_feedback(paths, *, schema_version=3, airport=None, require_reference_ma
                 continue
             if event.get('voided') is not False:
                 raise ValueError(f'Unclear undo status: {path}')
-            if event.get('actor') != 'ai':
+            manual=event.get('actor')=='human' and event.get('human_correction') is True
+            if manual:
+                parent=next((row for row in events if row.get('id')==event.get('correction_of')),None)
+                if not parent or parent.get('actor')!='ai' or parent.get('feedback',{}).get('value',0)>=0:
+                    raise ValueError('Human correction must refer to an explicitly rejected AI move.')
+            if event.get('actor') != 'ai' and not manual:
                 excluded['non_ai'] += 1
                 continue
             if event.get('training_compatible') is not True:
@@ -237,11 +248,14 @@ def load_feedback(paths, *, schema_version=3, airport=None, require_reference_ma
             legacy_scale += abs(feedback['value']) == 2
             observations.append(tuple(observation)); masks.append(tuple(mask))
             actions.append(action_id); ratings.append(rating)
+            from .action_semantics import equivalent_actions
+            groups.append(equivalent_actions(expected,observation,mask,action_id))
+            corrections+=int(manual)
             session_ids.append(identity)
             roles[role] += 1; routes[route] += 1; rating_counts[str(rating)] += 1
             models[_canonical(model_context).decode('utf-8')] += 1
             fingerprint_rows.append([identity, event_id, schema_version, observation, mask,
-                                     reference if require_reference_masks else None, action_id, rating, model_context])
+                                     reference if require_reference_masks else None, action_id, rating, model_context,groups[-1]])
         if len(actions) > start:
             sources.append({'session_id': identity, 'revision': revision, 'path': str(path.resolve()),
                             'decisions': len(actions) - start, 'model': model_context})
@@ -249,7 +263,7 @@ def load_feedback(paths, *, schema_version=3, airport=None, require_reference_ma
         raise ValueError(f'No explicit committed compatible AI feedback for schema {schema_version}.')
     manifest = {'version': 1, 'kind': 'offline_weak_actor_feedback', 'schema_version': schema_version,
                 'sha256': hashlib.sha256(_canonical(fingerprint_rows)).hexdigest(),
-                'sessions': len(sources), 'decisions': len(actions), 'roles': dict(roles), 'routes': dict(routes),
+                'human_corrections':corrections,'semantic_action_groups':True,'sessions': len(sources), 'decisions': len(actions), 'roles': dict(roles), 'routes': dict(routes),
                 'ratings': dict(rating_counts), 'legacy_scale_normalized': legacy_scale,
                 'rated_models': [{**json.loads(context), 'decisions': count}
                                  for context, count in sorted(models.items())],
@@ -257,7 +271,7 @@ def load_feedback(paths, *, schema_version=3, airport=None, require_reference_ma
                 'sources': sources, 'critic_targets': False, 'on_policy_rollouts': False,
                 'model_updates_applied': False}
     return Feedback(tuple(observations), tuple(masks), tuple(actions), tuple(ratings),
-                    tuple(references) if require_reference_masks else None, tuple(session_ids), manifest)
+                    tuple(references) if require_reference_masks else None, tuple(session_ids), manifest, tuple(groups))
 
 
 def main():

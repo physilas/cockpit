@@ -11,7 +11,18 @@ self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(shell.map(url => new Request(absolute(url), {cache: "reload"})));
-    await self.skipWaiting();
+    // Old installed versions had no update UI. Migrate once without forcing
+    // a page reload; future versions wait for the user's update button.
+    const active=self.registration?.active;
+    let managed=false;
+    if(active){
+      managed=await new Promise(resolve=>{
+        const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();resolve(false);},500);
+        channel.port1.onmessage=({data})=>{clearTimeout(timer);channel.port1.close();resolve(data?.protocol===1);};
+        active.postMessage({type:'UPDATE_CAPABILITIES'},[channel.port2]);
+      });
+    }
+    if(!managed)await self.skipWaiting();
   })());
 });
 self.addEventListener("activate", event => {
@@ -45,6 +56,10 @@ async function packStatus() {
 let downloading = null;
 const downloadPorts = new Set();
 self.addEventListener("message", event => {
+  if(event.data?.type==='UPDATE_CAPABILITIES'){
+    event.ports[0]?.postMessage({protocol:1,version:PACK.version});return;
+  }
+  if(event.data?.type==='ACTIVATE_UPDATE'){event.waitUntil(self.skipWaiting());return;}
   if (!["OFFLINE_STATUS", "OFFLINE_DOWNLOAD"].includes(event.data?.type)) return;
   const port = event.ports[0];
   if (!port) return;

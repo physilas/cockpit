@@ -64,6 +64,19 @@ class FeedbackImportTests(unittest.TestCase):
         dataset = self.load()
         self.assertEqual(dataset.ratings, (-1,))
 
+    def test_explicit_human_correction_is_a_training_target_paired_with_rejection(self):
+        parent=deepcopy(self.data['session']['events'][0]);parent['id']=0
+        parent['feedback']['value']=-1;parent['withdrawn']=True
+        correction=deepcopy(parent);correction.update(id=1,actor='human',human_correction=True,correction_of=0,withdrawn=False)
+        correction['feedback']['value']=1;correction['feedback']['trigger']='human_correction'
+        self.data['session']['events']=[parent,correction]
+        dataset=self.load()
+        self.assertEqual(dataset.ratings,(-1,1))
+        self.assertEqual(dataset.manifest['human_corrections'],1)
+        self.assertTrue(dataset.manifest['semantic_action_groups'])
+        correction['correction_of']=99
+        with self.assertRaises(ValueError):self.load()
+
     def test_neutral_pending_voided_human_implicit_and_nonconsented_are_ignored(self):
         original = self.data['session']['events'][0]
         events = []
@@ -192,7 +205,7 @@ class FeedbackImportTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         dataset = self.load()
         tensors = dataset.tensors()
-        self.assertEqual(set(tensors), {'observations', 'masks', 'actions', 'ratings'})
+        self.assertEqual(set(tensors), {'observations', 'masks', 'actions', 'ratings', 'equivalent_masks'})
         self.assertEqual(tensors['ratings'].tolist(), [1.])
         self.assertFalse(any(value.requires_grad for value in tensors.values()))
 

@@ -84,9 +84,9 @@
     <p>Zwei Geräte, gleiches WLAN oder Internet. Kein Server nötig.</p>
   </div>
   <button class="big-btn blau"   id="btn-host">📡 Spiel hosten<br>
-    <span style="font-weight:400;font-size:0.75rem">Ich bin die Pilotin</span></button>
+    <span style="font-weight:400;font-size:0.75rem">Raum erstellen, Rolle später wählen</span></button>
   <button class="big-btn orange" id="btn-join">📷 Spiel beitreten<br>
-    <span style="font-weight:400;font-size:0.75rem">Ich bin der Co-Pilot</span></button>
+    <span style="font-weight:400;font-size:0.75rem">Mit Raumcode verbinden</span></button>
   <a href="index.html" class="menu-btn" style="padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem">☰ Menü</a>
 </div>
 
@@ -98,19 +98,22 @@
 
   <p id="host-landing"></p>
 
-  <p>Zeige Co-Pilot diesen Code oder QR:</p>
+  <p>Teile diesen Code oder QR mit deinem Mitspieler:</p>
   <div class="code-display" id="host-code">······</div>
   <div id="qr-box"></div>
-  <div id="host-status" class="status-pill">Warte auf Co-Pilot …</div>
+  <div id="host-status" class="status-pill">Warte auf Mitspieler …</div>
   <div id="lade-balken"><div id="lade-balken-fill"></div></div>
   <p id="lade-text" style="font-size:0.75rem">Engine wird geladen …</p>
   <button class="big-btn grau" onclick="location.reload()">Abbrechen</button>
 </div>
 
-<div id="screen-wait" class="mp-screen versteckt">
-  <h2>Flugvorbereitung</h2>
-  <p>Die Pilotin wählt die nächste Landung. Euer neues Spiel beginnt anschließend automatisch.</p>
-</div>
+<section id="screen-lobby" class="mp-screen versteckt" aria-label="Gemeinsame Lobby">
+  <h2>Eure Crew-Lobby</h2><p id="lobby-connection">Mitspieler verbunden</p>
+  <div class="lobby-step"><h3>1 · Strecke</h3><p id="lobby-route">Wählt gemeinsam eure Landung.</p><button id="lobby-route-change" class="big-btn blau">Strecke auswählen</button></div>
+  <div id="lobby-roles" class="lobby-step" hidden><h3>2 · Deine Rolle</h3><div class="lobby-role-buttons"><button id="lobby-pilot" aria-pressed="false">Pilotin</button><button id="lobby-kopilot" aria-pressed="false">Co-Pilot</button></div><p id="lobby-assignment"></p><button id="lobby-ready" class="big-btn orange" disabled>Bereit zum Start</button><p id="lobby-ready-status" role="status"></p></div>
+  <button class="big-btn grau" onclick="location.href='index.html'">Lobby verlassen</button>
+</section>
+<div id="screen-wait" class="mp-screen versteckt"><h2>Verbindung wird vorbereitet …</h2></div>
 
 <!-- ============ SCREEN: Beitreten ============ -->
 <div id="screen-join" class="mp-screen versteckt" style="margin-top:1.5rem">
@@ -255,7 +258,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+<script src="vendor/pyodide/0.26.1/pyodide.js"></script>
 <script src="js/game-schema.js"></script>
 <script src="js/engine-src.js?v=compact-distance-v2"></script>
 <script src="js/traffic.js"></script>
@@ -265,12 +268,10 @@
 <script src="js/reroll.js"></script>
 <script src="js/game-dialogs.js"></script>
   <script src="js/game-experience.js"></script>
+<script src="js/cockpit-controls.js"></script>
+<script src="js/multiplayer-lobby.js"></script>
 <script src="js/multiplayer.js?v=compact-distance-v2"></script>
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
-      .catch(err => console.warn("SW registration failed:", err));
-  }
-</script>
+  <script src="js/offline-assets.js"></script>
+  <script src="js/app-updates.js"></script>
 </body>
 </html>
