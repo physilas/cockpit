@@ -9,6 +9,11 @@ const original=id(0,17),cosmetic=[id(0,18),id(1,19)],otherCoffee=id(2,17),rudder
 const alternatives=window.FeedbackActions.alternatives([...cosmetic,otherCoffee,rudder],original,schema,observation,schema.actions.map(()=>true));
 assert.deepEqual(alternatives,[rudder,otherCoffee]);
 assert.equal(window.FeedbackActions.signature(schema.actions[original],schema,observation),window.FeedbackActions.signature(schema.actions[id(1,18)],schema,observation));
+for(const kind of ['adaptation','anticipation','swap_choose']){
+ const pick=die=>schema.actions.find(a=>a.kind===kind&&a.die===die);
+ assert.equal(window.FeedbackActions.signature(pick(0),schema,observation),window.FeedbackActions.signature(pick(1),schema,observation));
+ assert.notEqual(window.FeedbackActions.signature(pick(0),schema,observation),window.FeedbackActions.signature(pick(2),schema,observation));
+}
 const l=window.MultiplayerLobby;let state=l.create();assert(!l.canStart(state));
 state=l.route(state,'YUL-green',[]);state=l.role(state,'host','kopilot');assert.equal(state.guestRole,'pilot');
 assert.throws(()=>l.ready(state,'guest',true,state.revision-1));

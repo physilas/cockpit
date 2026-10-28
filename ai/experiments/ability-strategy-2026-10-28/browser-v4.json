@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "purpose": "Technical execution test in the real local Python/WASM + JavaScript runtime, not strength evidence",
+  "assistance_version": 15,
+  "planner_sha256": "28cd015ce89acd78fc6a6a73c45942290b978be795931a2cec77da57fb748f53",
+  "model": "crew5-planner-2026-10-28-v1/best.pt",
+  "note": "The candidate uses the same tensors as Crew 5; the test explicitly requests profile 15.",
+  "results": [
+    {"airport":"LOG_KUL_YELLOW","cards":["synchronisation"],"seed":"technical:ability-browser:v1:LOG_KUL_YELLOW:synchronisation","status":"verloren","reason":"kerosin_leer","decisions":73,"maximum_seconds":0.4649000000953674,"actions_sha256":"ddd99b300424da6ee7b15708277bc19e53290ca36dade156a4f973a76abfe1fb"},
+    {"airport":"LOG_GIG_YELLOW","cards":["control"],"seed":"technical:ability-browser:v1:LOG_GIG_YELLOW:control","status":"verloren","reason":"kollision","decisions":59,"maximum_seconds":0.3265,"actions_sha256":"3872e59e58ba2db9c409c9e9dd399437ac1f926c73c2ae76484df429c442c7e8"},
+    {"airport":"LOG_KEF_YELLOW","cards":["synchronisation"],"seed":"technical:ability-browser:v1:LOG_KEF_YELLOW:synchronisation","status":"verloren","reason":"kollision","decisions":22,"maximum_seconds":0.13060000014305115,"actions_sha256":"300b29fa4b3d5464b4dd2c03849245e55c7132937edd7e664c28c244a54d7b4f"},
+    {"airport":"LOG_PRG_GREEN","cards":["adaptation","synchronisation"],"seed":"technical:ability-browser:v1:LOG_PRG_GREEN:adaptation,synchronisation","status":"gewonnen","decisions":72,"maximum_seconds":0.7598999998569489,"actions_sha256":"c093ec9f1b5843108836075af9748d136744d043f9d98a3177f886e6b2668c0c"}
+  ]
+}

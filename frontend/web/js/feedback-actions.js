@@ -11,6 +11,7 @@ window.FeedbackActions = (() => {
       return JSON.stringify([action.kind,slot.target,slot.owner, ['konzentration','funk'].includes(slot.target)?null:slot.index,face(action,schema,observation)]);
     }
     if(['coffee','bonus_coffee'].includes(action.kind))return JSON.stringify([action.kind,face(action,schema,observation),action.delta]);
+    if(['adaptation','anticipation','swap_choose'].includes(action.kind))return JSON.stringify([action.kind,face(action,schema,observation)]);
     return JSON.stringify([action.kind,action.die,action.slot,action.delta,action.subset]);
   }
   function alternatives(order,originalId,schema,observation,mask) {
