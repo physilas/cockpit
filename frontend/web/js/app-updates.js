@@ -3,7 +3,11 @@
   if(!('serviceWorker' in navigator))return;
   const current=COCKPIT_OFFLINE_ASSETS.version;
   let registration=null,available=null,dismissed=null,busy=false,reloading=false,lastCheck=0;
-  const canApply=()=>window.CockpitUpdateHooks?.canApply?.()!==false;
+  const canApply=()=>{
+    if(typeof window.CockpitUpdateHooks?.canApply==='function')return window.CockpitUpdateHooks.canApply();
+    const menu=document.getElementById('start-menu')||document.getElementById('screen-menu');
+    return Boolean(menu?.getClientRects().length);
+  };
   const status=document.getElementById('app-update-status');
   const checkButton=document.getElementById('app-update-check');
   const modal=document.createElement('dialog');modal.className='app-update-dialog';modal.id='app-update-dialog';
@@ -23,14 +27,16 @@
   async function info(worker){
     return request(worker,{type:'UPDATE_CAPABILITIES'},null,1200).catch(()=>null);
   }
+  const originalController=navigator.serviceWorker.controller;
+  const legacyMigration=originalController?info(originalController).then(details=>details?.protocol!==1):Promise.resolve(false);
   function show(){
     if(!available||busy||dismissed===available.version||!canApply())return;
     message.textContent='Deine Spielstände und gespeicherten Crews bleiben erhalten.';
     if(!modal.open)modal.showModal();
   }
-  async function offer(worker){
+  async function offer(worker,allowSameVersion=false){
     const details=await info(worker).catch(()=>null);
-    if(!details?.version||details.version===current)return;
+    if(!details?.version||details.version===current&&!allowSameVersion)return;
     available={worker,version:details.version};
     if(status)status.textContent='Neue Version verfügbar.';
     if(checkButton)checkButton.textContent='Update verfügbar';
@@ -73,9 +79,12 @@
       }else{reloading=true;location.reload();}
     }catch(error){message.textContent=error.message;busy=false;now.disabled=later.disabled=false;}
   };
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+  navigator.serviceWorker.addEventListener('controllerchange',async()=>{
     if(busy&&!reloading&&canApply()){reloading=true;location.reload();}
-    else offer(navigator.serviceWorker.controller);
+    else {
+      const migration=originalController&&navigator.serviceWorker.controller!==originalController&&await legacyMigration;
+      offer(navigator.serviceWorker.controller,Boolean(migration));
+    }
   });
   navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
     registration=reg;observe(reg.installing);if(reg.waiting)offer(reg.waiting);
