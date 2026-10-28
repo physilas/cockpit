@@ -1,0 +1,13 @@
+{
+  "method": "Manual real-browser UI test using service-worker cache; local HTTP server was stopped and socket 8769 verified closed before reloading and starting a new game",
+  "crew": 6,
+  "profile": 15,
+  "route": "LOG_YUL_GREEN",
+  "human_role": "kopilot",
+  "cached_crews": 6,
+  "app_reloaded_with_server_stopped": true,
+  "new_game_started": true,
+  "ai_action_observed": "Pilot placed blue die 2 on the first brake field; brake strength became 2; turn passed to human copilot",
+  "server_restarted_after_test": true,
+  "no_feedback_upload_consent": true
+}
