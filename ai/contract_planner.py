@@ -32,9 +32,10 @@ class Plan:
 
 class PlanScores(dict):
     """First-action ranks and the objective actually used in this state."""
-    def __init__(self, values=(), *, primary_available=False):
+    def __init__(self, values=(), *, primary_available=False,primary_value=0.):
         super().__init__(values)
         self.primary_available = primary_available
+        self.primary_value=primary_value
         self.mode = 'round_contract' if primary_available else 'physical_fallback'
 
 
@@ -146,13 +147,18 @@ def apply_placement(plan, die, slot_index, face, coffee, flip):
 
 def progress_value(root, view):
     state, original = view['modules_state'], root['modules_state']
+    responsibilities=root.get('_public_responsibilities')
     gain = 26*(sum(view['gear'])-sum(root['gear'])) + 30*(sum(view['flaps'])-sum(root['flaps']))
     own_index=ROLES.index(view['role'])
     gain+=35*sum(root['board'][i] is None and view['board'][i] is not None for i in (own_index,own_index+2))
     gain+=20*sum(root['board'][i] is None and view['board'][i] is not None for i in (1-own_index,3-own_index))
     gain += 20*(sum(view['brake_progress'])-sum(root['brake_progress']))
-    gain += 32*(state['ice_progress']-original['ice_progress'])
-    gain += 16*(len(original['intern'])-len(state['intern']))
+    # A completed ice pair consumes TWO dice, unlike one gear/flap upgrade.
+    gain += (64 if root.get('_early_ice') else 32)*(state['ice_progress']-original['ice_progress'])
+    gain += (40 if responsibilities else 16)*(len(original['intern'])-len(state['intern']))
+    if responsibilities and root['role'] in responsibilities['training_roles']:
+        index=ROLES.index(root['role'])
+        gain+=20*int(original['extra_fields'][index] is None and state['extra_fields'][index] is not None)
     own=view['role'];other=ROLES[1-ROLES.index(own)]
     spare={own:sum(bool(v) for v in view['own_dice'])+view.get('_virtual_available',0)
                     -sum(view['board'][i] is None for i in (ROLES.index(own),ROLES.index(own)+2)),
@@ -172,7 +178,7 @@ def progress_value(root, view):
     gain += 8*(view['coffee']-root['coffee'])
     gain -= 6*int(view.get('_flipped', False))
     if view['fuel']['occupied'] and not root['fuel']['occupied']:
-        gain += 4*(6-(root['fuel']['remaining']-view['fuel']['remaining']))
+        gain += (10 if responsibilities else 4)*(6-(root['fuel']['remaining']-view['fuel']['remaining']))
     return gain
 
 
@@ -302,21 +308,23 @@ def public_movement_target(view):
 
 
 def landing_count_possible(view):
-    """Optimistic final-round bound; False is a public impossibility proof.
+    """Optimistic public win bound; False is an impossibility proof.
 
     Ignore faces, ordering and coffee costs. An unissued synchronization die
     causes abstention, rather than counting a bonus that may never arrive.
     """
-    if not view['last_round']:
-        return True
     state=view['modules_state'];modules=set(state['modules'])
+    if any(c['planes'] and c['distance']>view['distance'] for c in view['track']):
+        return False
+    if not view['last_round']:
+        maximum_speed=15 if 'wind' in modules else 12
+        maximum_move=int(maximum_speed>=view['aero_blue'])+int(maximum_speed>=view['aero_orange'])
+        return view['holding'] or view['distance']<=maximum_move*max(0,int(view['height']//1000))
     if all(view['board'][i] is not None for i in (0,1)) and view['attitude']!=0:
         return False
     minimum_speed=sum(view['board'][i]['value'] if view['board'][i] else 1 for i in (2,3))
     minimum_speed+=state['wind_value'] if 'wind' in modules else 0
     if minimum_speed>(5 if 'ice' in modules else 6):
-        return False
-    if any(c['planes'] and c['distance']>view['distance'] for c in view['track']):
         return False
     pending=state['pending']
     black=int(bool(pending and pending['source']=='synchronisation'))
@@ -367,6 +375,17 @@ def assignment_groups(root,view,*,strict=True,include_optional=False):
                thrust=partner_t['value'] if partner_t else None)
     if r is None or t is None:
         return [],known
+    responsibilities=root.get('_public_responsibilities') if strict else None
+    if responsibilities:
+        requested=responsibilities['radios'][root['role']]
+        for face in set(requested):
+            distance=root['distance']-face+1
+            old=next(c['planes'] for c in root['track'] if c['distance']==distance)
+            new=next(c['planes'] for c in view['track'] if c['distance']==distance)
+            if old-new<requested.count(face):return [],known
+        if (responsibilities['fuel_role']==root['role'] and responsibilities['payment_target']<6
+                and not view['fuel']['occupied']):
+            return [],known
     modules=set(view['modules_state']['modules'])
     radios=sum(slot.target=='funk' and slot.owner==ROLES[other] and view['board'][i] is None
                for i,slot in enumerate(MODULE_SLOTS[:20]))
@@ -389,9 +408,12 @@ def assignment_groups(root,view,*,strict=True,include_optional=False):
                 fuel_tasks=()
                 payment=None
                 future_fuel=0 if root['last_round'] or not strict else root['height']//1000
+                prescribed_fuel=(responsibilities and responsibilities['fuel_role']==ROLES[other]
+                                  and responsibilities['payment_target']<6)
                 if ('kerosene' in modules and 'leak' not in modules and not view['fuel']['occupied']
-                        and view['fuel']['remaining']-6<=future_fuel):
+                        and (view['fuel']['remaining']-6<=future_fuel or prescribed_fuel)):
                     maximum=min(6,view['fuel']['remaining']-future_fuel-1)
+                    if prescribed_fuel:maximum=min(maximum,responsibilities['payment_target'])
                     if maximum<1:
                         continue
                     fuel_tasks=(tuple(range(1,maximum+1)),)
@@ -501,22 +523,29 @@ def final_value(root,view,cache,*,details=False):
     return primary+.01*coherent+.001*emergency+secondary
 
 
-def plan_round(view, allowed, *, beam=24):
+def plan_round(view, allowed, *, beam=24,coordination=False,early_ice=False):
     if (type(beam) is not int or not 1<=beam<=128 or len(allowed)!=len(MODULE_ACTIONS)
-            or any(type(flag) is not bool for flag in allowed)):
+            or any(type(flag) is not bool for flag in allowed) or type(coordination) is not bool
+            or type(early_ice) is not bool):
         raise ValueError('Use a bounded beam and the Boolean schema-3 engine mask.')
     state = view['modules_state']
     if view['reroll'] or state['swap'] or state['pending'] and state['pending']['value'] is None:
         return PlanScores()
+    if coordination:
+        from .round_responsibility import public_responsibilities
+        view={**view,'_public_responsibilities':public_responsibilities(view,public_movement_target(view))}
+    if early_ice:view={**view,'_early_ice':True}
     pending = state['pending']
     root = Plan(view,virtual=pending['value'] if pending else 0,source=pending['source'] if pending else '')
     frontier, completed, fallback, cache = [root], {}, {}, {}
     primary_available = False
+    primary_value=0.
 
     def record(node):
-        nonlocal primary_available
+        nonlocal primary_available,primary_value
         primary, coherent, emergency, secondary = final_value(view,node.view,cache,details=True)
         primary_available |= primary>0
+        primary_value=max(primary_value,primary)
         commitment = commitment_value(view,node.first_slot)
         normal = primary+.01*coherent+.001*emergency+secondary+commitment
         # If no complete plan can satisfy the contract, retain the best
@@ -603,13 +632,17 @@ def plan_round(view, allowed, *, beam=24):
             record(node)
     chosen=completed if primary_available else fallback
     return PlanScores({i:value for i,value in chosen.items() if i>=0 and allowed[i]},
-                      primary_available=primary_available)
+                      primary_available=primary_available,primary_value=primary_value)
 
 
 class ContractAgent:
-    def __init__(self, airport, blueprint, *, beam=24):
+    def __init__(self, airport, blueprint, *, beam=24,coordination=False,prospective_rerolls=False,early_ice=False):
         from .safety_guard import ShieldedBlueprint
         self.airport,self.blueprint,self.beam=airport,ShieldedBlueprint(airport,blueprint),beam
+        if any(type(flag) is not bool for flag in (coordination,prospective_rerolls,early_ice)):
+            raise ValueError('Use explicit Boolean strategy options.')
+        self.coordination,self.prospective_rerolls=coordination,prospective_rerolls
+        self.early_ice=early_ice
         self.last_report={}
 
     def select(self,view,mask):
@@ -617,7 +650,7 @@ class ContractAgent:
         from .module_capacity import reserve_controls
         safe,safety=coherent_safe_actions(self.airport,view,mask)
         safe=reserve_controls(view,safe)
-        ranks=plan_round(view,safe,beam=self.beam)
+        ranks=plan_round(view,safe,beam=self.beam,coordination=self.coordination,early_ice=self.early_ice)
         baseline,_=self.blueprint.rank(view,safe)
         chosen=baseline
         if ranks:
@@ -631,7 +664,20 @@ class ContractAgent:
                 chosen=reroll
         elif not view['reroll'] and not view['modules_state']['pending'] and safe[IDS[Action('reroll_start')]]:
             chosen=IDS[Action('reroll_start')]
+        reroll_values={}
+        if self.prospective_rerolls and not safety['unavoidable_closing_loss']:
+            from .reroll_advice import reroll_selection,worthwhile_landing_reroll
+            options=dict(coordination=self.coordination,early_ice=self.early_ice)
+            if view['reroll']:
+                selected,reroll_values=reroll_selection(view,safe,beam=min(12,self.beam),options=options)
+                if selected is not None:chosen=selected
+            else:
+                worthwhile,reroll_values=worthwhile_landing_reroll(view,safe,beam=min(12,self.beam),options=options)
+                if worthwhile:chosen=IDS[Action('reroll_start')]
         self.last_report=dict(baseline=baseline,chosen=chosen,ranks=ranks,
                               planning_mode=ranks.mode,
+                              coordination=self.coordination,prospective_rerolls=self.prospective_rerolls,
+                              early_ice=self.early_ice,
+                              reroll_values=reroll_values,
                               objective='public_static_round_assignment',approximate=True)
         return chosen

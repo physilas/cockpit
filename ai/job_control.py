@@ -29,7 +29,9 @@ def write_status(state):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--max-temperature', type=float, default=None,
-                   help='Require live HID readings; pause the owned process group 3 C below this limit.')
+                   help='Require live CPU/HID readings and regulate the owned process group below this limit.')
+    p.add_argument('--temperature-headroom',type=float,default=5.,
+                   help='Pause this many C below the limit; default5, resume another5 C cooler.')
     p.add_argument('--max-runtime', type=float, default=None,
                    help='Stop this one owned job after this many wall-clock seconds, including cooling.')
     p.add_argument('action',choices=('run','stop','clear-stop','status'))
@@ -37,6 +39,8 @@ def main():
     args=p.parse_args()
     if args.max_runtime is not None and (not math.isfinite(args.max_runtime) or args.max_runtime<=0):
         p.error('Runtime limit must be finite and positive.')
+    if not math.isfinite(args.temperature_headroom) or args.temperature_headroom<=0:
+        p.error('Temperature headroom must be finite and positive.')
     LOCK.parent.mkdir(parents=True,exist_ok=True)
     if args.action=='stop':
         STOP.touch()
@@ -58,9 +62,11 @@ def main():
         sensor=gate=None
         if args.max_temperature is not None:
             from .thermal import ComputerTemperatures, ThermalGate
-            gate=ThermalGate(args.max_temperature)
+            gate=ThermalGate(args.max_temperature,headroom=args.temperature_headroom)
             sensor=ComputerTemperatures()
-            try:gate.update(sensor.read())
+            try:
+                initial_readings=sensor.read()
+                gate.update(initial_readings)
             except Exception:
                 sensor.close()
                 raise
@@ -70,9 +76,17 @@ def main():
             raise
         monotonic_start=time.monotonic()
         state={'wrapper_pid':os.getpid(),'child_pid':child.pid,'command':command,'started_at':time.time(),'state':'running'}
+        paused=bool(gate and gate.paused)
+        if sensor:
+            state.update(temperature_c=max(initial_readings.values()),peak_temperature_c=max(initial_readings.values()),
+                         temperature_limit_c=args.max_temperature,pause_at_c=gate.pause_at,resume_at_c=gate.resume_at,
+                         temperature_headroom_c=args.temperature_headroom,sampling_interval_seconds=.25,
+                         peak_sensor=max(initial_readings,key=initial_readings.get))
+        if paused:
+            os.killpg(child.pid,signal.SIGSTOP)
+            state['state']='cooling'
         write_status(state)
         stopping=False
-        paused=False
         try:
             while child.poll() is None:
                 expired=args.max_runtime is not None and time.monotonic()-monotonic_start>=args.max_runtime
@@ -100,10 +114,11 @@ def main():
                     if readings[hottest]>=state['peak_temperature_c']:
                         state['peak_sensor']=hottest
                     write_status(state)
-                time.sleep(.5)
+                time.sleep(.25)
             code=child.wait()
         except KeyboardInterrupt:
             stopping=True
+            state['stop_reason']='interrupted'
             if paused:os.killpg(child.pid,signal.SIGCONT)
             os.killpg(child.pid,signal.SIGINT)
             try:code=child.wait(timeout=15)

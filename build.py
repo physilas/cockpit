@@ -46,6 +46,20 @@ PYTHON_DATEIEN = [
     "ai/tactics.py",
     "ai/horizon.py",
     "ai/browser_bridge.py",
+    "ai/strategy_bridge.py",
+    "ai/public_contract.py",
+    "ai/coherent_advice.py",
+    "ai/contract_advice.py",
+    "ai/contract_planner.py",
+    "ai/coherent_safety.py",
+    "ai/safety_guard.py",
+    "ai/belief_simulator.py",
+    "ai/assignment_belief.py",
+    "ai/public_hand_prior.py",
+    "ai/joint_landing_prior.py",
+    "ai/joint_round.py",
+    "ai/round_responsibility.py",
+    "ai/reroll_advice.py",
 ]
 
 UI_SCHEMA = "backend/ui_schema.json"

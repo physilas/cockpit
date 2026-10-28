@@ -1,0 +1,89 @@
+{
+  "complete": true,
+  "release_evidence": false,
+  "qualification_used": false,
+  "environment": "Codex in-app browser; Pyodide0.26.1; exported Crew4 source tensors; public profile13 direct arbitration",
+  "cases": [
+    {
+      "airport": "MUC",
+      "abilities": [],
+      "decisions": 12,
+      "all_actions_engine_legal": true,
+      "max_seconds": 0.3286999998092651,
+      "mean_seconds": 0.10097499998410543,
+      "final_round": 2,
+      "final_status": "laeuft"
+    },
+    {
+      "airport": "LOG_KEF_YELLOW",
+      "abilities": [
+        "adaptation"
+      ],
+      "decisions": 12,
+      "all_actions_engine_legal": true,
+      "max_seconds": 0.20930000019073486,
+      "mean_seconds": 0.06400833336512249,
+      "final_round": 2,
+      "final_status": "laeuft"
+    },
+    {
+      "airport": "LOG_GIG_YELLOW",
+      "abilities": [
+        "adaptation"
+      ],
+      "decisions": 12,
+      "all_actions_engine_legal": true,
+      "max_seconds": 0.3394000000953674,
+      "mean_seconds": 0.06204166668653489,
+      "final_round": 2,
+      "final_status": "laeuft"
+    },
+    {
+      "airport": "LOG_PRG_GREEN",
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "decisions": 12,
+      "all_actions_engine_legal": true,
+      "max_seconds": 0.22809999990463256,
+      "mean_seconds": 0.09250833334525425,
+      "final_round": 2,
+      "final_status": "laeuft"
+    },
+    {
+      "airport": "LOG_HND_RED",
+      "abilities": [
+        "adaptation"
+      ],
+      "decisions": 12,
+      "all_actions_engine_legal": true,
+      "max_seconds": 0.3267999999523163,
+      "mean_seconds": 0.08078333336114883,
+      "final_round": 2,
+      "final_status": "laeuft"
+    },
+    {
+      "airport": "LOG_PBH_RED",
+      "abilities": [
+        "adaptation",
+        "control"
+      ],
+      "decisions": 12,
+      "all_actions_engine_legal": true,
+      "max_seconds": 0.255,
+      "mean_seconds": 0.0862916667064031,
+      "final_round": 2,
+      "final_status": "laeuft"
+    }
+  ],
+  "decisions": 72,
+  "scope": "Twelve initial decisions per route, not complete games or a strength claim.",
+  "temperature_before_c": 51.850006103515625,
+  "temperature_after_c": 51.850006103515625,
+  "temperature_after_sensor": "PMU tcal",
+  "temperature_peak_during_probe": null,
+  "transport_regression": "Python None maps to JS undefined; nullish optional plan actions accepted and unit tested.",
+  "engine_bundle_sha256": "d757c0697af1154ba2a4e3bda68d17a71167d761c54041520fb86bbdc96f2adf",
+  "javascript_policy_sha256": "a51a1cdb6e7be097d41656b24fd4ea4d269659f0f66da3830e381c2b0e2a170a"
+}

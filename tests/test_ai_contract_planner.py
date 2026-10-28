@@ -171,3 +171,26 @@ class ContractPlannerTests(unittest.TestCase):
         self.assertEqual(0,a[0])
         self.assertEqual(0,b[0])
         self.assertGreater(a[2],b[2])
+
+    def test_public_irreversibility_is_detected_before_the_landing_round(self):
+        env=ModuleEnv('MUC');env.reset(seed='train:public-win-bound')
+        view=env.view()
+        for cell in view['track']:cell['planes']=0
+        view.update(height=1000,distance=3)
+        self.assertFalse(landing_count_possible(view))
+        view['height']=6000
+        cell=next(c for c in view['track'] if c['distance']>view['distance'])
+        cell['planes']=1
+        self.assertFalse(landing_count_possible(view))
+
+    def test_every_official_start_passes_the_optimistic_public_bound(self):
+        for airport,cards in _official_cases():
+            env=ModuleEnv(airport,abilities=cards)
+            env.reset(seed='train:public-bound-start:'+airport+','.join(cards))
+            self.assertTrue(landing_count_possible(env.view()),(airport,cards))
+
+    def test_early_ice_option_is_identical_on_routes_without_ice(self):
+        for airport,cards in (('MUC',[]),('LOG_ATL_GREEN',[]),('LOG_PRG_YELLOW',['adaptation','control'])):
+            env=ModuleEnv(airport,abilities=cards);env.reset(seed='train:ice-option:'+airport)
+            self.assertEqual(plan_round(env.view(),env.action_mask(),beam=12),
+                             plan_round(env.view(),env.action_mask(),beam=12,early_ice=True))

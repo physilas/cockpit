@@ -10,6 +10,12 @@ from .environment import CrewEnv
 
 
 def decision(role=None, reroll_json="null", steps=0, max_steps=256, assistance_version=0, schema_version=1):
+    if assistance_version in (13,14):
+        if schema_version!=3:
+            raise ValueError('Die neue öffentliche Strategie benötigt KI-Schema3.')
+        from .strategy_bridge import strategy_decision
+        return strategy_decision(role,reroll_json,steps,max_steps,
+                                 policy='contract' if assistance_version==13 else 'coherent')
     game = bridge._spiel
     if game is None:
         raise ValueError("Kein Spiel aktiv.")

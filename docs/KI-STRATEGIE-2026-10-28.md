@@ -285,3 +285,185 @@ Letztere Konfiguration ist ausdrücklich eine neue Policy, kein neu trainiertes
 Netz. Seeds 14.930.000 + 100*i, i=0..191; drei Modi, 2.880 Partien.
 Alle Varianten unter realer Engine-Uhr, auch Echtzeitrouten. Quellen während
 dieses Vergleichs eingefroren. Noch kein Ergebnis, keine Veröffentlichung.
+
+Zusätzlich recherchiert: [Nayyar, Mahajan und Teneketzis, 2013,
+Common Information Approach](https://arxiv.org/abs/1209.1695). Gemeinsame
+öffentliche Informationen können Vorschriften bestimmen, die jeder Spieler
+danach auf seine eigenen privaten Informationen anwendet. Die vollständige
+Optimierung über solche Vorschriften ist anspruchsvoll. Unser öffentlicher
+Bewegungsvertrag ist eine einfache heuristische Nutzung dieser Idee, keine
+Implementierung des optimalen dynamischen Programms. Als nächste getrennte
+Hypothesen sind öffentliche Funk-/Treibstoff-/Praktikanten-Zuständigkeiten
+(`round_responsibility.py`) und ein prospektiver Landungs-Neuwurfvergleich
+(`reroll_advice.py`) vorbereitet, aber noch nicht in den laufenden Planer
+eingebaut oder auf Spielstärke geprüft.
+
+`distillation.py` lernt Mengen gleichwertiger erster Aktionen statt eines
+beliebigen Würfelindex. Ganze **Trainings**episoden werden zur Imitations-
+Validierung zurückgehalten. Diese Metrik ist keine Spielstärkemessung.
+`search_demonstrations.py --teacher hybrid` soll auf Wind/Eis den Planer,
+auf den übrigen Modulen den geschützten Ausgangsspieler als Erhaltungsziel
+verwenden. Neue Sammel-/Lernläufe erst nach Ende des aktuellen schweren Jobs;
+noch kein trainierter Schüler, noch keine nachgewiesene Beschleunigung.
+
+`strategy_bridge.py` und `strategy_environment.py` bereiten getrennte Profile
+13 (Kontraktempfehlung) und 14 (schneller kohärenter Sofortschutz mit altem
+Prior) vor. Ihre Masken/Beobachtungen stimmen über echte Übergänge überein,
+verbergen die echte Partnerhand und funktionieren ohne Torch/NumPy. Sie sind
+noch **nicht** im Browser registriert oder veröffentlicht. Alte Profile und
+Fingerprints bleiben unverändert.
+
+Ein zusätzlicher Seed-Audit fand 10.356 unterschiedliche historisch
+protokollierte Zahlenseeds. Manche neuen Entwicklungsbereiche überlappen auf
+Zahlenebene ältere Berichte; die Route/Kartenidentität wurde dafür noch nicht
+vollständig abgeglichen. Die bisherigen Ergebnisse bleiben ausdrücklich
+Entwicklungsevidenz und werden nicht als unabhängige kalte Bestätigung
+ausgegeben. Die reservierten Bereiche ab 15.400.000 sind in den historischen
+Episoden noch unbenutzt; erst nach endgültiger Policy-Auswahl zur separaten
+Bestätigung einsetzen und danach keine Parameterauswahl darauf betreiben.
+
+## Stand nach drei Stunden
+
+`contract-matrix-v2.json` ist vollständig: **192 konkrete Fälle**, fünf
+gepaarte Partien je Spieler, drei Spieler, insgesamt 2.880 Partien.
+
+| Spieler | Siege/Partien | Gleichgewichtetes Routenmittel |
+|---|---:|---:|
+| geschützter Ausgangsspieler | 78/960 | 33,26 % |
+| direkte Kontraktwahl | 127/960 | 39,33 % |
+| endliche Kontraktempfehlung, Margin12 | 121/960 | 36,00 % |
+
+Für den direkten Planer gibt es 74 nur von ihm gewonnene und 25 nur vom
+Ausgangsspieler gewonnene Seed-Paare. Das rein deskriptive Normalintervall
+für den gleichgewichteten Routengewinn liegt bei ungefähr +0,33 bis +11,82
+Prozentpunkten; keine Korrektur für vorausgehende Strategieauswahl, daher
+kein unabhängiger endgültiger Qualitätsnachweis. PRG grün: 16 → 29 von75;
+TGU gelb: 3 → 15 von75. Weiterhin ohne Sieg: **HND rot, OSL rot, PBH schwarz**.
+Auch Rückschritte sichtbar, etwa PBH schwarz 2 → 0. Die vollständigen
+Routentabellen stehen neben dem Bericht als JSON und Markdown.
+
+Die Portierung verwendet jetzt die **direkt getestete** Arbitration statt
+einer bloß ähnlich gewichteten Empfehlung: `public_contract.py` liefert
+öffentliche Planwerte, die alte Baseline-Maske und eine gegebenenfalls
+erzwungene Hilfsaktion. Python und JavaScript verwenden dieselbe explizite
+Regel. Das NN löst alte Präferenzen und enge Gleichstände auf; neue Tensoren
+werden für diesen Spieler nicht behauptet. Profil13 ist hierfür reserviert,
+Profil14 für den kohärenten schnellen NN-Schüler. Die neue native
+`StrategyEnv` und Browserübergabe verwenden dieselben Eingaben.
+
+Die reale IAB-/Pyodide-Prüfung (`browser-runtime-v2.json`) führte 72 legale
+Entscheidungen auf sechs Routen aus: MUC, KEF gelb, GIG gelb, PRG grün,
+HND rot und PBH rot einschließlich Echtzeituhr. 12 Entscheidungen je Route,
+jeweils bis Runde2. Maximum0,3394s, Routenmittel0,0620–0,1010s. Kein
+Ganzspiel- oder Stärkeversprechen daraus ableiten. Ein echter Transportfehler
+wurde gefunden und korrigiert: Pyodide wandelt Python `None` in JavaScript
+`undefined`, JSON-Fixtures dagegen in `null`. Optionale Planaktionen
+akzeptieren beide; zusätzlicher Regressionstest. Vorher/Nachher-Temperatur
+je51,85 °C; kein kontinuierlicher Peak für diese kurzen Browserproben erfasst.
+
+### Temperaturkorrektur
+
+Der Lehrerjob meldete einmal **75,0813 °C am SMC-HotspotTCMz**. Den Wert nicht
+als „unter75“ ausgeben. Der Job wurde daraufhin geordnet unterbrochen.
+731 bereits vollständig gespeicherte Trainingspartien mit37.967 Labels
+bleiben gültig; das geplante 800-Episoden-Sammelziel ist ausdrücklich
+unvollständig. Keine halbfertige Episode importiert. 266 dieser Lehrerpartien
+gewonnen, aber wegen Trainingsverteilung/logischer Uhr keine Stärkeaussage.
+
+Der Wrapper pausiert künftig standardmäßig **5 °C unter der Grenze**, also
+bei70 °C, Fortsetzung bei65 °C; Abtastung alle0,25s. Bei bereits heißem
+Start wird der eigene Prozess sofort pausiert. Schwellen im Status protokolliert
+und mit einem realen Testkind geprüft. Weitere parallele Spieljobs höchstens
+zwei Worker; NN-Lernen ein CPU-Thread. Absolutes Systemmaximum trotz fremder
+Apps und Sensorlatenz weiterhin nicht garantiert. Der darauffolgende erste
+Schülerjob blieb bei höchstens58,46 °C.
+
+### Schüler und nächste kontrollierte Phasen
+
+`distillation.py` wurde auf den37.967 gespeicherten, explizit als Training
+markierten Beispielen ausgeführt. Ganze Episoden zur Imitationsvalidierung
+zurückgehalten, eingefrorene NN-Quelle geprüft. Keine Entwicklungsseeds oder
+fremden Würfel als Lernziel. Normale BC50-Epochen, normale BC200-Epochen und
+BC200 mit Würfelindex-Augmentation sind lokale Kandidaten; ihre tatsächliche
+Spielstärke ist noch zu prüfen. Geerbte `total_steps` werden nicht als neue
+Spielentscheidungen ausgegeben; `imitation_rows_seen` separat.
+
+`dice_symmetry.py` permutiert eigene Würfel, Aktionsindizes, Neuwurf-Bits und
+eigene Kooperationsindizes gemeinsam. Alle24 Permutationen gegen echte
+Engine-Masken/Beobachtungen und inverse Rücktransformation geprüft. Augmentation
+ist eine begründete Übertragung der Other-Play-Idee, keine bereits nachgewiesene
+Stärkeverbesserung.
+
+V3-Hypothesen bleiben explizite Optionen des Planers: `coordination=True`
+für öffentliche Funk-/Treibstoffzuständigkeiten und frühere Ausbildung;
+`prospective_rerolls=True` für den Vergleich aller sechs Ersatzaugen eines
+einzelnen eigenen Würfels vor der Landung. Ihr Nutzen muss im Vergleich
+getrennt und zusammen geprüft werden. Alte Standardwahl bleibtV2. Ein
+konkreter Testfall verwendet einen schon positiv bewerteten, aber schlechten
+Landungswurf; der Neuwurf verbessert den modellierten Wert und wird gewählt,
+ohne die echte Partnerhand oder den echten zukünftigen Zufall zu lesen.
+
+`strategy_crossplay.py` ist für gepaarte Spiele mit Crews1/3/4 in beiden
+Rollen vorbereitet. KI-Partner sind kein Nachweis menschlicher Gewinnraten.
+Nach vollständigen Tests zunächst V3-Abgleich auf27 Routen und frische
+Schülerevaluation. Erst anschließend endgültige Policy einfrieren und den
+bisher unbenutzten Bestätigungsbereich ab15.400.000 verwenden.
+
+## Stand gegen 05:50 Berlin
+
+Die vollständige Suite bestanden: **595 Tests in114,59s**, einschließlich der
+zusätzlichen96 tatsächlichen nativen/JavaScript-Entscheidungen des direkten
+Planers. Gemessener Testlauf-Peak66,44 °C mit der verschärften Regelung.
+
+Für die Zugqualität zeigt die vollständige V2-Matrix zusätzlich:
+
+| Kennzahl über je960 Partien | Schutz | direkter Planer |
+|---|---:|---:|
+| registrierte Kaffeekorrekturen in Gegenrichtung | 232 | 2 |
+| Ereignisse mit nicht mehr erreichbaren zurückgelassenen Flugzeugen | 198 | 28 |
+| vom jeweiligen kohärenten Sofortschutz als vermeidbar erkannte Verlustzüge | 0 | 0 |
+| Abbruch am Schrittlimit | 0 | 0 |
+
+Die ersten beiden sind Fehlerindikatoren, keine Behauptung, dass jedes Ereignis
+zwingend vermeidbar war. Die Sofortschutz-Kennzahl darf nicht als bereits
+gewonnene Partie interpretiert werden.
+
+`contract-options-v3.json` ist vollständig:27 Routen, ein deklariertes
+Kartenset, fünf gepaarte Spiele, fünf Varianten =675 Partien. Direkter V2-Planer
+46/135, öffentliche Zuständigkeiten41/135, prospektive Neuwürfe47/135,
+Kombination46/135, browserportierte Arbitration46/135. Alle135 Spiele der
+Portierung stimmen in Status/Grund/Runde/Schritten mit dem nativen direkten
+Planer überein. Die Zuständigkeiten werden nicht übernommen, der einzelne
+zusätzliche Neuwurfsieg ist nicht belastbar. Beide Optionen bleiben aus.
+
+Die endgültige kalte Bestätigung wird durch `strategy_confirmation.py`
+vorbereitet: ausgewählten Checkpoint, öffentliche Strategiequellen einschließlich
+JavaScript/Engine, alle192 Fälle und Protokoll vorab einfrieren. Veraltetes
+Browserbundle, geänderte Dateien oder wiederverwendete Seeds werden abgelehnt.
+Ein persistentes Ledger reserviert den kalten Bereich nur einmal. Ergebnisse
+erteilen keine automatische Qualitätsfreigabe und senken keine alte Gewinnfloor.
+`publish_preview` unterstützt dafür die exakt fingerprintierten Profile13/14
+mit expliziten Karteneinzelfällen; der alte reine Routen-Qualifier bleibt dafür
+gesperrt. Legacy-Fingerprints und Freigaben wurden nicht verändert.
+
+Eine weitere örtlich begrenzte Hypothese ist vorbereitet: Ein Eisbremsenpaar
+kostet zwei Würfel und war bisher mit32 Punkten gegenüber je26/30 für ein
+einzelnes Fahrwerk-/Klappenfeld unterbewertet. `early_ice=True` bewertet das
+abgeschlossene Paar mit64, halbe Paare weiterhin nur vorsichtig. Auf Routen
+ohne Eis ergibt die Option identische Pläne; überprüft. Noch kein Wirksamkeits-
+nachweis, noch nicht Standard. Nach der laufenden NN-Prüfung nur die36
+betroffenen Eis-Kartenfälle gezielt vergleichen.
+
+Zusätzlich korrigiert: Bereits zurückgelassene Flugzeuge oder eine selbst bei
+maximaler Geschwindigkeit unerreichbare Entfernung werden jetzt schon vor
+der Landung als irreversible öffentliche Grenzen erkannt. Dadurch wird kein
+Neuwurf allein wegen eines unerfüllbaren Siegziels erzwungen, wenn noch ein
+sinnvoller physikalischer Rückfallplan existiert. Alle186 offiziellen
+Startzustände bestehen diese optimistische Prüfung; eigene/verdeckt fremde
+Augenzahlen werden für diese Grenzen nicht verwendet.
+
+Laufend: `neural-routes-v1.json`, sechs eingefrorene Netze,27 Routen, je10
+Spiele mit identischen kohärenten Masken. Unbenutzte Entwicklungsseeds
+14.955.050 +100*i. Drei BC-Schüler (50 Epochen,200 Epochen,200 Epochen mit
+Symmetrie), bester Selbstspiel- und Populationsstand sowie Quelle. Auswahl
+weiterhin Entwicklung; kalter Bestätigungsbereich nicht angerührt.

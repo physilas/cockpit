@@ -86,11 +86,36 @@ window.CockpitPolicy = (() => {
   }
   return {create(data,catalog){
     const policy=create(data,catalog);
+    const networkSelect=policy.select;
+    policy.select=decision=>{
+      const plan=decision.public_plan;
+      if (!plan) return networkSelect(decision);
+      const allowed=decision.action_mask;
+      if (plan.version!==1 || !Array.isArray(plan.baseline_mask) || plan.baseline_mask.length!==allowed.length
+          || plan.baseline_mask.some((flag,i)=>typeof flag!=="boolean" || flag&&!allowed[i])
+          || !plan.baseline_mask.some(Boolean) || !plan.scores || typeof plan.scores!=="object" || Array.isArray(plan.scores)
+          || !Number.isFinite(plan.tolerance) || plan.tolerance<0) throw new Error("Ungültiger öffentlicher Handplan.");
+      const legal=index=>Number.isInteger(index)&&index>=0&&index<allowed.length&&allowed[index];
+      for (const [key,value] of Object.entries(plan.scores)) {
+        const index=Number(key);
+        if (String(index)!==key || !legal(index) || !Number.isFinite(value)) throw new Error("Ungültiger Planungswert.");
+      }
+      // Pyodide maps Python None to undefined; JSON fixtures use null.
+      if (plan.best_action!=null && (!legal(plan.best_action) || !Object.hasOwn(plan.scores,String(plan.best_action)))) throw new Error("Ungültiges Planungsziel.");
+      if (plan.forced_action!=null && !legal(plan.forced_action)) throw new Error("Unerlaubte Planungsaktion.");
+      const baseline=networkSelect({...decision,action_mask:plan.baseline_mask,public_plan:undefined});
+      const value=Object.hasOwn(plan.scores,String(baseline)) ? plan.scores[String(baseline)] : -Infinity;
+      let selected=baseline;
+      if (plan.best_action!=null && value<plan.scores[String(plan.best_action)]-plan.tolerance) selected=plan.best_action;
+      if (plan.forced_action!=null) selected=plan.forced_action;
+      return selected;
+    };
     policy.rank=decision=>{
-      policy.select(decision); // Validate the same observation/reference/mask.
+      const selected=policy.select(decision); // Validate the same observation/reference/mask/plan.
       const scores=policy.logits(decision.observation,decision.reference_action_mask);
-      return scores.map((score,index)=>({score,index})).filter(row=>decision.action_mask[row.index])
+      const ranked=scores.map((score,index)=>({score,index})).filter(row=>decision.action_mask[row.index])
         .sort((a,b)=>b.score-a.score||a.index-b.index).map(row=>row.index);
+      return decision.public_plan ? [selected,...ranked.filter(index=>index!==selected)] : ranked;
     };
     return policy;
   }};

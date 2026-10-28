@@ -70,14 +70,20 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
                                        'research_leak_donation', 'research_wind_ice', 'research_wind_ice_prior', 'research_solo_landing', 'research_joint_landing', 'research_task_deadline')):
         raise ValueError('Research action masks need a matching browser environment before preview.')
     profile = config.get('assistance_version', 0)
-    if type(profile) is not int or not 0 <= profile <= 12:
+    if type(profile) is not int or not 0 <= profile <= 14:
         raise ValueError('Unknown browser assistance profile.')
-    if model.config.get('kind') == 'guided_residual' and profile not in (9, 10, 11, 12):
-        raise ValueError('Guided browser models require a public reference profile 9, 10, 11 or 12.')
+    if model.config.get('kind') == 'guided_residual' and profile not in (9,10,11,12,13,14):
+        raise ValueError('Guided browser models require a registered public reference profile.')
+    expected_planner=planner_fingerprint(model_schema(model)['version'])
+    if profile in (13,14):
+        from .strategy_fingerprint import public_strategy_fingerprint
+        if model.config.get('kind')!='guided_residual' or model_schema(model)['version']!=3:
+            raise ValueError('New public strategies require a guided schema-3 model.')
+        expected_planner=public_strategy_fingerprint(profile)
     if (report.get('weights_sha256') != weight_fingerprint(model)
             or type(report.get('assistance_version')) is not int
             or report.get('assistance_version') != profile
-            or report.get('planner_sha256') != planner_fingerprint(model_schema(model)['version'])):
+            or report.get('planner_sha256') != expected_planner):
         raise ValueError('Development evidence does not match these weights and public planner.')
     preview = {'enabled': True, 'user_requested': True, 'evaluation_kind': 'development',
                'evaluation': f'ai/releases/{release_id}/development.json'}
@@ -89,7 +95,7 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         cases = report['cases']
         if not isinstance(cases, dict) or not cases or report.get('routes'):
             raise ValueError('Use explicit nonempty cases without mixed route aggregates.')
-        if model_schema(model)['version'] != 3 or profile not in (0, 10, 11, 12):
+        if model_schema(model)['version'] != 3 or profile not in (0,10,11,12,13,14):
             raise ValueError('Card previews require schema 3 and a public module/card profile.')
         claims = {}
         for field, registered in (('supported_modules', MODULES), ('supported_cards', CARDS)):
@@ -140,6 +146,8 @@ def publish_preview(checkpoint, evaluation, release_id, name, *, root=Path(__fil
         supported_airports = sorted({case['airport'] for case in supported_cases})
         preview.update(supported_cases=supported_cases, case_results=case_results)
     else:
+        if profile in (13,14):
+            raise ValueError('New public strategies require explicit route/card case evidence.')
         if positive_only:
             raise ValueError('Positive-case previews require an explicit cases report.')
         routes = report.get('routes', {})
@@ -186,6 +194,8 @@ def publish(checkpoint, evaluation, release_id, name, *, root=Path(__file__).res
     if report.get('weights_sha256') != weight_fingerprint(model):
         raise ValueError('Evaluation does not match these model weights.')
     profile = payload['train_config'].get('assistance_version', 0)
+    if profile in (13,14):
+        raise ValueError('New public strategies use explicit case-based previews; this legacy route qualifier does not support them.')
     if report.get('assistance_version') != profile:
         raise ValueError('Evaluation uses a different assistance profile.')
     if profile and report.get('planner_sha256') != planner_fingerprint(model_schema(model)['version']):

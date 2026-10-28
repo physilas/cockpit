@@ -1,0 +1,67 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>KI · Browserprüfung</title>
+<style>body{font:16px system-ui;max-width:1000px;margin:36px auto;padding:0 20px;background:#111827;color:#eee}button,select{font:inherit;padding:9px;margin:8px 8px 8px 0}pre{white-space:pre-wrap;background:#1f2937;padding:18px;border-radius:8px}p{line-height:1.5}</style>
+<h1>KI · Browserprüfung</h1>
+<p>Entwicklungsprüfung mit der gebündelten Python-Engine und dem echten JavaScript-Modell. Es werden neue Testpartien gestartet, keine Spielstände des Nutzers gelesen. Die Echtzeituhr der Engine bleibt aktiv.</p>
+<button id="load">Umgebung laden</button>
+<select id="route">
+<option value="MUC">MUC</option><option value="LOG_KEF_YELLOW">KEF gelb · Eis</option>
+<option value="LOG_GIG_YELLOW">GIG gelb · Wind</option><option value="LOG_PRG_GREEN">PRG grün · Kerosin</option>
+<option value="LOG_HND_RED">HND rot · Praktikant/Kerosin</option><option value="LOG_PBH_RED">PBH rot · Echtzeit</option>
+</select>
+<button id="run" disabled>12 Entscheidungen prüfen</button>
+<pre id="status">Umgebung noch nicht geladen.</pre>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+<script src="../frontend/web/js/engine-src.js"></script>
+<script src="../frontend/web/js/ai-models.js"></script>
+<script src="../frontend/web/js/ai-policy.js"></script>
+<script>
+const status=document.querySelector('#status'),loadButton=document.querySelector('#load'),runButton=document.querySelector('#run');
+let runtime,policy,ordinal=0;
+loadButton.onclick=async()=>{
+ loadButton.disabled=true;status.textContent='Python/WASM wird geladen …';
+ try{
+  runtime=await loadPyodide();await runtime.loadPackage('pyyaml');
+  for(const [path,source] of Object.entries(ENGINE_SRC)){
+   runtime.FS.mkdirTree('/cockpit/'+path.substring(0,path.lastIndexOf('/')));runtime.FS.writeFile('/cockpit/'+path,source);
+  }
+  runtime.runPython("import sys; sys.path.insert(0,'/cockpit')");
+  const row=window.COCKPIT_AI_CATALOG.models.find(m=>m.id==='crew4-allroutes-2026-10-26-v1/best.pt');
+  if(!row)throw new Error('Der unveränderte Crew-4-Ausgangsstand fehlt.');
+  const model=await(await fetch('../frontend/web/'+row.url)).json();
+  policy=window.CockpitPolicy.create(model,{schema:model.schema});
+  runtime.runPython(`import json\nfrom backend import bridge\nfrom ai.modules import ModuleEnv\nfrom ai.browser_bridge import decision`);
+  status.textContent='Bereit. Neue Testpartie kann gestartet werden.';runButton.disabled=false;
+ }catch(error){status.textContent=String(error);loadButton.disabled=false;}
+};
+runButton.onclick=async()=>{
+ runButton.disabled=true;
+ const airport=document.querySelector('#route').value;
+ const cards={MUC:[],LOG_KEF_YELLOW:['adaptation'],LOG_GIG_YELLOW:['adaptation'],LOG_PRG_GREEN:['adaptation','control'],LOG_HND_RED:['adaptation'],LOG_PBH_RED:['adaptation','control']}[airport];
+ const report={airport,cards,seed:`probe:browser-runtime:${airport}:${ordinal++}`,profile:13,decisions:[],clock:'engine_wall_clock',release_evidence:false};
+ try{
+  runtime.globals.set('_probe_airport',airport);runtime.globals.set('_probe_cards',JSON.stringify(cards));runtime.globals.set('_probe_seed',report.seed);
+  runtime.runPython(`_probe_env=ModuleEnv(_probe_airport,abilities=json.loads(_probe_cards),assistance_version=0)\n_probe_env.reset(seed=_probe_seed)\nbridge._spiel=_probe_env.game`);
+  for(let i=0;i<12;i++){
+   status.textContent=JSON.stringify(report,null,2);await new Promise(requestAnimationFrame);
+   if(runtime.runPython('_probe_env.done'))break;
+   const start=performance.now();
+   const proxy=runtime.runPython("decision(reroll_json=json.dumps(_probe_env.reroll),steps=_probe_env.steps,assistance_version=13,schema_version=3)");
+   const inputs=proxy.toJs({dict_converter:Object.fromEntries});proxy.destroy();
+   const chosen=policy.select(inputs);if(!inputs.action_mask[chosen])throw new Error('Unerlaubte KI-Aktion.');
+   const seconds=(performance.now()-start)/1000;
+   runtime.globals.set('_probe_action',chosen);
+   runtime.runPython("assert _probe_env.action_mask()[_probe_action]; _probe_env.step(_probe_action)");
+   report.decisions.push({index:i,role:inputs.role,action:chosen,seconds});
+  }
+  const proxy=runtime.runPython("dict(status=_probe_env.info()['status'],reason=_probe_env.info()['reason'],round=_probe_env.game.aktuelle_runde)");
+  report.final=proxy.toJs({dict_converter:Object.fromEntries});proxy.destroy();
+  report.total_seconds=report.decisions.reduce((sum,row)=>sum+row.seconds,0);
+  report.max_seconds=Math.max(...report.decisions.map(row=>row.seconds));
+  report.mean_seconds=report.total_seconds/report.decisions.length;
+  report.complete=true;status.textContent=JSON.stringify(report,null,2);
+ }catch(error){report.error=String(error);status.textContent=JSON.stringify(report,null,2);}
+ runButton.disabled=false;
+};
+</script>

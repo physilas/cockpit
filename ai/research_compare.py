@@ -52,6 +52,9 @@ def run_task(task):
     if _profile == 'robust':
         from .robust_policy import RobustBlueprint
         blueprint = RobustBlueprint(airport, _model)
+    elif _profile=='coherent':
+        from .coherent_advice import CoherentBlueprint
+        blueprint=CoherentBlueprint(airport,_model)
     skip_search = skip_plain and mode in ('round', 'game', 'uct') and not case['modules'] and not case['abilities']
     effective = 'shield' if skip_search else mode
     if effective == 'baseline':
@@ -61,9 +64,14 @@ def run_task(task):
     elif effective == 'uct':
         from .information_search import InformationSearchAgent
         make_agent = lambda: InformationSearchAgent(airport, blueprint, **_information_config)
-    elif effective == 'contract':
+    elif effective in ('contract','coordinated','prospective','combined','earlyice'):
         from .contract_planner import ContractAgent
-        make_agent = lambda: ContractAgent(airport,blueprint,beam=_contract_beam)
+        make_agent = lambda: ContractAgent(airport,blueprint,beam=_contract_beam,
+            coordination=effective in ('coordinated','combined'),
+            prospective_rerolls=effective in ('prospective','combined'),early_ice=effective=='earlyice')
+    elif effective=='public':
+        from .public_contract import PublicContractAgent
+        make_agent=lambda:PublicContractAgent(airport,_model,beam=_contract_beam)
     elif effective == 'advice':
         from .contract_environment import ContractBlueprint
         make_agent = lambda: ContractBlueprint(airport,_contract_model,beam=_contract_beam)
@@ -90,7 +98,7 @@ def run_task(task):
             action = agent.select(view, raw)
             decision_times.append(time.monotonic() - tick)
             decisions += 1
-            if effective in ('round', 'game', 'uct', 'contract'):
+            if effective in ('round', 'game', 'uct', 'contract','coordinated','prospective','combined','public','earlyice'):
                 overrides += int(action != agent.last_report['baseline'])
                 paired_samples += agent.last_report.get('samples', 0)
                 simulations += agent.last_report.get('simulations', 0)
@@ -136,7 +144,8 @@ def research_fingerprint():
         digest.update(Path(__file__).with_name(name).read_bytes())
     digest.update(Path(__file__).with_name('contract_planner.py').read_bytes())
     digest.update(Path(__file__).with_name('coherent_safety.py').read_bytes())
-    for name in ('assignment_belief.py','contract_advice.py','contract_environment.py'):
+    for name in ('assignment_belief.py','contract_advice.py','contract_environment.py','round_responsibility.py',
+                 'reroll_advice.py','public_contract.py','coherent_advice.py'):
         digest.update(name.encode());digest.update(Path(__file__).with_name(name).read_bytes())
     return digest.hexdigest()
 
@@ -147,10 +156,11 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--airports', nargs='*')
     p.add_argument('--one-card-set-per-route', action='store_true')
-    p.add_argument('--modes', nargs='+', choices=('baseline', 'shield', 'round', 'game', 'uct', 'contract','advice'), default=['baseline', 'shield', 'round'])
+    p.add_argument('--modes', nargs='+', choices=('baseline','shield','round','game','uct','contract','advice',
+                   'coordinated','prospective','combined','public','earlyice'),default=['baseline','shield','round'])
     p.add_argument('--contract-beam', type=int, default=24)
     p.add_argument('--guide-margin',type=float,choices=(4.,8.,12.),default=12.)
-    p.add_argument('--profile', choices=('legacy', 'robust'), default='legacy')
+    p.add_argument('--profile', choices=('legacy','robust','coherent'),default='legacy')
     p.add_argument('--skip-plain-search', action='store_true')
     p.add_argument('--simulations', type=int, default=128)
     p.add_argument('--games', type=int, default=5)
@@ -210,7 +220,7 @@ def main():
     try:
         # Finish inexpensive controls first; hard module searches precede
         # expensive searches on already strong custom/base routes.
-        tasks.sort(key=lambda task: (task[1] in ('round','game','uct','contract','advice'), not bool(task[0]['modules'])))
+        tasks.sort(key=lambda task: (task[1] not in ('baseline','shield'), not bool(task[0]['modules'])))
         futures = [pool.submit(run_task, task) for task in tasks]
         for future in as_completed(futures):
             row = future.result()
