@@ -518,7 +518,7 @@ window.Singleplayer = (() => {
         <button id="ai-rating-down" type="button" data-feedback-value="-1" aria-label="Daumen runter" aria-pressed="${value < 0}" ${selected ? "" : "disabled"}><span aria-hidden="true">👎</span></button>
         <button id="ai-rating-up" type="button" data-feedback-value="1" aria-label="Daumen hoch" aria-pressed="${value > 0}" ${selected ? "" : "disabled"}><span aria-hidden="true">👍</span></button>
       </div>
-      ${teaching?'<button id="ai-teach-cancel" type="button">Vorschlag abbrechen</button>':selected?.feedback.value<0&&(selected.retry_of!==undefined||selected.correction_available)?'<button id="ai-teach" type="button">Besseren Zug zeigen</button>':""}
+      ${teaching?'<button id="ai-teach-cancel" type="button">Vorschlag abbrechen</button>':canTeach(selected)&&(selected.retry_of!==undefined||selected.correction_available)?'<button id="ai-teach" type="button">Besseren Zug zeigen</button>':""}
       <button id="ai-feedback-info-toggle" type="button" aria-label="Informationen zur KI-Bewertung" aria-expanded="${feedbackInfoOpen}" aria-controls="ai-feedback-info" title="Informationen zur KI-Bewertung"><span class="ai-feedback-info-mark" aria-hidden="true">i</span></button>
       </div>
       <div id="ai-feedback-info" class="ai-feedback-info" role="region" aria-labelledby="ai-feedback-info-title" ${feedbackInfoOpen ? "" : "hidden"}>
@@ -672,9 +672,13 @@ window.Singleplayer = (() => {
     }
   }
 
+  function canTeach(event) {
+    return !teaching&&event?.actor==="ai"&&event.feedback?.value<0&&!event.withdrawn
+        &&event.engine_after===api.state()?.rueckgaengig_version&&session?.engine_stack.at(-1)===event.id;
+  }
+
   function beginTeaching(event) {
-    if(teaching||!event||event.actor!=="ai"||event.feedback?.value>=0||event.withdrawn
-        ||event.engine_after!==api.state()?.rueckgaengig_version||session.engine_stack.at(-1)!==event.id)return;
+    if(!canTeach(event))return;
     const previous={parent:event.id,checkpoint:api.checkpoint(),before:clone(session),undo:clone(feedbackUndoStack),wasSuspended:suspended};
     teaching=previous;awaitingCorrection=false;suspended=true;generation++;clearTimeout(timer);timer=null;
     api.pauseTeaching?.();
@@ -693,7 +697,7 @@ window.Singleplayer = (() => {
     feedbackUndoStack=previous.undo;suspended=previous.wasSuspended;
     const state=api.restoreCheckpoint(previous.checkpoint);
     session.events[previous.parent].engine_after=state.rueckgaengig_version;
-    feedbackIndex=previous.parent;api.resumeTeaching?.();persist();api.refresh();
+    feedbackIndex=previous.parent;api.resumeTeaching?.({restored:true});persist();api.refresh();
   }
 
   function nextRerollRole() {
@@ -767,7 +771,7 @@ window.Singleplayer = (() => {
     connect(adapter) { api = adapter; }, active, hasAI, aiRole, showMenu, stop, beforeAction, afterAction, afterRender, undo,
     canUndoFeedback, undoFeedback,
     suspend(){suspended=true;generation++;clearTimeout(timer);timer=null;},
-    resume(){suspended=false;},
+    resume(){suspended=Boolean(teaching);},
     restart:options=>launch(true,options),
     backup(){return session ? clone({setup:{mode:setup.mode,humanRole:setup.humanRole,modelId:setup.model?.id,abilities:setup.abilities},session,reroll,feedbackIndex,feedbackUndoStack,teaching}) : null;},
     async restore(saved){

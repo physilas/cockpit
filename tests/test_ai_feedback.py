@@ -210,5 +210,24 @@ class FeedbackImportTests(unittest.TestCase):
         self.assertFalse(any(value.requires_grad for value in tensors.values()))
 
 
+class SemanticFeedbackParityTests(unittest.TestCase):
+    def test_all_portable_action_families_match_browser_grouping(self):
+        import shutil
+        if not shutil.which('node'):self.skipTest('Node required')
+        from ai.action_semantics import signature
+        catalog=json.loads((ROOT/'frontend/web/js/ai-models.js').read_text().split(' = ',1)[1].strip().rstrip(';'))
+        schema=next(m['schema'] for m in catalog['models'] if m.get('crew_number')==5)
+        observations=[]
+        for faces in ((4,4,6,2),(1,2,3,4),(6,6,6,6)):
+            row=[0.]*len(schema['features'])
+            for die,face in enumerate(faces):row[schema['features'].index(f'die.{die}.0')+face]=1.
+            row[schema['features'].index('pending.value')]=2/6
+            observations.append(row)
+        code="""const fs=require('node:fs');global.window={};eval(fs.readFileSync(process.argv[1],'utf8'));const f=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(JSON.stringify(f.observations.map(o=>f.schema.actions.map(a=>window.FeedbackActions.signature(a,f.schema,o)))));"""
+        result=subprocess.run(['node','-e',code,str(ROOT/'frontend/web/js/feedback-actions.js')],input=json.dumps(dict(schema=schema,observations=observations)),text=True,capture_output=True,check=True,timeout=10)
+        expected=[[signature(action,schema,row) for action in schema['actions']] for row in observations]
+        self.assertEqual(expected,json.loads(result.stdout))
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -455,8 +455,11 @@ window.FlightModules = (() => {
     const z = current.z, el = document.getElementById('module-timer');
     if (!el) return;
     const key = `${z.timer_deadline_ms}:${z.server_time_ms}`;
-    if (timerAnchor?.key !== key) timerAnchor = {key, remaining:Math.max(0,(z.timer_deadline_ms || z.server_time_ms) - z.server_time_ms), at:performance.now()};
-    const seconds = Math.max(0,Math.ceil((timerAnchor.remaining - (performance.now() - timerAnchor.at)) / 1000));
+    if (timerAnchor?.key !== key) timerAnchor = {key, remaining:Math.max(0,(z.timer_deadline_ms || z.server_time_ms) - z.server_time_ms), at:performance.now(),pausedAt:null};
+    const now=performance.now(),paused=Boolean(current.options.timerPaused?.());
+    if(paused&&timerAnchor.pausedAt===null)timerAnchor.pausedAt=now;
+    else if(!paused&&timerAnchor.pausedAt!==null){timerAnchor.at+=now-timerAnchor.pausedAt;timerAnchor.pausedAt=null;}
+    const seconds = Math.max(0,Math.ceil((timerAnchor.remaining - ((timerAnchor.pausedAt??now) - timerAnchor.at)) / 1000));
     el.textContent = z.timer_deadline_ms ? `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2,'0')}` : '—';
     el.classList.toggle('urgent', Boolean(z.timer_deadline_ms) && seconds <= 10);
   }

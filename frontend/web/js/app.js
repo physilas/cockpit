@@ -58,7 +58,13 @@ function pyToJs(pyResult) {
   return pyResult.toJs({ dict_converter: Object.fromEntries });
 }
 
+function syncTeachingClock() {
+  if(!Singleplayer.isTeaching()||menuPausedAt===null||!bridge)return;
+  const now=Date.now();bridge.uhr_verschieben(Math.max(0,(now-menuPausedAt)/1000));menuPausedAt=now;
+}
+
 function spielAktion(action, actor = "human", suppliedDecision = null) {
+  syncTeachingClock();
   if (actor === "human" && action.role && !Singleplayer.canControl(action.role)) {
     return {ergebnis: {erfolg: false, grund: "nicht_am_zug"}, zustand: aktuellerZustand};
   }
@@ -361,6 +367,7 @@ function render(zustand) {
     conceal() {diceVisible = null; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
     onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; nachAktion(spielAktion({kind:"place",role,die,target,index}));},
     onAction(role, action, params) {ausgewaehlterWuerfel = null; nachAktion(spielModulAktion(role, action, params));},
+    timerPaused:()=>menuPausedAt!==null,
     onTick() {if (!gameActive || menuPausedAt !== null) return; const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {ausgewaehlterWuerfel = null; neuwurfReset(); nachAktion(r);}},
   });
 
@@ -878,12 +885,12 @@ document.getElementById("menue-btn").addEventListener("click", () => GameDialogs
 Singleplayer.connect({
   state: () => aktuellerZustand,
   start: neuesSpiel, execute: spielAktion, showAnswer: nachAktion,
-  decision(role, reroll, steps, maxSteps, assistanceVersion = 0, schemaVersion = 1) { return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps, assistanceVersion, schemaVersion)); },
+  decision(role, reroll, steps, maxSteps, assistanceVersion = 0, schemaVersion = 1) { syncTeachingClock();return pyToJs(aiBridge.decision(role, JSON.stringify(reroll), steps, maxSteps, assistanceVersion, schemaVersion)); },
   refresh() { render(aktuellerZustand); },
   undoLast() { return pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version)); },
   checkpoint() { return String(bridge.spiel_speichern()); },
   pauseTeaching(){if(menuPausedAt===null)menuPausedAt=Date.now();},
-  resumeTeaching(){if(menuPausedAt!==null&&bridge)bridge.uhr_verschieben((Date.now()-menuPausedAt)/1000);menuPausedAt=null;},
+  resumeTeaching({restored=false}={}){if(!restored&&menuPausedAt!==null&&bridge)bridge.uhr_verschieben(Math.max(0,(Date.now()-menuPausedAt)/1000));menuPausedAt=null;},
   restoreCheckpoint(raw) { const z=pyToJs(bridge.spiel_laden(raw)); render(z); return z; },
   notify(text) { setzeMeldung(text, "erfolg"); },
   roundComplete() { return ["pilot", "kopilot"].every(role => aktuellerZustand[`${role}_wuerfel_frei`].every(free => !free)); },
@@ -925,7 +932,7 @@ function persistLastGame(force=false) {
   if(!gameActive||!bridge||!activeScenario)return;
   if(menuPausedAt!==null){
     if(!Singleplayer.isTeaching())return;
-    bridge.uhr_verschieben((Date.now()-menuPausedAt)/1000);menuPausedAt=Date.now();
+    syncTeachingClock();
   }
   try {
     const state=pyToJs(bridge.zustand());
@@ -968,7 +975,7 @@ GameDialogs.connect({
   onPause(){Singleplayer.suspend();persistLastGame(true);menuPausedAt=Date.now();},
   onResume(){
     if(menuPausedAt!==null&&bridge)bridge.uhr_verschieben((Date.now()-menuPausedAt)/1000);
-    menuPausedAt=null;lastSavedKey="";Singleplayer.resume();
+    menuPausedAt=Singleplayer.isTeaching()?Date.now():null;lastSavedKey="";Singleplayer.resume();
     if(gameActive&&bridge)render(pyToJs(bridge.zustand()));
   },
   async onRestart(options){
