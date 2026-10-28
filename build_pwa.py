@@ -19,7 +19,7 @@ SHELL = [
     *[f"js/{name}.js" for name in ("modules", "reroll", "ai-models", "ai-policy",
         "cloud-config", "learning-cloud", "singleplayer", "game-dialogs",
         "game-experience", "landing-catalog", "landings", "engine-src",
-        "game-schema", "traffic", "build-info", "app", "multiplayer", "offline")],
+        "game-schema", "traffic", "build-info", "app", "multiplayer", "offline", "feedback-actions", "cockpit-controls", "multiplayer-lobby", "app-updates")],
     *[f"icons/icon-fly-team-{size}.png" for size in (180, 192, 512)],
     *[f"assets/landings/{code}-city.webp" for code in
       ("YUL", "LHR", "HND", "OSL", "ATL", "PRG", "GIG", "TGU", "KEF", "KUL", "PBH", "MUC", "FRA")],

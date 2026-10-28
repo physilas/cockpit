@@ -48,9 +48,12 @@ def _distribution(model, batch):
     return model.distribution(batch['observations'], batch['masks'], **guidance)[0]
 
 
-def feedback_loss(distribution, actions, ratings):
+def feedback_loss(distribution, actions, ratings, equivalent_masks=None):
     """Positive likelihood and negative unlikelihood, with finite extremes."""
     log_probability = distribution.log_prob(actions)
+    if equivalent_masks is not None:
+        probability=(distribution.probs*equivalent_masks.to(distribution.probs.dtype)).sum(-1)
+        log_probability=probability.clamp(min=1e-8,max=1.).log()
     negative = -torch.log1p(-log_probability.exp().clamp(max=1-1e-6))
     return torch.where(ratings > 0, -log_probability, negative).mean()
 
@@ -128,7 +131,7 @@ def refine_actor(model, dataset, *, learning_rate=1e-4, epochs=4, batch_size=64,
     validation = batch(valid_indices)
     with torch.no_grad():
         reference_validation = _distribution(original, validation)
-        baseline_loss = float(feedback_loss(reference_validation, validation['actions'], validation['ratings']))
+        baseline_loss = float(feedback_loss(reference_validation, validation['actions'], validation['ratings'], validation.get('equivalent_masks')))
     best, best_loss, best_epoch = deepcopy(head.state_dict()), baseline_loss, 0
     history = []
     try:
@@ -142,7 +145,7 @@ def refine_actor(model, dataset, *, learning_rate=1e-4, epochs=4, batch_size=64,
                 with torch.no_grad():
                     reference = _distribution(original, rows)
                 current = _distribution(model, rows)
-                preference = feedback_loss(current, rows['actions'], rows['ratings'])
+                preference = feedback_loss(current, rows['actions'], rows['ratings'], rows.get('equivalent_masks'))
                 kl = torch.distributions.kl_divergence(reference, current).mean()
                 loss = feedback_coefficient*preference + kl_coefficient*kl
                 if not torch.isfinite(loss): raise ValueError('Nonfinite offline feedback loss.')
@@ -154,7 +157,7 @@ def refine_actor(model, dataset, *, learning_rate=1e-4, epochs=4, batch_size=64,
                 budget.pause()
             with torch.no_grad():
                 current = _distribution(model, validation)
-                valid_loss = float(feedback_loss(current, validation['actions'], validation['ratings']))
+                valid_loss = float(feedback_loss(current, validation['actions'], validation['ratings'], validation.get('equivalent_masks')))
                 valid_kl = float(torch.distributions.kl_divergence(reference_validation, current).mean())
             if not math.isfinite(valid_loss) or not math.isfinite(valid_kl):
                 raise ValueError('Nonfinite offline validation; original head restored.')

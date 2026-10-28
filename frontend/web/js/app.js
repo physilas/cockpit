@@ -23,6 +23,7 @@ let aktuellerZustand = null;
 let rueckgaengigId = null;
 let gameActive = false, activeScenario = null, menuPausedAt = null, lastSavedKey = "";
 // Private, local-only initial state + RNG. Never put this in AI/cloud records.
+let pendingResumeSnapshot=null, lastResumeSaveSucceeded=true;
 let initialEngine = null;
 const resumeKey = "flyteam-resume-v1";
 
@@ -407,9 +408,7 @@ function feldZelle(fixierterBesitzer, wertObjekt, slotIndex, eintrag, zustand, g
   FlightModules.identifyField(div, eintrag, slotIndex, fixierterBesitzer);
 
   if (wertObjekt) {
-    if (wertObjekt.quelle) div.classList.add(`source-${wertObjekt.quelle}`);
-    div.classList.add("belegt", wertObjekt.besitzer);
-    div.textContent = wertObjekt.wert;
+    CockpitControls.placedDie(div, wertObjekt);
     return div;
   }
   if (eintrag.zahlen && slotIndex !== null)
@@ -660,33 +659,18 @@ function renderWuerfel(besitzer, zustand) {
       const kaffeeBtn = document.createElement("button");
       kaffeeBtn.textContent = "☕";
       kaffeeBtn.title = "Kaffee einsetzen";
+      kaffeeBtn.className="coffee-open";
+      kaffeeBtn.setAttribute("aria-label", `Würfel ${wert} mit Kaffee ändern`);
       kaffeeBtn.addEventListener("click", ev => {
         ev.stopPropagation();
-        const offenFuerDiesen = kaffeeMenuOffenFuer?.besitzer === besitzer && kaffeeMenuOffenFuer?.index === i;
-        kaffeeMenuOffenFuer = offenFuerDiesen ? null : { besitzer, index: i };
-        render(zustand);
+        const deltas=bridge.moegliche_kaffee_deltas(besitzer,i).toJs();
+        CockpitControls.coffee({value:wert,deltas,owner:besitzer,onApply(delta){
+          const answer=spielAktion({kind:"coffee",role:besitzer,die:i,delta});
+          nachAktion(answer,{verbirgWuerfel:false});
+          if(answer.ergebnis.erfolg){ausgewaehlterWuerfel={besitzer,index:i};render(aktuellerZustand);}
+        }});
       });
       wrapper.appendChild(kaffeeBtn);
-
-      if (kaffeeMenuOffenFuer?.besitzer === besitzer && kaffeeMenuOffenFuer?.index === i) {
-        const deltas = bridge.moegliche_kaffee_deltas(besitzer, i).toJs();
-        const menu = document.createElement("div");
-        menu.className = "kaffee-auswahl";
-        deltas.forEach(d => {
-          const btn = document.createElement("button");
-          btn.textContent = (d > 0 ? "+" : "") + d;
-          btn.addEventListener("click", ev => {
-            ev.stopPropagation();
-            kaffeeMenuOffenFuer = null;
-            // Anders als beim Platzieren bleibt hier derselbe Spieler am Zug -
-            // die eigenen Würfel sollen daher sichtbar bleiben, damit der neue
-            // Wert direkt gesehen und der Würfel weiter platziert werden kann.
-            nachAktion(spielAktion({kind: "coffee", role: besitzer, die: i, delta: d}), { verbirgWuerfel: false });
-          });
-          menu.appendChild(btn);
-        });
-        wrapper.appendChild(menu);
-      }
     }
     container.appendChild(wrapper);
   });
@@ -898,6 +882,8 @@ Singleplayer.connect({
   refresh() { render(aktuellerZustand); },
   undoLast() { return pyToJs(bridge.rueckgaengig(null, aktuellerZustand.rueckgaengig_version)); },
   checkpoint() { return String(bridge.spiel_speichern()); },
+  pauseTeaching(){if(menuPausedAt===null)menuPausedAt=Date.now();},
+  resumeTeaching(){if(menuPausedAt!==null&&bridge)bridge.uhr_verschieben((Date.now()-menuPausedAt)/1000);menuPausedAt=null;},
   restoreCheckpoint(raw) { const z=pyToJs(bridge.spiel_laden(raw)); render(z); return z; },
   notify(text) { setzeMeldung(text, "erfolg"); },
   roundComplete() { return ["pilot", "kopilot"].every(role => aktuellerZustand[`${role}_wuerfel_frei`].every(free => !free)); },
@@ -936,17 +922,22 @@ function updateResumeButton() {
 }
 
 function persistLastGame(force=false) {
-  if(!gameActive||!bridge||!activeScenario||menuPausedAt!==null)return;
+  if(!gameActive||!bridge||!activeScenario)return;
+  if(menuPausedAt!==null){
+    if(!Singleplayer.isTeaching())return;
+    bridge.uhr_verschieben((Date.now()-menuPausedAt)/1000);menuPausedAt=Date.now();
+  }
   try {
     const state=pyToJs(bridge.zustand());
     if(state.status!=="laeuft") {localStorage.removeItem(resumeKey);updateResumeButton();return;}
     const singleplayer=Singleplayer.backup();
     const key=`${state.rueckgaengig_version}|${state.phase}|${state.am_zug}|${singleplayer?.session?.data_revision}|${JSON.stringify(neuwurfUi)}`;
     if(!force&&key===lastSavedKey)return;
-    localStorage.setItem(resumeKey,JSON.stringify({format:1,scenario:activeScenario,round:state.runde,
-      engine:String(bridge.spiel_speichern()),initialEngine,singleplayer,reroll:neuwurfUi}));
+    pendingResumeSnapshot=JSON.stringify({format:1,scenario:activeScenario,round:state.runde,
+      engine:String(bridge.spiel_speichern()),initialEngine,singleplayer,reroll:neuwurfUi});
+    localStorage.setItem(resumeKey,pendingResumeSnapshot);pendingResumeSnapshot=null;lastResumeSaveSucceeded=true;
     lastSavedKey=key;updateResumeButton();
-  } catch(error) { console.warn("Lokaler Spielstand konnte nicht gesichert werden.",error); }
+  } catch(error) { lastResumeSaveSucceeded=false;console.warn("Lokaler Spielstand konnte nicht gesichert werden.",error); }
 }
 
 async function resumeLastGame() {
@@ -994,3 +985,13 @@ updateResumeButton();
 if (new URLSearchParams(window.location.search).get("view") === "landings") {
   window.startPassAndPlay();
 }
+
+window.CockpitUpdateHooks={
+  canApply:()=>!gameActive,
+  async prepare(){
+    if(gameActive)throw new Error("Bitte zuerst zum Hauptmenü zurückkehren. Dein Spiel wird dabei gesichert.");
+    if(pendingResumeSnapshot){localStorage.setItem(resumeKey,pendingResumeSnapshot);pendingResumeSnapshot=null;lastResumeSaveSucceeded=true;}
+    if(!lastResumeSaveSucceeded)throw new Error("Der Spielstand konnte nicht gespeichert werden. Bitte zuerst Speicher freigeben oder deine Aufzeichnungen sichern.");
+    await Singleplayer.flushForUpdate();
+  }
+};

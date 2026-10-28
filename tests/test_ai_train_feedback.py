@@ -52,6 +52,15 @@ class OfflineFeedbackLearningTests(unittest.TestCase):
             loss.backward()
             self.assertLess(float(logits.grad[1])*rating, 0.)
 
+    def test_negative_rating_reduces_the_entire_equivalent_action_family(self):
+        logits=torch.zeros(3,requires_grad=True)
+        distribution=torch.distributions.Categorical(logits=logits)
+        loss=feedback_loss(distribution,torch.tensor(0),torch.tensor(-1.),torch.tensor([True,True,False]))
+        loss.backward()
+        self.assertGreater(float(logits.grad[0]),0.)
+        self.assertGreater(float(logits.grad[1]),0.)
+        self.assertLess(float(logits.grad[2]),0.)
+
     def test_guided_refinement_changes_only_existing_head_and_preserves_critic_values(self):
         data = fixture(3)
         policy = GuidedResidualActorCritic(ActorCritic(489, 217, 8, 1), 489, 217,

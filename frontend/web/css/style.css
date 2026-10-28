@@ -519,3 +519,46 @@ main { padding: .3rem .35rem calc(.35rem + env(safe-area-inset-bottom)); gap: .2
 #start-menu #offline-status { color:#496469; font-size:.85rem; margin:.7rem 0; line-height:1.45; }
 #offline-pack small { display:block; color:#496469; font-size:.72rem; line-height:1.45; }
 #offline-progress { width:100%; margin:.5rem 0; }
+
+/* A placed die retains its physical color, including on shared coffee fields. */
+.placed-die { display:grid; place-items:center; width:25px; height:25px; border:1px solid #ffffffa6; border-radius:5px; color:#fff; font:900 17px/1 ui-monospace,Menlo,monospace; box-shadow:inset 0 2px 2px #ffffff55,0 2px 3px #102f4055; }
+.placed-die.pilot { background:linear-gradient(145deg,#34c0ff,#1651b4); }
+.placed-die.kopilot { background:linear-gradient(145deg,#ffcc51,#d65d19); }
+.placed-die.black { background:linear-gradient(145deg,#3d454c,#080b10); }
+.placed-die.intern { color:#29472a; background:#ddedc0; }
+#konzentration-reihe .feld-zelle.belegt { background:#c0d1cd; }
+.coffee-open { min-width:28px; min-height:28px; padding:1px; border:1px solid #b1beb4; border-radius:50%; background:#fff9db; color:#47331e; }
+.coffee-dialog { position:fixed; inset:auto 0 max(12px,env(safe-area-inset-bottom)); width:min(320px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); margin:auto; padding:18px; overflow:auto; border:1px solid #7c9da1; border-radius:20px; color:#173e46; background:#f5f8f5; box-shadow:0 12px 48px #102a4466; text-align:center; }
+.coffee-dialog::backdrop { background:#0b243977; }
+.coffee-dialog h2 { font-size:1.05rem; margin:0 0 8px; }
+.coffee-dialog p { font-size:.85rem; margin:8px 0; }
+.coffee-wheel-wrap { position:relative; width:120px; margin:12px auto; }
+.coffee-wheel-band { position:absolute; top:44px; height:44px; width:100%; pointer-events:none; border-block:1px solid #91aaa5; border-radius:8px; background:#dbe9e5; }
+.coffee-wheel { position:relative; height:132px; padding:44px 0; overflow-y:auto; overscroll-behavior:contain; scroll-snap-type:y mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.coffee-wheel::-webkit-scrollbar { display:none; }
+.coffee-wheel-value { height:44px; display:grid; place-items:center; scroll-snap-align:center; font-size:30px; font-weight:700; opacity:.4; cursor:pointer; }
+.coffee-wheel-value[aria-selected=true] { opacity:1; color:#0b5590; }
+.coffee-wheel.kopilot .coffee-wheel-value[aria-selected=true] { color:#a74b13; }
+.coffee-dialog-actions { display:flex; gap:10px; }
+.coffee-dialog-actions button { flex:1; min-height:44px; padding:8px; border:1px solid #8ca7a5; border-radius:10px; color:#173e46; background:#e2ebe7; }
+#coffee-apply { background:#1768a6; color:#fff; border-color:#1768a6; }
+#coffee-apply:disabled { opacity:.4; }
+
+.lobby-step { width:100%; padding:16px; border:1px solid #9bb6b5; border-radius:14px; background:#edf4f1; }
+.lobby-step h3 { margin:0 0 8px; font-size:1rem; }
+.lobby-role-buttons { display:flex; gap:10px; }
+.lobby-role-buttons button { flex:1; min-height:48px; border:2px solid #9bb6b5; border-radius:10px; background:#fff; color:#173e46; }
+#lobby-pilot[aria-pressed=true] { background:#1d81ca; color:#fff; border-color:#124c8b; }
+#lobby-kopilot[aria-pressed=true] { background:#d86a1d; color:#fff; border-color:#8b400d; }
+#screen-lobby p { font-size:.88rem; line-height:1.5; }
+
+.app-update-check { width:100%; max-width:320px; text-align:center; }
+.app-update-check button { padding:8px; border:0; background:transparent; color:#285964; text-decoration:underline; font-size:.82rem; }
+#start-menu #app-update-status { color:#496469; font-size:.76rem; }
+.app-update-dialog { width:min(360px,calc(100vw - 32px)); border:1px solid #8ca7a5; border-radius:18px; color:#173e46; background:#f5f8f5; padding:24px; box-shadow:0 12px 48px #102a4466; }
+.app-update-dialog::backdrop { background:#0b243977; }
+.app-update-dialog h2 { margin:0 0 12px; font-size:1.25rem; }
+.app-update-dialog p { font-size:.92rem; line-height:1.5; }
+.app-update-dialog>div { display:flex; gap:10px; margin-top:18px; }
+.app-update-dialog button { flex:1; min-height:44px; padding:8px; border:1px solid #8ca7a5; border-radius:10px; color:#173e46; background:#e2ebe7; }
+#app-update-now { color:white; border-color:#1768a6; background:#1768a6; }

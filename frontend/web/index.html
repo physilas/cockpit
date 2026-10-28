@@ -75,6 +75,7 @@
       <progress id="offline-progress" hidden aria-label="Offline-Download"></progress>
       <small>Auf dem iPhone zuerst zum Home-Bildschirm hinzufügen, dann in der App herunterladen. Beim Download die App geöffnet lassen.</small>
     </section>
+    <div class="app-update-check"><button id="app-update-check" type="button">Nach Updates suchen</button><p id="app-update-status" role="status"></p></div>
   </div>
 
   <section id="singleplayer-menu" class="versteckt" aria-label="Singleplayer"></section>
@@ -239,18 +240,14 @@
   <script src="js/ai-policy.js"></script>
   <script src="js/cloud-config.js"></script>
   <script src="js/learning-cloud.js"></script>
+  <script src="js/feedback-actions.js"></script>
+  <script src="js/cockpit-controls.js"></script>
   <script src="js/singleplayer.js"></script>
   <script src="js/game-dialogs.js"></script>
   <script src="js/game-experience.js"></script>
   <script src="js/app.js?v=compact-distance-v2"></script>
   <script src="js/offline-assets.js"></script>
   <script src="js/offline.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
-        .then(reg => console.log("SW registered:", reg.scope))
-        .catch(err => console.warn("SW registration failed:", err));
-    }
-  </script>
+  <script src="js/app-updates.js"></script>
 </body>
 </html>

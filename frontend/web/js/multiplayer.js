@@ -19,6 +19,8 @@ const FELD_LAYOUT = COCKPIT_SCHEMA.feld_layout.map(e => ({...e, snap: e.snapshot
 const LABEL = Object.fromEntries(FELD_LAYOUT.map(e => [e.ziel, e.label]));
 
 // ── Zustand ─────────────────────────────────────────────────────────────────
+let isHost=false, guestProtocolReady=false;
+let lobby=MultiplayerLobby.create();
 let myRole = null;       // "pilot" | "kopilot"
 let peer = null;         // PeerJS eigenes Peer-Objekt
 let conn = null;         // DataConnection zur Gegenseite
@@ -67,7 +69,7 @@ function filteredState(rawZ, rolle) {
   return z;
 }
 function showScreen(id) {
-  ["screen-menu","screen-host","screen-join","screen-wait","landing-selection"].forEach(s => {
+  ["screen-menu","screen-host","screen-join","screen-wait","screen-lobby","landing-selection"].forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.toggle("versteckt", s !== id);
   });
@@ -86,41 +88,76 @@ function setJoinStatus(t, cls) {
   if (el) { el.textContent = t; el.className = "status-pill " + (cls||""); }
 }
 
+function updateRoleBadge(){
+  const badge=document.getElementById("meine-rolle-badge");
+  badge.textContent=myRole==="pilot"?"Pilotin":myRole==="kopilot"?"Co-Pilot":"";
+  badge.className=`meine-rolle-badge ${myRole||""}`;
+  document.getElementById("neues-spiel-btn")?.classList.toggle("versteckt",!isHost);
+}
+function showLobby(){
+  choosingLanding=true;neuwurfUiReset();resetVerkehrUi();
+  for(const id of ["spiel-header","flight-summary","spiel-ui"])document.getElementById(id).classList.add("versteckt");
+  showScreen("screen-lobby");updateRoleBadge();
+  const scenario=LANDING_CATALOG.scenarios.find(s=>s.id===lobby.route);
+  document.getElementById("lobby-route").textContent=scenario?`${scenario.code} · ${scenario.name}${lobby.cards.length?" · "+lobby.cards.map(id=>LANDING_CATALOG.abilities.find(c=>c.id===id)?.name||id).join(", "):""}`:"Wählt gemeinsam eure Landung.";
+  document.getElementById("lobby-roles").hidden=!scenario;
+  document.getElementById("lobby-connection").textContent=partnerConnected?"Ihr seid verbunden. Beide können Strecke und Rollen auswählen.":"Warte auf Mitspieler …";
+  const role=isHost?lobby.hostRole:lobby.guestRole,ready=isHost?lobby.hostReady:lobby.guestReady;
+  for(const value of ["pilot","kopilot"])document.getElementById(`lobby-${value}`).setAttribute("aria-pressed",String(role===value));
+  document.getElementById("lobby-assignment").textContent=role?`Du: ${role==="pilot"?"Pilotin":"Co-Pilot"} · Mitspieler: ${role==="pilot"?"Co-Pilot":"Pilotin"}`:"Wählt eure Rollen.";
+  const button=document.getElementById("lobby-ready");button.disabled=!role;button.textContent=ready?"✓ Bereit – Auswahl zurücknehmen":"Bereit zum Start";
+  document.getElementById("lobby-ready-status").textContent=!pyodideReady&&isHost?"Spielregeln werden noch geladen …":lobby.hostReady&&lobby.guestReady?"Start wird vorbereitet …":(isHost?lobby.guestReady:lobby.hostReady)?"Dein Mitspieler ist bereit.":"Der Flug startet erst, wenn ihr beide bereit seid.";
+}
+function sendLobby(){if(isHost&&conn?.open)conn.send(JSON.stringify({typ:"lobby",lobby}));}
+function maybeStartLobby(){
+  if(!isHost||!guestProtocolReady||!partnerConnected||!pyodideReady||!MultiplayerLobby.canStart(lobby))return;
+  const scenario=LANDING_CATALOG.scenarios.find(s=>s.id===lobby.route);if(!scenario)return;
+  lobby.started=true;myRole=lobby.hostRole;gewaehlterFlughafen=scenario.engine_code;gewaehlteKarten=[...lobby.cards];
+  updateRoleBadge();startGame();
+}
+function handleLobby(msg,who){
+  if(!isHost)return;
+  if(msg.typ==="lobby_hello"){guestProtocolReady=msg.version===2;sendLobby();return;}
+  if(who==="guest"&&!guestProtocolReady||lobby.started)return;
+  try{
+    if(msg.typ==="lobby_route"){
+      const scenario=LANDING_CATALOG.scenarios.find(s=>s.id===msg.route),cards=msg.cards;
+      if(!scenario||!Array.isArray(cards)||new Set(cards).size!==cards.length||cards.length!==scenario.ability_count||!cards.every(id=>LANDING_CATALOG.abilities.some(c=>c.id===id)))return;
+      lobby=MultiplayerLobby.route(lobby,scenario.id,cards);
+    }else if(msg.typ==="lobby_role")lobby=MultiplayerLobby.role(lobby,who,msg.role);
+    else if(msg.typ==="lobby_ready")lobby=MultiplayerLobby.ready(lobby,who,msg.ready,msg.revision);
+    else return;
+    myRole=lobby.hostRole;showLobby();sendLobby();maybeStartLobby();
+  }catch(error){document.getElementById("lobby-ready-status").textContent=error.message;sendLobby();}
+}
+function lobbyAction(message){if(isHost)handleLobby(message,"host");else if(conn?.open)conn.send(JSON.stringify(message));}
+
 // ── Pyodide / Engine (nur Host) ──────────────────────────────────────────────
 let gewaehlterFlughafen = "LOG_YUL_GREEN";
 let choosingLanding = false;
 let gewaehlteKarten = [];
 const landingPicker = Landings.mount(document.getElementById("landing-selection"), {
-  mode: "Multiplayer · Host",
-  startLabel: "Mit dieser Landung hosten →",
-  onBack() {
-    if (partnerConnected && aktuellerZustand) {
-      choosingLanding = false;
-      landingPicker.hide();
-      document.getElementById("spiel-header").classList.remove("versteckt");
-      document.getElementById("spiel-ui").classList.remove("versteckt");
-      sendState();
-    } else { showScreen("screen-menu"); }
-  },
-  onStart(scenario) {
-    gewaehlterFlughafen = scenario.engine_code;
-    gewaehlteKarten = scenario.ability_ids || [];
-    choosingLanding = false;
-    document.getElementById("host-landing").textContent = `${scenario.code} · ${scenario.name}${scenario.kind === "logbook" ? (scenario.practice ? " · Originalstrecke, Übungsregeln" : " · Originalstrecke") : " · Eigene Strecke"}`;
-    if (partnerConnected && pyodideReady) startGame();
-    else starteHosting();
+  mode: "Multiplayer · Lobby",
+  startLabel: "Diese Strecke gemeinsam wählen →",
+  onBack(){landingPicker.hide();showLobby();},
+  onStart(scenario){
+    const message={typ:"lobby_route",route:scenario.id,cards:scenario.ability_ids||[]};
+    landingPicker.hide();
+    if(isHost)handleLobby(message,"host");else conn?.send(JSON.stringify(message));
+    showLobby();
   },
 });
 
 function waehleLandung() {
-  if (myRole === "kopilot") return;
+  if(!partnerConnected)return;
+  if(!choosingLanding){lobby={...lobby,started:false,hostReady:false,guestReady:false};if(isHost)sendLobby();}
   choosingLanding = true;
   neuwurfUiReset();
   resetVerkehrUi();
   for (const id of ["spiel-header", "flight-summary", "spiel-ui"]) document.getElementById(id).classList.add("versteckt");
   showScreen("landing-selection");
   landingPicker.show();
-  if (conn?.open) conn.send(JSON.stringify({typ:"landung_waehlen"}));
+
 }
 
 async function ladeEngine() {
@@ -130,7 +167,7 @@ async function ladeEngine() {
   try {
     setP(5); txt && (txt.textContent = "Pyodide wird geladen …");
     const pyodide = await loadPyodide({
-      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/"
+      indexURL: new URL("vendor/pyodide/0.26.1/",document.baseURI).href
     });
     setP(60); txt && (txt.textContent = "Pakete werden installiert …");
     await pyodide.loadPackage("pyyaml");
@@ -144,7 +181,7 @@ async function ladeEngine() {
     bridge = pyodide.pyimport("backend.bridge");
     setP(100); txt && (txt.textContent = "Bereit ✓");
     pyodideReady = true;
-    if (partnerConnected) startGame();
+    if(partnerConnected){sendLobby();maybeStartLobby();}
   } catch(e) {
     console.error(e);
     if (txt) txt.textContent = "Engine-Fehler: " + e.message;
@@ -177,12 +214,13 @@ function startGame() {
 
 function sendState(rawZ) {
   if (!rawZ) rawZ = pyToJs(bridge.zustand());
-  aktuellerZustand = filteredState(rawZ, "pilot");
+  aktuellerZustand = filteredState(rawZ, myRole);
   render(aktuellerZustand);
   if (conn && conn.open) {
     conn.send(JSON.stringify({
       typ:"zustand",
-      zustand: filteredState(rawZ, "kopilot"),
+      role:lobby.guestRole,
+      zustand: filteredState(rawZ, lobby.guestRole),
       neuwurf: neuwurfUi,
     }));
   }
@@ -202,7 +240,7 @@ function hostAktion(msg, absender) {
   const zeigeErgebnis = r => {
     if (!r.erfolg && msg.typ === "wirf_verkehrswuerfel") verkehrWurfFehlgeschlagen();
     const meldung = r.erfolg ? r.meldung : grundText(r.grund);
-    if (absender === "pilot") setMeldung(r.erfolg ? meldung : "Nicht möglich: " + meldung, r.erfolg ? "erfolg" : "fehler");
+    if (absender === myRole) setMeldung(r.erfolg ? meldung : "Nicht möglich: " + meldung, r.erfolg ? "erfolg" : "fehler");
     else if (conn?.open) conn.send(JSON.stringify({typ:"ergebnis", erfolg:r.erfolg, meldung}));
   };
   try {
@@ -243,7 +281,7 @@ function hostAktion(msg, absender) {
         raw = r.zustand;
       }
     } else if (msg.typ === "neues_spiel") {
-      if (absender !== "pilot") return false;
+      if (absender !== myRole) return false;
       resetVerkehrUi();
       raw = newEngineGame(msg.sameSeed === true);
       neuwurfUiReset();
@@ -310,8 +348,8 @@ function hostAktion(msg, absender) {
 // ── Eigene Aktion (vom aktuellen Gerät ausgelöst) ────────────────────────────
 function meineAktion(msg) {
   msg.besitzer = myRole;
-  if (myRole === "pilot") {
-    return hostAktion(msg, "pilot");
+  if (isHost) {
+    return hostAktion(msg, myRole);
   } else {
     if (!conn?.open) return false;
     conn.send(JSON.stringify(msg));
@@ -320,7 +358,7 @@ function meineAktion(msg) {
 
 // ── PeerJS: Host aufsetzen ───────────────────────────────────────────────────
 function starteHosting() {
-  myRole = "pilot";
+  isHost=true;myRole=null;lobby=MultiplayerLobby.create();guestProtocolReady=false;choosingLanding=true;
   showScreen("screen-host");
   const code = genCode();
   document.getElementById("host-code").textContent = code;
@@ -340,28 +378,32 @@ function starteHosting() {
   });
 
   peer.on("open", () => {
-    setHostStatus("Warte auf Co-Pilot … Code: " + code, "");
+    setHostStatus("Warte auf Mitspieler … Code: " + code, "");
     ladeEngine();
   });
 
   peer.on("connection", c => {
+    if(partnerConnected&&conn?.open){c.close();return;}
     conn = c;
     conn.on("open", () => {
       partnerConnected = true;
-      setHostStatus("Co-Pilot verbunden ✓", "ok");
+      setHostStatus("Mitspieler verbunden ✓", "ok");
       document.getElementById("verbindungs-status")?.classList.add("ok");
-      if (pyodideReady) startGame();
+      showLobby();sendLobby();
     });
     conn.on("data", raw => {
       try {
         const msg = JSON.parse(raw);
-        if (msg && typeof msg === "object") hostAktion(msg, "kopilot");
+        if(msg&&typeof msg==="object"){
+          if(msg.typ?.startsWith("lobby_"))handleLobby(msg,"guest");
+          else if(guestProtocolReady)hostAktion(msg,lobby.guestRole);
+        }
       } catch (error) {
         console.warn("Ungültige Multiplayer-Nachricht", error);
       }
     });
     conn.on("close", () => {
-      setMeldung("Verbindung zum Co-Piloten unterbrochen.", "fehler");
+      partnerConnected=false;guestProtocolReady=false;lobby.guestReady=false;setMeldung("Verbindung zum Mitspieler unterbrochen.", "fehler");
     });
   });
 
@@ -377,7 +419,7 @@ function starteHosting() {
 
 // ── PeerJS: Beitreten ────────────────────────────────────────────────────────
 function starte_Beitreten(code) {
-  myRole = "kopilot";
+  isHost=false;myRole=null;choosingLanding=true;
   code = code.toUpperCase().trim();
   if (code.length < 6) { setJoinStatus("Code muss 6 Zeichen haben.", "err"); return; }
   setJoinStatus("Verbinde …", "");
@@ -391,19 +433,20 @@ function starte_Beitreten(code) {
     conn.on("open", () => {
       setJoinStatus("Verbunden ✓ – warte auf Spielstart …", "ok");
       showScreen("screen-wait");
-      document.getElementById("neues-spiel-btn").classList.add("versteckt");
-      document.getElementById("meine-rolle-badge").textContent = "Co-Pilot";
-      document.getElementById("meine-rolle-badge").className = "meine-rolle-badge kopilot";
+      partnerConnected=true;
+      conn.send(JSON.stringify({typ:"lobby_hello",version:2}));
     });
     conn.on("data", raw => {
-      const msg = JSON.parse(raw);
+      let msg;try{msg=JSON.parse(raw);}catch{return;}
+      if(msg.typ==="lobby"&&msg.lobby?.version===2){lobby=msg.lobby;myRole=lobby.guestRole;choosingLanding=true;showLobby();return;}
       if (msg.typ === "landung_waehlen") {
         neuwurfUiReset();
         resetVerkehrUi();
         for (const id of ["spiel-header", "flight-summary", "spiel-ui"]) document.getElementById(id).classList.add("versteckt");
         showScreen("screen-wait");
       }
-      if (msg.typ === "zustand" && msg.zustand) {
+      if (msg.typ === "zustand" && msg.zustand && ["pilot","kopilot"].includes(msg.role)) {
+        myRole=msg.role;choosingLanding=false;updateRoleBadge();
         showScreen(null);
         document.getElementById("spiel-header").classList.remove("versteckt");
         document.getElementById("spiel-ui").classList.remove("versteckt");
@@ -656,7 +699,7 @@ function render(z) {
     conceal() {eigeneWuerfelVersteckt = true; ausgewaehlterWuerfel = null; render(aktuellerZustand);},
     onPlace(role, die, target, index) {ausgewaehlterWuerfel = null; meineAktion({typ:'platziere', wuerfel_index:die, ziel:target, index});},
     onAction(role, action, params) {ausgewaehlterWuerfel = null; meineAktion({typ:'modul_aktion', aktion:action, parameter:params});},
-    onTick:myRole === 'pilot' ? () => {if (!choosingLanding) {const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {neuwurfUiReset(); sendState(r.zustand);}}} : null,
+    onTick:isHost ? () => {if (!choosingLanding) {const r = pyToJs(bridge.tick()); if (r.ergebnis.erfolg) {neuwurfUiReset(); sendState(r.zustand);}}} : null,
   });
 
   const amZug=document.getElementById("am-zug-anzeige");
@@ -814,7 +857,7 @@ function zelle(fixBesitzer,wertObj,slotIdx,e,z,gesperrt=false) {
   div.className="feld-zelle";
   if(e?.ziel)div.classList.add(`ziel-${e.ziel}`);
   FlightModules.identifyField(div,e,slotIdx,fixBesitzer);
-  if(wertObj){if(wertObj.quelle)div.classList.add(`source-${wertObj.quelle}`);div.classList.add("belegt",wertObj.besitzer);div.textContent=wertObj.wert;return div;}
+  if(wertObj){CockpitControls.placedDie(div,wertObj);return div;}
   if(e.zahlen&&slotIdx!==null)div.innerHTML=`<small>${e.zahlen[slotIdx].join("/")}</small>`;
   if(gesperrt){div.title="Reihenfolge beachten.";return div;}
   const ichDran=myRole&&z.am_zug===myRole&&z.status==="laeuft"&&z.phase==="platzieren"&&!z.zusatzaktion&&!z.kooperation;
@@ -888,29 +931,12 @@ function renderWuerfel(besitzer,z) {
     if(!imNeuwurf && istMeins&&istPlatzierAus&&frei[i]&&!verborgen&&z.kaffeetassen>0){
       const kb=document.createElement("button");
       kb.textContent="☕";
+      kb.className="coffee-open";kb.setAttribute("aria-label",`Würfel ${wert} mit Kaffee ändern`);
       kb.addEventListener("click",ev=>{
         ev.stopPropagation();
-        kaffeeMenuFuer=(kaffeeMenuFuer?.index===i?null:{besitzer,index:i});
-        render(z);
-      });
-      wrap.appendChild(kb);
-      if(kaffeeMenuFuer?.index===i&&kaffeeMenuFuer?.besitzer===besitzer){
-        const n=z.kaffeetassen;
-        const menu=document.createElement("div");
-        menu.className="kaffee-auswahl";
-        for(let d=-n;d<=n;d++){
-          if(d===0||wert+d<1||wert+d>6)continue;
-          const b=document.createElement("button");
-          b.textContent=(d>0?"+":"")+d;
-          b.addEventListener("click",ev=>{
-            ev.stopPropagation();
-            kaffeeMenuFuer=null;
-            meineAktion({typ:"trinke_kaffee",wuerfel_index:i,delta:d});
-          });
-          menu.appendChild(b);
-        }
-        wrap.appendChild(menu);
-      }
+        const deltas=Array.from({length:7},(_,i)=>i-3).filter(delta=>delta&&Math.abs(delta)<=z.kaffeetassen&&wert+delta>=1&&wert+delta<=6);
+        CockpitControls.coffee({value:wert,deltas,owner:besitzer,onApply:delta=>meineAktion({typ:"trinke_kaffee",wuerfel_index:i,delta})});
+      });wrap.appendChild(kb);
     }
     container.appendChild(wrap);
   });
@@ -927,10 +953,13 @@ function renderNeuwurf(z) {
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("lobby-route-change").onclick=waehleLandung;
+  for(const role of ["pilot","kopilot"])document.getElementById(`lobby-${role}`).onclick=()=>lobbyAction({typ:"lobby_role",role});
+  document.getElementById("lobby-ready").onclick=()=>lobbyAction({typ:"lobby_ready",ready:!(isHost?lobby.hostReady:lobby.guestReady),revision:lobby.revision});
   const params = new URLSearchParams(window.location.search);
   const joinCode = params.get("join");
 
-  document.getElementById("btn-host").addEventListener("click", waehleLandung);
+  document.getElementById("btn-host").addEventListener("click", starteHosting);
   document.getElementById("btn-join").addEventListener("click", () => showScreen("screen-join"));
   document.getElementById("btn-do-join").addEventListener("click", () => {
     starte_Beitreten(document.getElementById("join-code-input").value);
@@ -940,7 +969,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   GameDialogs.connect({
-    canRestart:()=>myRole==='pilot',
+    canRestart:()=>isHost,
     confirmMainText:'Die Verbindung zur gemeinsamen Partie wird beendet.',
     onRestart(options){GameDialogs.reset();meineAktion({typ:'neues_spiel',sameSeed:options.sameSeed===true});},
     onMainMenu(){window.location='index.html';},
@@ -962,3 +991,5 @@ window.addEventListener("DOMContentLoaded", () => {
     starte_Beitreten(joinCode);
   }
 });
+
+window.CockpitUpdateHooks={canApply:()=>!aktuellerZustand&&!conn?.open,async prepare(){if(aktuellerZustand||conn?.open)throw new Error("Bitte zuerst die Multiplayer-Partie verlassen.");}};
